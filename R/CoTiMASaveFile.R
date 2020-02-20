@@ -1,16 +1,33 @@
 ##### CoTiMA fitting procedure - singleStudyModelFit
-debug <- 0
-if (debug ==1) {
-  activateRPB <- activateRPB
-  #workingDirectory <- x2
-  activeDirectory="/Users/cdormann/SynologyDrive/Drive/CHRISTIAN/TEXTE/METHODEN/R/SYNTAXSAMMLUNG/CoTiMA/CURRENT VERSION/_TRYOUT"
-  SaveObject <- homDRIFTallFit
-  FileName <- x1
-  Directory <- "test"
-  silentOverwrite <- silentOverwrite
-}
-debug <- 0
 
+
+
+# debug <- 0
+# if (debug ==1) {
+#   activateRPB <- activateRPB
+#   #workingDirectory <- x2
+#   activeDirectory="/Users/cdormann/SynologyDrive/Drive/CHRISTIAN/TEXTE/METHODEN/R/SYNTAXSAMMLUNG/CoTiMA/CURRENT VERSION/_TRYOUT"
+#   SaveObject <- homDRIFTallFit
+#   FileName <- x1
+#   Directory <- "test"
+#   silentOverwrite <- silentOverwrite
+# }
+# debug <- 0
+
+#' CoTiMASaveFile
+#'
+#' @param activateRPB
+#' @param activeDirectory
+#' @param SaveObject
+#' @param FileName
+#' @param Directory
+#' @param silentOverwrite
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
 CoTiMASaveFile <- function(activateRPB,
                            #workingDirectory=Null,
                            activeDirectory=activeDirectory,
@@ -23,7 +40,7 @@ CoTiMASaveFile <- function(activateRPB,
   #if (!(dir.exists(Directory))) {dir.create(Directory);print("Directory added!")}
   if (!(dir.exists(x1))) {dir.create(x1);print("Directory added!")}
   #setwd(Directory)
-  wdFileList <- list.files(x1)        
+  wdFileList <- list.files(x1)
   if (FileName %in% wdFileList) {
     if (silentOverwrite==FALSE) {
       if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
@@ -33,7 +50,7 @@ CoTiMASaveFile <- function(activateRPB,
       cat(blue("If you wish to CHANGE the filename please press 'c' or press 'q' to QUIT", "\n"))
       cat(blue("Press ENTER afterwards to confirm your choice."))
       char <- readline(" ")
-      while (!(char == 'y') & !(char == 'Y') & !(char == 'n') & !(char == 'N') & !(char == 'c') & !(char == 'C') 
+      while (!(char == 'y') & !(char == 'Y') & !(char == 'n') & !(char == 'N') & !(char == 'c') & !(char == 'C')
              & !(char == 'q') & !(char == 'Q')) {
         cat(blue("Please press 'y' to override, or 'n' to continue without saving. Press 'c' to change the filename or 'q to quit. Confirm your choice by pressing ENTER afterwards.", "\n"))
         char <- readline(" ")
