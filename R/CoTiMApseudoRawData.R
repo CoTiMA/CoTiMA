@@ -28,12 +28,12 @@ pseudoRawData <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, stud
                           empMeanVector=NULL, empVarVector=NULL, activateRPB=FALSE)
 {  # begin function definition (until end of file)
 
-  if("MASS" %in% rownames(installed.packages()) == FALSE) {install.packages("MASS")} # for computing pseudo raw data
-  if("crayon" %in% rownames(installed.packages()) == FALSE) {install.packages("crayon")}
-  if("psych" %in% rownames(installed.packages()) == FALSE) {install.packages("psych")}
-  if (!("MASS" %in% (.packages()))) library(MASS)
-  if (!("crayon" %in% (.packages()))) library(crayon)
-  if (!("psych" %in% (.packages()))) library(psych)
+  # if("MASS" %in% rownames(installed.packages()) == FALSE) {install.packages("MASS")} # for computing pseudo raw data
+  # if("crayon" %in% rownames(installed.packages()) == FALSE) {install.packages("crayon")}
+  # if("psych" %in% rownames(installed.packages()) == FALSE) {install.packages("psych")}
+  # if (!("MASS" %in% (.packages()))) library(MASS)
+  # if (!("crayon" %in% (.packages()))) library(crayon)
+  # if (!("psych" %in% (.packages()))) library(psych)
 
   if (is.null(empCovMat)) {
     if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
