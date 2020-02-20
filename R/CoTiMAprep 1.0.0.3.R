@@ -1,75 +1,106 @@
-debug <- 0
-if (debug == 1) {
-  ##### ENTER DEBUG INFORMATION BELOW THE FOLLOWING #######
-  activeDirectory=NULL
-  sourceDirectory= NULL
-  resultsFilePrefix="CoTiMAprep"           # the prefix for the result file that is created
-  saveFilePrefix="CoTiMAprep"
-  loadFilePrefix="CoTiMAprep"
-  primaryStudies=NULL                    #NEW: list of lists: list(deltas, sampleSizes, empcovs, moderators, startValues, studyNumbers)
-  activateRPB=FALSE                      #set to TRUE to receive push messages with CoTiMA notifications on your phone
-  digits=4
-  checkSingleStudyResults=TRUE          # displays estimates from single study ctsem models and waits for user inoput to continue
-  n.latent=NULL
-  loadRawData=list()
-  saveRawData=list()
-  retryattempts=30                       # number of iterations to be used by ctsem
-  refits=5                               # number of re-fits used by this CoTiMA Function
-  extraRefits=c()                        # (vector of) study number(s) that should be re-fitted even more (difficult models)
-  factorExtraRefits=1                    # factor by which "refits" are multiplied for difficult models
-  NPSOL=FALSE                            # request NPSOL optimizer (sometimes better estimates, e.g., for confidence intervals)
-  coresToUse=c(1)                        # could be set to -n (usually -1) which is subtracted from the overall number available (on non Windows machines)
-  tryHard=TRUE
-  confidenceIntervals=FALSE              # estimate confidence intervals (for all requested models)
-  silentOverwrite=FALSE
-  saveSingleStudyModelFit=c()            # save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
-  loadSingleStudyModelFit=c()            # load the fit of single study ctsem models
-  
-  ##### ENTER DEBUG INFO HERE #######
-  activeDirectory="/Users/cdormann/SynologyDrive/Drive/CHRISTIAN/TEXTE/ARTIKEL/COTIMA BURNOUT/NEU 2019/PB SUBMISSION (BUL-2019-1709)/REVISION/_TRYOUT/"
-  sourceDirectory="/Users/cdormann/SynologyDrive/Drive/CHRISTIAN/TEXTE/METHODEN/R/SYNTAXSAMMLUNG/CoTiMA/CURRENT VERSION/_TRYOUT/"
-  resultsFilePrefix="CoTiMAprep"           # the prefix for the result file that is created
-  saveFilePrefix="CoTiMAprep"
-  loadFilePrefix="CoTiMAprep"
-  
-  # Primary Study Information
-  primaryStudies=compiledListOfPrimaryStudies                    #NEW: list of lists: list(deltas, sampleSizes, empcovs, moderators, startValues, studyNumbers)
-  
-  # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
-  #activateRPB=FALSE,                      #set to TRUE to receive push messages with CoTiMA notifications on your phone
-  #checkSingleStudyResults=TRUE,          # displays estimates from single study ctsem models and waits for user inoput to continue
-  digits=4
-  
-  # General Model Setup
-  n.latent=2
-  
-  # Load/save Raw Data
-  #loadRawData=list(),
-  #saveRawData=list(),
-  
-  # Fitting Parameters
-  #retryattempts=30,                       # number of iterations to be used by ctsem
-  #refits=5,                               # number of re-fits used by this CoTiMA Function
-  #extraRefits=c(),                        # (vector of) study number(s) that should be re-fitted even more (difficult models)
-  #factorExtraRefits=1,                    # factor by which "refits" are multiplied for difficult models
-  #NPSOL=FALSE,                            # request NPSOL optimizer (sometimes better estimates, e.g., for confidence intervals)
-  coresToUse=c(-1)                        # could be set to -n (usually -1) which is subtracted from the overall number available (on non Windows machines)
-  #tryHard=TRUE,
-  # Further Analyses
-  #confidenceIntervals=FALSE,              # estimate confidence intervals (for all requested models)
-  
-  ## Save computed model fits or load previous fits (then provide (old) file prefix)
-  #silentOverwrite=FALSE,
-  
-  # ctsem models for all primasry studies (always required for getting good starting values (and model fit for heterogeneity model without fitting it))
-  #saveSingleStudyModelFit=c("prep1")            # save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
-  loadSingleStudyModelFit=c("prep1")     
-}
+#debug <- 0
+#if (debug == 1) {
+#  ##### ENTER DEBUG INFORMATION BELOW THE FOLLOWING #######
+#  activeDirectory=NULL
+#  sourceDirectory= NULL
+#  resultsFilePrefix="CoTiMAprep"           # the prefix for the result file that is created
+#  saveFilePrefix="CoTiMAprep"
+#  loadFilePrefix="CoTiMAprep"
+#  primaryStudies=NULL                    #NEW: list of lists: list(deltas, sampleSizes, empcovs, moderators, startValues, studyNumbers)
+#  activateRPB=FALSE                      #set to TRUE to receive push messages with CoTiMA notifications on your phone
+#  digits=4
+#  checkSingleStudyResults=TRUE          # displays estimates from single study ctsem models and waits for user inoput to continue
+#  n.latent=NULL
+#  loadRawData=list()
+#  saveRawData=list()
+#  retryattempts=30                       # number of iterations to be used by ctsem
+#  refits=5                               # number of re-fits used by this CoTiMA Function
+#  extraRefits=c()                        # (vector of) study number(s) that should be re-fitted even more (difficult models)
+#  factorExtraRefits=1                    # factor by which "refits" are multiplied for difficult models
+#  NPSOL=FALSE                            # request NPSOL optimizer (sometimes better estimates, e.g., for confidence intervals)
+#  coresToUse=c(1)                        # could be set to -n (usually -1) which is subtracted from the overall number available (on non Windows machines)
+#  tryHard=TRUE
+#  confidenceIntervals=FALSE              # estimate confidence intervals (for all requested models)
+#  silentOverwrite=FALSE
+#  saveSingleStudyModelFit=c()            # save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
+#  loadSingleStudyModelFit=c()            # load the fit of single study ctsem models
+
+#  ##### ENTER DEBUG INFO HERE #######
+#  activeDirectory="/Users/cdormann/SynologyDrive/Drive/CHRISTIAN/TEXTE/ARTIKEL/COTIMA BURNOUT/NEU 2019/PB SUBMISSION (BUL-2019-1709)/REVISION/_TRYOUT/"
+#  sourceDirectory="/Users/cdormann/SynologyDrive/Drive/CHRISTIAN/TEXTE/METHODEN/R/SYNTAXSAMMLUNG/CoTiMA/CURRENT VERSION/_TRYOUT/"
+#  resultsFilePrefix="CoTiMAprep"           # the prefix for the result file that is created
+#  saveFilePrefix="CoTiMAprep"
+#  loadFilePrefix="CoTiMAprep"
+#
+#  # Primary Study Information
+#  primaryStudies=compiledListOfPrimaryStudies                    #NEW: list of lists: list(deltas, sampleSizes, empcovs, moderators, startValues, studyNumbers)
+#
+#  # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
+#  #activateRPB=FALSE,                      #set to TRUE to receive push messages with CoTiMA notifications on your phone
+#  #checkSingleStudyResults=TRUE,          # displays estimates from single study ctsem models and waits for user inoput to continue
+#  digits=4
+#
+#  # General Model Setup
+#  n.latent=2
+#
+#  # Load/save Raw Data
+#  #loadRawData=list(),
+#  #saveRawData=list(),
+#
+#  # Fitting Parameters
+#  #retryattempts=30,                       # number of iterations to be used by ctsem
+#  #refits=5,                               # number of re-fits used by this CoTiMA Function
+#  #extraRefits=c(),                        # (vector of) study number(s) that should be re-fitted even more (difficult models)
+#  #factorExtraRefits=1,                    # factor by which "refits" are multiplied for difficult models
+#  #NPSOL=FALSE,                            # request NPSOL optimizer (sometimes better estimates, e.g., for confidence intervals)
+# coresToUse=c(-1)                        # could be set to -n (usually -1) which is subtracted from the overall number available (on non Windows machines)
+#  #tryHard=TRUE,
+#  # Further Analyses
+#  #confidenceIntervals=FALSE,              # estimate confidence intervals (for all requested models)
+#
+#  ## Save computed model fits or load previous fits (then provide (old) file prefix)
+#  #silentOverwrite=FALSE,
+#
+#  # ctsem models for all primasry studies (always required for getting good starting values (and model fit for heterogeneity model without fitting it))
+#  #saveSingleStudyModelFit=c("prep1")            # save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
+#  loadSingleStudyModelFit=c("prep1")
+#}
 
 #######################################################################################################################
 #######################################################################################################################
 #######################################################################################################################
 
+#' CoTiMAprep
+#'
+#' @param activeDirectory
+#' @param sourceDirectory
+#' @param resultsFilePrefix
+#' @param saveFilePrefix
+#' @param loadFilePrefix
+#' @param primaryStudies
+#' @param activateRPB
+#' @param checkSingleStudyResults
+#' @param digits
+#' @param n.latent
+#' @param loadRawData
+#' @param saveRawData
+#' @param retryattempts
+#' @param refits
+#' @param extraRefits
+#' @param factorExtraRefits
+#' @param NPSOL
+#' @param coresToUse
+#' @param tryHard
+#' @param confidenceIntervals
+#' @param silentOverwrite
+#' @param saveSingleStudyModelFit
+#' @param loadSingleStudyModelFit
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
 CoTiMAprep <- function(
   # Directory names and file names
   activeDirectory=NULL,
@@ -77,23 +108,23 @@ CoTiMAprep <- function(
   resultsFilePrefix="CoTiMAprep",           # the prefix for the result file that is created
   saveFilePrefix="CoTiMAprep",
   loadFilePrefix="CoTiMAprep",
-  
+
   # Primary Study Information
   primaryStudies=NULL,                    #NEW: list of lists: list(deltas, sampleSizes, empcovs, moderators, startValues, studyNumbers)
-  
+
   # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
   activateRPB=FALSE,                      #set to TRUE to receive push messages with CoTiMA notifications on your phone
   checkSingleStudyResults=TRUE,          # displays estimates from single study ctsem models and waits for user inoput to continue
   digits=4,
-  
-  
+
+
   # General Model Setup
   n.latent=NULL,
-  
+
   # Load/save Raw Data
   loadRawData=list(),
   saveRawData=list(),
-  
+
   # Fitting Parameters
   retryattempts=30,                       # number of iterations to be used by ctsem
   refits=5,                               # number of re-fits used by this CoTiMA Function
@@ -102,69 +133,69 @@ CoTiMAprep <- function(
   NPSOL=FALSE,                            # request NPSOL optimizer (sometimes better estimates, e.g., for confidence intervals)
   coresToUse=c(1),                        # could be set to -n (usually -1) which is subtracted from the overall number available (on non Windows machines)
   tryHard=TRUE,
-  
+
   # Further Analyses
   confidenceIntervals=FALSE,              # estimate confidence intervals (for all requested models)
-  
+
   ## Save computed model fits or load previous fits (then provide (old) file prefix)
   silentOverwrite=FALSE,
-  
+
   # ctsem models for all primasry studies (always required for getting good starting values (and model fit for heterogeneity model without fitting it))
   saveSingleStudyModelFit=c(),            # save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
   loadSingleStudyModelFit=c()            # load the fit of single study ctsem models
 )
 
 {  # begin function definition (until end of file)
-  
-  #######################################################################################################################
-  ############################################ load required subfunctions ###############################################
-  #######################################################################################################################
-  
-  {
-    print(paste0("#################################################################################"))
-    print(paste0("########################## DEFINE Required Functions ############################"))
-    print(paste0("#################################################################################"))
-    
-    source(paste0(sourceDirectory, "CoTiMASaveFile.R"))
-    source(paste0(sourceDirectory, "CoTiMAfittingSSMF.R"))
-    source(paste0(sourceDirectory, "CoTiMApseudoRawData.R"))
-    source(paste0(sourceDirectory, "CoTiMAcombinePseudoRawData.R"))
-    
-  } ### END DEFINE required subfunctions ###
-  
-  
-  
-  #######################################################################################################################
-  ############################################### attach further packages ###############################################
-  #######################################################################################################################
-  {
-    print(paste0("#################################################################################"))
-    print(paste0("############################ Attach Further Packages ############################"))
-    print(paste0("#################################################################################"))
-    
-    
-    # If OpenMx and ctsem are already attached, detaching them is required to enable OpenMx to run in parallel mode.
-    if ("OpenMx" %in% (.packages())) suppressWarnings(detach("package:OpenMx", force=TRUE)) #, unload=TRUE)
-    if ("ctsem" %in% (.packages())) suppressWarnings(detach("package:ctsem", force=TRUE)) #, unload=TRUE))
-    Sys.setenv(OMP_NUM_THREADS=parallel::detectCores()) #before library(OpenMx)
-    library(ctsem)
-    mxOption(key='Number of Threads', value=parallel::detectCores()) #now
-    
-    # Attach all required packages that were not already attach with "library(ctsem)" before
-    if (!("MASS" %in% (.packages()))) library(MASS)
-    if (!("MBESS" %in% (.packages()))) library(MBESS)
-    if (!("rootSolve" %in% (.packages()))) library(rootSolve)
-    if (!("doParallel" %in% (.packages()))) library(doParallel)  # this is for parallel processing loops (not for internal parallel processing of OpenMx)
-    if (!("crayon" %in% (.packages()))) library(crayon)
-    if (!("psych" %in% (.packages()))) library(psych)
-    
-    if (activateRPB==TRUE) {
-      if("RPushbullet" %in% rownames(installed.packages()) == FALSE) {install.packages("RPushbullet")}
-      if (!("RPushbullet" %in% (.packages()))) library(RPushbullet)
-      
-    }
-  } ### END install and attach further packages ###
-  
+
+  # #######################################################################################################################
+  # ############################################ load required subfunctions ###############################################
+  # #######################################################################################################################
+  #
+  # {
+  #   print(paste0("#################################################################################"))
+  #   print(paste0("########################## DEFINE Required Functions ############################"))
+  #   print(paste0("#################################################################################"))
+  #
+  #   source(paste0(sourceDirectory, "CoTiMASaveFile.R"))
+  #   source(paste0(sourceDirectory, "CoTiMAfittingSSMF.R"))
+  #   source(paste0(sourceDirectory, "CoTiMApseudoRawData.R"))
+  #   source(paste0(sourceDirectory, "CoTiMAcombinePseudoRawData.R"))
+  #
+  # } ### END DEFINE required subfunctions ###
+
+
+
+  # #######################################################################################################################
+  # ############################################### attach further packages ###############################################
+  # #######################################################################################################################
+  # {
+  #   print(paste0("#################################################################################"))
+  #   print(paste0("############################ Attach Further Packages ############################"))
+  #   print(paste0("#################################################################################"))
+  #
+  #
+  #   # If OpenMx and ctsem are already attached, detaching them is required to enable OpenMx to run in parallel mode.
+  #   if ("OpenMx" %in% (.packages())) suppressWarnings(detach("package:OpenMx", force=TRUE)) #, unload=TRUE)
+  #   if ("ctsem" %in% (.packages())) suppressWarnings(detach("package:ctsem", force=TRUE)) #, unload=TRUE))
+  #   Sys.setenv(OMP_NUM_THREADS=parallel::detectCores()) #before library(OpenMx)
+  #   library(ctsem)
+  #   mxOption(key='Number of Threads', value=parallel::detectCores()) #now
+  #
+  #   # Attach all required packages that were not already attach with "library(ctsem)" before
+  #   if (!("MASS" %in% (.packages()))) library(MASS)
+  #   if (!("MBESS" %in% (.packages()))) library(MBESS)
+  #   if (!("rootSolve" %in% (.packages()))) library(rootSolve)
+  #   if (!("doParallel" %in% (.packages()))) library(doParallel)  # this is for parallel processing loops (not for internal parallel processing of OpenMx)
+  #   if (!("crayon" %in% (.packages()))) library(crayon)
+  #   if (!("psych" %in% (.packages()))) library(psych)
+  #
+  #   if (activateRPB==TRUE) {
+  #     if("RPushbullet" %in% rownames(installed.packages()) == FALSE) {install.packages("RPushbullet")}
+  #     if (!("RPushbullet" %in% (.packages()))) library(RPushbullet)
+  #
+  #   }
+  # } ### END install and attach further packages ###
+
   #######################################################################################################################
   ########################################### Check Model Specification #################################################
   #######################################################################################################################
@@ -172,7 +203,7 @@ CoTiMAprep <- function(
     print(paste0("#################################################################################"))
     print(paste0("########################## Check Model Specification ############################"))
     print(paste0("#################################################################################"))
-    
+
     if (is.null(primaryStudies)) {
       if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat(red$bold(" List with lists of primary study information not specified!", sep="\n"))
@@ -207,31 +238,31 @@ CoTiMAprep <- function(
         } # END else (catch failed)
       } # END else
     } #
-    
-    
+
+
     if (is.null(n.latent)) {
       if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat(red$bold("Number of variables (n.latent) not specified!", sep="\n"))
       stop("Good luck for the next try!")
     }
-    
-    
+
+
     if (is.null(n.latent)) {
       if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat(red$bold("Number of variables (n.latent) not specified!", sep="\n"))
       stop("Good luck for the next try!")
     }
-    
+
     if (is.null(activeDirectory)) {
       if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat(red$bold("No working directory has been specified!", sep="\n"))
       stop("Good luck for the next try!")
     }
-    
+
     # check statistical power
-    
+
     # check time unit
-    
+
     if (resultsFilePrefix=="CoTiMAprep") {
       if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat(red$bold("The default results file prefix (CoTiMAprep) has been chosen.", "\n"))
@@ -244,7 +275,7 @@ CoTiMAprep <- function(
       if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
     }
     rsultsFileName <- paste0(resultsFilePrefix, ".txt")
-    
+
     if (saveFilePrefix=="CoTiMAprep") {
       if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat(red$bold("The default save file prefix (CoTiMAprep) has been chosen.", "\n"))
@@ -256,9 +287,9 @@ CoTiMAprep <- function(
       }
       if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
     }
-    
+
     resultsFileName <-paste0(resultsFilePrefix, ".txt")
-    
+
     if (is.null(loadFilePrefix)) {ncharLoadFilePrefix <- 0} else {ncharLoadFilePrefix <- nchar(loadFilePrefix)} # check maximum path + filename length
     ncharResultsFileName <- nchar(resultsFileName)
     ncharFilePrefix <- max(nchar(saveFilePrefix), nchar(loadFilePrefix))
@@ -284,9 +315,9 @@ CoTiMAprep <- function(
       cat(blue("Shorten the file names or prefixes, or better work in a different working directory.", sep="\n"))
       stop("Good luck for the next try!")
     }
-    
+
     # select moderatorNumber if no number is specified by user
-    
+
     #if (length(saveSingleStudyFit) > 1 | length(loadSingleStudyFit) > 1 | saveHeterogeneityStudyFit == TRUE | loadHeterogeneityStudyFit == TRUE
     #    | saveHomogeneityStudyFit == TRUE | loadHomogeneityStudyFit == TRUE | !(is.null(loadFilePrefix))) {
     #  if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
@@ -294,7 +325,7 @@ CoTiMAprep <- function(
     #  cat(red("You're using parameters of an older Version of CoTiMA (prior v1.6)","\n"))
     #  stop(red("Please adjust your file to the newest version or use an older function"))
     #}
-    
+
     if  (length(coresToUse) > 0) {
       if (coresToUse < 1)  {
         if (.Platform$OS.type == "unix") {
@@ -315,21 +346,21 @@ CoTiMAprep <- function(
     } else {
       coresToUse <- 1
     }
-    
+
     if ((-1) * coresToUse >= parallel::detectCores()) {
       if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
       coresToUse <- parallel::detectCores() - 1
       cat(red("No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.","\n"))
     }
-    
+
     numOfThreads <- round((coresToUse/refits - .4), 0); numOfThreads
     if(numOfThreads < 1) numOfThreads <- 1
     tmp <- paste0("No of Threads set to ", numOfThreads); tmp
     cat(red(tmp,"\n"))
-    
+
   } ### END Check Model Specification ###
-  
-  
+
+
   #######################################################################################################################
   ##################### Read user provided data and create list with all study information ##############################
   #######################################################################################################################
@@ -337,15 +368,15 @@ CoTiMAprep <- function(
     print(paste0("#################################################################################"))
     print(paste0("###### Read user provided data and create list with all study information #######"))
     print(paste0("#################################################################################"))
-    
+
     #setwd(activeDirectory)
     start.time <- Sys.time(); start.time
-    
+
     studyList <- list()
     maxLengthModeratorVector <- 0
     loadRawDataStudyNumbers <- unlist(lapply(primaryStudies$rawData,
                                              function(extract) extract$studyNumbers)); loadRawDataStudyNumbers
-    
+
     # resorting primary study information
     if (!(exists("moderatorNumber"))) moderatorNumber <- 1; moderatorNumber
     for (i in 1:length(unlist(primaryStudies$studyNumbers))) {
@@ -363,7 +394,7 @@ CoTiMAprep <- function(
         }
       }
     }
-    
+
     # determine number of studies (if list is created by CoTiMAcompileListOfPrimaryStudies.R it is 1 element too long)
     tmp <- length(unlist(primaryStudies$studyNumbers)); tmp
     if ( is.na(primaryStudies$deltas[tmp]) & is.na(primaryStudies$sampleSizes[tmp]) & is.na(primaryStudies$deltas[tmp]) &
@@ -375,9 +406,9 @@ CoTiMAprep <- function(
       n.studies <- tmp
     }
     n.studies
-    
+
     # correction if no moderatorNumber is specified
-    
+
     ### create pseudo raw data for all studies or load raw data if available & specified
     empraw <- lags <- moderators <- emprawMod <- allSampleSizes <- lostN <- overallNDiff <- relativeNDiff <- list()
     allTpoints <-lapply(studyList, function(extract) extract$timePoints); allTpoints
@@ -424,7 +455,7 @@ CoTiMAprep <- function(
         # END correction
         # add potential moderators
       }
-      
+
       # load raw data on request
       if ( i %in% loadRawDataStudyNumbers ) {
         tmp1 <- studyList[[i]]$rawData$fileName; tmp1
@@ -458,12 +489,12 @@ CoTiMAprep <- function(
         # restore
         empraw[[i]] <- as.data.frame(emprawWide)
         # END correction
-        
+
         # Change the NAs provided for deltas if raw data are loaded
         for (h in 1:(currentTpoints-1)) studyList[[i]]$delta_t[h] <- mean(empraw[[i]][, paste0("dT", 1)], na.rm=TRUE)
-        
-      } 
-      
+
+      }
+
       # change sample size if entire cases were deleted
       studyList[[i]]$sampleSize <- (dim(empraw[[i]]))[1]
       allSampleSizes[[i]] <- dim(empraw[[i]])[1]
@@ -476,15 +507,15 @@ CoTiMAprep <- function(
         }
       }
       colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
-      
+
       # standardize (variables - not time lags) if option is chosen
       if (studyList[[i]]$rawData$standardize == TRUE) empraw[[i]][, currentVarnames] <- scale(empraw[[i]][, currentVarnames])
-      
+
       # replace missing values for time lags dTi by .000001 (has to be so because dTi are definition variables)
       tmpData <- empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))]
       tmpData[is.na(tmpData)] <- .001
       empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))] <- tmpData
-      # add moderators to loaded raw data 
+      # add moderators to loaded raw data
       # Save raw data  on request
       if ( i %in% saveRawData$studyNumbers ) {
         x1 <- paste0(saveRawData$fileName, i, ".dat"); x1
@@ -493,8 +524,8 @@ CoTiMAprep <- function(
       }
     } ### END for i ...
   } ### END Read user provided data and create list with all study information ###
-  
-  
+
+
   #######################################################################################################################
   ################################################### Some Statistics ###################################################
   #######################################################################################################################
@@ -502,7 +533,7 @@ CoTiMAprep <- function(
     print(paste0("#################################################################################"))
     print(paste0("################# Compute Summary Statistics of Primary Studies #################"))
     print(paste0("#################################################################################"))
-    
+
     ### some stats
     # Sample size
     allSampleSizes <-unlist(lapply(studyList, function(extract) extract$sampleSize)); allSampleSizes
@@ -526,13 +557,13 @@ CoTiMAprep <- function(
     minTpoints  <- min(allTpoints, na.rm=TRUE); minTpoints
     # Moderators Information
     statisticsList <- list(originalStudyNumbers=unlist(primaryStudies$studyNumber),
-                           allSampleSizes=allSampleSizes, overallSampleSize=overallSampleSize, meanSampleSize=meanSampleSize, 
-                           maxSampleSize=maxSampleSize, minSampleSize=minSampleSize, 
+                           allSampleSizes=allSampleSizes, overallSampleSize=overallSampleSize, meanSampleSize=meanSampleSize,
+                           maxSampleSize=maxSampleSize, minSampleSize=minSampleSize,
                            allDeltas=allDeltas, meanDelta=meanDelta, maxDelta=maxDelta, minDelta=minDelta,
                            allTpoints=allTpoints, overallTpoints=overallTpoints, meanTpoints=meanTpoints, maxTpoints=maxTpoints, minTpoints=minTpoints)
     statisticsList
   } ### END Some Statistics ###
-  
+
   #######################################################################################################################
   ############################# Create ctsem model template to fit all primary studies ##################################
   #######################################################################################################################
@@ -540,7 +571,7 @@ CoTiMAprep <- function(
     print(paste0("#################################################################################"))
     print(paste0("############ Create ctsem Model Template to fit all Primary Studies #############"))
     print(paste0("#################################################################################"))
-    
+
     manifestNames <- c()
     for (i in 1:n.latent) manifestNames <- c(manifestNames, paste0("V",i))
     driftNames <- c()
@@ -562,7 +593,7 @@ CoTiMAprep <- function(
                                   T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
                                   MANIFESTMEANS = matrix(c(0), nrow = n.latent, ncol = 1),
                                   MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent))
-    
+
     # ctsem models for each primary study with the correct number of time points
     ctsemModel <- list()
     counter <- 1
@@ -573,8 +604,8 @@ CoTiMAprep <- function(
       counter <- counter +1
     }
   } ### END Create ctsem model template to fit all primary studies ###
-  
-  
+
+
   #######################################################################################################################
   ##################################### Check Specification of Primary Studies ##########################################
   #######################################################################################################################
@@ -582,9 +613,9 @@ CoTiMAprep <- function(
     print(paste0("#################################################################################"))
     print(paste0("#################### Check Specification of Primary Studies #####################"))
     print(paste0("#################################################################################"))
-    
+
     #originalStudyNo <- unlist(lapply(studyList, function(extract) extract$originalStudyNo)); originalStudyNo
-    
+
     if (length(saveSingleStudyModelFit) == 1){
         if ((activateRPB==TRUE) &  (silentOverwrite==FALSE)) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
         if (silentOverwrite==FALSE) {
@@ -614,7 +645,7 @@ CoTiMAprep <- function(
           saveSingleStudyModelFit <- c(saveSingleStudyModelFit, unlist(primaryStudies$studyNumber))
         }
       }
-      
+
       if (length(loadSingleStudyModelFit) == 1){
         if ((activateRPB==TRUE) & (silentOverwrite==FALSE)) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
         if (silentOverwrite==FALSE) {
@@ -644,14 +675,14 @@ CoTiMAprep <- function(
         }
       }
   } ### END check specification of primary studies ###
-  
+
   #######################################################################################################################
   ##################################### Fit ctsem Model to each Primary Study ###########################################
   #######################################################################################################################
   {
     # loop through all primary studies
     #FitList=list()
-    
+
     studyFit <- studyFitCI <- studyFit_Minus2LogLikelihood <- studyFit_estimatedParameters <- list()
     study_Drift_Coef <- study_Drift_SE <- list()
     study_Diffusion_Coef <- study_Diffusion_SE <- list()
@@ -680,7 +711,7 @@ CoTiMAprep <- function(
         } else {
           notLoadable <- TRUE
         }
-        
+
         ## STORE
         #if (exists("studyFit[[i]]")) {
         #  FitList$tmpName <-studyFit[[i]]
@@ -689,9 +720,9 @@ CoTiMAprep <- function(
         #  names(FitList) <- tmp; names(FitList)
         #}
       }
-      
+
       if (!(studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit[-1]) | (notLoadable == TRUE) ) {
-        
+
         print(paste0("#################################################################################"))
         print(paste0("################### Fitting SingleStudyModel ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ######################"))
         print(paste0("#################################################################################"))
@@ -701,28 +732,28 @@ CoTiMAprep <- function(
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
         modelToSelect <- which(unique(allTpoints) == currentTpoints); modelToSelect
         currentModel <- ctsemModel[[modelToSelect]]; currentModel
-        
+
         # Set Start Values
         currentStartValues <- (lapply(studyList, function(extract) extract$startValues))[[i]]; currentStartValues
         if (is.na(currentStartValues[1])) currentStartValues <- NULL
-        
+
         # FIT (NOT LOAD)
         mxOption(NULL, 'Number of Threads', numOfThreads)
         results <- CoTiMAfittingSSMF(coresToUse=coresToUse, empraw=empraw[[i]], currentModel=currentModel,
                                      refits=refits, retryattempts=retryattempts,
                                      singleModelStartValues=currentStartValues)
         mxOption(key='Number of Threads', value=parallel::detectCores())
-        
+
         # Extract estimates & statistics
         allMinus2LogLikelihood <-lapply(results, function(extract) extract$mxobj$output$Minus2LogLikelihood); allMinus2LogLikelihood
         studyFit[[i]] <- results[[min(which(allMinus2LogLikelihood==min(unlist(allMinus2LogLikelihood))))]]
-        
+
         # STORE
         #FitList$tmpName <-studyFit[[i]]
         #tmp <- names(FitList); tmp
         #tmp[length(tmp)] <- paste0("SingleStudyFit", studyList[[i]]$originalStudyNo); tmp
         #names(FitList) <- tmp; names(FitList)
-        
+
         # SAVE
         if ( (length(saveSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% saveSingleStudyModelFit[-1]) ) {
           x1 <- paste0(saveSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
@@ -749,13 +780,13 @@ CoTiMAprep <- function(
       study_Cint_Coef[[i]] <- studyFit[[i]]$mxobj$output$estimate[grep("cint", names(studyFit[[1]]$mxobj$output$estimate))]
       study_Cint_SE[[i]] <- studyFit[[i]]$mxobj$output$estimate[grep("cint", rownames(studyFit[[1]]$mxobj$output$standardErrors))]
     }
-    
+
     # Compute confidence intervals
     if (confidenceIntervals == TRUE) {
       print(paste0("#################################################################################"))
       print(paste0("######################## Computing Confidence Intervals #########################"))
       print(paste0("#################################################################################"))
-      
+
       # LOAD
       if ( (length(loadSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit[-1]) ) {
         notLoadable <- list()
@@ -777,7 +808,7 @@ CoTiMAprep <- function(
           } else {
             notLoadable[[i]] <- TRUE
           }
-          
+
           # STORE
           #if (notLoadable[[i]] == FALSE) {
           #  FitList$tmpName <-studyFitCI[[i]]
@@ -787,7 +818,7 @@ CoTiMAprep <- function(
           #}
         }
       }
-      
+
       # FIT (NOT LOAD)
       if ( (length(loadSingleStudyModelFit) < 1) ) {
         mxOption(NULL, 'Number of Threads', numOfThreads)
@@ -795,7 +826,7 @@ CoTiMAprep <- function(
                             function(studyNo) ctCI(ctfitobj=studyFit[[studyNo]], confidenceintervals = driftNames),
                             mc.cores=coresToUse)
         mxOption(key='Number of Threads', value=parallel::detectCores())
-        
+
         # STORE
         #for (k in 1:n.studies) {
         #  # fits
@@ -804,7 +835,7 @@ CoTiMAprep <- function(
         #  tmp[length(tmp)] <- paste0("SingleStudyFitCI", k); tmp
         #  names(FitList) <- tmp; names(FitList)
         #}
-        
+
         # SAVE
         studyFitCI <- results; studyFitCI
         for (h in 1:n.studies) {
@@ -816,7 +847,7 @@ CoTiMAprep <- function(
         }
       }
     } # END Computing Confidence Intervals
-    
+
     # Combine summary information and fit statistics
     allStudies_Minus2LogLikelihood <- sum(unlist(studyFit_Minus2LogLikelihood)); allStudies_Minus2LogLikelihood
     allStudies_estimatedParameters <- sum(unlist(studyFit_estimatedParameters)); allStudies_estimatedParameters
@@ -824,7 +855,7 @@ CoTiMAprep <- function(
       allStudies_estimatedParameters; allStudies_df
     if (confidenceIntervals == TRUE) allDriftCI <-lapply(studyFitCI, function(extract) extract$mxobj$output$confidenceIntervals)
     allStudiesDRIFT_effects <- matrix(t(cbind(unlist(study_Drift_Coef), unlist(study_Drift_SE)) ), n.studies, 2*n.latent^2, byrow=T)
-    
+
     # Label summary table
     rownames(allStudiesDRIFT_effects) <- paste0("Study No ", primaryStudies$studyNumbers)
     newColNames <- c()
@@ -835,7 +866,7 @@ CoTiMAprep <- function(
     }
     colnames(allStudiesDRIFT_effects) <- newColNames; round(allStudiesDRIFT_effects, digits)
     #FitList$allStudiesDRIFT_effects <- allStudiesDRIFT_effects
-    
+
     # check single study results
     if (checkSingleStudyResults == TRUE) {
       print(round(allStudiesDRIFT_effects, digits))
@@ -844,7 +875,7 @@ CoTiMAprep <- function(
       char <- readline(" ")
       if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
     }
-    
+
     # Extract parameter estimates and paramter names to be used as start values later
     est <- unlist(lapply(studyFit, function(extract) extract$mxobj$output$estimate)); est
     startValues <- c(t(est)); startValues
@@ -852,10 +883,10 @@ CoTiMAprep <- function(
     headNames <- c(matrix(paste0(rep(c(paste0("Study_No_", primaryStudies$studyNumbers, "_")), noOfParams)),
                           nrow=noOfParams, ncol=n.studies, byrow=T)); headNames
     names(startValues) <- paste0(headNames, names(est)); startValues
-    
+
     DRIFTCoeff <- matrix(unlist(study_Drift_Coef), n.studies, n.latent^2, byrow=TRUE); DRIFTCoeff
     DRIFTSE <- matrix(unlist(study_Drift_SE), n.studies, n.latent^2, byrow=TRUE); DRIFTSE
-    
+
     if (n.studies < 2) {
       if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat(blue("Only a single primary study was handed over to CoTiMA. No further (meta-) analyses can be conducted."))
@@ -868,30 +899,30 @@ CoTiMAprep <- function(
       cat(" ", sep="\n")
       stop("No further errors!")
       cat(" ", sep="\n")
-      
+
     }
-    
+
   } ### END fit ctsem model to each primary study
-  
-  
+
+
   end.time <- Sys.time()
   time.taken <- end.time - start.time
   st <- paste0("Computation started at: ", start.time); st
   et <- paste0("Computation ended at: ", end.time); et
   tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
-  
-  
-  
+
+
+
   ###########################################################################################################
   ###################################### SAVE RESULTS AND FIGURES ###########################################
   ###########################################################################################################
-  
+
   print(paste0("#################################################################################"))
   print(paste0("########################### Save Results and Figures ############################"))
   print(paste0("#################################################################################"))
-  
+
   sink(file = resultsFileName, append = TRUE, type = c("output"), split = TRUE)
-  
+
   cat(paste("########################################################################################", "", sep="\n"))
   cat(paste("########################################################################################", "", sep="\n"))
   cat(paste("##################### Continuous Time Meta Analysis (CoTiMA)  #########################", "", sep="\n"))
@@ -992,22 +1023,22 @@ CoTiMAprep <- function(
   cat(" ", "", sep="\n")
   cat(" ", "", sep="\n")
   cat(" ", "", sep="\n")
-  
+
   if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n", st, "\n", et, "\nAnalysis successfully completed. \nThank you for using CoTiMA.\nHave a nice day!"))}
-  
+
   sink()
-  
+
   if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
-  
+
   allResults <- list(activeDirectory=activeDirectory, sourceDirectory=sourceDirectory,
-                     coresToUse=coresToUse, n.studies=n.studies, 
+                     coresToUse=coresToUse, n.studies=n.studies,
                      studyList=studyList, studyFitList=studyFit,
                      emprawList=empraw, statisticsList=statisticsList,
                      studyResults=list(DRIFT=study_Drift_Coef, DIFFUSION=study_Diffusion_Coef, T0VAR=study_T0var_Coef, CINT=study_Cint_Coef))
   saveRDS(allResults, paste0(activeDirectory, "CoTiMAprep.RDS"))
-  
+
   invisible(list(activeDirectory=activeDirectory, sourceDirectory=sourceDirectory,
-                 coresToUse=coresToUse, n.studies=n.studies, 
+                 coresToUse=coresToUse, n.studies=n.studies,
                  studyList=studyList, studyFitList=studyFit,
                  emprawList=empraw, statisticsList=statisticsList,
                  studyResults=list(DRIFT=study_Drift_Coef, DIFFUSION=study_Diffusion_Coef, T0VAR=study_T0var_Coef, CINT=study_Cint_Coef)))
