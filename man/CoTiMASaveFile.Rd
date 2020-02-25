@@ -14,7 +14,17 @@ CoTiMASaveFile(
 )
 }
 \arguments{
-\item{silentOverwrite}{}
+\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone (FALSE by default). You have to install and configure Pushbullet to use this feature}
+
+\item{activeDirectory}{?}
+
+\item{SaveObject}{?}
+
+\item{FileName}{?}
+
+\item{Directory}{?}
+
+\item{silentOverwrite}{?}
 }
 \value{
 

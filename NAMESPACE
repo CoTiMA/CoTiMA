@@ -3,5 +3,6 @@
 export(CoTiMASaveFile)
 export(CoTiMAfittingSSMF)
 export(CoTiMAprep)
+export(combinePseudoRawData)
 export(hello)
 export(pseudoRawData)

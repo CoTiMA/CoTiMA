@@ -14,11 +14,24 @@ CoTiMAfittingSSMF(
 )
 }
 \arguments{
-\item{singleModelStartValues}{}
+\item{coresToUse}{?}
+
+\item{empraw}{?}
+
+\item{currentModel}{?}
+
+\item{refits}{?}
+
+\item{retryattempts}{?}
+
+\item{singleModelStartValues}{?}
 }
 \value{
 
 }
 \description{
 CoTiMAfittingSSMF
+}
+\examples{
+
 }

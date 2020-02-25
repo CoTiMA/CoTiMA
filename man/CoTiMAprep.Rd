@@ -31,7 +31,51 @@ CoTiMAprep(
 )
 }
 \arguments{
-\item{loadSingleStudyModelFit}{}
+\item{activeDirectory}{?}
+
+\item{sourceDirectory}{?}
+
+\item{resultsFilePrefix}{The prefix for the result file that is created ("CoTiMAprep" by default)}
+
+\item{saveFilePrefix}{The prefix for the files that are saved ("CoTiMAprep" by default)}
+
+\item{loadFilePrefix}{The prefix for the files that are loaded ("CoTiMAprep" by default)}
+
+\item{primaryStudies}{List of lists: list(deltas, sampleSizes, empcovs, moderators, startValues, studyNumbers)}
+
+\item{activateRPB}{Set to TRUE to receive push messages with CoTiMA notifications on your phone (FALSE by default). You have to install and configure Pushbullet to use this feature}
+
+\item{checkSingleStudyResults}{Displays estimates from single study ctsem models and waits for user inoput to continue}
+
+\item{digits}{Number of digits displayed in results (4 by default)}
+
+\item{n.latent}{Number of latent variables used in model}
+
+\item{loadRawData}{?}
+
+\item{saveRawData}{?}
+
+\item{retryattempts}{Number of iterations to be used by ctsem}
+
+\item{refits}{Number of re-fits used by this CoTiMA Function}
+
+\item{extraRefits}{(Vector of) study number(s) that should be re-fitted even more (difficult models)}
+
+\item{factorExtraRefits}{Factor by which "refits" are multiplied for difficult models}
+
+\item{NPSOL}{Request NPSOL optimizer (sometimes better estimates, e.g., for confidence intervals)}
+
+\item{coresToUse}{Feature for parallel processing on non-Windows multi-core machines. Could be set to -n (usually -1) which is subtracted from the overall number available (on non Windows machines)}
+
+\item{tryHard}{?}
+
+\item{confidenceIntervals}{Estimate confidence intervals (for all requested models)}
+
+\item{silentOverwrite}{?}
+
+\item{saveSingleStudyModelFit}{Save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)}
+
+\item{loadSingleStudyModelFit}{Load the fit of single study ctsem models}
 }
 \value{
 

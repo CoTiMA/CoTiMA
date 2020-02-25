@@ -15,11 +15,26 @@ pseudoRawData(
 )
 }
 \arguments{
-\item{activateRPB}{}
+\item{empCovMat}{?}
+
+\item{empNMat}{?}
+
+\item{empN}{?}
+
+\item{studyNumber}{?}
+
+\item{empMeanVector}{?}
+
+\item{empVarVector}{?}
+
+\item{activateRPB}{?}
 }
 \value{
 
 }
 \description{
 pseudoRawData
+}
+\examples{
+
 }

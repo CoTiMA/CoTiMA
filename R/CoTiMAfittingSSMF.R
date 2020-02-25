@@ -2,17 +2,18 @@
 
 #' CoTiMAfittingSSMF
 #'
-#' @param coresToUse
-#' @param empraw
-#' @param currentModel
-#' @param refits
-#' @param retryattempts
-#' @param singleModelStartValues
+#' @param coresToUse ?
+#' @param empraw ?
+#' @param currentModel ?
+#' @param refits ?
+#' @param retryattempts ?
+#' @param singleModelStartValues ?
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#'
 CoTiMAfittingSSMF <- function(coresToUse,
                               empraw,
                               currentModel,
@@ -32,13 +33,13 @@ CoTiMAfittingSSMF <- function(coresToUse,
  if (!(is.null(singleModelStartValues)))  {
     currentStartValues <- singleModelStartValues; currentStartValues
     names(currentStartValues) <- currentLabels
-    results <- mclapply(seq(1, refits, by=1),
-                        function(x) ctFit(dat=empraw, currentModel, retryattempts=retryattempts,
+    results <- parallel::mclapply(seq(1, refits, by=1),
+                        function(x) ctsem::ctFit(dat=empraw, currentModel, retryattempts=retryattempts,
                                           omxStartValues=currentStartValues),
                         mc.cores=coresToUse)
   } else {
-    results <- mclapply(seq(1, refits, by=1),
-                        function(x) ctRefineTo(dat=empraw, currentModel, retryattempts=retryattempts),
+    results <- parallel::mclapply(seq(1, refits, by=1),
+                        function(x) ctsem::ctRefineTo(dat=empraw, currentModel, retryattempts=retryattempts),
                         mc.cores=coresToUse)
   }
 

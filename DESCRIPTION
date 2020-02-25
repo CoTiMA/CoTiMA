@@ -18,7 +18,9 @@ Imports:
     crayon (>= 1.3.4),
     psych (>= 1.9.12),
     OpenMx (>= 2.15.5),
-    ctsem (>= 3.0.9)
+    ctsem (>= 3.0.9),
+    utils (>= 3.6.2),
+    stats (>= 3.6.2),
 Suggests:
     RPushbullet (>= 0.3.2)
 RoxygenNote: 7.0.2
