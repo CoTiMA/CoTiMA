@@ -10,7 +10,7 @@
 # }
 # debug <- 0
 
-#' pseudoRawData
+#' ctmaPRaw
 #'
 #' @param empCovMat ?
 #' @param empNMat ?
@@ -25,7 +25,7 @@
 #'
 #' @examples
 #'
-pseudoRawData <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumber=NULL,
+ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumber=NULL,
                           empMeanVector=NULL, empVarVector=NULL, activateRPB=FALSE)
 {  # begin function definition (until end of file)
 

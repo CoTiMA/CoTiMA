@@ -7,9 +7,9 @@
 #  ##### ENTER DEBUG INFORMATION BELOW THE FOLLOWING #######
 #  activeDirectory=NULL
 #  sourceDirectory= NULL
-#  resultsFilePrefix="CoTiMAprep"           # the prefix for the result file that is created
-#  saveFilePrefix="CoTiMAprep"
-#  loadFilePrefix="CoTiMAprep"
+#  resultsFilePrefix="ctmaInit"           # the prefix for the result file that is created
+#  saveFilePrefix="ctmaInit"
+#  loadFilePrefix="ctmaInit"
 #  primaryStudies=NULL                    #NEW: list of lists: list(deltas, sampleSizes, empcovs, moderators, startValues, studyNumbers)
 #  activateRPB=FALSE                      #set to TRUE to receive push messages with CoTiMA notifications on your phone
 #  digits=4
@@ -32,9 +32,9 @@
 #  ##### ENTER DEBUG INFO HERE #######
 #  activeDirectory="/Users/cdormann/SynologyDrive/Drive/CHRISTIAN/TEXTE/ARTIKEL/COTIMA BURNOUT/NEU 2019/PB SUBMISSION (BUL-2019-1709)/REVISION/_TRYOUT/"
 #  sourceDirectory="/Users/cdormann/SynologyDrive/Drive/CHRISTIAN/TEXTE/METHODEN/R/SYNTAXSAMMLUNG/CoTiMA/CURRENT VERSION/_TRYOUT/"
-#  resultsFilePrefix="CoTiMAprep"           # the prefix for the result file that is created
-#  saveFilePrefix="CoTiMAprep"
-#  loadFilePrefix="CoTiMAprep"
+#  resultsFilePrefix="ctmaInit"           # the prefix for the result file that is created
+#  saveFilePrefix="ctmaInit"
+#  loadFilePrefix="ctmaInit"
 #
 #  # Primary Study Information
 #  primaryStudies=compiledListOfPrimaryStudies                    #NEW: list of lists: list(deltas, sampleSizes, empcovs, moderators, startValues, studyNumbers)
@@ -74,13 +74,13 @@
 #######################################################################################################################
 #######################################################################################################################
 
-#' CoTiMAprep
+#' ctmaInit
 #'
 #' @param activeDirectory ?
 #' @param sourceDirectory ?
-#' @param resultsFilePrefix The prefix for the result file that is created ("CoTiMAprep" by default)
-#' @param saveFilePrefix The prefix for the files that are saved ("CoTiMAprep" by default)
-#' @param loadFilePrefix The prefix for the files that are loaded ("CoTiMAprep" by default)
+#' @param resultsFilePrefix The prefix for the result file that is created ("ctmaInit" by default)
+#' @param saveFilePrefix The prefix for the files that are saved ("ctmaInit" by default)
+#' @param loadFilePrefix The prefix for the files that are loaded ("ctmaInit" by default)
 #' @param primaryStudies List of lists: list(deltas, sampleSizes, empcovs, moderators, startValues, studyNumbers)
 #' @param activateRPB Set to TRUE to receive push messages with CoTiMA notifications on your phone (FALSE by default). You have to install and configure Pushbullet to use this feature
 #' @param checkSingleStudyResults Displays estimates from single study ctsem models and waits for user inoput to continue
@@ -105,13 +105,13 @@
 #'
 #' @examples
 #'
-CoTiMAprep <- function(
+ctmaInit <- function(
   # Directory names and file names
   activeDirectory=NULL,
   sourceDirectory= NULL,
-  resultsFilePrefix="CoTiMAprep",           # the prefix for the result file that is created
-  saveFilePrefix="CoTiMAprep",
-  loadFilePrefix="CoTiMAprep",
+  resultsFilePrefix="ctmaInit",           # the prefix for the result file that is created
+  saveFilePrefix="ctmaInit",
+  loadFilePrefix="ctmaInit",
 
   # Primary Study Information
   primaryStudies=NULL,                    #NEW: list of lists: list(deltas, sampleSizes, empcovs, moderators, startValues, studyNumbers)
@@ -160,8 +160,8 @@ CoTiMAprep <- function(
   #   print(paste0("########################## DEFINE Required Functions ############################"))
   #   print(paste0("#################################################################################"))
   #
-  #   source(paste0(sourceDirectory, "CoTiMASaveFile.R"))
-  #   source(paste0(sourceDirectory, "CoTiMAfittingSSMF.R"))
+  #   source(paste0(sourceDirectory, "ctmaSaveFile.R"))
+  #   source(paste0(sourceDirectory, "ctmaFittingSSMF.R"))
   #   source(paste0(sourceDirectory, "CoTiMApseudoRawData.R"))
   #   source(paste0(sourceDirectory, "CoTiMAcombinePseudoRawData.R"))
   #
@@ -238,7 +238,7 @@ CoTiMAprep <- function(
             cat((crayon::blue("Please type the number of primary studies to read from global environment. Press ENTER afterwards ", "\n")))
             char <- as.numeric(readline(""))
           }
-          primaryStudies <- compileListOfPrimaryStudies(selectedStudies=1:char)
+          primaryStudies <- ctmaPrep(selectedStudies=1:char)
         } # END else (catch failed)
       } # END else
     } #
@@ -267,9 +267,9 @@ CoTiMAprep <- function(
 
     # check time unit
 
-    if (resultsFilePrefix=="CoTiMAprep") {
+    if (resultsFilePrefix=="ctmaInit") {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(crayon::red$bold("The default results file prefix (CoTiMAprep) has been chosen.", "\n"))
+      cat(crayon::red$bold("The default results file prefix (ctmaInit) has been chosen.", "\n"))
       cat(crayon::blue("Press 'q' to quit and change or'c'to continue. Press ENTER afterwards ", "\n"))
       char <- readline(" ")
       while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
@@ -280,9 +280,9 @@ CoTiMAprep <- function(
     }
     rsultsFileName <- paste0(resultsFilePrefix, ".txt")
 
-    if (saveFilePrefix=="CoTiMAprep") {
+    if (saveFilePrefix=="ctmaInit") {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(crayon::red$bold("The default save file prefix (CoTiMAprep) has been chosen.", "\n"))
+      cat(crayon::red$bold("The default save file prefix (ctmaInit) has been chosen.", "\n"))
       cat(crayon::blue("Press 'q' to quit and change or 'c' to continue. Press ENTER afterwards "))
       char <- readline(" ")
       while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
@@ -433,7 +433,7 @@ CoTiMAprep <- function(
             currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
           }
         }
-        tmp <- suppressWarnings(pseudoRawData(empCovMat=currentEmpcov, empN=currentSampleSize, empNMat=currentPairwiseN))
+        tmp <- suppressWarnings(ctmaPRaw(empCovMat=currentEmpcov, empN=currentSampleSize, empNMat=currentPairwiseN))
         empraw[[i]] <- tmp$data
         lostN[[i]] <- tmp$lostN
         overallNDiff[[i]] <- tmp$overallLostN
@@ -743,7 +743,7 @@ CoTiMAprep <- function(
 
         # FIT (NOT LOAD)
         OpenMx::mxOption(NULL, 'Number of Threads', numOfThreads)
-        results <- CoTiMAfittingSSMF(coresToUse=coresToUse, empraw=empraw[[i]], currentModel=currentModel,
+        results <- ctmaFittingSSMF(coresToUse=coresToUse, empraw=empraw[[i]], currentModel=currentModel,
                                      refits=refits, retryattempts=retryattempts,
                                      singleModelStartValues=currentStartValues)
         OpenMx::mxOption(key='Number of Threads', value=parallel::detectCores())
@@ -762,14 +762,14 @@ CoTiMAprep <- function(
         if ( (length(saveSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% saveSingleStudyModelFit[-1]) ) {
           x1 <- paste0(saveSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
           x2 <- paste0(saveSingleStudyModelFit[1], " singleStudyFits/"); x2
-          CoTiMASaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
+          ctmaSaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
         } else {
           # SAVE 2 (previously unfitted models - not yet on request but by defauls)
           if ( (notLoadable == TRUE) ) {
             if (!(exists("saveSingleStudyModelFit[1]"))) saveSingleStudyModelFit[1] <- "safeSave"
             x1 <- paste0(saveSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
             x2 <- paste0(saveSingleStudyModelFit[1], " singleStudyFits/")
-            CoTiMASaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
+            ctmaSaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
           }
         }
       }
@@ -846,7 +846,7 @@ CoTiMAprep <- function(
           if ( (length(saveSingleStudyModelFit) > 1) & (studyList[[h]]$originalStudyNo %in% saveSingleStudyModelFit[-1]) ) {
             x1 <- paste0(saveSingleStudyModelFit[1], " studyFitCI", studyList[[h]]$originalStudyNo, ".rds"); x1
             x2 <- paste0(saveSingleStudyModelFit[1], " singleStudyFits/")
-            CoTiMASaveFile(activateRPB, activeDirectory, results[[h]], x1, x2, silentOverwrite=silentOverwrite)
+            ctmaSaveFile(activateRPB, activeDirectory, results[[h]], x1, x2, silentOverwrite=silentOverwrite)
           }
         }
       }
@@ -1039,7 +1039,7 @@ CoTiMAprep <- function(
                      studyList=studyList, studyFitList=studyFit,
                      emprawList=empraw, statisticsList=statisticsList,
                      studyResults=list(DRIFT=study_Drift_Coef, DIFFUSION=study_Diffusion_Coef, T0VAR=study_T0var_Coef, CINT=study_Cint_Coef))
-  saveRDS(allResults, paste0(activeDirectory, "CoTiMAprep.RDS"))
+  saveRDS(allResults, paste0(activeDirectory, "ctmaInit.RDS"))
 
   invisible(list(activeDirectory=activeDirectory, sourceDirectory=sourceDirectory,
                  coresToUse=coresToUse, n.studies=n.studies,

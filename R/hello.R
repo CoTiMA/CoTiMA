@@ -15,7 +15,7 @@
 
 #' Hello CoTiMA
 #'
-#' @return
+#' @return "Hello, world!"
 #' @export
 #'
 #' @examples hello()

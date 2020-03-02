@@ -7,7 +7,7 @@
 hello()
 }
 \value{
-
+"Hello, world!"
 }
 \description{
 Hello CoTiMA

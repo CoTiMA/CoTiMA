@@ -14,7 +14,7 @@
 # }
 # debug <- 0
 
-#' CoTiMASaveFile
+#' ctmaSaveFile
 #'
 #' @param activateRPB set to TRUE to receive push messages with CoTiMA notifications on your phone (FALSE by default). You have to install and configure Pushbullet to use this feature
 #' @param activeDirectory ?
@@ -28,7 +28,7 @@
 #'
 #' @examples
 #'
-CoTiMASaveFile <- function(activateRPB,
+ctmaSaveFile <- function(activateRPB,
                            #workingDirectory=Null,
                            activeDirectory=activeDirectory,
                            SaveObject,

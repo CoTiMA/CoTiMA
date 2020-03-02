@@ -1,6 +1,6 @@
 ##### CoTiMA fitting procedure - singleStudyModelFit
 
-#' CoTiMAfittingSSMF
+#' ctmaFittingSSMF
 #'
 #' @param coresToUse ?
 #' @param empraw ?
@@ -14,7 +14,7 @@
 #'
 #' @examples
 #'
-CoTiMAfittingSSMF <- function(coresToUse,
+ctmaFittingSSMF <- function(coresToUse,
                               empraw,
                               currentModel,
                               refits,

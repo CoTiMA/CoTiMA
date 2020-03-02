@@ -1,4 +1,4 @@
-#' compileListOfPrimaryStudies
+#' ctmaPrep
 #'
 #' @param selectedStudies ?
 #' @param excludedElements ?
@@ -8,7 +8,7 @@
 #'
 #' @examples
 #'
-compileListOfPrimaryStudies <- function(selectedStudies=NULL, excludedElements=NULL) {
+ctmaPrep <- function(selectedStudies=NULL, excludedElements=NULL) {
   #selectedStudies=1:5
   #excludedElements="moderators"
   #excludedElements=NULL

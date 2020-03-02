@@ -2,7 +2,7 @@
 #listOfStudyFits <- list(studyFit1, studyFit2, studyFit3, studyFit4, studyFit5)
 #moderatorValues <- moderatorValues
 
-#' Title
+#' ctmaCombPRaw
 #'
 #' @param listOfStudyFits ?
 #' @param moderatorValues ?
@@ -12,7 +12,7 @@
 #'
 #' @examples
 #'
-combinePseudoRawData <- function(listOfStudyFits=NULL, moderatorValues=NULL) {
+ctmaCombPRaw <- function(listOfStudyFits=NULL, moderatorValues=NULL) {
 
   allSampleSizes <- maxLatents <- allTpoints <- c()
   nlatents <- listOfStudyFits[[1]]$ctmodelobj$n.latent; nlatents
