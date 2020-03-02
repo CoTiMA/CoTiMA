@@ -7,19 +7,18 @@
 #   sourceDirectory= NULL
 #   resultsFilePrefix="ctmaBias"
 #   saveFilePrefix="ctmaBias"
-#   CoTiMAprepFit=CoTiMAprepFit1
+#   ctmaInitFit=ctmaInitFit
 #   activateRPB=FALSE
 #   silentOverwrite=FALSE
 #   PETPEESEalpha =.10
 #   ##### ENTER DEBUG INFO HERE #######
 #   silentOverwrite=FALSE
-#   CoTiMAprepFit=CoTiMAprepFit1
 # }
 # debug <- 0
 
 #' ctmaBias
 #'
-#' @param CoTiMAprepFit ?
+#' @param ctmaInitFit ?
 #' @param activeDirectory ?
 #' @param sourceDirectory ?
 #' @param resultsFilePrefix ?
@@ -36,7 +35,7 @@
 #'
 ctmaBias <- function(
   # Primary Study Fits
-  CoTiMAprepFit=NULL,                    #list of lists: could be more than one fit object
+  ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
 
   # Directory names and file names
   activeDirectory=NULL,
@@ -58,9 +57,9 @@ ctmaBias <- function(
 
   { ### CHECKS
   # check if fit object is specified
-  if (is.null(CoTiMAprepFit)){
+  if (is.null(ctmaInitFit)){
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("A fitted CoTiMA object has to be supplied to analyse something. \n"))
+    cat(crayon::red$bold("A fitted CoTiMA (\"ctmaInitFit\") object has to be supplied to analyse something. \n"))
     stop("Good luck for the next try!")
   }
 
@@ -114,13 +113,13 @@ ctmaBias <- function(
   start.time <- Sys.time(); start.time
 
   {
-    n.latent <- length(CoTiMAprepFit$modelResults$DRIFT[[1]])^.5; n.latent
-    if (is.null(activeDirectory)) activeDirectory <- CoTiMAprepFit$activeDirectory; activeDirectory
-    if (is.null(sourceDirectory)) sourceDirectory <- CoTiMAprepFit$sourceDirectory; sourceDirectory
-    n.studies <- unlist(CoTiMAprepFit$n.studies); n.studies
-    all_Coeff <- (lapply(CoTiMAprepFit$studyFitList, function(extract) extract$mxobj$output$estimate)); all_Coeff
-    all_SE <- (lapply(CoTiMAprepFit$studyFitList, function(extract) extract$mxobj$output$standardErrors)); all_SE
-    allSampleSizes <- unlist(lapply(CoTiMAprepFit$studyList, function(extract) extract$sampleSize)); allSampleSizes
+    n.latent <- length(ctmaInitFit$modelResults$DRIFT[[1]])^.5; n.latent
+    if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
+    if (is.null(sourceDirectory)) sourceDirectory <- ctmaInitFit$sourceDirectory; sourceDirectory
+    n.studies <- unlist(ctmaInitFit$n.studies); n.studies
+    all_Coeff <- (lapply(ctmaInitFit$studyFitList, function(extract) extract$mxobj$output$estimate)); all_Coeff
+    all_SE <- (lapply(ctmaInitFit$studyFitList, function(extract) extract$mxobj$output$standardErrors)); all_SE
+    allSampleSizes <- unlist(lapply(ctmaInitFit$studyList, function(extract) extract$sampleSize)); allSampleSizes
     allSampleSizes <- allSampleSizes[-length(allSampleSizes)]; allSampleSizes
   }
 
@@ -138,7 +137,7 @@ ctmaBias <- function(
     #source(paste0(sourceDirectory, "CoTiMAcompSV.R"))
     #source(paste0(sourceDirectory, "CoTiMAchangeSVLab.R"))
     #source(paste0(sourceDirectory, "CoTiMActMultigroupFitAlt.R"))
-    #source(paste0(sourceDirectory, "CoTiMActmaBase2Full.R"))
+    #source(paste0(sourceDirectory, "CoTiMAbase2Full.R"))
     #source(paste0(sourceDirectory, "CoTiMAmx 1.0.0.0.R"))
   #} ### END DEFINE required subfunctions ###
 
@@ -375,12 +374,12 @@ ctmaBias <- function(
                   plot.type=c("funnel", "forest"), model.type="bias",
                   coresToUse=NULL, n.studies=n.studies,
                   n.latent=n.latent,
-                  studyList=CoTiMAprepFit$studyList, studyFitList=NULL, # , homDRIFTallFitCI),
+                  studyList=ctmaInitFit$studyList, studyFitList=NULL, # , homDRIFTallFitCI),
                   emprawList=NULL,
-                  statisticsList=CoTiMAprepFit$statisticsList,
+                  statisticsList=ctmaInitFit$statisticsList,
                   modelResults=list(DRIFT=DRIFTCoeff, DIFFUSION=DIFFUSIONCoeff, T0VAR=T0VARCoeff, CINT=NULL,
                                     DRIFTSE=DRIFTSE, DIFFUSIONSE=DIFFUSIONSE, T0VARSE=T0VARSE),
-                  parameterNames=CoTiMAprepFit$parameterNames,
+                  parameterNames=ctmaInitFit$parameterNames,
                   summary=list(model="Analysis of Publication Bias",
                                estimates=list("Fixed Effects of Drift Coefficients"=round(fixedEffectDriftResults, digits),
                                               "Heterogeneity"=round(heterogeneity, digits),

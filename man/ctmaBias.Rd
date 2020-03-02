@@ -5,7 +5,7 @@
 \title{ctmaBias}
 \usage{
 ctmaBias(
-  CoTiMAprepFit = NULL,
+  ctmaInitFit = NULL,
   activeDirectory = NULL,
   sourceDirectory = NULL,
   resultsFilePrefix = "CoTiMBbias",
@@ -17,7 +17,7 @@ ctmaBias(
 )
 }
 \arguments{
-\item{CoTiMAprepFit}{?}
+\item{ctmaInitFit}{?}
 
 \item{activeDirectory}{?}
 
