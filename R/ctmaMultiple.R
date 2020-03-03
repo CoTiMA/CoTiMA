@@ -1,17 +1,17 @@
 #######################################################################################################################
-################################################ CoTiMA FullDrift #####################################################
+############################## CoTiMA Multiple Drift Effects Invariant Across primary Studies #########################
 #######################################################################################################################
 # debug <- 0
 # if (debug == 1) {
+#   type="stanct"
 #   activeDirectory=NULL
-#   single=c("V1toV2", "V2toV1")
-#   sourceDirectory= NULL
-#   resultsFilePrefix="ctmaSingle"
-#   saveFilePrefix="ctmaSingle"
-#   ctmaInitFit=CoTiMAInitFit1
+#   multipleDrift=c("V1toV2", "V2toV1")
+#   #sourceDirectory= NULL
+#   resultsFilePrefix="CoTiMAMultipleDrift"
+#   saveFilePrefix="CoTiMAMultipleDrift"
+#   ctmaInitFit=ctmaInitFit1
 #   activateRPB=FALSE
 #   checkSingleStudyResults=TRUE
-#   type="mx"
 #   retryattempts=30
 #   refits=1
 #   NPSOL=FALSE
@@ -20,9 +20,10 @@
 #   compSVMethod=c("mean", "fixed", "random", "rnw", "all")[2]
 #   useCTMultiGroupAlt=FALSE
 #   confidenceIntervals=FALSE
-#   saveSingleDriftModelFit=saveFilePrefix
+#   saveMultipleDriftModelFit=saveFilePrefix
 #   ##### ENTER DEBUG INFO HERE #######
 #   silentOverwrite=FALSE
+#   ctmaInitFit=ctmaInitFit1
 #   useCTMultiGroupAlt=TRUE
 #   confidenceIntervals=FALSE
 #   digits=4
@@ -46,10 +47,9 @@
 # }
 # debug <- 0
 
-#' ctmaSingle
+#' ctmaMultiple
 #'
 #' @param activeDirectory ?
-#' @param sourceDirectory ?
 #' @param resultsFilePrefix ?
 #' @param saveFilePrefix ?
 #' @param ctmaInitFit ?
@@ -57,7 +57,7 @@
 #' @param checkSingleStudyResults ?
 #' @param silentOverwrite ?
 #' @param digits ?
-#' @param single ?
+#' @param multipleDrift ?
 #' @param type ?
 #' @param retryattempts ?
 #' @param refits ?
@@ -67,7 +67,7 @@
 #' @param compSVMethod ?
 #' @param useCTMultiGroupAlt ?
 #' @param confidenceIntervals ?
-#' @param saveSingleDriftModelFit ?
+#' @param saveMultipleDriftModelFit ?
 #' @param CoTiMAStanctArgs ?
 #'
 #' @return
@@ -75,12 +75,12 @@
 #'
 #' @examples
 #'
-ctmaSingle <- function(
+ctmaMultiple <- function(
   # Directory names and file names
   activeDirectory=NULL,
-  sourceDirectory= NULL,
-  resultsFilePrefix="ctmaSingle",
-  saveFilePrefix="ctmaSingle",
+  #sourceDirectory= NULL,
+  resultsFilePrefix="CoTiMAMultipleDrift",
+  saveFilePrefix="CoTiMAMultipleDrift",
 
   # Primary Study Fits
   ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
@@ -93,7 +93,7 @@ ctmaSingle <- function(
   digits=4,
 
   # General Model Setup
-  single=c(),
+  multipleDrift=c(),
 
   # Fitting Parameters
   type="mx",
@@ -105,7 +105,7 @@ ctmaSingle <- function(
   compSVMethod=c("mean", "fixed", "random", "rnw", "all")[2],
   useCTMultiGroupAlt=FALSE,
   confidenceIntervals=FALSE,
-  saveSingleDriftModelFit=saveFilePrefix,
+  saveMultipleDriftModelFit=saveFilePrefix,
   CoTiMAStanctArgs=list(test=TRUE, scaleTI=TRUE, scaleTime=1/1,
                         savesubjectmatrices=FALSE, verbose=1,
                         datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
@@ -135,21 +135,21 @@ ctmaSingle <- function(
     stop("Good luck for the next try!")
   }
 
-  if (length(single) < 1) {
+  if (length(multipleDrift) < 1) {
     n.latent <- length(ctmaInitFit$modelResults$DRIFT[[1]])^.5; n.latent
-    cat(crayon::red$bold("You have not specified the single drift parameters that you want to set free across groups in a series of models!","\n"))
-    cat(crayon::red("Would you like to test if ALL single drift coefficients vary across primary studies?","\n"))
-    cat(crayon::blue("Press 'y' to test ALL single drift coefficients, 's' to specify the drift coefficients to test,  or 'q' to quit.","\n"))
+    cat(crayon::red$bold("You have not specified the single drift parameters that you want to make invariant across groups in the model!","\n"))
+    cat(crayon::red("Would you like to make ALL CROSS drift coefficients invariant across primary studies?","\n"))
+    cat(crayon::blue("Press 'y' to make ALL CROSS drift coefficients invariant across groups, 's' to specify the drift coefficients to make invariant,  or 'q' to quit.","\n"))
     char <- readline(" ")
     while (!(char == 'q') & !(char == 'Q') & !(char == 'y') & !(char == 'Y') & !(char == 's') & !(char == 'S')) {
       cat((crayon::blue("Please press 'y' to save ALL, 's' to specify the drift coefficients to test, or 'q' to quit. Press ENTER afterwards.", "\n")))
       char <- readline(" ")
     }
     if (char == 'y' | char == 'Y') {
-      single <- c()
+      multipleDrift <- c()
       for (i in 1:(n.latent)) {
         for (j in 1:(n.latent)) {
-          single <- c(single, paste0("V",i,"toV", j))
+          multipleDrift <- c(multipleDrift, paste0("V",i,"toV", j))
         }
       }
     } else if (char == 's' | char == 'S') {
@@ -159,57 +159,18 @@ ctmaSingle <- function(
       chars <- gsub(" ", "", chars, fixed = TRUE)
       chars <- unlist(strsplit(chars, ","))
       chars
-      single <- c(single, chars)
+      multipleDrift <- c(multipleDrift, chars)
     } else if (char == 'q' | char == 'Q'){
       stop("Good luck for the next try!")
     }
   }
 
-  if (length(saveSingleDriftModelFit) == 1){
-    n.studies <- unlist(ctmaInitFit$n.studies); n.studies
-    if (silentOverwrite==FALSE) {
-      if ((activateRPB==TRUE) &  (silentOverwrite==FALSE)) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(crayon::red$bold("You have indicated that you want to save singleModelFit, but have not selected which model to save the fit for!","\n"))
-      cat(crayon::red("Would you like to save the singleModelFit for specified single drift effects??","\n"))
-      cat(crayon::blue("Press 'y' to save ALL singleModelFits or 's' to continue and","\n"))
-      cat(crayon::blue("select the singleModelFit you whish to save the fits for. If you wish to quite, press 'q'. Press ENTER afterwards","\n"))
-      char <- readline(" ")
-      while (!(char == 's') & !(char == 'S') & !(char == 'y') & !(char == 'Y') & !(char == 'q') & !(char == 'Q')) {
-        cat((crayon::blue("Please press 'y' to save ALL, 's' to specify the singleModelFits to save, or 'q' to quit. Press ENTER afterwards.", "\n")))
-        char <- readline(" ")
-      }
-      if (char == 'y' | char == 'Y') {
-        #for (i in 1:n.studies) {
-        for (i in 1:length(single)) {
-          counter <- i
-          if (length(saveSingleDriftModelFit > 0)){
-            #saveSingleDriftModelFit <- c(saveSingleDriftModelFit, counter)
-            saveSingleDriftModelFit <- c(saveSingleDriftModelFit, paste0(" ", single[i], " "))
-            i <- i+1
-          }
-        }
-      } else if (char == 's' | char == 'S') {
-        cat(crayon::blue("Which singleModelFit would you like to save?", "\n"))
-        cat(crayon::blue("Please enter the drift effects separated by commas (e.g., V1toV2, V2toV2)!", "\n"))
-        chars <- readline(" ")
-        chars <- gsub(" ", "", chars, fixed = TRUE)
-        chars <- unlist(strsplit(chars, ","))
-        chars
-        saveSingleDriftModelFit <- c(saveSingleDriftModelFit, chars)
-      } else if (char == 'q' | char == 'Q'){
-        stop("Good luck for the next try!")
-      }
-    } else {
-      saveSingleDriftModelFit <- c(saveSingleDriftModelFit, single)
-    }
-    if (silentOverwrite==TRUE) {
-      saveSingleDriftModelFit <- c(saveSingleDriftModelFit, single)
-    }
+  if (length(saveMultipleDriftModelFit) == 1){
   }
 
-  if (resultsFilePrefix=="ctmaSingle") {
+  if (resultsFilePrefix=="CoTiMAmultipleDrift") {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat("The default results file prefix (ctmaSingle) has been chosen.", "\n")
+    cat("The default results file prefix (CoTiMAMultipleDrift) has been chosen.", "\n")
     cat("Press 'q' to quit and change or 'c' to continue. Press ENTER afterwards ", "\n")
     char <- readline(" ")
     while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
@@ -219,7 +180,48 @@ ctmaSingle <- function(
     if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
   }
 
+  #if (saveFilePrefix=="CoTiMAmultipleDrift") {
+  #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+  #  cat("The default save file prefix (CoTiMAmultipleDrift) has been chosen.", "\n")
+  #  cat("Press 'q' to quit and change or 'c' to continue. Press ENTER afterwards ")
+  #  char <- readline(" ")
+  #  while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
+  #    cat((crayon::blue("Please press 'q' to quit and change filename or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
+  #    char <- readline(" ")
+  #  }
+  #  if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
+  #}
 
+
+
+  #######################################################################################################################
+  ############################################### attach further packages ###############################################
+  #######################################################################################################################
+  #{
+  #  print(paste0("#################################################################################"))
+  #  print(paste0("############################ Attach Further Packages ############################"))
+  #  print(paste0("#################################################################################"))
+  #
+  #  # If OpenMx and ctsem are already attached, detaching them is required to enable OpenMx to run in parallel mode.
+  #  if ("OpenMx" %in% (.packages())) suppressWarnings(detach("package:OpenMx", force=TRUE)) #, unload=TRUE)
+  #  if ("ctsem" %in% (.packages())) suppressWarnings(detach("package:ctsem", force=TRUE)) #, unload=TRUE))
+  #  Sys.setenv(OMP_NUM_THREADS=parallel::detectCores()) #before library(OpenMx)
+  #  library(ctsem)
+  #  mxOption(key='Number of Threads', value=parallel::detectCores()) #now
+  #
+  #  # Attach all required packages that were not already attach with "library(ctsem)" before
+  #  if (!("MASS" %in% (.packages()))) library(MASS)
+  #  if (!("MBESS" %in% (.packages()))) library(MBESS)
+  #  if (!("rootSolve" %in% (.packages()))) library(rootSolve)
+  #  if (!("doParallel" %in% (.packages()))) library(doParallel)  # this is for parallel processing loops (not for internal parallel processing of OpenMx)
+  #  if (!("crayon" %in% (.packages()))) library(crayon)
+  #  if (!("psych" %in% (.packages()))) library(psych)
+  #
+  #  if (activateRPB==TRUE) {
+  #    if("RPushbullet" %in% rownames(installed.packages()) == FALSE) {install.packages("RPushbullet")}
+  #    if (!("RPushbullet" %in% (.packages()))) library(RPushbullet)
+  #  }
+ #  }
 
   #######################################################################################################################
   ################################################# Check Cores To Use ##################################################
@@ -263,7 +265,7 @@ ctmaSingle <- function(
 
 
   #######################################################################################################################
-  ############# Extracting Parameters from Fitted Primary Studies created with CoTiMAprep Function  #####################
+  ############## Extracting Parameters from Fitted Primary Studies created with ctmaInit Function  ######################
   #######################################################################################################################
 
   start.time <- Sys.time(); start.time
@@ -274,7 +276,7 @@ ctmaSingle <- function(
     #ctmaInitFit$modelResults$DRIFT[[1]]
     n.latent <- length(ctmaInitFit$modelResults$DRIFT[[1]])^.5; n.latent
     if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
-    if (is.null(sourceDirectory)) sourceDirectory <- ctmaInitFit$sourceDirectory; sourceDirectory
+    #if (is.null(sourceDirectory)) sourceDirectory <- ctmaInitFit$sourceDirectory; sourceDirectory
     n.studies <- unlist(ctmaInitFit$n.studies); n.studies
     #drift_Coef <- ctmaInitFit$studyResults$DRIFT; drift_Coef
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
@@ -368,16 +370,16 @@ ctmaSingle <- function(
   #######################################################################################################################
 
   if (type == "mx" || type == "Mx" || type == "MX"|| type == "mX") {
-    results <- ctmaSingleMx(
-      #type="single",
-      single=single,
+    results <- ctmaMultipleMx(
+      #type="multipleDrift",
+      multipleDrift=multipleDrift,
       datawide_all=datawide_all,
       groups=groups,
       groupsNamed=groupsNamed,
       activeDirectory=activeDirectory,
       #sourceDirectory=sourceDirectory,
-      resultsFilePrefix="ctmaSingleMx",
-      saveFilePrefix="ctmaSingleMx",
+      resultsFilePrefix="CoTiMAmultipleMx",
+      saveFilePrefix="CoTiMAmultipleMx",
       ctmaInitFit=ctmaInitFit,
       activateRPB=activateRPB,
       checkSingleStudyResults=checkSingleStudyResults,
@@ -390,18 +392,19 @@ ctmaSingle <- function(
       compSVMethod=compSVMethod,
       useCTMultiGroupAlt=useCTMultiGroupAlt,
       confidenceIntervals=confidenceIntervals,
-      saveSingleDriftModelFit=saveSingleDriftModelFit
+      saveMultipleDriftModelFit=saveMultipleDriftModelFit
     )
   } else {
-    results <- ctmaSingleStanct(
-      #type="single",
-      single=single,
+    results <- ctmaMultipleStanct(
+      #type="multipleDrift",
+      multipleDrift=multipleDrift,
       ctmaInitFit=ctmaInitFit,
       datalong_all=datalong_all,
       activeDirectory=activeDirectory,
-      sourceDirectory=sourceDirectory,
-      resultsFilePrefix="ctmaSingleStanct",
-      saveFilePrefix="ctmaSingleStanct",
+      #sourceDirectory=sourceDirectory,
+      resultsFilePrefix="CoTiMAmultipleStanct",
+      saveFilePrefix="CoTiMAmultipleStanct",
+
       activateRPB=activateRPB,
       silentOverwrite=silentOverwrite,
       digits=digits,
@@ -413,7 +416,7 @@ ctmaSingle <- function(
       coresToUse=coresToUse,
       numOfThreads=numOfThreads,
       fullDriftStartValues=fullDriftStartValues,
-      saveSingleDriftModelFit=saveSingleDriftModelFit,
+      saveMultipleDriftModelFit=saveMultipleDriftModelFit,
       CoTiMAStanctArgs=CoTiMAStanctArgs
     )
   }
@@ -422,4 +425,3 @@ ctmaSingle <- function(
   invisible(results)
 
 } ### END function definition
-
