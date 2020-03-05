@@ -209,7 +209,7 @@ ctmaPower <- function(
   start.time <- Sys.time(); start.time
 
   {
-    tmp <- ctmaCombPRaaw(listOfStudyFits=ctmaInitFit$studyFitList)
+    tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit$studyFitList)
     datawide_all <- tmp$alldata
     groups <- tmp$groups
     names(groups) <- c("Study_No_"); groups
@@ -498,11 +498,11 @@ ctmaPower <- function(
 
     # Define functions to compute discrete time effects
     discreteDriftFunction <- function(driftMatrix, timeScale, number) {
-      discreteDriftValue <- expm(timeScale %x% driftMatrix)
+      discreteDriftValue <- OpenMx::expm(timeScale %x% driftMatrix)
       discreteDriftValue[number] }
     discreteDiffusionFunction <- function(diffusionMatrix, driftMatrix, timeScale, number) {
       driftHatch <- driftMatrix %x% diag(dim(diffusionMatrix)[1]) + diag(dim(diffusionMatrix)[1]) %x% driftMatrix
-      discreteDiffusionValue <- solve(driftHatch) %*% (expm(timeScale %x% driftHatch) - diag(dim(driftHatch)[1])) %*% c(diffusionMatrix)
+      discreteDiffusionValue <- solve(driftHatch) %*% (OpenMx::expm(timeScale %x% driftHatch) - diag(dim(driftHatch)[1])) %*% c(diffusionMatrix)
       discreteDiffusionValue[number] }
 
     # Loop through a range of lags to determine sample sizes (same parameters as for plotting the effects furter below)
@@ -525,16 +525,16 @@ ctmaPower <- function(
               plotPairs[j, h, k, 1] <- usedTimeRange[k+1] # time point
 
               # R2 in terms of Kelley & Maxwell 2008
-              A <- expm(DRIFT %x% delta_t) %*% T0VAR %*% t(expm(DRIFT %x% delta_t)); A         # implied variance at later Tpoint
+              A <- OpenMx::expm(DRIFT %x% delta_t) %*% T0VAR %*% t(OpenMx::expm(DRIFT %x% delta_t)); A         # implied variance at later Tpoint
               S <- matrix(discreteDiffusionFunction(DIFFUSION, DRIFT, delta_t, 1:4),
                           n.latent, n.latent); S   # residual variance at later Tpoint
               R2 <- A[j2,j2]/( (A + S)[j2,j2] ); R2                                            # explained variance at later Tpoint
 
               # R2 without j (cross effect) in terms of Kelley & Maxwell 2008
               DRIFT.without.j[[counter]]
-              A.j <- expm(DRIFT.without.j[[counter]] %x% delta_t) %*%
+              A.j <- OpenMx::expm(DRIFT.without.j[[counter]] %x% delta_t) %*%
                 T0VAR.without.j[[j]] %*%
-                t(expm(DRIFT.without.j[[j]] %x% delta_t)); A.j           # implied variance without j (counter) as predictor at later Tpoint
+                t(OpenMx::expm(DRIFT.without.j[[j]] %x% delta_t)); A.j           # implied variance without j (counter) as predictor at later Tpoint
               S.j <- matrix(
                 discreteDiffusionFunction(DIFFUSION.without.j[[j]],      # implied residual variance without j (counter) as predictor at later Tpoint
                                           DRIFT.without.j[[j]],
@@ -572,7 +572,7 @@ ctmaPower <- function(
                   M <- tableNxDeltas[ ,-1] == delta_t; M # temp matrix used below
                   empiricalN <- matrix(tableNxDeltas[apply(M, 1, any), ], ncol=maxTpoints)[,1]; empiricalN
                   #empiricalN <- matrix(tableNxDeltas[M, ], ncol=maxTpoints)[,1]; empiricalN
-                  empiricalN <- na.omit(empiricalN); empiricalN
+                  empiricalN <- stats::na.omit(empiricalN); empiricalN
                   for (l in empiricalN) {
                     p05 <- MBESS::ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
                                              p = n.latent, Specified.N = l, alpha.level = 0.05)[2]

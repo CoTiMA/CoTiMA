@@ -285,7 +285,7 @@ ctmaFullStanct <- function(
     #driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent); driftMatrix
     driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=T); driftMatrix # byrow set because order is different compared to mx model
     OTL <- function(timeRange) {
-      expm(driftMatrix * timeRange)[targetRow, targetCol]}
+      OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]}
     # loop through all cross effects
     optimalCrossLag <- matrix(NA, n.latent, n.latent)
     maxCrossEffect <- matrix(NA, n.latent, n.latent)

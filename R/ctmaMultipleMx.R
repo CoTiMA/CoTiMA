@@ -186,7 +186,7 @@ ctmaMultipleMx <- function(
                                                                  ctmodelobj = homDRIFTMultipleCTmodelobj,
                                                                  fixedmodel = homDRIFTMultipleFixedModel, noOfStudies <- n.studies)
         results <- parallel::mclapply(seq(1, refits, by=1),
-                            function(refits) ctMultigroupFit(dat=datawide_all, groupings = groupsNamed, retryattempts = retryattempts,
+                            function(refits) ctsem::ctMultigroupFit(dat=datawide_all, groupings = groupsNamed, retryattempts = retryattempts,
                                                              omxStartValues = homDRIFTMultipleStartValues,
                                                              ctmodelobj = homDRIFTMultipleCTmodelobj,
                                                              fixedmodel = homDRIFTMultipleFixedModel),

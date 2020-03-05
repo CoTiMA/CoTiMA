@@ -183,7 +183,7 @@ ctmaFullMx <- function(
     homDRIFTallStartValues <- ctmaChangeSVLab(startValues = homDRIFTallStartValues, ctmodelobj = homDRIFTallCTmodelobj,
                                           fixedmodel = homDRIFTallFixedModel, n.Studies <- n.studies)
     results <- parallel::mclapply(seq(1, refits, by=1),
-                        function(refits) ctMultigroupFit(dat=datawide_all, groupings = groupsNamed, retryattempts = retryattempts,
+                        function(refits) ctsem::ctMultigroupFit(dat=datawide_all, groupings = groupsNamed, retryattempts = retryattempts,
                                                          omxStartValues=homDRIFTallStartValues,
                                                          ctmodelobj = homDRIFTallCTmodelobj,
                                                          fixedmodel = homDRIFTallFixedModel),
@@ -332,7 +332,7 @@ ctmaFullMx <- function(
   ### Numerically compute Optimal Time lag sensu Dormann & Griffin (2015)
   driftMatrix <- matrix(homDRIFTall_Drift_Coef, n.latent, n.latent); driftMatrix
   OTL <- function(timeRange) {
-    expm(driftMatrix * timeRange)[targetRow, targetCol]}
+    OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]}
   # loop through all cross effects
   optimalCrossLag <- matrix(NA, n.latent, n.latent)
   maxCrossEffect <- matrix(NA, n.latent, n.latent)
