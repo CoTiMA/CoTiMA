@@ -19,6 +19,3 @@ ctmaPrep(selectedStudies = NULL, excludedElements = NULL, addElements = NULL)
 \description{
 Title
 }
-\examples{
-
-}

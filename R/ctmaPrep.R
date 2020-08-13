@@ -7,7 +7,6 @@
 #' @return "List of primary studies and parameters for the following CoTiMA"
 #' @export
 #'
-#' @examples
 #'
 ctmaPrep <- function(selectedStudies=NULL,
                      excludedElements=NULL, # vector that might include and of the following (just for cosmetic reasons:
@@ -18,7 +17,7 @@ ctmaPrep <- function(selectedStudies=NULL,
                      ) {
 
     if (is.null(selectedStudies)) {
-    cat(red$bold("Number of primary studies to combine in the list was not specified!", sep="\n"))
+    cat(crayon::red$bold("Number of primary studies to combine in the list was not specified!", sep="\n"))
     stop("Good luck for the next try!")
   }
 
@@ -76,7 +75,7 @@ ctmaPrep <- function(selectedStudies=NULL,
     }
 
     if ( (is.na(sampleSizes[[i]]) & (is.null(dim(pairwiseNs[[i]]))) & (is.null(rawData[[i]])) ) ) {
-      cat(red$bold("Neither sample size nor matrix of pairwise N nor rawData was provided for primary study ", i, sep=""))
+      cat(crayon::red$bold("Neither sample size nor matrix of pairwise N nor rawData was provided for primary study ", i, sep=""))
       cat(" ", sep="\n")
       stop("Good luck for the next try!")
     }
