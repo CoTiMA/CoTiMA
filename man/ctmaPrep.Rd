@@ -2,21 +2,20 @@
 % Please edit documentation in R/ctmaPrep.R
 \name{ctmaPrep}
 \alias{ctmaPrep}
-\title{ctmaPrep}
+\title{Title}
 \usage{
-ctmaPrep(selectedStudies = NULL, excludedElements = NULL)
+ctmaPrep(selectedStudies = NULL, excludedElements = NULL, addElements = NULL)
 }
 \arguments{
-\item{selectedStudies}{?}
+\item{selectedStudies}{"Vector of studynumbers to include in CoTiMA"}
 
-\item{excludedElements}{?}
+\item{excludedElements}{"Vector of Studyelements to exclude from CoTiMA"}
+
+\item{addElements}{"Vector of extra Studyelements to include in CoTiMA"}
 }
 \value{
-
+"List of primary studies and parameters for the following CoTiMA"
 }
 \description{
-ctmaPrep
-}
-\examples{
-
+Title
 }
