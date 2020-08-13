@@ -22,5 +22,6 @@ Imports:
     utils (>= 3.6.2),
     stats (>= 3.6.2),
 Suggests:
-    RPushbullet 
-    RoxygenNote: 7.0.2
+    RPushbullet(>= 0.3.3),
+    RoxygenNote (>= 7.0.2)
+RoxygenNote: 7.1.1
