@@ -5,7 +5,7 @@
 #' @param addElements "Vector of extra Studyelements to include in CoTiMA"
 #'
 #' @return "List of primary studies and parameters for the following CoTiMA"
-#' @export
+#' @export ctmaPrep
 #'
 #'
 ctmaPrep <- function(selectedStudies=NULL,
