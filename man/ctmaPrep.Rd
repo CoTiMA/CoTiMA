@@ -2,7 +2,7 @@
 % Please edit documentation in R/ctmaPrep.R
 \name{ctmaPrep}
 \alias{ctmaPrep}
-\title{Title}
+\title{ctmaprep}
 \usage{
 ctmaPrep(selectedStudies = NULL, excludedElements = NULL, addElements = NULL)
 }
@@ -17,5 +17,5 @@ ctmaPrep(selectedStudies = NULL, excludedElements = NULL, addElements = NULL)
 "List of primary studies and parameters for the following CoTiMA"
 }
 \description{
-Title
+ctmaprep
 }

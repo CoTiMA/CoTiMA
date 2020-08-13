@@ -1,4 +1,4 @@
-#' Title
+#' ctmaprep
 #'
 #' @param selectedStudies "Vector of studynumbers to include in CoTiMA"
 #' @param excludedElements "Vector of Studyelements to exclude from CoTiMA"
