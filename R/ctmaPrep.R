@@ -1,10 +1,20 @@
-compileListOfPrimaryStudies <- function(selectedStudies=NULL, excludedElements=NULL) {
+#' ctmaPrep
+#'
+#' @param selectedStudies ?
+#' @param excludedElements ?
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+ctmaPrep <- function(selectedStudies=NULL, excludedElements=NULL) {
   #selectedStudies=1:5
-  #excludedElements="moderators"  
-  #excludedElements=NULL  
-  
+  #excludedElements="moderators"
+  #excludedElements=NULL
+
   if (is.null(selectedStudies)) {
-    cat(red$bold("Number of primary studies to combine in the list was not specified!", sep="\n")) 
+    cat(crayon::red$bold("Number of primary studies to combine in the list was not specified!", sep="\n"))
     stop("Good luck for the next try!")
   }
 
@@ -17,15 +27,15 @@ compileListOfPrimaryStudies <- function(selectedStudies=NULL, excludedElements=N
     empcovs[[i]] <- matrix(NA, 0, 0)
     moderators[[i]] <- NA
     startValues[[i]] <- NA
-    studyNumbers[[i]] <- i
+    studyNumbers[[i]] <- selectedStudies[i]
     pairwiseNs[[i]] <- matrix(NA, 0, 0)
     rawData[[i]] <- insideRawData
     empMeans[[i]] <- NA
     empVars[[i]] <- NA
   }
-  
+
   for (i in 1:length(selectedStudies)) { # 'length' ensures consecutive numbering
-    if (exists(paste0("delta_t", selectedStudies[i]))) deltas[[i]] <- get(paste0("delta_t", selectedStudies[i])) 
+    if (exists(paste0("delta_t", selectedStudies[i]))) deltas[[i]] <- get(paste0("delta_t", selectedStudies[i]))
     if (exists(paste0("empcov", selectedStudies[i]))) empcovs[[i]] <- get(paste0("empcov", selectedStudies[i]))
     if (exists(paste0("pairwiseN", selectedStudies[i]))) pairwiseNs[[i]] <- get(paste0("pairwiseN", selectedStudies[i]))
     if (exists(paste0("moderator", selectedStudies[i]))) moderators[[i]] <- get(paste0("moderator", selectedStudies[i]))
@@ -38,19 +48,19 @@ compileListOfPrimaryStudies <- function(selectedStudies=NULL, excludedElements=N
       rawData[[i]] <- get(paste0("rawData", selectedStudies[i]))
       rawData[[i]]$studyNumbers <- selectedStudies[i]
     }
-    
+
     if ( (is.na(sampleSizes[[i]]) & (is.null(dim(pairwiseNs[[i]]))) & (is.null(rawData[[i]])) ) ) {
-      cat(red$bold("Neither sample size nor matrix of pairwise N nor rawData was provided for primary study ", i, sep="")) 
-      cat(" ", sep="\n") 
+      cat(crayon::red$bold("Neither sample size nor matrix of pairwise N nor rawData was provided for primary study ", i, sep=""))
+      cat(" ", sep="\n")
       stop("Good luck for the next try!")
     }
   }
-  
-  primaryStudies <- list(deltas, sampleSizes, pairwiseNs, empcovs, moderators, startValues, 
+
+  primaryStudies <- list(deltas, sampleSizes, pairwiseNs, empcovs, moderators, startValues,
                          studyNumbers, rawData, empMeans, empVars)
-  names(primaryStudies) <- c("deltas", "sampleSizes", "pairwiseNs", "empcovs", "moderators", "startValues", 
+  names(primaryStudies) <- c("deltas", "sampleSizes", "pairwiseNs", "empcovs", "moderators", "startValues",
                              "studyNumbers", "rawData", "empMeans", "empVars")
-  
+
   # exclude elements by setting them 0
   if (!(is.null(excludedElements))) {
     targetNames <- c()
@@ -59,6 +69,6 @@ compileListOfPrimaryStudies <- function(selectedStudies=NULL, excludedElements=N
       for (j in 1:length(selectedStudies)) primaryStudies[[targetNames[i]]][j] <- 0
     }
   }
-  
+
   return(primaryStudies)
 }

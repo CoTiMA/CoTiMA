@@ -1,4 +1,16 @@
-changeStartValueLabels <- function(startValues = NULL, ctmodelobj = NULL, fixedmodel = NULL, noOfStudies = NULL) {
+#' ctmaChangeSVLab
+#'
+#' @param startValues ?
+#' @param ctmodelobj ?
+#' @param fixedmodel ?
+#' @param noOfStudies ?
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+ctmaChangeSVLab <- function(startValues = NULL, ctmodelobj = NULL, fixedmodel = NULL, noOfStudies = NULL) {
   targetNames1 <- targetNames2 <- c()
   labelPattern <- c(ctmodelobj$DRIFT, ctmodelobj$DIFFUSION, ctmodelobj$T0VAR, ctmodelobj$CINT)
   fixedPattern <- c(fixedmodel$DRIFT, fixedmodel$DIFFUSION, fixedmodel$T0VAR, fixedmodel$CINT)
