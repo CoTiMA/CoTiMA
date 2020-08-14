@@ -115,5 +115,7 @@ ctmaPrep <- function(selectedStudies=NULL,
     }
   }
 
+  primaryStudies$n.studies <- length(selectedStudies)
+
   return(primaryStudies)
 }
