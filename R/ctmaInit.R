@@ -581,7 +581,8 @@ ctmaInit <- function(
 
       studyFit_Minus2LogLikelihood[[i]] <- studyFit[[i]]$stanfit$optimfit$f
       studyFit_estimatedParameters[[i]] <- length(studyFit[[i]]$stanfit$optimfit$par)
-      #resultsSummary <- summary(studyFit[[i]]); resultsSummary
+
+                                  
       resultsSummary <- studyFit[[i]]$resultsSummary; resultsSummary
 
       tmp <- grep("toV", rownames(resultsSummary$popmeans)); tmp
@@ -631,7 +632,7 @@ ctmaInit <- function(
     } # END     for (i in 1:n.studies)
 
     # Combine summary information and fit statistics
-    #studyFit[[1]]$resultsSummary$`df (CoTiMA)`
+
     allStudies_Minus2LogLikelihood <- sum(unlist(studyFit_Minus2LogLikelihood)); allStudies_Minus2LogLikelihood
     allStudies_estimatedParameters <- sum(unlist(studyFit_estimatedParameters)); allStudies_estimatedParameters
     allStudies_df <- sum(unlist(lapply(studyFit, function(extract) extract$resultsSummary$`df (CoTiMA)`)))
@@ -666,17 +667,18 @@ ctmaInit <- function(
     #  for (h in 1:n.latent) {
     #    newColNames <- c(newColNames, paste0("V",j,"toV", h), "(SE)")
     #  }
-    #}
+    #}}
     #newColNames
-    #oldColNames <- colnames(allStudiesDRIFT_effects); oldColNames
-    allStudiesDRIFT_effects
-    allStudiesDRIFT_effects_ext
+    #oldColNames <- colnames(allStudiesDRIFT_effects); oldColNames) <- newColNames;
+    #allStudiesDRIFT_effects
+    #allStudiesDRIFT_effects_ext
     #studyFit[[7]]$resultsSummary$parmatrices
     #allStudiesCI
 
-    #colnames(allStudiesDRIFT_effects) <- newColNames;
+    #colnames(allStudiesDRIFT_effects) <-    newColNames;
     #newColNames <- c("Source", newColNames)
     #colnames(allStudiesDRIFT_effects_ext) <- newColNames;
+
 
     # check single study results
     if (checkSingleStudyResults == TRUE) {
