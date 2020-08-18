@@ -1,3 +1,16 @@
+#' ctmaPRaw
+#'
+#' @param empCovMat ""
+#' @param empNMat ""
+#' @param empN ""
+#' @param studyNumber ""
+#' @param empMeanVector ""
+#' @param empVarVector ""
+#' @param activateRPB "set to TRUE to receive push messages with CoTiMA notifications on your phone"
+#'
+#' @return
+#' @export
+#'
 pRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumber=NULL,
                           empMeanVector=NULL, empVarVector=NULL, activateRPB=FALSE)
 {  # begin function definition (until end of file)
@@ -10,46 +23,46 @@ pRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumber=N
   #if (!("psych" %in% (.packages()))) library(psych)
 
   if (is.null(empCovMat)) {
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(red$bold("No empirical covariance matrix provided for pseudo raw data generation!", sep="\n"))
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat(crayon::red$bold("No empirical covariance matrix provided for pseudo raw data generation!", sep="\n"))
     stop("Good luck for the next try!")
   }
 
   if (!(isSymmetric(empCovMat))) {
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(red$bold("The empirical covariance matrix provided is not symmetric!", sep="\n"))
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat(crayon::red$bold("The empirical covariance matrix provided is not symmetric!", sep="\n"))
     stop("Good luck for the next try!")
   }
 
   if (!(is.null(empNMat))) {
     if (!(isSymmetric(empNMat))) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(red$bold("The pairwise N matrix provided is not symmetrix!", sep="\n"))
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold("The pairwise N matrix provided is not symmetrix!", sep="\n"))
       stop("Good luck for the next try!")
     }
   }
 
   if ( (is.null(empNMat) & is.null(empN)) ) {
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(red$bold("EITHER a matrix with pairwise N OR an overall N has to be provided pseudo raw data generation!", sep="\n"))
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat(crayon::red$bold("EITHER a matrix with pairwise N OR an overall N has to be provided pseudo raw data generation!", sep="\n"))
     stop("Good luck for the next try!")
   }
 
   if (is.null(empMeanVector)) {
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(red$bold("No vector of means was provided. All means are set to 0.0.", sep="\n"))
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat(crayon::red$bold("No vector of means was provided. All means are set to 0.0.", sep="\n"))
     cat("\n")
   }
 
   if (is.null(empVarVector)) {
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(red$bold("No vector of variances was provided. All variances are set to 1.0.", sep="\n"))
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat(crayon::red$bold("No vector of variances was provided. All variances are set to 1.0.", sep="\n"))
     cat("\n")
   }
 
   if ( (!(is.null(empMeanVector))) & (length(empMeanVector) != (dim(empCovMat)[1]) )  ){
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(red$bold("The number of means provided does not match the number of variables in the empirical covariance matrix", sep="\n"))
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat(crayon::red$bold("The number of means provided does not match the number of variables in the empirical covariance matrix", sep="\n"))
     stop("Good luck for the next try!")
   }
 
@@ -59,10 +72,10 @@ pRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumber=N
     colNACounter[i] <- length(which(is.na(empCovMat[ ,i]) == TRUE))
   }
   if (any(rowNACounter != colNACounter)) {
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(red$bold("Currently missing correlations can only be handled if a variable is entirely missing. ", sep="\n"))
-    cat(red$bold("The NA-pattern provided implies this is not the case. ", sep="\n"))
-    cat(red$bold("Consider setting all correlations involving a critical variable to NA. ", sep="\n"))
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat(crayon::red$bold("Currently missing correlations can only be handled if a variable is entirely missing. ", sep="\n"))
+    cat(crayon::red$bold("The NA-pattern provided implies this is not the case. ", sep="\n"))
+    cat(crayon::red$bold("Consider setting all correlations involving a critical variable to NA. ", sep="\n"))
     stop("Good luck for the next try!")
   }
 
@@ -81,7 +94,7 @@ pRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumber=N
     uniqueK <- unique(sortedK); uniqueK
     reversedK <- cbind(uniqueK[,2], uniqueK[,1]); reversedK
     k <- rbind(uniqueK, reversedK); k
-    randomCors <- rnorm(length(uniqueK)/2, 0, .0); randomCors
+    randomCors <- stats::rnorm(length(uniqueK)/2, 0, .0); randomCors
     randomCors <- c(randomCors, randomCors); randomCors
     newMat[k] <- randomCors
     diag(newMat) <- 1; newMat
@@ -150,7 +163,7 @@ pRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumber=N
         r <- matrixL[[whileCounter]]$r; r
         n <- matrixL[[whileCounter]]$n; n
         # generate data
-        matrixL[[whileCounter]]$data <- mvrnorm(n=minN, mu=rep(0, matDim), Sigma=r, empirical = TRUE); matrixL[[whileCounter]]$data
+        matrixL[[whileCounter]]$data <- MASS::mvrnorm(n=minN, mu=rep(0, matDim), Sigma=r, empirical = TRUE); matrixL[[whileCounter]]$data
         ncounter <- ncounter + minN
       }
       if (matDim > 1) {
@@ -204,14 +217,14 @@ pRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumber=N
   }
 
   ### too small N in the diagonal can be corrected
-  nDiff <- corr.test(newData, ci=FALSE)$n - origN; nDiff
-  rDiff <- round(corr.test(newData, ci=FALSE)$r - currentR, 6); rDiff
+  nDiff <- psych::corr.test(newData, ci=FALSE)$n - origN; nDiff
+  rDiff <- round(psych::corr.test(newData, ci=FALSE)$r - currentR, 6); rDiff
   currentData <- list()
   counter <- 0
   for (i in 1:(dim(nDiff)[1])) {
     if (nDiff[i,i] < -1) {
       counter <- counter +1
-      currentData[[counter]] <- mvrnorm(n=-nDiff[i,i], mu=rep(0), Sigma=matrix(currentR[i,i], 1, 1), empirical = TRUE)
+      currentData[[counter]] <- MASS::mvrnorm(n=-nDiff[i,i], mu=rep(0), Sigma=matrix(currentR[i,i], 1, 1), empirical = TRUE)
       colnames(currentData[[counter]]) <- i; currentData[[counter]]
     }
   }
@@ -241,8 +254,8 @@ pRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumber=N
     }
   }
 
-  nDiff <- corr.test(newData, ci=FALSE)$n - origN; nDiff
-  rDiff <- round(corr.test(newData, ci=FALSE)$r - currentR, 6); rDiff
+  nDiff <- psych::corr.test(newData, ci=FALSE)$n - origN; nDiff
+  rDiff <- round(psych::corr.test(newData, ci=FALSE)$r - currentR, 6); rDiff
   overallNDiff <- sum(nDiff[lower.tri(nDiff, diag=TRUE)]); overallNDiff
   relativeNDiff <- overallNDiff/sum(origN[lower.tri(origN, diag=TRUE)]); relativeNDiff
   overallRDiff <- sum(rDiff[lower.tri(rDiff, diag=TRUE)], na.rm=TRUE); overallRDiff
