@@ -3,6 +3,26 @@
 #######################################################################################################################
 
 
+#' ctmaInit
+#'
+#' @param primaryStudies "list of primary study information created with ctmaPrep"
+#' @param activeDirectory "Directory name"
+#' @param loadFilePrefix "File name prefix"
+#' @param activateRPB "set to TRUE to receive push messages with CoTiMA notifications on your phone"
+#' @param checkSingleStudyResults "displays estimates from single study ctsem models and waits for user inoput to continue"
+#' @param digits "Number of digits in outputs"
+#' @param n.latent "Number of latent variables of the model"
+#' @param saveRawData "save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec"
+#' @param coresToUse "neg.if negative,value is subtracted from available cores, else value = cores to use"
+#' @param silentOverwrite "override old files without asking"
+#' @param saveSingleStudyModelFit "save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
+#' @param loadSingleStudyModelFit "load the fit of single study ctsem models"
+#' @param CoTiMAStanctArgs "CoTiMA Stanct Arguments"
+#'
+#' @return
+#' @export
+#'
+#' @examples
 ctmaInit <- function(
   # Primary Study Information
   primaryStudies=NULL,                    #list of primary study information created with ctmaPrep
@@ -14,7 +34,7 @@ ctmaInit <- function(
 
   # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
   activateRPB=FALSE,                      #set to TRUE to receive push messages with CoTiMA notifications on your phone
-  checkSingleStudyResults=TRUE,          # displays estimates from single study ctsem models and waits for user inoput to continue
+  checkSingleStudyResults=TRUE,          # displays estimates from single study ctsem models and waits for user input to continue
   digits=4,
 
   # General Model Setup
@@ -69,51 +89,51 @@ ctmaInit <- function(
     print(paste0("#################################################################################"))
 
     if (is.null(primaryStudies)) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(red$bold(" List with lists of primary study information not specified!", sep="\n"))
-      cat(red$bold(" ", " ", sep="\n"))
-      cat(red$bold("Should I try to get primary study information (e.g., empcov1, delta_t22) from the global environment?", sep="\n"))
-      cat(red$bold(" ", " ", sep="\n"))
-      cat(red$bold("(This is the way how earlier version of CoTiMA were run but no longer recommended.)", sep="\n"))
-      cat(red$bold(" ", " ", sep="\n"))
-      cat(blue("Press 'q' to quit and specify or 'c' to give it a try. Press ENTER afterwards ", "\n"))
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold(" List with lists of primary study information not specified!", sep="\n"))
+      cat(crayon::red$bold(" ", " ", sep="\n"))
+      cat(crayon::red$bold("Should I try to get primary study information (e.g., empcov1, delta_t22) from the global environment?", sep="\n"))
+      cat(crayon::red$bold(" ", " ", sep="\n"))
+      cat(crayon::red$bold("(This is the way how earlier version of CoTiMA were run but no longer recommended.)", sep="\n"))
+      cat(crayon::red$bold(" ", " ", sep="\n"))
+      cat(crayon::blue("Press 'q' to quit and specify or 'c' to give it a try. Press ENTER afterwards ", "\n"))
       char <- readline(" ")
       while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
-        cat((blue("Please press 'q' to quit and specify primaryStudies or 'c' to try reading from global environment Press ENTER afterwards.", "\n")))
+        cat((crayon::blue("Please press 'q' to quit and specify primaryStudies or 'c' to try reading from global environment Press ENTER afterwards.", "\n")))
         char <- readline(" ")
       }
       if (char == 'q' | char == 'Q') {
         stop("Good luck for the next try!")
       } else {
         if (!(is.numeric(tryCatch(get(paste("sampleSize", 1, sep = "")), error = function(e) e)))) {
-          cat(red$bold("Getting primary study information from the global environment failed", sep="\n"))
-          cat(red$bold(" ", " ", sep="\n"))
-          cat(blue("To test, I searched for sampleSize1 and could not find it!", "\n"))
-          cat(red$bold(" ", " ", sep="\n"))
+          cat(crayon::red$bold("Getting primary study information from the global environment failed", sep="\n"))
+          cat(crayon::red$bold(" ", " ", sep="\n"))
+          cat(crayon::blue("To test, I searched for sampleSize1 and could not find it!", "\n"))
+          cat(crayon::red$bold(" ", " ", sep="\n"))
           stop("Good luck for the next try!")
         } else {
-          cat(blue("Please type the number of primary studies to read from global environment. Press ENTER afterwards ", "\n"))
+          cat(crayon::blue("Please type the number of primary studies to read from global environment. Press ENTER afterwards ", "\n"))
           char <- as.numeric(readline(""))
           while ((is.na(char))) {
-            cat((blue("Please type the number of primary studies to read from global environment. Press ENTER afterwards ", "\n")))
+            cat((crayon::blue("Please type the number of primary studies to read from global environment. Press ENTER afterwards ", "\n")))
             char <- as.numeric(readline(""))
           }
-          primaryStudies <- prep(selectedStudies=1:char)
+          primaryStudies <- ctmaPrep(selectedStudies=1:char)
         } # END else (catch failed)
       } # END else
     } #
 
 
     if (is.null(n.latent)) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(red$bold("Number of variables (n.latent) not specified!", sep="\n"))
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold("Number of variables (n.latent) not specified!", sep="\n"))
       stop("Good luck for the next try!")
     }
 
 
     if (is.null(activeDirectory)) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(red$bold("No working directory has been specified!", sep="\n"))
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold("No working directory has been specified!", sep="\n"))
       stop("Good luck for the next try!")
     }
 
@@ -122,9 +142,9 @@ ctmaInit <- function(
     }
 
     if (coresToUse >= parallel::detectCores()) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
       coresToUse <- parallel::detectCores() - 1
-      cat(red("No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.","\n"))
+      cat(crayon::red("No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.","\n"))
     }
 
   } ### END Check Model Specification ###
@@ -177,7 +197,7 @@ ctmaInit <- function(
       # check matrix symmetry if matrix is provided
       if (!(primaryStudies$studyNumbers[i] %in% loadRawDataStudyNumbers)) {
         if (isSymmetric(primaryStudies$empcovs[[i]]) == FALSE) {
-          cat(red$bold("The correlation matrix of study no.", i, "is not symmetric. Check and re-start!", "\n"))
+          cat(crayon::red$bold("The correlation matrix of study no.", i, "is not symmetric. Check and re-start!", "\n"))
           stop("Good luck for the next try!")
         }
       }
@@ -215,16 +235,16 @@ ctmaInit <- function(
         empraw[[i]] <- as.data.frame(empraw[[i]])
         ## START correction of current lags if entire time point is missing for a case
         # wide to long
-        emprawLongTmp <- ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.latent, manifestNames=manifestNames)
-        emprawLongTmp <- suppressMessages(ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
+        emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.latent, manifestNames=manifestNames)
+        emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
         # eliminate rows where ALL latents are NA
         emprawLongTmp <- emprawLongTmp[, ][ apply(emprawLongTmp[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
         # eliminate rows where time is NA
         emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
         # make wide format
-        emprawWide <- suppressMessages(ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
+        emprawWide <- suppressMessages(ctsem::ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
         # inrervalise
-        emprawWide <- suppressMessages(ctIntervalise(emprawWide, Tpoints=currentTpoints, n.manifest=n.latent, manifestNames=manifestNames))
+        emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide, Tpoints=currentTpoints, n.manifest=n.latent, manifestNames=manifestNames))
         # restore
         empraw[[i]] <- as.data.frame(emprawWide)
         # END correction
@@ -237,7 +257,7 @@ ctmaInit <- function(
         tmp2 <- studyList[[i]]$rawData$header; tmp2
         tmp3 <- studyList[[i]]$rawData$dec; tmp3
         tmp4 <- studyList[[i]]$rawData$sep; tmp4
-        tmpData <- read.table(file=tmp1,
+        tmpData <- utils::read.table(file=tmp1,
                               header=tmp2,
                               dec=tmp3,
                               sep=tmp4)
@@ -251,16 +271,16 @@ ctmaInit <- function(
         currentTpoints <- (tmp1 + 1)/(n.latent+1); currentTpoints
         colnames(empraw[[i]])[1:(currentTpoints * n.latent)] <- paste0(paste0("V", 1:n.latent), "_T", rep(0:(currentTpoints-1), each=n.latent))
         # wide to long
-        emprawLongTmp <- ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.latent, manifestNames=manifestNames)
-        emprawLongTmp <- suppressMessages(ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
+        emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.latent, manifestNames=manifestNames)
+        emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
         # eliminate rows where ALL latents are NA
         emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
         # eliminate rows where time is NA
         emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
         # make wide format
-        emprawWide <- suppressMessages(ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
+        emprawWide <- suppressMessages(ctsem::ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
         # intervalise
-        emprawWide <- suppressMessages(ctIntervalise(emprawWide,
+        emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide,
                                                      Tpoints=currentTpoints,
                                                      n.manifest=n.latent,
                                                      manifestNames=manifestNames,
@@ -306,16 +326,16 @@ ctmaInit <- function(
       # Save raw data  on request
       if ( i %in% saveRawData$studyNumbers ) {
         x1 <- paste0(saveRawData$fileName, i, ".dat"); x1
-        write.table(empraw[[i]], file=x1, row.names=saveRawData$row.names, col.names=saveRawData$col.names,
+        utils::write.table(empraw[[i]], file=x1, row.names=saveRawData$row.names, col.names=saveRawData$col.names,
                     sep=saveRawData$sep, dec=saveRawData$dec)
       }
 
       # augment pseudo raw data for stanct model
       {
         dataTmp <- empraw[[i]]
-        dataTmp2 <- ctWideToLong(dataTmp, Tpoints=currentTpoints, n.manifest=n.latent, #n.TIpred = (n.studies-1),
+        dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=currentTpoints, n.manifest=n.latent, #n.TIpred = (n.studies-1),
                                  manifestNames=manifestNames)
-        dataTmp3 <- ctDeintervalise(dataTmp2)
+        dataTmp3 <- ctsem::ctDeintervalise(dataTmp2)
         dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
         # eliminate rows where ALL latents are NA
         dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
@@ -329,14 +349,14 @@ ctmaInit <- function(
   N1 <- sum(unlist((lapply(empraw, function(extract) dim(extract)[1]))) , na.rm=TRUE); N1
   N2 <- sum(unlist(primaryStudies$sampleSizes), na.rm=TRUE); N2
   if (!(N1 == N2)) {
-    cat(red$bold(" ", " ", sep="\n"))
-    cat(red$bold(" There is a possible mismatch between sample sizes specified in the primary study list
+    cat(crayon::red$bold(" ", " ", sep="\n"))
+    cat(crayon::red$bold(" There is a possible mismatch between sample sizes specified in the primary study list
     (created with the PREP R-file) and the cases pwovided in raw data files.", sep="\n"))
-    cat(red$bold(" ", " ", sep="\n"))
-    cat(red$bold("N based on raw data:   ", sep="\n"))
+    cat(crayon::red$bold(" ", " ", sep="\n"))
+    cat(crayon::red$bold("N based on raw data:   ", sep="\n"))
     print(unlist((lapply(empraw, function(extract) dim(extract)[1]))))
-    cat(red$bold(" ", " ", sep="\n"))
-    cat(red$bold("N as specified in list:", sep="\n"))
+    cat(crayon::red$bold(" ", " ", sep="\n"))
+    cat(crayon::red$bold("N as specified in list:", sep="\n"))
     unlist(primaryStudies$sampleSizes)
   }
 
@@ -395,7 +415,7 @@ ctmaInit <- function(
     }
 
     # general ctsem model template
-    ctsemModelTemplate <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=2, manifestNames=manifestNames,    # 2 waves in the template only
+    ctsemModelTemplate <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=2, manifestNames=manifestNames,    # 2 waves in the template only
                                   DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent),
                                   LAMBDA=diag(n.latent),
                                   type='stanct',
@@ -426,22 +446,22 @@ ctmaInit <- function(
     print(paste0("#################################################################################"))
 
     if (length(saveSingleStudyModelFit) == 1){
-      if ((activateRPB==TRUE) &  (silentOverwrite==FALSE)) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      if ((activateRPB==TRUE) &  (silentOverwrite==FALSE)) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       if (silentOverwrite==FALSE) {
-        cat(red$bold("You have indicated that you want to save SingleStudyModelFits, but have not selected any study/studies to save the fit for!","\n"))
-        cat(red("Would you like to save the SingleStudyModelFits for ALL studies??","\n"))
-        cat(blue("Press 'y' to save ALL singleStudyModelFits or 's' to continue and","\n"))
-        cat(blue("select the study/studies you whish to save the fits for. If you wish to quite, press 'q'. Press ENTER afterwards","\n"))
+        cat(crayon::red$bold("You have indicated that you want to save SingleStudyModelFits, but have not selected any study/studies to save the fit for!","\n"))
+        cat(crayon::red("Would you like to save the SingleStudyModelFits for ALL studies??","\n"))
+        cat(crayon::blue("Press 'y' to save ALL singleStudyModelFits or 's' to continue and","\n"))
+        cat(crayon::blue("select the study/studies you whish to save the fits for. If you wish to quite, press 'q'. Press ENTER afterwards","\n"))
         char <- readline(" ")
         while (!(char == 's') & !(char == 'S') & !(char == 'y') & !(char == 'Y') & !(char == 'q') & !(char == 'Q')) {
-          cat((blue("Please press 'y' to save ALL, 's' to specify the study/studies to save, or 'q' to quit. Press ENTER afterwards.", "\n")))
+          cat((crayon::blue("Please press 'y' to save ALL, 's' to specify the study/studies to save, or 'q' to quit. Press ENTER afterwards.", "\n")))
           char <- readline(" ")
         }
         if (char == 'y' | char == 'Y') {
           for (i in unlist(primaryStudies$studyNumber)) saveSingleStudyModelFit <- c(saveSingleStudyModelFit, i)
         } else if (char == 's' | char == 'S') {
-          cat(blue("Which SingleStudyModelFits would you like to save?", "\n"))
-          cat(blue("Please enter the no. of study/studies separated by commas!", "\n"))
+          cat(crayon::blue("Which SingleStudyModelFits would you like to save?", "\n"))
+          cat(crayon::blue("Please enter the no. of study/studies separated by commas!", "\n"))
           chars <- readline(" ")
           chars <- gsub(" ", "", chars, fixed = TRUE)
           chars <- unlist(strsplit(chars, ","))
@@ -456,22 +476,22 @@ ctmaInit <- function(
     }
 
     if (length(loadSingleStudyModelFit) == 1){
-      if ((activateRPB==TRUE) & (silentOverwrite==FALSE)) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      if ((activateRPB==TRUE) & (silentOverwrite==FALSE)) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       if (silentOverwrite==FALSE) {
-        cat(red$bold("You have indicated that you want to load SingleStudyModelFits, but have not selected any study/studies to load the fit for!","\n"))
-        cat(red("Would you like to load the SingleStudyModelFits for ALL studies??","\n"))
-        cat(blue("Press 'y' to load ALL singleStudyModelFits or 's' to continue and","\n"))
-        cat(blue("select the study/studies you whish to load the fits for. If you wish to quite, press 'q'. Press ENTER afterwards","\n"))
+        cat(crayon::red$bold("You have indicated that you want to load SingleStudyModelFits, but have not selected any study/studies to load the fit for!","\n"))
+        cat(crayon::red("Would you like to load the SingleStudyModelFits for ALL studies??","\n"))
+        cat(crayon::blue("Press 'y' to load ALL singleStudyModelFits or 's' to continue and","\n"))
+        cat(crayon::blue("select the study/studies you whish to load the fits for. If you wish to quite, press 'q'. Press ENTER afterwards","\n"))
         char <- readline(" ")
         while (!(char == 's') & !(char == 'S') & !(char == 'y') & !(char == 'Y') & !(char == 'q') & !(char == 'Q')) {
-          cat((blue("Please press 'y' to load ALL, 's' to specify the study/studies to load, or 'q' to quit. Press ENTER afterwards.", "\n")))
+          cat((crayon::blue("Please press 'y' to load ALL, 's' to specify the study/studies to load, or 'q' to quit. Press ENTER afterwards.", "\n")))
           char <- readline(" ")
         }
         if (char == 'y' | char == 'Y') {
           for (i in unlist(primaryStudies$studyNumber)) loadSingleStudyModelFit <- c(loadSingleStudyModelFit, i)
         } else if (char == 's' | char == 'S') {
-          cat(blue("Which SingleStudyModelFits would you like to load?", "\n"))
-          cat(blue("Please enter the no. of study/studies separated by commas!", "\n"))
+          cat(crayon::blue("Which SingleStudyModelFits would you like to load?", "\n"))
+          cat(crayon::blue("Please enter the no. of study/studies separated by commas!", "\n"))
           chars <- readline(" ")
           chars <- gsub(" ", "", chars, fixed = TRUE)
           chars <- unlist(strsplit(chars, ","))
@@ -535,7 +555,7 @@ ctmaInit <- function(
         currentModel <- ctsemModel[[modelToSelect]]; currentModel
 
         # FIT STANCT MODEL
-        results <- ctStanFit(
+        results <- ctsem::ctStanFit(
           datalong = emprawLong[[i]],
           ctstanmodel = currentModel,
           savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
@@ -582,7 +602,7 @@ ctmaInit <- function(
       studyFit_Minus2LogLikelihood[[i]] <- studyFit[[i]]$stanfit$optimfit$f
       studyFit_estimatedParameters[[i]] <- length(studyFit[[i]]$stanfit$optimfit$par)
 
-                                  
+
       resultsSummary <- studyFit[[i]]$resultsSummary; resultsSummary
 
       tmp <- grep("toV", rownames(resultsSummary$popmeans)); tmp
@@ -683,8 +703,8 @@ ctmaInit <- function(
     # check single study results
     if (checkSingleStudyResults == TRUE) {
       print(allStudiesDRIFT_effects_ext)
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(blue(" Press 'q' to quit or any other key to continue. Press ENTER afterwards."))
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::blue(" Press 'q' to quit or any other key to continue. Press ENTER afterwards."))
       char <- readline(" ")
       if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
     }
@@ -693,10 +713,10 @@ ctmaInit <- function(
     DRIFTSE <- matrix(unlist(model_Drift_SE), n.studies, n.latent^2, byrow=TRUE); DRIFTSE
 
     if (n.studies < 2) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(blue("Only a single primary study was handed over to CoTiMA. No further (meta-) analyses can be conducted."))
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::blue("Only a single primary study was handed over to CoTiMA. No further (meta-) analyses can be conducted."))
       cat(" ", sep="\n")
-      cat(blue("I guess this stop is intended! You could ignore further warning messages such as \"sqrt(n-2): NaNs produced\""))
+      cat(crayon::blue("I guess this stop is intended! You could ignore further warning messages such as \"sqrt(n-2): NaNs produced\""))
       cat(" ", sep="\n")
       cat(" ", sep="\n")
       cat(" ", sep="\n")
@@ -710,7 +730,7 @@ ctmaInit <- function(
   end.time <- Sys.time()
   time.taken <- end.time - start.time
 
-  if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
+  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
 
   results <- list(activeDirectory=activeDirectory,
                   time=list(start.time=start.time, end.time=end.time, time.taken=time.taken),
