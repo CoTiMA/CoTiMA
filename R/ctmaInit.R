@@ -580,7 +580,7 @@ ctmaInit <- function(
 
       studyFit_Minus2LogLikelihood[[i]] <- studyFit[[i]]$stanfit$optimfit$f
       studyFit_estimatedParameters[[i]] <- length(studyFit[[i]]$stanfit$optimfit$par)
-      resultsSummary <- summary(studyFit[[i]]); resultsSummary
+      resultsSummary <- studyFit[[i]]$resultsSummary; resultsSummary
 
       tmp <- grep("toV", rownames(resultsSummary$popmeans)); tmp
       model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=TRUE)); model_Drift_Coef[[i]]
@@ -629,7 +629,6 @@ ctmaInit <- function(
     } # END     for (i in 1:n.studies)
 
     # Combine summary information and fit statistics
-    studyFit[[1]]$resultsSummary$`df (CoTiMA)`
     allStudies_Minus2LogLikelihood <- sum(unlist(studyFit_Minus2LogLikelihood)); allStudies_Minus2LogLikelihood
     allStudies_estimatedParameters <- sum(unlist(studyFit_estimatedParameters)); allStudies_estimatedParameters
     allStudies_df <- sum(unlist(lapply(studyFit, function(extract) extract$resultsSummary$`df (CoTiMA)`)))
@@ -659,15 +658,24 @@ ctmaInit <- function(
     # Label summary table
     rownames(allStudiesDRIFT_effects) <- paste0("Study No ", primaryStudies$studyNumbers)
     rownames(allStudiesDRIFT_effects_ext) <- paste0("Study No ", primaryStudies$studyNumbers)
-    newColNames <- c()
-    for (j in 1:n.latent) {
-      for (h in 1:n.latent) {
-        newColNames <- c(newColNames, paste0("V",j,"toV", h), "(SE)")
-      }
-    }
-    colnames(allStudiesDRIFT_effects) <- newColNames;
-    newColNames <- c("Source", newColNames)
-    colnames(allStudiesDRIFT_effects_ext) <- newColNames;
+    #newColNames <- c()
+    #for (j in 1:n.latent) {
+    #  for (h in 1:n.latent) {
+    #    newColNames <- c(newColNames, paste0("V",j,"toV", h), "(SE)")
+    #  }
+    #}}
+    #newColNames
+    #oldColNames <- colnames(allStudiesDRIFT_effects); oldColNames) <- newColNames;
+    #allStudiesDRIFT_effects
+    #allStudiesDRIFT_effects_ext
+    #studyFit[[7]]$resultsSummary$parmatrices
+    #allStudiesCI
+
+    #colnames(allStudiesDRIFT_effects) <-    newColNames;
+    #newColNames <- c("Source", newColNames)
+    #colnames(allStudiesDRIFT_effects_ext) <- newColNames;
+
+
 
     # check single study results
     if (checkSingleStudyResults == TRUE) {
@@ -698,7 +706,7 @@ ctmaInit <- function(
 
   end.time <- Sys.time()
   time.taken <- end.time - start.time
-  
+
   if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
 
   results <- list(activeDirectory=activeDirectory,
