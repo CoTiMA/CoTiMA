@@ -2,6 +2,7 @@
 #######################################################################################################################
 #######################################################################################################################
 
+
 ctmaInit <- function(
   # Primary Study Information
   primaryStudies=NULL,                    #list of primary study information created with ctmaPrep
@@ -489,7 +490,7 @@ ctmaInit <- function(
   #######################################################################################################################
   ##################################### Fit ctsem Model to each Primary Study ###########################################
   #######################################################################################################################
-  {
+   {
     # loop through all primary studies
     studyFit <- studyFitCI <- studyFit_Minus2LogLikelihood <- studyFit_estimatedParameters <- list()
     model_Drift_Coef <- model_Drift_SE <- model_Drift_CI <- list()
@@ -580,6 +581,8 @@ ctmaInit <- function(
 
       studyFit_Minus2LogLikelihood[[i]] <- studyFit[[i]]$stanfit$optimfit$f
       studyFit_estimatedParameters[[i]] <- length(studyFit[[i]]$stanfit$optimfit$par)
+
+                                  
       resultsSummary <- studyFit[[i]]$resultsSummary; resultsSummary
 
       tmp <- grep("toV", rownames(resultsSummary$popmeans)); tmp
@@ -629,6 +632,7 @@ ctmaInit <- function(
     } # END     for (i in 1:n.studies)
 
     # Combine summary information and fit statistics
+
     allStudies_Minus2LogLikelihood <- sum(unlist(studyFit_Minus2LogLikelihood)); allStudies_Minus2LogLikelihood
     allStudies_estimatedParameters <- sum(unlist(studyFit_estimatedParameters)); allStudies_estimatedParameters
     allStudies_df <- sum(unlist(lapply(studyFit, function(extract) extract$resultsSummary$`df (CoTiMA)`)))
@@ -674,7 +678,6 @@ ctmaInit <- function(
     #colnames(allStudiesDRIFT_effects) <-    newColNames;
     #newColNames <- c("Source", newColNames)
     #colnames(allStudiesDRIFT_effects_ext) <- newColNames;
-
 
 
     # check single study results
@@ -724,7 +727,6 @@ ctmaInit <- function(
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),
                                 df= c(round(allStudies_df, digits)))))
-
   class(results) <- "CoTiMAFit"
 
   invisible(results)
