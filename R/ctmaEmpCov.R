@@ -4,6 +4,22 @@
 
 # depends on mvrnorm, ctmapRaw, psych
 
+#' ctmaEmpCov
+#'
+#' @param targetVariables ""
+#' @param recodeVariables ""
+#' @param combineVariables ""
+#' @param combineVariablesNames ""
+#' @param missingVariables ""
+#' @param nlatents ""
+#' @param Tpoints ""
+#' @param sampleSize ""
+#' @param pairwiseN ""
+#' @param empcov ""
+#'
+#' @return
+#' @export
+#'
 ctmaEmpCov <- function(targetVariables=c(), recodeVariables=c(), combineVariables=c(),
                              combineVariablesNames=c(), missingVariables=c(),
                              nlatents=NULL, Tpoints=NULL, sampleSize=NULL, pairwiseN=NULL, empcov=NULL) {
@@ -16,7 +32,7 @@ ctmaEmpCov <- function(targetVariables=c(), recodeVariables=c(), combineVariable
     #print(i)
   }
   # combine variables
-  if (!(is.null(sampleSize))) tmpData <- as.data.frame(mvrnorm(n=sampleSize, mu=rep(0, dim(empcov)[1]), Sigma=empcov, empirical = TRUE))
+  if (!(is.null(sampleSize))) tmpData <- as.data.frame(MASS::mvrnorm(n=sampleSize, mu=rep(0, dim(empcov)[1]), Sigma=empcov, empirical = TRUE))
   if (!(is.null(pairwiseN))) {
     results <- pRaw(empCovMat=empcov, empNMat=pairwiseN, empN=NULL, studyNumber=1,
                              empMeanVector=NULL, empVarVector=NULL, activateRPB=FALSE)
@@ -36,7 +52,7 @@ ctmaEmpCov <- function(targetVariables=c(), recodeVariables=c(), combineVariable
     data <- tmpData
   }
 
-  tmp <- corr.test(data, ci=FALSE)
+  tmp <- psych::corr.test(data, ci=FALSE)
   empcovNew <- tmp$r
   pairwiseNNew  <- tmp$n
   # the var of combined variables != 0 => cov to cor
