@@ -1,5 +1,5 @@
 # Combine Pseudo Raw Data (extrect them from ctmaInitFit$studyFitList)
-#' Title
+#' ctmaCombPRaw
 #'
 #' @param listOfStudyFits "Listobject of Studyfits"
 #' @param moderatorValues "Moderators

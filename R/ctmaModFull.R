@@ -1,6 +1,26 @@
 #######################################################################################################################
 ############################################ CoTiMA Moderator STANCT ##################################################
 #######################################################################################################################
+#' ctmaModFull
+#'
+#' @param ctmaInitFit ""
+#' @param primaryStudyList ""
+#' @param activeDirectory ""
+#' @param mod.number ""
+#' @param mod.type ""
+#' @param mod.names ""
+#' @param datalong ""
+#' @param activateRPB ""
+#' @param silentOverwrite ""
+#' @param digits ""
+#' @param multipleDrift ""
+#' @param type ""
+#' @param coresToUse ""
+#' @param CoTiMAStanctArgs ""
+#'
+#' @return
+#' @export
+#'
 ctmaModFull <- function(
   # Primary Study Fits
   ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
@@ -176,7 +196,7 @@ ctmaModFull <- function(
       groupsNamed <- (paste0("Study_No_", groups)); groupsNamed
       moderatorGroups <- tmp$moderatorGroups
       colnames(moderatorGroups) <- paste0("mod", 1:(dim(currentModerators)[2]))
-      head(moderatorGroups)
+      base::head(moderatorGroups)
 
       # augment pseudo raw data for stanct model
       modTIstartNum <- n.studies; modTIstartNum
@@ -240,17 +260,17 @@ ctmaModFull <- function(
         if (CoTiMAStanctArgs$scaleMod == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)])
         currentStartNumber <- modTIstartNum; currentStartNumber
         currentEndNumber <- currentStartNumber + ncol(tmpTI)-1; currentEndNumber
-        colnames(tmpTI) <- paste0("TI", currentStartNumber:currentEndNumber); head(tmpTI)
+        colnames(tmpTI) <- paste0("TI", currentStartNumber:currentEndNumber); base::head(tmpTI)
         dataTmp <- cbind(dataTmp, tmpTI); dim(dataTmp)
         dataTmp <- dataTmp[ ,-grep("mod", colnames(dataTmp))]
       }
 
       if (mod.type == "cont") tmp1 <- n.moderators
       if (mod.type == "cat") tmp1 <- catCounter
-      dataTmp2 <- ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1+tmp1),
+      dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1+tmp1),
                                manifestNames=manifestNames)
 
-      dataTmp3 <- suppressMessages(ctDeintervalise(dataTmp2))
+      dataTmp3 <- suppressMessages(ctsem::ctDeintervalise(dataTmp2))
       dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
       # eliminate rows where ALL latents are NA
       dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
@@ -275,7 +295,7 @@ ctmaModFull <- function(
 
       # Make model with most time points
       n.moderators <- length(colnames(datalong)[grep("TI", colnames(datalong))])-n.studies+1; n.moderators
-      stanctModModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
+      stanctModModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
                                 DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE),
                                 LAMBDA=diag(n.latent),
                                 CINT=matrix(0, nrow=n.latent, ncol=1),
@@ -310,7 +330,7 @@ ctmaModFull <- function(
 
       stanctModModel$pars
 
-      fitStanctModModel <- ctStanFit(
+      fitStanctModModel <- ctsem::ctStanFit(
         datalong = datalong,
         ctstanmodel = stanctModModel,
         savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
@@ -397,11 +417,11 @@ ctmaModFull <- function(
     names(model_Drift_Coef) <- driftNames; model_Drift_Coef
 
     model_Diffusion_Coef <- modDrift_Coeff[(rownames(modDrift_Coeff) == "DIFFUSIONcov"), 3]; model_Diffusion_Coef
-    model_Diffusion_Coef <- c(vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
+    model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
     names(model_Diffusion_Coef) <- driftNames; model_Diffusion_Coef
 
     model_T0var_Coef <- modDrift_Coeff[(rownames(modDrift_Coeff) == "T0VAR"), 3]; model_T0var_Coef
-    model_T0var_Coef <- c(vech2full(model_T0var_Coef)); model_T0var_Coef
+    model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
     names(model_T0var_Coef) <- driftNames; model_Diffusion_Coef
 
     allResults <- list(estimates=modDrift_Coeff, Minus2LL=modDrift_Minus2LogLikelihood,
@@ -417,7 +437,7 @@ ctmaModFull <- function(
     et <- paste0("Computation ended at: ", end.time); et
     tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
 
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
 
     tmp1 <- grep("CINT", rownames(stanctModFit$parmatrices)); tmp1
     tmp2 <- grep("asym", rownames(stanctModFit$parmatrices)); tmp2
