@@ -3,6 +3,20 @@
 ################################################ CoTiMA FullDrift #####################################################
 #######################################################################################################################
 
+#' ctmaFull
+#'
+#' @param ctmaInitFit ""
+#' @param primaryStudyList  ""
+#' @param activeDirectory  ""
+#' @param activateRPB  ""
+#' @param digits  ""
+#' @param type  ""
+#' @param coresToUse  ""
+#' @param CoTiMAStanctArgs  ""
+#'
+#' @return
+#' @export
+#'
 ctmaFull <- function(
   # Primary Study Fits
   ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
@@ -50,13 +64,13 @@ ctmaFull <- function(
 
   # check if fit object is specified
   if (is.null(ctmaInitFit)){
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(red$bold("A fitted CoTiMA object has to be supplied to plot something. \n"))
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat(crayon::red$bold("A fitted CoTiMA object has to be supplied to plot something. \n"))
     stop("Good luck for the next try!")
   }
 
   #if (resultsFilePrefix=="ctmaFull") {
-  #  if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+  #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
   #  cat("The default results file prefix (ctmaFull) has been chosen.", "\n")
   #  cat("Press 'q' to quit and change or'c'to continue. Press ENTER afterwards ", "\n")
   #  char <- readline(" ")
@@ -68,7 +82,7 @@ ctmaFull <- function(
   #}
 
   #if (saveFilePrefix=="ctmaFull") {
-  #  if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+  #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
   #  cat("The default save file prefix (ctmaFull) has been chosen.", "\n")
   #  cat("Press 'q' to quit and change or 'c' to continue. Press ENTER afterwards ")
   #  char <- readline(" ")
@@ -207,9 +221,9 @@ ctmaFull <- function(
       }
       targetCols <- which(colnames(dataTmp) == "groups"); targetCols
       dataTmp <- dataTmp[ ,-targetCols]
-      dataTmp2 <- ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1),
+      dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1),
                                manifestNames=manifestNames)
-      dataTmp3 <- ctDeintervalise(dataTmp2)
+      dataTmp3 <- ctsem::ctDeintervalise(dataTmp2)
       dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
       # eliminate rows where ALL latents are NA
       dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
@@ -224,7 +238,7 @@ ctmaFull <- function(
 
   # Make model with most time points
   {
-  stanctModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
+  stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
                          DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent),
                          LAMBDA=diag(n.latent),
                          CINT=matrix(0, nrow=n.latent, ncol=1),
@@ -246,7 +260,7 @@ ctmaFull <- function(
   stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTVAR',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
   }
 
-  fitStanctModel <- ctStanFit(
+  fitStanctModel <- ctsem::ctStanFit(
     datalong = datalong_all,
     ctstanmodel = stanctModel,
     savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
@@ -296,18 +310,18 @@ ctmaFull <- function(
   names(model_Drift_Coef) <- driftNames; model_Drift_Coef
 
   model_Diffusion_Coef <- fullDrift_Coeff[(rownames(fullDrift_Coeff) == "DIFFUSIONcov"), 3]; model_Diffusion_Coef
-  model_Diffusion_Coef <- c(vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
+  model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
   names(model_Diffusion_Coef) <- driftNames; model_Diffusion_Coef
 
   model_T0var_Coef <- fullDrift_Coeff[(rownames(fullDrift_Coeff) == "T0VAR"), 3]; model_T0var_Coef
-  model_T0var_Coef <- c(vech2full(model_T0var_Coef)); model_T0var_Coef
+  model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
   names(model_T0var_Coef) <- driftNames; model_Diffusion_Coef
 
 
   ### Numerically compute Optimal Time lag sensu Dormann & Griffin (2015)
   driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=T); driftMatrix # byrow set because order is different compared to mx model
   OTL <- function(timeRange) {
-    expm(driftMatrix * timeRange)[targetRow, targetCol]}
+    OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]}
   # loop through all cross effects
   optimalCrossLag <- matrix(NA, n.latent, n.latent)
   maxCrossEffect <- matrix(NA, n.latent, n.latent)
@@ -334,7 +348,7 @@ tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
 
 
 
-if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
+if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
 
 
 tmp1 <- grep("CINT", rownames(fullDriftStanctFit$parmatrices)); tmp1

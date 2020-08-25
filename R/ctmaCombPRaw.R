@@ -1,4 +1,12 @@
 # Combine Pseudo Raw Data (extrect them from ctmaInitFit$studyFitList)
+#' ctmaCombPRaw
+#'
+#' @param listOfStudyFits "Listobject of Studyfits"
+#' @param moderatorValues "Moderators
+#'
+#' @return
+#' @export
+#'
 ctmaCombPRaw <- function(listOfStudyFits=NULL, moderatorValues=NULL) {
   allSampleSizes <- maxLatents <- allTpoints <- c()
   n.latent <- listOfStudyFits$n.latent; n.latent
