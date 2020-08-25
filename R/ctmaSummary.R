@@ -1,5 +1,5 @@
 # Summary function for CoTiMA results
-#' Title
+#' ctmaSummary
 #'
 #' @param x ""
 #'

@@ -2,7 +2,7 @@
 % Please edit documentation in R/ctmaSummary.R
 \name{summary.CoTiMAFit}
 \alias{summary.CoTiMAFit}
-\title{Title}
+\title{ctmaSummary}
 \usage{
 \method{summary}{CoTiMAFit}(x)
 }
@@ -13,5 +13,5 @@
 
 }
 \description{
-Title
+ctmaSummary
 }

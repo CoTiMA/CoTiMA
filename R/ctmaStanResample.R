@@ -1,3 +1,11 @@
+#' ctmaStanResample
+#'
+#' @param fitStanctModel ""
+#' @param CoTiMAStanctArgs ""
+#'
+#' @return
+#' @export
+#'
 ctmaStanResample <- function(fitStanctModel=NULL, CoTiMAStanctArgs=NULL) {
   nsamples <- CoTiMAStanctArgs$resample[1]
   if (is.null(nsamples)) nsamples <- 25
@@ -9,7 +17,7 @@ ctmaStanResample <- function(fitStanctModel=NULL, CoTiMAStanctArgs=NULL) {
   currentResults <- list()
   for (i in 1:runs) {
     cat(i*nsamples, "out of", overallSamples, "\n")
-    currentResults[[i]] <- ctsem:::ctAddSamples(sm1, nsamples=nsamples, cores=1)
+    currentResults[[i]] <- ctsem::ctAddSamples(sm1, nsamples=nsamples, cores=1)
   }
   ## combine resampled results
   # extract 2 rawposteriors
@@ -27,7 +35,6 @@ ctmaStanResample <- function(fitStanctModel=NULL, CoTiMAStanctArgs=NULL) {
   n.diff.elements <- max(currentDims) - min(currentDims) +  1; n.diff.elements
   targetElementXdim <- list()
   targetElementXdim[[n.diff.elements+1]] <- ""
-  #library(abind)
   for (i in 1:length(fitStanctModel$stanfit$transformedpars)) {
     targetElementXdim[[currentDims[i]]] <- append(targetElementXdim[[currentDims[i]]],
                                                   currenNames[i])
@@ -47,7 +54,7 @@ ctmaStanResample <- function(fitStanctModel=NULL, CoTiMAStanctArgs=NULL) {
         if(length(dim(tmp3)) == 4) tmp3 <- tmp3[-c(1:tmp4), , , ]
         # add empty dimension that could be lost (was emppty) in last step before
         if (length(dim(tmp2)) != length(dim(tmp3))) tmp3 <- array(tmp3, dim=tmp5)
-        if (i > 1) tmp2 <- abind(tmp2, tmp3, along=1) else tmp2 <- tmp3
+        if (i > 1) tmp2 <- abind::abind(tmp2, tmp3, along=1) else tmp2 <- tmp3
       }
       fitStanctModel$stanfit$transformedpars[[ targetElementXdim[[h]][j] ]] <- tmp2
     }

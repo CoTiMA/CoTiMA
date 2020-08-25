@@ -2,7 +2,7 @@
 % Please edit documentation in R/ctmaCombPRaw.R
 \name{ctmaCombPRaw}
 \alias{ctmaCombPRaw}
-\title{Title}
+\title{ctmaCombPRaw}
 \usage{
 ctmaCombPRaw(listOfStudyFits = NULL, moderatorValues = NULL)
 }
@@ -15,5 +15,5 @@ ctmaCombPRaw(listOfStudyFits = NULL, moderatorValues = NULL)
 
 }
 \description{
-Title
+ctmaCombPRaw
 }

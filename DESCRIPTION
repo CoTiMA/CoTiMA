@@ -21,6 +21,7 @@ Imports:
     ctsem (>= 3.0.9),
     utils (>= 3.6.2),
     stats (>= 3.6.2),
+    abind (>= 1.4-5),
 Suggests:
     RPushbullet (>= 0.3.3)
 Exports: ctmaPrep
