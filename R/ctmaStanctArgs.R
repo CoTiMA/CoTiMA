@@ -1,6 +1,6 @@
 # just the full set of pre-specified arguments loaded
-CoTiMAStanctArgs<-list(test=TRUE, 
-                       scaleTI=TRUE, scaleMod=TRUE, scaleLongData=FALSE,
+CoTiMAStanctArgs<-list(test=TRUE,
+                       scaleTI=TRUE, scaleMod=TRUE, scaleClus=FALSE, scaleLongData=FALSE,
                        scaleTime=1/1,
                        savesubjectmatrices=FALSE, verbose=1,
                        datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
