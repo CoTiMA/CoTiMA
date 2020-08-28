@@ -1,4 +1,3 @@
-
 #######################################################################################################################
 ################################################ CoTiMA FullDrift #####################################################
 #######################################################################################################################
@@ -21,6 +20,7 @@ ctmaFull <- function(
   # Primary Study Fits
   ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
   primaryStudyList=NULL,               # created by the PREP file for moderator analyses
+  cluster=NULL,                        # vecto with clust variables (e.g., countries)
 
   # Directory names and file names
   activeDirectory=NULL,
@@ -221,7 +221,32 @@ ctmaFull <- function(
       }
       targetCols <- which(colnames(dataTmp) == "groups"); targetCols
       dataTmp <- dataTmp[ ,-targetCols]
-      dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1),
+
+      # add clusters as dummy moderators
+      if (!(is.null(cluster))) {
+        # determine number of required dummies
+        targetCluster <- which(table(cluster) > 1); targetCluster  # no cluster if only one study is included
+        targetCluster <- names(targetCluster); targetCluster
+        clusCounter <- length(targetCluster); clusCounter
+        # create dummies
+        tmpTI <- matrix(0, dim(dataTmp)[1], clusCounter)
+        for (i in 1:clusCounter) {
+          targetGroups <- which(cluster == targetCluster[i]); targetGroups
+          tmp2 <- which(groups %in% targetGroups); length(tmp2)
+          tmpTI[tmp2, i] <- 1
+        }
+        if (CoTiMAStanctArgs$scaleClus == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)])
+        currentStartNumber <- n.studies; currentStartNumber
+        currentEndNumber <- currentStartNumber + clusCounter -1; currentEndNumber
+        colnames(tmpTI) <- paste0("TI", currentStartNumber:currentEndNumber); colnames(tmpTI)
+        dataTmp <- cbind(dataTmp, tmpTI); dim(dataTmp)
+        #head(dataTmp)
+      } else {
+        clusCounter <- 0
+      }
+
+
+      dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1+clusCounter),
                                manifestNames=manifestNames)
       dataTmp3 <- ctsem::ctDeintervalise(dataTmp2)
       dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
@@ -247,17 +272,22 @@ ctmaFull <- function(
                          MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent),
                          MANIFESTTRAITVAR = 'auto',
                          type = 'stanct',
-                         n.TIpred = (n.studies-1),
-                         TIpredNames = paste0("TI", 1:(n.studies-1)),
-                         TIPREDEFFECT = matrix(0, n.latent, (n.studies-1)))
+                         n.TIpred = (n.studies-1+clusCounter),
+                         TIpredNames = paste0("TI", 1:(n.studies-1+clusCounter)),
+                         TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter)))
 
 
-  stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+  #stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+  stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
   stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
   stanctModel$pars[stanctModel$pars$matrix %in% 'LAMBDA',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
   stanctModel$pars[stanctModel$pars$matrix %in% 'CINT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
   stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
   stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTVAR',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+  if (!(is.null(cluster))) {
+    stanctModel$pars[stanctModel$pars$matrix %in% 'DIFFUSION',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- FALSE
+    stanctModel$pars[stanctModel$pars$matrix %in% 'T0VAR',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- FALSE
+  }
   }
 
   fitStanctModel <- ctsem::ctStanFit(
@@ -298,13 +328,14 @@ ctmaFull <- function(
   fullDrift_Coeff <- round(cbind(fullDriftStanctFit$parmatrices, Tvalues), digits); fullDrift_Coeff
   fullDrift_Minus2LogLikelihood  <- -2*fullDriftStanctFit$loglik; fullDrift_Minus2LogLikelihood
   fullDrift_estimatedParameters  <- fullDriftStanctFit$npars; fullDrift_estimatedParameters
-  n.par.first.lag <- ((2 * n.latent) * (2 * n.latent + 1)) / 2; n.par.first.lag
-  n.par.later.lag <- ((2 * n.latent) * (2 * n.latent - 1)) / 2; n.par.later.lag
-  n.later.lags <- allTpoints - n.latent; n.later.lags
-  fullDrift_df <- sum(n.later.lags * n.par.later.lag); fullDrift_df
-  fullDrift_df <- fullDrift_df + (n.studies-1) * n.latent^2; fullDrift_df
+  #n.par.first.lag <- ((2 * n.latent) * (2 * n.latent + 1)) / 2; n.par.first.lag
+  #n.par.later.lag <- ((2 * n.latent) * (2 * n.latent - 1)) / 2; n.par.later.lag
+  #n.later.lags <- allTpoints - n.latent; n.later.lags
+  #fullDrift_df <- sum(n.later.lags * n.par.later.lag); fullDrift_df
+  #fullDrift_df <- fullDrift_df + (n.studies-1) * n.latent^2; fullDrift_df
+  fullDrift_df <- NULL
 
-  fullDrift_Coeff
+  #fullDrift_Coeff
   model_Drift_Coef <- fullDrift_Coeff[(rownames(fullDrift_Coeff) == "DRIFT"), 3]; model_Drift_Coef
   #model_Drift_Coef <- c(matrix(model_Drift_Coef, n.latent, byrow=TRUE)); model_Drift_Coef
   names(model_Drift_Coef) <- driftNames; model_Drift_Coef
@@ -316,6 +347,22 @@ ctmaFull <- function(
   model_T0var_Coef <- fullDrift_Coeff[(rownames(fullDrift_Coeff) == "T0VAR"), 3]; model_T0var_Coef
   model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
   names(model_T0var_Coef) <- driftNames; model_Diffusion_Coef
+
+  ## cluster effects
+  if (!(is.null(cluster))) {
+    tmp1 <- c()
+    for (i in (n.studies):(n.studies+clusCounter-1)) tmp1 <- c(tmp1, (grep(i, rownames(fullDriftStanctFit$tipreds))))
+    Tvalues <- fullDriftStanctFit$tipreds[tmp1, ][,6]; Tvalues
+    clusTI_Coeff <- round(cbind(fullDriftStanctFit$tipreds[tmp1, ], Tvalues), digits); clusTI_Coeff
+    # re-label
+    for (i in 1:clusCounter) {
+      targetNamePart <- paste0("tip_TI", n.studies+i-1); targetNamePart
+      newNamePart <- paste0(targetCluster[i], "_on_"); newNamePart
+      rownames(clusTI_Coeff) <- sub(targetNamePart, paste0(targetCluster[i], "_on_"), rownames(clusTI_Coeff))
+    }
+  } else {
+    clusTI_Coeff <- NULL
+  }
 
 
   ### Numerically compute Optimal Time lag sensu Dormann & Griffin (2015)
@@ -370,9 +417,10 @@ results <- list(activeDirectory=activeDirectory,
                              estimates=round(fullDrift_Coeff, digits),
                              minus2ll= round(fullDrift_Minus2LogLikelihood, digits),
                              n.parameters = round(fullDrift_estimatedParameters, digits),
-                             df= c(round(fullDrift_df, digits)),
+                             df= fullDrift_df,
                              opt.lag = optimalCrossLag,
-                             max.effects = round(maxCrossEffect, digits)))
+                             max.effects = round(maxCrossEffect, digits),
+                             clus.effects=clusTI_Coeff))
 class(results) <- "CoTiMAFit"
 
 invisible(results)
