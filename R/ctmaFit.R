@@ -16,7 +16,7 @@
 #' @return
 #' @export
 #'
-ctmaFull <- function(
+ctmaFit <- function(
   # Primary Study Fits
   ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
   primaryStudyList=NULL,               # created by the PREP file for moderator analyses
@@ -351,8 +351,8 @@ ctmaFull <- function(
 
 
   ### Numerically compute Optimal Time lag sensu Dormann & Griffin (2015)
-  #driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=T); driftMatrix # byrow set because order is different compared to mx model
-  driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=F); driftMatrix # byrow set because order is different compared to mx model
+  driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=T); driftMatrix # byrow set because order is different compared to mx model
+  #driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=F); driftMatrix # byrow set because order is different compared to mx model
   OTL <- function(timeRange) {
     OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]}
   # loop through all cross effects
