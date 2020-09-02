@@ -217,7 +217,6 @@ ctmaFit <- function(
       clusCounter <- 0
     }
 
-
     dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1+clusCounter),
                                     manifestNames=manifestNames)
     dataTmp3 <- ctsem::ctDeintervalise(dataTmp2)
@@ -226,7 +225,7 @@ ctmaFit <- function(
     dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
     datalong_all <- dataTmp3
   }
-
+  datalong_all <- as.data.frame(datalong_all)
 
   #######################################################################################################################
   ############################################# CoTiMA (ctsem multigroup) ###############################################
@@ -265,7 +264,8 @@ ctmaFit <- function(
   # the target effects
   tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
   tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDrift); tmp2
-  stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+  #stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+  stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
   stanctModel$pars
 
 
@@ -348,7 +348,6 @@ ctmaFit <- function(
   } else {
     clusTI_Coeff <- NULL
   }
-
 
   ### Numerically compute Optimal Time lag sensu Dormann & Griffin (2015)
   driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=T); driftMatrix # byrow set because order is different compared to mx model
