@@ -331,7 +331,7 @@ ctmaFit <- function(
 
   model_T0var_Coef <- invariantDrift_Coeff[(rownames(invariantDrift_Coeff) == "T0VAR"), 3]; model_T0var_Coef
   model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
-  names(model_T0var_Coef) <- driftNames; model_Diffusion_Coef
+  names(model_T0var_Coef) <- driftNames; model_T0var_Coef
 
   ## cluster effects
   if (!(is.null(cluster))) {
@@ -401,7 +401,7 @@ ctmaFit <- function(
                   parameterNames=ctmaInitFit$parameterNames,
                   CoTiMAStanctArgs=CoTiMAStanctArgs,
                   invariantDrift=invariantDrift,
-                  summary=list(model="invariant drift (hom. model)",
+                  summary=list(model=paste(invariantDrift, "unequal but invariant across samples", collapse=" "),
                                estimates=round(invariantDrift_Coeff, digits),
                                minus2ll= round(invariantDrift_Minus2LogLikelihood, digits),
                                n.parameters = round(invariantDrift_estimatedParameters, digits),
