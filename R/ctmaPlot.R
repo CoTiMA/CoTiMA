@@ -1,6 +1,21 @@
 #######################################################################################################################
 ################################################## Plotting ###########################################################
 #######################################################################################################################
+#' ctmaPlot
+#'
+#' @param ctmaFit ""
+#' @param activeDirectory ""
+#' @param saveFilePrefix ""
+#' @param activateRPB ""
+#' @param plotCrossEffects ""
+#' @param plotAutoEffects ""
+#' @param timeUnit ""
+#' @param timeRange ""
+#' @param yLimitsForEffects ""
+#' @param mod.values ""
+#' @param mod.num ""
+#' @param aggregateLabel ""
+#'
 ctmaPlot <- function(
   # Primary Study Fits
   ctmaFit=list(),                    #list of lists: could be more than one fit object
@@ -23,14 +38,14 @@ ctmaPlot <- function(
   mod.values=-2:2,
   mod.num=1,
 
-  aggregateLabel="∑"
+  aggregateLabel="SUM"
 
 )
 {  # begin function definition (until end of file)
 
   # check if fit object is specified
   if (is.null(ctmaFit)){
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
     cat("A fitted ctma object has to be supplied to plot something. \n")
     stop("Good luck for the next try!")
   }
@@ -98,13 +113,13 @@ ctmaPlot <- function(
 
     # check if fit object can be plotted
     if (length(plot.type)==0) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat("The fitted CoTiMA object provided cannot be plotted. \n")
       stop("Good luck for the next try!")
     }
 
     if (length(unique(plot.type)) > 1) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat("All fitted CoTiMA object to plot have to be of the same plot.type. \n")
       cat("The following ploty.type arguments were found: \n")
       cat(unique(plot.type), "\n")
@@ -112,7 +127,7 @@ ctmaPlot <- function(
     }
 
     if (length(unique(activeDirectory)) > 1) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat("More than a single active directors was sepcified, which does not work. \n")
       cat("The following activeDirectory arguments were found: \n")
       cat(unique(activeDirectory), "\n")
@@ -203,18 +218,18 @@ ctmaPlot <- function(
           xMin2 <- 0 - max(abs(lowLeft), abs(lowRight), abs(DRIFTCoeff[[k]][,i])); xMin2
           xMax2 <- 0 + max(abs(lowLeft), abs(lowRight), abs(DRIFTCoeff[[k]][,i])); xMax2
 
-          plot.new()
+          graphics::plot.new()
           plot(pairs, #xlab=colnames(DRIFTCoeff[[k]])[i],
                ylab="Standard Error", xlab="Continous Time Drift Coefficient",
                xlim = c(xMin2, xMax2), ylim = c(yMax2, 0))
-          polygon(c(lowLeft, avgX, lowRight), c(stretch * yMax2, 0, stretch * yMax2), lty=3)
-          abline(v=avgX, col="black", lwd=1.5, lty=1)
+          graphics::polygon(c(lowLeft, avgX, lowRight), c(stretch * yMax2, 0, stretch * yMax2), lty=3)
+          graphics::abline(v=avgX, col="black", lwd=1.5, lty=1)
 
           figureContent <- colnames(DRIFTCoeff)[i]; figureContent
           if (is.null(figureContent)) figureContent <- colnames(DRIFTCoeff[[1]])[i]; figureContent
           figureName[i] <- paste0(activeDirectory, saveFilePrefix, "_",  "Funnel Plot for ", figureContent, ".png")
-          dev.copy(png, figureName[i], width = 8, height = 8, units = 'in', res = 300)
-          dev.off()
+          grDevices::dev.copy(grDevices::png, quality = 100, figureName[i], width = 8, height = 8, units = 'in', res = 300)
+          grDevices::dev.off()
         } # END for (i in 1:(n.latent^2))
       } # END if ("funnel" %in% plot.type)
     } # END for (k in 1:n.fitted.obj)
@@ -286,13 +301,13 @@ ctmaPlot <- function(
     }
 
     # plot
-    plot.new()
+    graphics::plot.new()
     for (i in 1:(n.latent^2)) {
       #i <- 3
       # set frame by plotting invisible object
       plot(c(0,0), type="l", col="white", lwd=1.5, xlim = c(0, xMax), ylim = c(0, 300),
            xaxt='n', yaxt='n', ann=FALSE)
-      par(new=F)
+      graphics::par(new=F)
       for (j in 1:n.studies) {
         #j <- 1
         crossDRIFTCoeffBase
@@ -307,7 +322,7 @@ ctmaPlot <- function(
         xright <- currentXPos + squareSizeBase[j, i]/2; xright
         ytop <- currentYPos + squareSizeBase[j, i]/2; ytop
         ybottom <- currentYPos - squareSizeBase[j, i]/2; ybottom
-        rect(xleft=xleft, ybottom=ybottom, xright=xright, ytop=ytop, col="grey")
+        graphics::rect(xleft=xleft, ybottom=ybottom, xright=xright, ytop=ytop, col="grey")
         # error bars
         if (colnames(DRIFTCoeff[[k]])[i] %in% autoNames) {
           xleft <- autoDRIFTCoeffLowBase[j,colnames(DRIFTCoeff[[k]])[i]]
@@ -318,7 +333,7 @@ ctmaPlot <- function(
         }
         ytop <- currentYPos + 0; ytop
         ybottom <- currentYPos ; ybottom
-        rect(xleft=xleft, ybottom=ybottom, xright=xright, ytop=ytop, col="black")
+        graphics::rect(xleft=xleft, ybottom=ybottom, xright=xright, ytop=ytop, col="black")
       } # END for (j in 1:n.studies)
 
       # average effect
@@ -338,15 +353,16 @@ ctmaPlot <- function(
       #x <- c(xleft, xmiddle, xright, xmiddle, xleft); x # if based in 1/SE as precision/square size
       x <- c(xmiddle-maxSquareSize/2, xmiddle, xmiddle+maxSquareSize/2, xmiddle, xmiddle-maxSquareSize/2); x # if based on N
       y <- c(ymiddle, ytop, ymiddle, ybottom, ymiddle); y
-      polygon(x=x, y=y, col="black")
-      abline(v=xmiddle, lty=2)
+      graphics::polygon(x=x, y=y, col="black")
+      graphics::abline(v=xmiddle, lty=2)
 
       # y-axis (original study numbers)
       #atSeq <- seq((n.studies*heigthPerStudy- heigthPerStudy/2), 0, by = -heigthPerStudy); atSeq
       atSeq <- seq(((n.studies+1)*heigthPerStudy- heigthPerStudy/2), 0, by = -heigthPerStudy); atSeq
       #labelsSeq <- study.numbers; labelsSeq
-      labelsSeq <- c(unlist(study.numbers), "∑"); labelsSeq
-      axis(side=2, at = atSeq, labels=labelsSeq, las=1)
+      labelsSeq <- c(unlist(study.numbers), "SUM"); labelsSeq
+      graphics::axis(side=2, at = atSeq, labels=labelsSeq, las=1)
+      graphics::axis(side=2, at = atSeq, labels=labelsSeq, las=1)
       # x-axis (effect size)
       atSeq <- seq(0, xMax, by = 10); atSeq
       #minDRIFTCoeffLow <- min(DRIFTCoeff[[k]][ ,i]); minDRIFTCoeffLow
@@ -365,14 +381,14 @@ ctmaPlot <- function(
       }
       xRange <- currentMax - currentMin; xRange
       labelsSeq <- round(seq(currentMin, currentMax, by = (xRange/(length(atSeq)-1))), 2); labelsSeq
-      axis(side=1, at = atSeq, labels=labelsSeq)
+      graphics::axis(side=1, at = atSeq, labels=labelsSeq)
 
       # Add labels and title
-      title(main = paste0("Forest Plot for the Effects of ", colnames(DRIFTCoeff[[k]])[i]), sub = NULL,
+      graphics::title(main = paste0("Forest Plot for the Effects of ", colnames(DRIFTCoeff[[k]])[i]), sub = NULL,
             ylab = "Study Number", xlab="Continous Time Drift Coefficient")
       figureFileName <- paste0(activeDirectory, saveFilePrefix," Forest Plot for ", colnames(DRIFTCoeff[[k]])[i], ".png"); figureFileName
-      dev.copy(png, figureFileName, width = 8, height = 8, units = 'in', res = 300)
-      dev.off()
+      grDevices::dev.copy(grDevices::png, quality = 100, figureFileName, width = 8, height = 8, units = 'in', res = 300)
+      grDevices::dev.off()
     } # END for (i in 1:(n.latent^2))
   } # END if ("forest" %in% plot.type)
   } # END for (k in 1:n.fitted.obj)
@@ -386,7 +402,8 @@ ctmaPlot <- function(
 
     # check time unit
     #if (timeUnit=="timeUnit") {
-    #  if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    #  cat(crayon::red$bold("The default time interval (timeUnit) has been chosen.", "\n"))
     #  cat(red$bold("The default time interval (timeUnit) has been chosen.", "\n"))
     #  cat(blue("Press 'q' to quit and specify or 'c' to continue. Press ENTER afterwards ", "\n"))
     #  char <- readline(" ")
@@ -409,8 +426,9 @@ ctmaPlot <- function(
 
     # can only plot (overlay) mutiple fitted objects if n.latent is identical
     if (length(unique(unlist(n.latent))) > 1) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(red$bold("A fitted CoTiMA object has to be supplied to plot something. \n"))
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold("A fitted CoTiMA object has to be supplied to plot something. \n"))
+      cat(crayon::red$bold("A fitted CoTiMA object has to be supplied to plot something. \n"))
       stop("Good luck for the next try!")
     }
 
@@ -455,7 +473,7 @@ ctmaPlot <- function(
           for (i in mod.values) {
             # adjust labels for plotting and used time Range according to the time label positiont
             ctmaFit[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
-            tmp1 <- quantile(usedTimeRange, probs = seq(0, 1, 1/(n.studies[g]+1))); tmp1 # used for positioning of moderator value in plot
+            tmp1 <- stats::quantile(usedTimeRange, probs = seq(0, 1, 1/(n.studies[g]+1))); tmp1 # used for positioning of moderator value in plot
             usedTimeRange <- sort(c(tmp1, usedTimeRange)); usedTimeRange # correcting for added time points
             noOfSteps <- length(usedTimeRange); noOfSteps
             ctmaFit[[g]]$studyList[[counter]]$delta_t <- tmp1[counter+1]
@@ -476,10 +494,13 @@ ctmaPlot <- function(
           for (i in 1:length(DRIFTCoeff[[g]])) allDiags <- c(allDiags, diag(DRIFTCoeff[[g]][[i]]))
 
           if (!(all(allDiags < 0))) {
-            if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-            cat(red$bold("Some of the moderated drift matrices have values > 0 in their diagonals. \n"))
-            cat(red$bold("This is likely if the model used to create \"ctmaFit\" was not identified! \n"))
-            cat(red$bold("You may want to try smaller moderator values (e.g., \"mod.values=c(-.5, 0., .5)\")! \n"))
+            if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+            cat(crayon::red$bold("Some of the moderated drift matrices have values > 0 in their diagonals. \n"))
+            cat(crayon::red$bold("This is likely if the model used to create \"ctmaFit\" was not identified! \n"))
+            cat(crayon::red$bold("You may want to try smaller moderator values (e.g., \"mod.values=c(-.5, 0., .5)\")! \n"))
+            cat(crayon::red$bold("Some of the moderated drift matrices have values > 0 in their diagonals. \n"))
+            cat(crayon::red$bold("This is likely if the model used to create \"ctmaFit\" was not identified! \n"))
+            cat(crayon::red$bold("You may want to try smaller moderator values (e.g., \"mod.values=c(-.5, 0., .5)\")! \n"))
             stop("Good luck for the next try!")
           }
         }
@@ -562,7 +583,7 @@ ctmaPlot <- function(
 
       ## PLOT (auto effects)
       if (plotAutoEffects == TRUE) {
-        plot.new()
+        graphics::plot.new()
         figureFileNameAuto <- list()
         counter <- 0
         nlatent <- n.latent[[1]]; n.latent
@@ -587,24 +608,24 @@ ctmaPlot <- function(
               plot(plotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], type=plot..type, col=plot.col, lwd=plot.lwd, lty=plot.lty,
                    xlim = c(plot.xMin, plot.xMax), ylim = c(plot.yMin, 1),
                    xaxt='n', yaxt='n', ann=FALSE)
-              par(new=T)
+              graphics::par(new=T)
               if ( (is.null(ctmaFit[[g]]$plotStudyNo)) || (ctmaFit[[g]]$plotStudyNo==TRUE) ) {
                 # black circle
                 plot(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], type=dot.plot.type, col=dot.plot.col, lwd=dot.plot.lwd,
                      pch=dot.plot.pch, lty=dot.plot.lty, cex=dot.plot.cex,
                      xlim = c(xMin, xMax), ylim = c(yMin, 1),
                      xaxt='n', yaxt='n', ann=FALSE)
-                par(new=T)
+                graphics::par(new=T)
                 if (n.studies[[g]] > 1) {
                   currentLabel <- ctmaFit[[g]]$studyList[[h]]$originalStudyNo; currentLabel
                   if (is.null(currentLabel)) currentLabel <- ctmaFit[[g]]$ctmaFit$studyList[[h]]$originalStudyNo; currentLabel
-                  if (h < 10) text(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
-                  if (h > 9) text(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], labels=currentLabel, cex=1/5*dot.plot.cex, col="white")
+                  if (h < 10) graphics::text(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
+                  if (h > 9) graphics::text(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], labels=currentLabel, cex=1/5*dot.plot.cex, col="white")
                 } else {
                   currentLabel=aggregateLabel
-                  text(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
+                  graphics::text(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
                 }
-                par(new=T)
+                graphics::par(new=T)
               }
             } # END for (h in 1:n.studies[[g]])
           } # END for (g in 1:n.fitted.obj)
@@ -616,28 +637,28 @@ ctmaPlot <- function(
           labelsSeq <- seq(0, (max(usedTimeRange)+1), as.integer(targetRows*stepWidth/12)); labelsSeq
           if(length(atSeq) > length(labelsSeq)) atSeq <- atSeq[0: length(labelsSeq)]; atSeq
           if(length(atSeq) < length(labelsSeq)) labelsSeq <- labelsSeq[0: length(atSeq)]; labelsSeq
-          axis(side=1, at = atSeq*stepWidth, labels=labelsSeq, las=2)
+          graphics::axis(side=1, at = atSeq*stepWidth, labels=labelsSeq, las=2)
           # add labels and title
           if (!(is.null(ctmaFit[[g]]$modelResults$MOD))) {
-            title(main = paste0("Moderated Auto-regressive Effects of V", counter), sub = NULL,
+            graphics::title(main = paste0("Moderated Auto-regressive Effects of V", counter), sub = NULL,
                   xlab=paste0("Time Interval in ", timeUnit), ylab = "Auto-regressive Beta")
           } else {
-            title(main = paste0("Auto-regressive Effects of V", counter), sub = NULL,
+            graphics::title(main = paste0("Auto-regressive Effects of V", counter), sub = NULL,
                   xlab=paste0("Time Interval in ", timeUnit), ylab = "Auto-regressive Beta")
           }
 
           # SAVE
-          par(new=F)
+          graphics::par(new=F)
           tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNames[[g]][j], ".png"); tmp
-          dev.copy(png, tmp, width = 8, height = 8, units = 'in', res = 300)
-          dev.off()
+          grDevices::dev.copy(grDevices::png, quality = 100, tmp, width = 8, height = 8, units = 'in', res = 300)
+          grDevices::dev.off()
         } # END for (j in seq(1, nlatent^2, (nlatent+1)))
       } ## END PLOT (auto effects)
 
 
       ## PLOT (cross effects)
       if (plotCrossEffects == TRUE & nlatent > 1) {
-        plot.new()
+        graphics::plot.new()
         counter <- 0
         coeffSeq <- seq(1, nlatent^2, 1)[!(seq(1, nlatent^2, 1) %in% seq(1, nlatent^2, (nlatent+1)))]; coeffSeq
         for (j in coeffSeq) {
@@ -661,22 +682,22 @@ ctmaPlot <- function(
               plot(plotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], type=plot..type, col=plot.col, lwd=plot.lwd, lty=plot.lty,
                    xlim = c(plot.xMin, plot.xMax), ylim = c(plot.yMin, 1),
                    xaxt='n', yaxt='n', ann=FALSE)
-              par(new=T)
+              graphics::par(new=T)
               if ( (is.null(ctmaFit[[g]]$plotStudyNo)) || (ctmaFit[[g]]$plotStudyNo==TRUE) ) {
                 plot(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], type=dot.plot.type, col=dot.plot.col, lwd=dot.plot.lwd,
                      pch=dot.plot.pch, lty=dot.plot.lty, cex=dot.plot.cex,
                      xlim = c(xMin, xMax), ylim = c(yMin, 1),
                      xaxt='n', yaxt='n', ann=FALSE)
-                par(new=T)
+                graphics::par(new=T)
                 if (n.studies[[g]] > 1) {
                   currentLabel <- ctmaFit[[g]]$studyList[[h]]$originalStudyNo; currentLabel
-                  if (h < 10) text(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
-                  if (h > 9) text(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], labels=currentLabel, cex=1/5*dot.plot.cex, col="white")
+                  if (h < 10) graphics::text(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
+                  if (h > 9) graphics::text(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], labels=currentLabel, cex=1/5*dot.plot.cex, col="white")
                 } else {
                   currentLabel=aggregateLabel
-                  text(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
+                  graphics::text(dotPlotPairs[[g]][h, ,2], plotPairs[[g]][h, ,2+j], labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
                 }
-                par(new=T)
+                graphics::par(new=T)
               }
             }
           } # END for (g in 1:n.fitted.obj)
@@ -689,20 +710,20 @@ ctmaPlot <- function(
           labelsSeq <- seq(0, (max(usedTimeRange)+1), as.integer(targetRows/12)*stepWidth); labelsSeq
           if(length(atSeq) > length(labelsSeq)) atSeq <- atSeq[0: length(labelsSeq)]; atSeq
           if(length(atSeq) < length(labelsSeq)) labelsSeq <- labelsSeq[0: length(atSeq)]; labelsSeq
-          axis(side=1, at = atSeq*stepWidth, labels=labelsSeq, las=2)
+          graphics::axis(side=1, at = atSeq*stepWidth, labels=labelsSeq, las=2)
           # Add labels and title
           if (!(is.null(ctmaFit[[g]]$modelResults$MOD))) {
-            title(main = paste0("Moderated Cross-lagged Effects of ", driftNames[[g]][j]), sub = NULL,
+            graphics::title(main = paste0("Moderated Cross-lagged Effects of ", driftNames[[g]][j]), sub = NULL,
                   xlab=paste0("Time Interval in ", timeUnit), ylab = "Cross-lagged Beta")
           } else {
-            title(main = paste0("Cross-lagged Effects of ", driftNames[[g]][j]), sub = NULL,
+            graphics::title(main = paste0("Cross-lagged Effects of ", driftNames[[g]][j]), sub = NULL,
                   xlab=paste0("Time Interval in ", timeUnit), ylab = "Cross-lagged Beta")
           }
 
-          par(new=F)
+          graphics::par(new=F)
           tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNames[[g]][j], ".png"); tmp
-          dev.copy(png, tmp, width = 8, height = 8, units = 'in', res = 300)
-          dev.off()
+          grDevices::dev.copy(grDevices::png, quality = 100, tmp, width = 8, height = 8, units = 'in', res = 300)
+          grDevices::dev.off()
         } # END for (j in coeffSeq)
       } ## END PLOT (cross effects)
     } ### END if (plotCrossEffects == TRUE | plotAutoEffects == TRUE)
@@ -714,7 +735,7 @@ ctmaPlot <- function(
   #######################################################################################################################
 
   if ("power" %in% unlist(plot.type)) {
-    plot.new()
+    graphics::plot.new()
     g <- 1 # only a single power plot
     if (is.null(ctmaFit[[g]]$pow.type)) pow.plot.type <- "b" else pow.plot.type <- ctmaFit[[g]]$pow.type
     if (is.null(ctmaFit[[g]]$pow.col)) {
@@ -743,7 +764,7 @@ ctmaPlot <- function(
     currentDriftNames <- driftNames[[1]][coeffSeq]; currentDriftNames
       for (j in 1:length(currentDriftNames)) {
         offset <- (j-1)*length(statisticalPower); offset
-        par(new=F)
+        graphics::par(new=F)
         for (h in 1:length(statisticalPower)) {
           forPlotting <- cbind(as.numeric(rownames(currentRequiredSamleSizes)),
                                currentRequiredSamleSizes[, h]); forPlotting
@@ -757,7 +778,7 @@ ctmaPlot <- function(
                ylim = c(pow.plot.yMin, pow.plot.yMax),
                xaxt='n' #, yaxt='n', ann=FALSE
           )
-          par(new=T)
+          graphics::par(new=T)
         }
 
         # Correct differences in axis length
@@ -768,12 +789,12 @@ ctmaPlot <- function(
         labelsSeq <- seq(0, (max(usedTimeRange)+1), 1); labelsSeq
         if(length(atSeq) > length(labelsSeq)) atSeq <- atSeq[0: length(labelsSeq)]
         if(length(atSeq) < length(labelsSeq)) labelsSeq <- labelsSeq[0: length(atSeq)]
-        axis(side=1, at = atSeq, labels=labelsSeq)
-        legend('bottomright', legend=statisticalPower, lty=1, col=pow.plot.col, lwd=currentLWD, bty='n', cex=.75)
+        graphics::axis(side=1, at = atSeq, labels=labelsSeq)
+        graphics::legend('bottomright', legend=statisticalPower, lty=1, col=pow.plot.col, lwd=currentLWD, bty='n', cex=.75)
 
         tmp <- paste0(activeDirectory, saveFilePrefix," RequiredSampleSizesFor ", currentDriftNames[j], ".png"); tmp
-        dev.copy(png, tmp, width = 8, height = 8, units = 'in', res = 300)
-        dev.off()
+        grDevices::dev.copy(grDevices::png, quality = 100, tmp, width = 8, height = 8, units = 'in', res = 300)
+        grDevices::dev.off()
       }
 
   } ### END Plotting ###
