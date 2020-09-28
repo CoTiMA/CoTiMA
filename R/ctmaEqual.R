@@ -4,6 +4,16 @@
 
 # takes a fitted CoTiMA as argumnt, and all parameters that were set invariant in these model are set equal
 
+#' ctmaEqual
+#'
+#' @param ctmaInvariantFit ""
+#' @param activeDirectory ""
+#' @param activateRPB ""
+#' @param digits ""
+#' @param equalDrift ""
+#' @param coresToUse ""
+#' @param CoTiMAStanctArgs ""
+#'
 ctmaEqual <- function(
   # Primary Study Fits
   ctmaInvariantFit=NULL,                    #list of lists: could be more than one fit object
@@ -50,21 +60,21 @@ ctmaEqual <- function(
 
   # check if mutipleDriftFit object is supplied
   if (! ((ctmaInvariantFit$model.type == "mx") || (ctmaInvariantFit$model.type == "stanct")) ) {
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(red$bold("A fitted CoTiMA object with more than a single invariant drift effect (fit of CoTiMAMultipleDrift) has to be supplied compare the effects. \n"))
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat(crayon::red$bold("A fitted CoTiMA object with more than a single invariant drift effect (fit of CoTiMAMultipleDrift) has to be supplied compare the effects. \n"))
     stop("Good luck for the next try!")
   }
 
   # check if fit object is specified
   if (is.null(ctmaInvariantFit)){
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(red$bold("A fitted CoTiMA object with more than a single invariant drift effect (fit of CoTiMAMultipleDrift) has to be supplied compare the effects. \n"))
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat(crayon::red$bold("A fitted CoTiMA object with more than a single invariant drift effect (fit of CoTiMAMultipleDrift) has to be supplied compare the effects. \n"))
     stop("Good luck for the next try!")
   }
 
   if ( length(grep("invariant", names(ctmaInvariantFit$modelResults$DRIFT))) < 2) {
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(red$bold("A fitted CoTiMA object was supplied, but is has to have more than a single invariant drift effect to compare the effects. \n"))
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat(crayon::red$bold("A fitted CoTiMA object was supplied, but is has to have more than a single invariant drift effect to compare the effects. \n"))
     stop("Good luck for the next try!")
   }
 
@@ -134,7 +144,7 @@ ctmaEqual <- function(
   prevData <- ctmaInvariantFit$data
 
 
-  fitStanctModel <- ctStanFit(
+  fitStanctModel <- ctsem::ctStanFit(
     inits=prevEst,
     datalong = prevData,
     ctstanmodel = stanctModel,

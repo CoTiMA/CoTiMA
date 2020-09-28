@@ -4,6 +4,9 @@
 #' @param x ""
 #'
 #' @return
-#' @export
 #'
-summary.CoTiMAFit <- function(x) {print(x$summary)}
+summary.CoTiMAFit <- function(x)
+  {
+  UseMethod("summary")
+  print(x$summary)
+  }
