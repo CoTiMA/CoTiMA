@@ -737,6 +737,7 @@ ctmaInit <- function(
                   plot.type="drift", model.type="stanct",
                   coresToUse=coresToUse, n.studies=n.studies,
                   n.latent=n.latent,
+                  primaryStudyList=primaryStudies,
                   studyList=studyList, studyFitList=studyFit,
                   emprawList=empraw, statisticsList=statisticsList,
                   modelResults=list(DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef),
