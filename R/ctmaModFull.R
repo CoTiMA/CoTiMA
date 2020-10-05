@@ -1,4 +1,3 @@
-#######################################################################################################################
 ############################################ CoTiMA Moderator STANCT ##################################################
 #######################################################################################################################
 #' ctmaModFull
@@ -397,7 +396,12 @@ ctmaModFull <- function(
     ## moderator effects
     #tmp1 <- grep("toV", rownames(stanctModFit$tipreds)); tmp1
     tmp1 <- c()
-    for (i in modTIstartNum:(modTIstartNum+length(mod.number)-1)) tmp1 <- c(tmp1, (grep(i, rownames(stanctModFit$tipreds))))
+    #for (i in modTIstartNum:(modTIstartNum+length(mod.number)-1)) tmp1 <- c(tmp1, (grep(i, rownames(stanctModFit$tipreds))))
+    tmp2 <- c()
+    if (mod.type == "cont") tmp2 <- length(mod.number)-1
+    if (mod.type == "cat") tmp2 <- length(unique.mod)-1
+    for (i in modTIstartNum:(modTIstartNum+tmp2)) tmp1 <- c(tmp1, (grep(i, rownames(stanctModFit$tipreds))))
+
     Tvalues <- stanctModFit$tipreds[tmp1, ][,6]; Tvalues
     modTI_Coeff <- round(cbind(stanctModFit$tipreds[tmp1, ], Tvalues), digits); modTI_Coeff
     # re-label
@@ -412,7 +416,8 @@ ctmaModFull <- function(
       if (mod.type == "cat") {
         counter <- 0
         modNameCounter <- 1
-        for (i in 1:n.moderators) {
+        #for (i in 1:n.moderators) {
+        for (i in 1:(length(unique.mod)-1)) {
           counter <- counter + 1
           current.mod.names <- mod.names[modNameCounter]; current.mod.names
           targetNamePart <- paste0("tip_TI", n.studies+i-1); targetNamePart
@@ -487,6 +492,7 @@ ctmaModFull <- function(
     results <- list(activeDirectory=activeDirectory,
                     time=list(start.time=start.time, end.time=end.time, time.taken=time.taken),
                     plot.type="drift", model.type="stanct",
+                    mod.type=mod.type,
                     coresToUse=coresToUse, n.studies=n.studies,
                     n.latent=n.latent, n.moderators=length(mod.number), mod.names=mod.names,
                     studyList=ctmaInitFit$studyList, studyFitList=fitStanctModModel,
