@@ -259,7 +259,8 @@ ctmaModFull <- function(
         if (CoTiMAStanctArgs$scaleMod == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)])
         currentStartNumber <- modTIstartNum; currentStartNumber
         currentEndNumber <- currentStartNumber + ncol(tmpTI)-1; currentEndNumber
-        colnames(tmpTI) <- paste0("TI", currentStartNumber:currentEndNumber); utils::head(tmpTI)
+        colnames(tmpTI) <- paste0("TI", currentStartNumber:currentEndNumber)
+
         dataTmp <- cbind(dataTmp, tmpTI); dim(dataTmp)
         dataTmp <- dataTmp[ ,-grep("mod", colnames(dataTmp))]
       }
@@ -402,7 +403,11 @@ ctmaModFull <- function(
     if (mod.type == "cat") tmp2 <- length(unique.mod)-1
     for (i in modTIstartNum:(modTIstartNum+tmp2)) tmp1 <- c(tmp1, (grep(i, rownames(stanctModFit$tipreds))))
 
+<<<<<<< HEAD
     Tvalues <- stanctModFit$tipreds[tmp1, ][,6]; Tvalues
+=======
+        Tvalues <- stanctModFit$tipreds[tmp1, ][,6]; Tvalues
+>>>>>>> 9ff25df8cae9e32fc2d0bd44f990f02cce7ec002
     modTI_Coeff <- round(cbind(stanctModFit$tipreds[tmp1, ], Tvalues), digits); modTI_Coeff
     # re-label
     if (!(is.null(mod.names))) {
