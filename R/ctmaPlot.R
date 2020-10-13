@@ -16,6 +16,8 @@
 #' @param mod.num ""
 #' @param aggregateLabel ""
 #'
+#' @export ctmaPlot
+#'
 ctmaPlot <- function(
   # Primary Study Fits
   ctmaFit=list(),                    #list of lists: could be more than one fit object
