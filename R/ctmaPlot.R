@@ -228,7 +228,7 @@ ctmaPlot <- function(
         figureContent <- colnames(DRIFTCoeff)[i]; figureContent
         if (is.null(figureContent)) figureContent <- colnames(DRIFTCoeff[[1]])[i]; figureContent
         figureName[i] <- paste0(activeDirectory, saveFilePrefix, "_",  "Funnel Plot for ", figureContent, ".png")
-        grDevices::dev.copy(grDevices::png, quality = 100, figureName[i], width = 8, height = 8, units = 'in', res = 300)
+        grDevices::dev.copy(grDevices::png, figureName[i], width = 8, height = 8, units = 'in', res = 300)
         grDevices::dev.off()
       } # END for (i in 1:(n.latent^2))
     } # END if ("funnel" %in% plot.type)
@@ -387,7 +387,7 @@ ctmaPlot <- function(
         graphics::title(main = paste0("Forest Plot for the Effects of ", colnames(DRIFTCoeff[[k]])[i]), sub = NULL,
                         ylab = "Study Number", xlab="Continous Time Drift Coefficient")
         figureFileName <- paste0(activeDirectory, saveFilePrefix," Forest Plot for ", colnames(DRIFTCoeff[[k]])[i], ".png"); figureFileName
-        grDevices::dev.copy(grDevices::png, quality = 100, figureFileName, width = 8, height = 8, units = 'in', res = 300)
+        grDevices::dev.copy(grDevices::png, figureFileName, width = 8, height = 8, units = 'in', res = 300)
         grDevices::dev.off()
       } # END for (i in 1:(n.latent^2))
     } # END if ("forest" %in% plot.type)
@@ -650,7 +650,7 @@ ctmaPlot <- function(
           # SAVE
           graphics::par(new=F)
           tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNames[[g]][j], ".png"); tmp
-          grDevices::dev.copy(grDevices::png, quality = 100, tmp, width = 8, height = 8, units = 'in', res = 300)
+          grDevices::dev.copy(grDevices::png, tmp, width = 8, height = 8, units = 'in', res = 300)
           grDevices::dev.off()
         } # END for (j in seq(1, nlatent^2, (nlatent+1)))
       } ## END PLOT (auto effects)
@@ -722,7 +722,7 @@ ctmaPlot <- function(
 
           graphics::par(new=F)
           tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNames[[g]][j], ".png"); tmp
-          grDevices::dev.copy(grDevices::png, quality = 100, tmp, width = 8, height = 8, units = 'in', res = 300)
+          grDevices::dev.copy(grDevices::png, tmp, width = 8, height = 8, units = 'in', res = 300)
           grDevices::dev.off()
         } # END for (j in coeffSeq)
       } ## END PLOT (cross effects)
@@ -793,7 +793,7 @@ ctmaPlot <- function(
       graphics::legend('bottomright', legend=statisticalPower, lty=1, col=pow.plot.col, lwd=currentLWD, bty='n', cex=.75)
 
       tmp <- paste0(activeDirectory, saveFilePrefix," RequiredSampleSizesFor ", currentDriftNames[j], ".png"); tmp
-      grDevices::dev.copy(grDevices::png, quality = 100, tmp, width = 8, height = 8, units = 'in', res = 300)
+      grDevices::dev.copy(grDevices::png, tmp, width = 8, height = 8, units = 'in', res = 300)
       grDevices::dev.off()
     }
 
