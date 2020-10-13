@@ -7,6 +7,7 @@
 ctmaModFull(
   ctmaInitFit = NULL,
   primaryStudyList = NULL,
+  cluster = NULL,
   activeDirectory = NULL,
   mod.number = 1,
   mod.type = "cont",
@@ -33,6 +34,8 @@ ctmaModFull(
 \item{ctmaInitFit}{""}
 
 \item{primaryStudyList}{""}
+
+\item{cluster}{""}
 
 \item{activeDirectory}{""}
 

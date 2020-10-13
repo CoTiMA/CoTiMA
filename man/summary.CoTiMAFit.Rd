@@ -4,7 +4,7 @@
 \alias{summary.CoTiMAFit}
 \title{ctmaSummary}
 \usage{
-\method{summary}{CoTiMAFit}(x)
+summary.CoTiMAFit(x)
 }
 \arguments{
 \item{x}{""}

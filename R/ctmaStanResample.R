@@ -17,7 +17,7 @@ ctmaStanResample <- function(fitStanctModel=NULL, CoTiMAStanctArgs=NULL) {
   currentResults <- list()
   for (i in 1:runs) {
     cat(i*nsamples, "out of", overallSamples, "\n")
-    currentResults[[i]] <- ctsem::ctAddSamples(sm1, nsamples=nsamples, cores=1)
+    currentResults[[i]] <- ctsem:::ctAddSamples(sm1, nsamples=nsamples, cores=1)
   }
   ## combine resampled results
   # extract 2 rawposteriors

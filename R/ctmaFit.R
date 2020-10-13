@@ -6,9 +6,11 @@
 #'
 #' @param ctmaInitFit ""
 #' @param primaryStudyList  ""
+#' @param cluster  ""
 #' @param activeDirectory  ""
 #' @param activateRPB  ""
 #' @param digits  ""
+#' @param invariantDrift  ""
 #' @param type  ""
 #' @param coresToUse  ""
 #' @param CoTiMAStanctArgs  ""

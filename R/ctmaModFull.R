@@ -5,6 +5,7 @@
 #'
 #' @param ctmaInitFit ""
 #' @param primaryStudyList ""
+#' @param cluster ""
 #' @param activeDirectory ""
 #' @param mod.number ""
 #' @param mod.type ""
@@ -260,6 +261,7 @@ ctmaModFull <- function(
         currentStartNumber <- modTIstartNum; currentStartNumber
         currentEndNumber <- currentStartNumber + ncol(tmpTI)-1; currentEndNumber
         colnames(tmpTI) <- paste0("TI", currentStartNumber:currentEndNumber)
+
         dataTmp <- cbind(dataTmp, tmpTI); dim(dataTmp)
         dataTmp <- dataTmp[ ,-grep("mod", colnames(dataTmp))]
       }
