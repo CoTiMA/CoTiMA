@@ -1,4 +1,3 @@
-
 # ctmaTargetMat changes a full covariance matrix: select target variables, recode them, combine them (add), and
 #    add rows/columns with NA if focal concepts are not available.
 
