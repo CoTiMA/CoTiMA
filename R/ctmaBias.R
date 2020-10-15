@@ -98,6 +98,7 @@ ctmaBias <- function(
     eggerDrift <- list()
     for (j in 1:(n.latent^2)) {
       eggerDrift[[j]] <- lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
+      eggerDrift[[j]]$message <- "No sign. evidence for publication bias."
       if (summary(eggerDrift[[j]])$coefficients[1,1] > 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
         eggerDrift[[j]]$message <- message1
       }
