@@ -14,6 +14,8 @@
 #' @param coresToUse ""
 #' @param CoTiMAStanctArgs ""
 #'
+#' @export ctmaEqual
+#'
 ctmaEqual <- function(
   # Primary Study Fits
   ctmaInvariantFit=NULL,                    #list of lists: could be more than one fit object
