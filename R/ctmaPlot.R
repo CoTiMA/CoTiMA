@@ -459,7 +459,7 @@ ctmaPlot <- function(
         noOfSteps <- length(usedTimeRange); noOfSteps
       }
 
-      ## yLimitsForEffects
+      #yLimitsForEffects
       # discrete effects across time range
       discreteDriftCoeff <- list()
       for (g in 1:n.fitted.obj) {
@@ -548,6 +548,12 @@ ctmaPlot <- function(
           }
         }
       } ## END if (length(yLimitsForEffects) < 1)
+
+      if (length(yLimitsForEffects) > 1) {
+        minYLimitsForEffects <- yLimitsForEffects[1]
+        maxYLimitsForEffects <- yLimitsForEffects[2]
+      }
+
     } ### END Specification of Parameters for Plotting, Statistical Power, Optimal Lags ###
 
     if ( (plotCrossEffects == TRUE) || (plotAutoEffects == TRUE) ) {
