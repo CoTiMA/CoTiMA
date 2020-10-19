@@ -36,7 +36,7 @@ ctmaFit <- function(
   invariantDrift=NULL,
 
   # Fitting Parameters
-  type="stanct",
+  #type="stanct",
   coresToUse=c(-1),
   CoTiMAStanctArgs=list(test=TRUE, scaleTI=TRUE, scaleTime=1/1,
                         savesubjectmatrices=FALSE, verbose=1,
@@ -237,7 +237,7 @@ ctmaFit <- function(
   # Make model with most time points
   {
     stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
-                                  DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent),
+                                  DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE),
                                   LAMBDA=diag(n.latent),
                                   CINT=matrix(0, nrow=n.latent, ncol=1),
                                   T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
@@ -248,7 +248,6 @@ ctmaFit <- function(
                                   n.TIpred = (n.studies-1+clusCounter),
                                   TIpredNames = paste0("TI", 1:(n.studies-1+clusCounter)),
                                   TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter)))
-
 
     #stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
@@ -309,7 +308,9 @@ ctmaFit <- function(
   invariantDrift_Coeff <- round(cbind(invariantDriftStanctFit$parmatrices, Tvalues), digits); invariantDrift_Coeff
   # re-label
   tmp1 <- which(rownames(invariantDrift_Coeff) == "DRIFT"); tmp1
-  rownames(invariantDrift_Coeff)[tmp1] <- driftNames; invariantDrift_Coeff
+  driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); driftNamesTmp
+  #rownames(invariantDrift_Coeff)[tmp1] <- driftNames; invariantDrift_Coeff
+  rownames(invariantDrift_Coeff)[tmp1] <- driftNamesTmp; invariantDrift_Coeff
   tmp2 <- which(rownames(invariantDrift_Coeff) %in% invariantDrift); tmp2
   tmp3 <- paste0("DRIFT ", rownames(invariantDrift_Coeff)[tmp2] , " (invariant)"); tmp3
   rownames(invariantDrift_Coeff)[tmp2] <- tmp3; invariantDrift_Coeff
@@ -352,8 +353,8 @@ ctmaFit <- function(
   }
 
   ### Numerically compute Optimal Time lag sensu Dormann & Griffin (2015)
-  #driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE); driftMatrix # byrow set because order is different compared to mx model
-  driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=TRUE); driftMatrix # byrow set because order is different compared to mx model
+  driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE); driftMatrix # byrow set because order is different compared to mx model
+  #driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=TRUE); driftMatrix # byrow set because order is different compared to mx model
   OTL <- function(timeRange) {
     OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]}
   # loop through all cross effects
