@@ -493,9 +493,9 @@ ctmaModFull <- function(
 
     results <- list(activeDirectory=activeDirectory,
                     time=list(start.time=start.time, end.time=end.time, time.taken=time.taken),
-                    plot.type="drift", model.type="stanct",
+                    plot.type="drift", #model.type="stanct",
                     coresToUse=coresToUse, n.studies=n.studies,
-                    n.latent=n.latent, n.moderators=length(mod.number), mod.names=mod.names,
+                    n.latent=n.latent, n.moderators=length(mod.number), mod.names=mod.names, mod.type=mod.type,
                     studyList=ctmaInitFit$studyList, studyFitList=fitStanctModModel,
                     data=datalong, statisticsList=ctmaInitFit$statisticsList,
                     modelResults=list(DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef,
