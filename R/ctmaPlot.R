@@ -149,9 +149,14 @@ ctmaPlot <- function(
     allDeltas <- list()
     requiredSampleSizes <- list()
 
+    if (!(is.null(ctmaFitObject[[1]]$mod.type))) {
+      if (ctmaFitObject[[1]]$mod.type == "cat") {
+        mod.values <- c(1, unique(as.numeric(substr(rownames(ctmaFitObject[[1]]$summary$mod.effects), 1,2))))
+      }
+    }
+
     #n.fitted.obj
     for (i in 1:n.fitted.obj) {
-      #i <- 1
       #if (plot.type[[i]] == "power") plot.type[[i]] <- c("power", "drift")
       if ("power" %in% plot.type[[i]]) plot.type[[i]] <- c("power", "drift")
       n.latent[i] <- unlist(ctmaFitObject[[i]]$n.latent); n.latent[i]
@@ -486,7 +491,17 @@ ctmaPlot <- function(
             tmp2 <- ctmaFitObject[[g]]$summary$mod.effects[,3]; tmp2
             tmp2 <- matrix(tmp2, n.latent[[g]], byrow=TRUE); tmp2 # moderator effect to be added to main effect
 
-            DRIFTCoeff[[g]][[counter]] <- tmp1 + (i) * tmp2; DRIFTCoeff[[g]][[counter]]
+            if (ctmaFitObject[[1]]$mod.type == "cont") DRIFTCoeff[[g]][[counter]] <- tmp1 + (i) * tmp2
+            if (ctmaFitObject[[1]]$mod.type == "cat") {
+              if (i == 1) {
+                DRIFTCoeff[[g]][[counter]] <- tmp1 # copy main effects (= comparison group)
+              } else {
+                tmp2 <- ctmaFitObject[[g]]$summary$mod.effects[,3]; tmp2
+                tmp2 <- tmp2[((i - 2) * n.latent^2 + 1): ((i - 2) * n.latent^2 + 0 + n.latent)]
+                DRIFTCoeff[[g]][[counter]] <- tmp1 + (i) * tmp2; DRIFTCoeff[[g]][[counter]]
+              }
+            }
+
             counter <- counter +1
           }
           names(DRIFTCoeff[[g]]) <- paste0("Moderator Value = ", mod.values, " SD from mean if standardized (default setting)")
