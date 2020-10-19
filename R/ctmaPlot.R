@@ -38,7 +38,7 @@ ctmaPlot <- function(
   mod.values=-2:2,
   mod.num=1,
 
-  aggregateLabel="SUM"
+  aggregateLabel=""
 
 )
 {  # begin function definition (until end of file)
