@@ -352,8 +352,8 @@ ctmaFit <- function(
   }
 
   ### Numerically compute Optimal Time lag sensu Dormann & Griffin (2015)
-  driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE); driftMatrix # byrow set because order is different compared to mx model
-  #driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=F); driftMatrix # byrow set because order is different compared to mx model
+  #driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE); driftMatrix # byrow set because order is different compared to mx model
+  driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=TRUE); driftMatrix # byrow set because order is different compared to mx model
   OTL <- function(timeRange) {
     OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]}
   # loop through all cross effects
