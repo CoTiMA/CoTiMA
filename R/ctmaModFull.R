@@ -256,6 +256,7 @@ ctmaModFull <- function(
             tmpTI[tmp2, counter] <- 1
           }
         }
+
         if (CoTiMAStanctArgs$scaleMod == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)])
         currentStartNumber <- modTIstartNum; currentStartNumber
         currentEndNumber <- currentStartNumber + ncol(tmpTI)-1; currentEndNumber
@@ -404,7 +405,8 @@ ctmaModFull <- function(
     ## moderator effects
     tmp1 <- tmp2 <- c()
     if (mod.type == "cont") tmp2 <- length(mod.number)-1
-    if (mod.type == "cat") tmp2 <- length(unique.mod)-1
+    if (mod.type == "cat") tmp2 <- length(unlist(unique.mod))-n.moderators
+
     for (i in modTIstartNum:(modTIstartNum+tmp2)) tmp1 <- c(tmp1, (grep(i, rownames(stanctModFit$tipreds))))
     Tvalues <- stanctModFit$tipreds[tmp1, ][,6]; Tvalue
     modTI_Coeff <- round(cbind(stanctModFit$tipreds[tmp1, ], Tvalues), digits); modTI_Coeff
@@ -419,16 +421,18 @@ ctmaModFull <- function(
       if (mod.type == "cat") {
         counter <- 0
         modNameCounter <- 1
-        for (i in 1:(length(unique.mod)-1)) {
-          counter <- counter + 1
-          current.mod.names <- mod.names[modNameCounter]; current.mod.names
-          targetNamePart <- paste0("tip_TI", n.studies+i-1); targetNamePart
-          tmp1 <- grep(targetNamePart, rownames(modTI_Coeff)); tmp1
-          rownames(modTI_Coeff) <- sub(targetNamePart, paste0(counter+1, ". smallest value (categorie) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
-          if (counter  == n.latent^2) {
-            counter <- 0
-            modNameCounter <- modNameCounter + 1
+        for (j in 1:n.moderators) {
+          if (n.moderators == 1) unique.mod.tmp <- unique.mod else unique.mod.tmp <- unique.mod[[j]]
+          for (i in 1:(length(unique.mod.tmp)-1)) {
+            counter <- counter + 1
+            current.mod.names <- mod.names[modNameCounter]; current.mod.names
+            targetNamePart <- paste0("tip_TI", n.studies+i-1); targetNamePart
+            tmp1 <- grep(targetNamePart, rownames(modTI_Coeff)); tmp1
+            rownames(modTI_Coeff) <- sub(targetNamePart, paste0(counter+1, ". smallest value (categorie) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
+            modTI_Coeff
           }
+          counter <- 0
+          modNameCounter <- modNameCounter + 1
         }
       }
     }
@@ -451,23 +455,20 @@ ctmaModFull <- function(
 
     modDrift_Minus2LogLikelihood  <- -2*stanctModFit$loglik; modDrift_Minus2LogLikelihood
     modDrift_estimatedParameters  <- stanctModFit$npars; modDrift_estimatedParameters
-    #modDrift_df <- ((n.latent * unlist(allTpoints)) %*% ((n.latent * unlist(allTpoints)) +1 )) / 2 - modDrift_estimatedParameters; modDrift_df
-    #n.par.first.lag <- ((2 * n.latent) * (2 * n.latent + 1)) / 2; n.par.first.lag
-    #n.par.later.lag <- ((2 * n.latent) * (2 * n.latent - 1)) / 2; n.par.later.lag
-    #n.later.lags <- allTpoints - n.latent; n.later.lags
-    #modDrift_df <- sum(n.later.lags * n.par.later.lag); modDrift_df
-    #modDrift_df <- modDrift_df + (n.studies-1) * n.latent^2; modDrift_df
     modDrift_df <- NULL
-    model_Drift_Coef <- modDrift_Coeff[(rownames(modDrift_Coeff) == "DRIFT"), 3]; model_Drift_Coef
+    #modDrift_Coeff
+    #model_Drift_Coef <- modDrift_Coeff["DRIFT" %in% rownames(modDrift_Coeff)), 3]; model_Drift_Coef
+    model_Drift_Coef <- modDrift_Coeff[grep("DRIFT", rownames(modDrift_Coeff)), 3]; model_Drift_Coef
     # re-sort
     model_Drift_Coef <- c(matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE)); model_Drift_Coef
     names(model_Drift_Coef) <- driftNames; model_Drift_Coef
 
-    model_Diffusion_Coef <- modDrift_Coeff[(rownames(modDrift_Coeff) == "DIFFUSIONcov"), 3]; model_Diffusion_Coef
+    #model_Diffusion_Coef <- modDrift_Coeff[(rownames(modDrift_Coeff) == "DIFFUSIONcov"), 3]; model_Diffusion_Coef
+    model_Diffusion_Coef <- modDrift_Coeff[grep("DIFFUSIONcov", rownames(modDrift_Coeff)), 3]; model_Diffusion_Coef
     model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
     names(model_Diffusion_Coef) <- driftNames; model_Diffusion_Coef
 
-    model_T0var_Coef <- modDrift_Coeff[(rownames(modDrift_Coeff) == "T0VAR"), 3]; model_T0var_Coef
+    model_T0var_Coef <- modDrift_Coeff[grep("T0VAR", rownames(modDrift_Coeff)), 3]; model_T0var_Coef
     model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
     names(model_T0var_Coef) <- driftNames; model_Diffusion_Coef
 
