@@ -5,7 +5,7 @@
 \title{ctmaPlot}
 \usage{
 ctmaPlot(
-  ctmaFit = list(),
+  ctmaFitObject = list(),
   activeDirectory = NULL,
   saveFilePrefix = "ctmaPlot",
   activateRPB = FALSE,
@@ -16,11 +16,11 @@ ctmaPlot(
   yLimitsForEffects = c(),
   mod.values = -2:2,
   mod.num = 1,
-  aggregateLabel = "SUM"
+  aggregateLabel = ""
 )
 }
 \arguments{
-\item{ctmaFit}{""}
+\item{ctmaFitObject}{""}
 
 \item{activeDirectory}{""}
 

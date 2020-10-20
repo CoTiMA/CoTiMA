@@ -22,7 +22,7 @@
 #' @return
 #' @export
 #'
-#' @examples
+#' @examples ""
 ctmaInit <- function(
   # Primary Study Information
   primaryStudies=NULL,                    #list of primary study information created with ctmaPrep

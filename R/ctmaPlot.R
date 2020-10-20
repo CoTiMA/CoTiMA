@@ -3,7 +3,7 @@
 #######################################################################################################################
 #' ctmaPlot
 #'
-#' @param ctmaFit ""
+#' @param ctmaFitObject ""
 #' @param activeDirectory ""
 #' @param saveFilePrefix ""
 #' @param activateRPB ""
@@ -14,6 +14,7 @@
 #' @param yLimitsForEffects ""
 #' @param mod.values ""
 #' @param mod.num ""
+#' @param aggregateLabel ""
 #' @param aggregateLabel ""
 #'
 #' @export ctmaPlot

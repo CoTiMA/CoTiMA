@@ -2,6 +2,28 @@
 ############################################ CoTiMA Statistical Power #################################################
 #######################################################################################################################
 
+#' ctmaPower
+#'
+#' @param ctmaInitFit ""
+#' @param activeDirectory ""
+#' @param statisticalPower ""
+#' @param timeRange ""
+#' @param useMBESS ""
+#' @param coresToUse ""
+#' @param activateRPB ""
+#' @param silentOverwrite ""
+#' @param digits ""
+#' @param saveStatPower ""
+#' @param loadStatPower ""
+#' @param loadAllInvFit ""
+#' @param saveAllInvFit ""
+#' @param loadAllInvWOSingFit ""
+#' @param saveAllInvWOSingFit ""
+#' @param skipScaling ""
+#'
+#' @return
+#' @export
+#'
 ctmaPower <- function(
   # Primary Study Fits
   ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
@@ -39,13 +61,13 @@ ctmaPower <- function(
 
   { ### CHECKS
     if (is.null(activeDirectory)) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(red$bold("No working directory has been specified!", sep="\n"))
-      cat(red$bold(" ", " ", sep="\n"))
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold("No working directory has been specified!", sep="\n"))
+      cat(crayon::red$bold(" ", " ", sep="\n"))
       cat("Press 'q' to quit and change or 'c' to continue with the active directory of the ctmaInitFit file. Press ENTER afterwards ", "\n")
       char <- readline(" ")
       while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
-        cat((blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
+        cat((crayon::blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
         char <- readline(" ")
       }
       if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
@@ -54,20 +76,20 @@ ctmaPower <- function(
 
     # check if fit object is specified
     if (is.null(ctmaInitFit)){
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(red$bold("A fitted CoTiMA object (\"ctmaInitFit\") has to be supplied to analyse something. \n"))
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold("A fitted CoTiMA object (\"ctmaInitFit\") has to be supplied to analyse something. \n"))
       stop("Good luck for the next try!")
     }
 
     if (length(statisticalPower) < 1) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(red$bold(" ", sep="\n"))
-      cat(red$bold("Levels (betas) for statistical power (\"statisticalPower\") have not been suppiled \n"))
-      cat(red$bold(" ", " ", sep="\n"))
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold(" ", sep="\n"))
+      cat(crayon::red$bold("Levels (betas) for statistical power (\"statisticalPower\") have not been suppiled \n"))
+      cat(crayon::red$bold(" ", " ", sep="\n"))
       cat("Press 'q' to quit and change or 'c' to continue with the statisticalPower=c(.90, .80). Press ENTER afterwards ", "\n")
       char <- readline(" ")
       while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
-        cat((blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
+        cat((crayon::blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
         char <- readline(" ")
       }
       if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
@@ -77,21 +99,21 @@ ctmaPower <- function(
     if (length(statisticalPower) > 0) {
       for (i in 1:length(statisticalPower)) {
         if (statisticalPower[i] < 0 | statisticalPower[i] > 1){
-          if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-          cat(red$bold("Parameter for statistical poweranalysis outside the allowed interval!\n"))
-          cat(red("Values have to be between 0 and 1\n"))
+          if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+          cat(crayon::red$bold("Parameter for statistical poweranalysis outside the allowed interval!\n"))
+          cat(crayon::red("Values have to be between 0 and 1\n"))
           stop("Good luck for the next try!")
         }
       }
     }
 
     #if (resultsFilePrefix=="ctmaPower") {
-    #  if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
     #  cat("The default results file prefix (ctmaPower) has been chosen.", "\n")
     #  cat("Press 'q' to quit and change or 'c' to continue. Press ENTER afterwards ", "\n")
     #  char <- readline(" ")
     #  while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
-    #    cat((blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
+    #    cat((crayon::blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
     #    char <- readline(" ")
     #  }
     #  if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
@@ -167,7 +189,7 @@ ctmaPower <- function(
 
     maxTpointsModel <- which(ctmaInitFit$statisticsList$allTpoints == max(ctmaInitFit$statisticsList$allTpoints)); maxTpointsModel
 
-    ctsemModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
+    ctsemModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
                           DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE), # byrow because names are in stanct order
                           LAMBDA=diag(n.latent),
                           type='stanct',
@@ -221,9 +243,9 @@ ctmaPower <- function(
     }
     targetCols <- which(colnames(dataTmp) == "groups"); targetCols
     dataTmp <- dataTmp[ ,-targetCols]
-    dataTmp2 <- ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1),
+    dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1),
                              manifestNames=manifestNames)
-    dataTmp3 <- ctDeintervalise(dataTmp2)
+    dataTmp3 <- ctsem::ctDeintervalise(dataTmp2)
     dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
     # eliminate rows where ALL latents are NA
     dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
@@ -246,7 +268,7 @@ ctmaPower <- function(
   datalong_all <- datalong_all[, -grep("TI", colnames(datalong_all))];
 
   # all fixed model is a model with no TI predictors (identical to ctsemModel)
-  allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
+  allFixedModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
                            DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE), # byrow because names are in stanct order
                            LAMBDA=diag(n.latent),
                            type='stanct',
@@ -260,7 +282,7 @@ ctmaPower <- function(
     x1 <- paste0(activeDirectory, loadAllInvFit[1], ".rds"); x1
     results <- readRDS(file=x1)
   } else {
-    results <- ctStanFit(
+    results <- ctsem::ctStanFit(
       datalong = datalong_all,
       ctstanmodel = allFixedModel,
       savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
@@ -350,13 +372,13 @@ ctmaPower <- function(
   homAll_effects <- matrix(t(cbind((homAll_Drift_Coef), (homAll_Drift_SE),
                                    (homAll_Drift_Tvalue))), 1, 3*length(driftNames), byrow=T); homAll_effects
   homAll_effects <- rbind(homAll_effects,
-                          matrix(t(cbind((c(vech2full(homAll_Diffusion_Coef))),
-                                         c(vech2full((homAll_Diffusion_SE))),
-                                         c(vech2full((homAll_Diffusion_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
+                          matrix(t(cbind((c(OpenMx::vech2full(homAll_Diffusion_Coef))),
+                                         c(OpenMx::vech2full((homAll_Diffusion_SE))),
+                                         c(OpenMx::vech2full((homAll_Diffusion_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
   homAll_effects <- rbind(homAll_effects,
-                          matrix(t(cbind(c(vech2full((homAll_T0Var_Coef))),
-                                         c(vech2full((homAll_T0Var_SE))),
-                                         c(vech2full((homAll_T0Var_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
+                          matrix(t(cbind(c(OpenMx::vech2full((homAll_T0Var_Coef))),
+                                         c(OpenMx::vech2full((homAll_T0Var_SE))),
+                                         c(OpenMx::vech2full((homAll_T0Var_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
   # Label summary table
   rownames(homAll_effects) <- c("Fixed Effects Drift", "Fixed Effects Diffusion", "Fixed Effects T0Var")
   newColNames <- c()
@@ -381,7 +403,7 @@ ctmaPower <- function(
       counter <- counter +1
       tmpDriftNames <- driftNamesBackup
       tmpDriftNames[counter] <- "0"; tmpDriftNames
-      fullWOCross[[counter]] <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
+      fullWOCross[[counter]] <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
                                         DRIFT=matrix(tmpDriftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE), # byrow because of order of stanct names
                                         LAMBDA=diag(n.latent),
                                         type='stanct',
@@ -439,7 +461,7 @@ ctmaPower <- function(
       # FIT (NOT LOAD)
       #loadAllInvWOSingFit <- c()
       if (length(loadAllInvWOSingFit) < 1 || (loadable == FALSE) )  {
-        results <- ctStanFit(
+        results <- ctsem::ctStanFit(
           datalong = datalong_all,
           ctstanmodel = fullWOCross[[counter]],
           savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
@@ -520,16 +542,16 @@ ctmaPower <- function(
       DRIFT.without.j[[j]] <- (matrix(fullWOSingle_Drift_Coef[[j]], n.latent, byrow=TRUE)); DRIFT.without.j[[j]] # transpose for stanct order
 
       ## DIFFUSION
-      DIFFUSION.without.j[[j]] <- vech2full(fullWOSingle_Diffusion_Coef[[j]]); DIFFUSION.without.j[[j]]
+      DIFFUSION.without.j[[j]] <- OpenMx::vech2full(fullWOSingle_Diffusion_Coef[[j]]); DIFFUSION.without.j[[j]]
 
       ## T0VAR
-      T0VAR.without.j[[j]] <- vech2full(fullWOSingle_T0Var_Coef[[j]]); T0VAR.without.j[[j]]
+      T0VAR.without.j[[j]] <- OpenMx::vech2full(fullWOSingle_T0Var_Coef[[j]]); T0VAR.without.j[[j]]
     } # if (j %in% coeffSeq)
   } # for (j in 1:(n.latent^2))
 
   DRIFT <- matrix(homAll_Drift_Coef, n.latent, n.latent, byrow=TRUE); DRIFT
-  DIFFUSION <- vech2full(homAll_Diffusion_Coef); DIFFUSION
-  T0VAR <- vech2full(homAll_T0Var_Coef); T0VAR
+  DIFFUSION <- OpenMx::vech2full(homAll_Diffusion_Coef); DIFFUSION
+  T0VAR <- OpenMx::vech2full(homAll_T0Var_Coef); T0VAR
 
 
   print(paste0("#################################################################################"))
@@ -537,10 +559,10 @@ ctmaPower <- function(
   print(paste0("#################################################################################"))
 
 
-  # Fast function to calculate required sample sizes later (as optional replacement for ss.power.reg.coef)
+  # Fast function to calculate required sample sizes later (as optional replacement for MBESS::ss.power.reg.coef)
   nestedProbFunT <- function (fvalue, alpha=.05, power=.80, p=2, x) (1-
-                                                                       pt(
-                                                                         qt((1 - alpha/2), df = (x)-p-1,
+                                                                       stats::pt(
+                                                                         stats::qt((1 - alpha/2), df = (x)-p-1,
                                                                             lower.tail = TRUE, log.p = FALSE),
                                                                          df = (x)-p-1, ncp = sqrt(x) * abs(fvalue),
                                                                          lower.tail = TRUE, log.p = FALSE)) - power
@@ -564,11 +586,11 @@ ctmaPower <- function(
 
   # Define functions to compute discrete time effects
   discreteDriftFunction <- function(driftMatrix, timeScale, number) {
-    discreteDriftValue <- expm(timeScale %x% driftMatrix)
+    discreteDriftValue <- expm::expm(timeScale %x% driftMatrix)
     discreteDriftValue[number] }
   discreteDiffusionFunction <- function(diffusionMatrix, driftMatrix, timeScale, number) {
     driftHatch <- driftMatrix %x% diag(dim(diffusionMatrix)[1]) + diag(dim(diffusionMatrix)[1]) %x% driftMatrix
-    discreteDiffusionValue <- solve(driftHatch) %*% (expm(timeScale %x% driftHatch) - diag(dim(driftHatch)[1])) %*% c(diffusionMatrix)
+    discreteDiffusionValue <- solve(driftHatch) %*% (expm::expm(timeScale %x% driftHatch) - diag(dim(driftHatch)[1])) %*% c(diffusionMatrix)
     discreteDiffusionValue[number] }
 
   # Loop through a range of lags to determine sample sizes (same parameters as for plotting the effects furter below)
@@ -588,15 +610,15 @@ ctmaPower <- function(
             plotPairs[j, h, k, 1] <- usedTimeRange[k+1] # time point
 
             # R2 in terms of Kelley & Maxwell 2008
-            A <- expm(DRIFT %x% delta_t) %*% T0VAR %*% t(expm(DRIFT %x% delta_t)); A         # implied variance at later Tpoint
+            A <- expm::expm(DRIFT %x% delta_t) %*% T0VAR %*% t(expm::expm(DRIFT %x% delta_t)); A         # implied variance at later Tpoint
             S <- matrix(discreteDiffusionFunction(DIFFUSION, DRIFT, delta_t, 1:(n.latent^2)),
                         n.latent, n.latent); S   # residual variance at later Tpoint
             R2 <- A[j1,j1]/( (A + S)[j1,j1] ); R2                                            # explained variance at later Tpoint
 
             # R2 without j (cross effect) in terms of Kelley & Maxwell 2008
-            A.j <- expm(DRIFT.without.j[[counter]] %x% delta_t) %*%
+            A.j <- expm::expm(DRIFT.without.j[[counter]] %x% delta_t) %*%
               T0VAR.without.j[[j]] %*%
-              t(expm(DRIFT.without.j[[j]] %x% delta_t)); A.j           # implied variance without j (counter) as predictor at later Tpoint
+              t(expm::expm(DRIFT.without.j[[j]] %x% delta_t)); A.j           # implied variance without j (counter) as predictor at later Tpoint
             S.j <- matrix(
               discreteDiffusionFunction(DIFFUSION.without.j[[j]],      # implied residual variance without j (counter) as predictor at later Tpoint
                                         DRIFT.without.j[[j]],
@@ -617,13 +639,13 @@ ctmaPower <- function(
               # Kelley, K. (2019). The MBESS R Package. R package version 4.6.0. Retrieved from:
               # https://cran.r-project.org/web/packages/MBESS/MBESS.pdf
               if (useMBESS == TRUE) {
-                plotPairs[j, h, k, 2] <- ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
+                plotPairs[j, h, k, 2] <- MBESS::ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
                                                            p = n.latent, desired.power = statisticalPower[h],
                                                            alpha.level = 0.05)[[1]] #
               } else {
                 # The following uses our own function
                 signalToNoiseRatios <- sqrt((R2-R2.j)/(1-R2)); signalToNoiseRatios
-                helper <- round(uniroot.all(nestedProbFunT, c(n.latent+2,999999999),
+                helper <- round(rootSolve::uniroot.all(nestedProbFunT, c(n.latent+2,999999999),
                                             fvalue=signalToNoiseRatios, alpha=.05,
                                             power=statisticalPower[h], p=n.latent) + .49999, 0)
                 if (length(helper) < 1) helper <- NA
@@ -634,11 +656,11 @@ ctmaPower <- function(
               if ( (delta_t %in% tableNxDeltas[ ,-1]) & (h == 1) ){  # do only once (not for all a priori powers)
                 M <- tableNxDeltas[ ,-1] == delta_t; M # temp matrix used below
                 empiricalN <- matrix(tableNxDeltas[apply(M, 1, any), ], ncol=maxTpoints)[,1]; empiricalN
-                empiricalN <- na.omit(empiricalN); empiricalN
+                empiricalN <- stats::na.omit(empiricalN); empiricalN
                 for (l in empiricalN) {
-                  p05 <- ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
+                  p05 <- MBESS::ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
                                            p = n.latent, Specified.N = l, alpha.level = 0.05)[2]
-                  p01 <- ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
+                  p01 <- MBESS::ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
                                            p = n.latent, Specified.N = l, alpha.level = 0.01)[2]
                   for (m in 1:n.studies) { # poke power into matrices
                     if (tableNxDeltas[m,1] == l) { # if study has current empirical N ...
@@ -736,8 +758,8 @@ ctmaPower <- function(
     targetCols <- grep("Power", columnNames); targetCols
     meanPower0 <- apply(tmp[, targetCols[1:2]], 2, mean, na.rm=TRUE); meanPower0
     meanPowerNA <- apply(postHocPower[, targetCols[1:2]], 2, mean, na.rm=TRUE); meanPowerNA
-    medianPower0 <- apply(tmp[, targetCols[1:2]], 2, median, na.rm=TRUE); medianPower0
-    medianPowerNA <- apply(postHocPower[, targetCols[1:2]], 2, median, na.rm=TRUE); medianPowerNA
+    medianPower0 <- apply(tmp[, targetCols[1:2]], 2, stats::median, na.rm=TRUE); medianPower0
+    medianPowerNA <- apply(postHocPower[, targetCols[1:2]], 2, stats::median, na.rm=TRUE); medianPowerNA
     postHocPower <- rbind(postHocPower, c(c(NA), rep(NA, 3*(maxTpoints-1)))); postHocPower
     postHocPower <- rbind(postHocPower, c(c(NA), rep(NA, 3*(maxTpoints-1)))); postHocPower
     postHocPower <- rbind(postHocPower, c(c(NA), rep(NA, 3*(maxTpoints-1)))); postHocPower
