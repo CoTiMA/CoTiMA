@@ -408,7 +408,7 @@ ctmaModFull <- function(
     if (mod.type == "cat") tmp2 <- length(unlist(unique.mod))-n.moderators
 
     for (i in modTIstartNum:(modTIstartNum+tmp2)) tmp1 <- c(tmp1, (grep(i, rownames(stanctModFit$tipreds))))
-    Tvalues <- stanctModFit$tipreds[tmp1, ][,6]; Tvalue
+    Tvalues <- stanctModFit$tipreds[tmp1, ][,6]; Tvalues
     modTI_Coeff <- round(cbind(stanctModFit$tipreds[tmp1, ], Tvalues), digits); modTI_Coeff
     # re-label
     if (!(is.null(mod.names))) {
