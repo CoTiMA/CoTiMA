@@ -232,6 +232,7 @@ ctmaBias <- function(
       IV <- driftSE^2; IV
       DV <- driftCoeff
       currentWeigths <- (1/(driftSE^2)); currentWeigths
+
       PEESEDrift_fit[[ii]] <- stats::lm(DV ~ IV, weights=currentWeigths); PEESEDrift_fit[[ii]]
       summary(PEESEDrift_fit[[ii]])
 

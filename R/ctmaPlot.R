@@ -63,7 +63,7 @@ ctmaPlot <- function(
 
 
     # if fit object is not provided as list with name Fit make correction
-    #names(ctmaFit)
+    #names(ctmaFitObject)
     tmp <- which(names(ctmaFitObject) %in% c("activeDirectory", "plot.type", "model.type", "coresToUse",
                                        "n.studies", "n.latent", "studyList", "studyFitList",
                                        "emprawList", # in some fits
@@ -479,6 +479,7 @@ ctmaPlot <- function(
           DRIFTCoeff[[g]] <- list()
           counter <- 1
           for (i in mod.values) {
+            #i = 2
             # adjust labels for plotting and used time Range according to the time label positiont
             ctmaFitObject[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
             tmp1 <- stats::quantile(usedTimeRange, probs = seq(0, 1, 1/(n.studies[g]+1))); tmp1 # used for positioning of moderator value in plot

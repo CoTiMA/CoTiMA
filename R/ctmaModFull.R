@@ -1,4 +1,3 @@
-#######################################################################################################################
 ############################################ CoTiMA Moderator STANCT ##################################################
 #######################################################################################################################
 #' ctmaModFull
@@ -407,7 +406,7 @@ ctmaModFull <- function(
     if (mod.type == "cont") tmp2 <- length(mod.number)-1
     if (mod.type == "cat") tmp2 <- length(unique.mod)-1
     for (i in modTIstartNum:(modTIstartNum+tmp2)) tmp1 <- c(tmp1, (grep(i, rownames(stanctModFit$tipreds))))
-    Tvalues <- stanctModFit$tipreds[tmp1, ][,6]; Tvalues
+    Tvalues <- stanctModFit$tipreds[tmp1, ][,6]; Tvalue
     modTI_Coeff <- round(cbind(stanctModFit$tipreds[tmp1, ], Tvalues), digits); modTI_Coeff
     # re-label
     if (!(is.null(mod.names))) {
