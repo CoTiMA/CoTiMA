@@ -15,6 +15,7 @@
 #' @param mod.values ""
 #' @param mod.num ""
 #' @param aggregateLabel ""
+#' @param aggregateLabel ""
 #'
 #' @export ctmaPlot
 #'
@@ -40,7 +41,7 @@ ctmaPlot <- function(
   mod.values=-2:2,
   mod.num=1,
 
-  aggregateLabel="SUM"
+  aggregateLabel=""
 
 )
 {  # begin function definition (until end of file)
@@ -159,7 +160,6 @@ ctmaPlot <- function(
 
     #n.fitted.obj
     for (i in 1:n.fitted.obj) {
-      #i <- 1
       #if (plot.type[[i]] == "power") plot.type[[i]] <- c("power", "drift")
       if ("power" %in% plot.type[[i]]) plot.type[[i]] <- c("power", "drift")
       n.latent[i] <- unlist(ctmaFitObject[[i]]$n.latent); n.latent[i]
@@ -236,12 +236,7 @@ ctmaPlot <- function(
         figureContent <- colnames(DRIFTCoeff)[i]; figureContent
         if (is.null(figureContent)) figureContent <- colnames(DRIFTCoeff[[1]])[i]; figureContent
         figureName[i] <- paste0(activeDirectory, saveFilePrefix, "_",  "Funnel Plot for ", figureContent, ".png")
-<<<<<<< HEAD
-        grDevices::dev.copy(grDevices::png, #quality = 100,
-                            figureName[i], width = 8, height = 8, units = 'in', res = 300)
-=======
         grDevices::dev.copy(grDevices::png, figureName[i], width = 8, height = 8, units = 'in', res = 300)
->>>>>>> 455c828dc78bc5a7f535b5873755971fbb527b1c
         grDevices::dev.off()
       } # END for (i in 1:(n.latent^2))
     } # END if ("funnel" %in% plot.type)
@@ -400,12 +395,7 @@ ctmaPlot <- function(
         graphics::title(main = paste0("Forest Plot for the Effects of ", colnames(DRIFTCoeff[[k]])[i]), sub = NULL,
                         ylab = "Study Number", xlab="Continous Time Drift Coefficient")
         figureFileName <- paste0(activeDirectory, saveFilePrefix," Forest Plot for ", colnames(DRIFTCoeff[[k]])[i], ".png"); figureFileName
-<<<<<<< HEAD
-        grDevices::dev.copy(grDevices::png, #quality = 100,
-                            figureFileName, width = 8, height = 8, units = 'in', res = 300)
-=======
         grDevices::dev.copy(grDevices::png, figureFileName, width = 8, height = 8, units = 'in', res = 300)
->>>>>>> 455c828dc78bc5a7f535b5873755971fbb527b1c
         grDevices::dev.off()
       } # END for (i in 1:(n.latent^2))
     } # END if ("forest" %in% plot.type)
@@ -472,7 +462,7 @@ ctmaPlot <- function(
         noOfSteps <- length(usedTimeRange); noOfSteps
       }
 
-      ## yLimitsForEffects
+      #yLimitsForEffects
       # discrete effects across time range
       discreteDriftCoeff <- list()
       for (g in 1:n.fitted.obj) {
@@ -562,6 +552,12 @@ ctmaPlot <- function(
           }
         }
       } ## END if (length(yLimitsForEffects) < 1)
+
+      if (length(yLimitsForEffects) > 1) {
+        minYLimitsForEffects <- yLimitsForEffects[1]
+        maxYLimitsForEffects <- yLimitsForEffects[2]
+      }
+
     } ### END Specification of Parameters for Plotting, Statistical Power, Optimal Lags ###
 
     if ( (plotCrossEffects == TRUE) || (plotAutoEffects == TRUE) ) {
@@ -679,12 +675,7 @@ ctmaPlot <- function(
           # SAVE
           graphics::par(new=F)
           tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNames[[g]][j], ".png"); tmp
-<<<<<<< HEAD
-          grDevices::dev.copy(grDevices::png, #quality = 100,
-                              tmp, width = 8, height = 8, units = 'in', res = 300)
-=======
           grDevices::dev.copy(grDevices::png, tmp, width = 8, height = 8, units = 'in', res = 300)
->>>>>>> 455c828dc78bc5a7f535b5873755971fbb527b1c
           grDevices::dev.off()
         } # END for (j in seq(1, nlatent^2, (nlatent+1)))
       } ## END PLOT (auto effects)
@@ -756,12 +747,7 @@ ctmaPlot <- function(
 
           graphics::par(new=F)
           tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNames[[g]][j], ".png"); tmp
-<<<<<<< HEAD
-          grDevices::dev.copy(grDevices::png, #quality = 100,
-                              tmp, width = 8, height = 8, units = 'in', res = 300)
-=======
           grDevices::dev.copy(grDevices::png, tmp, width = 8, height = 8, units = 'in', res = 300)
->>>>>>> 455c828dc78bc5a7f535b5873755971fbb527b1c
           grDevices::dev.off()
         } # END for (j in coeffSeq)
       } ## END PLOT (cross effects)
@@ -832,12 +818,7 @@ ctmaPlot <- function(
       graphics::legend('bottomright', legend=statisticalPower, lty=1, col=pow.plot.col, lwd=currentLWD, bty='n', cex=.75)
 
       tmp <- paste0(activeDirectory, saveFilePrefix," RequiredSampleSizesFor ", currentDriftNames[j], ".png"); tmp
-<<<<<<< HEAD
-      grDevices::dev.copy(grDevices::png, #quality = 100,
-                          tmp, width = 8, height = 8, units = 'in', res = 300)
-=======
       grDevices::dev.copy(grDevices::png, tmp, width = 8, height = 8, units = 'in', res = 300)
->>>>>>> 455c828dc78bc5a7f535b5873755971fbb527b1c
       grDevices::dev.off()
     }
 

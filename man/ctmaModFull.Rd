@@ -17,7 +17,6 @@ ctmaModFull(
   silentOverwrite = FALSE,
   digits = 4,
   multipleDrift = c(),
-  type = "stanct",
   coresToUse = 1,
   CoTiMAStanctArgs = list(test = TRUE, scaleTI = TRUE, scaleTime = 1/1, scaleMod =
     TRUE, scaleLongData = FALSE, savesubjectmatrices = FALSE, verbose = 1, datalong = NA,
@@ -55,11 +54,11 @@ ctmaModFull(
 
 \item{multipleDrift}{""}
 
-\item{type}{""}
-
 \item{coresToUse}{""}
 
 \item{CoTiMAStanctArgs}{""}
+
+\item{type}{""}
 }
 \value{
 

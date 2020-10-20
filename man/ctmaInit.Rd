@@ -61,3 +61,6 @@ ctmaInit(
 \description{
 ctmaInit
 }
+\examples{
+""
+}

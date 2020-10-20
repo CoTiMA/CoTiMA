@@ -12,7 +12,6 @@ ctmaFit(
   activateRPB = FALSE,
   digits = 4,
   invariantDrift = NULL,
-  type = "stanct",
   coresToUse = c(-1),
   CoTiMAStanctArgs = list(test = TRUE, scaleTI = TRUE, scaleTime = 1/1,
     savesubjectmatrices = FALSE, verbose = 1, datalong = NA, ctstanmodel = NA,
@@ -39,8 +38,6 @@ ctmaFit(
 \item{digits}{""}
 
 \item{invariantDrift}{""}
-
-\item{type}{""}
 
 \item{coresToUse}{""}
 
