@@ -47,7 +47,7 @@ ctmaModFull <- function(
   multipleDrift=c(),
 
   # Fitting Parameters
-  type="stanct",
+  #type="stanct",
   coresToUse=1,
   CoTiMAStanctArgs=list(test=TRUE, scaleTI=TRUE, scaleTime=1/1, scaleMod=TRUE, scaleLongData=FALSE,
                         savesubjectmatrices=FALSE, verbose=1,
@@ -395,22 +395,24 @@ ctmaModFull <- function(
     targetRows <- c(tmp1, tmp2, tmp3); targetRows
     Tvalues <- stanctModFit$parmatrices[targetRows,3]/stanctModFit$parmatrices[targetRows, 4]; Tvalues
     modDrift_Coeff <- round(cbind(stanctModFit$parmatrices[targetRows,], Tvalues), digits); modDrift_Coeff
+    # relabel rownames
+    for (i in 1:dim(modDrift_Coeff)[1]) {
+      rownames(modDrift_Coeff)[i] <- paste0(rownames(modDrift_Coeff)[i], "_V",
+                                            modDrift_Coeff[i, 2], "toV", modDrift_Coeff[i, 1])
+    }
+    #modDrift_Coeff
+
     ## moderator effects
-    #tmp1 <- grep("toV", rownames(stanctModFit$tipreds)); tmp1
-    tmp1 <- c()
-    #for (i in modTIstartNum:(modTIstartNum+length(mod.number)-1)) tmp1 <- c(tmp1, (grep(i, rownames(stanctModFit$tipreds))))
-    tmp2 <- c()
+    tmp1 <- tmp2 <- c()
     if (mod.type == "cont") tmp2 <- length(mod.number)-1
     if (mod.type == "cat") tmp2 <- length(unique.mod)-1
     for (i in modTIstartNum:(modTIstartNum+tmp2)) tmp1 <- c(tmp1, (grep(i, rownames(stanctModFit$tipreds))))
-
     Tvalues <- stanctModFit$tipreds[tmp1, ][,6]; Tvalues
     modTI_Coeff <- round(cbind(stanctModFit$tipreds[tmp1, ], Tvalues), digits); modTI_Coeff
     # re-label
     if (!(is.null(mod.names))) {
       if (mod.type == "cont") {
         for (i in 1:n.moderators) {
-          #i <- 1
           targetNamePart <- paste0("tip_TI", n.studies+i-1); targetNamePart
           rownames(modTI_Coeff) <- sub(targetNamePart, paste0(mod.names[i], "_on_"), rownames(modTI_Coeff))
         }
@@ -418,7 +420,6 @@ ctmaModFull <- function(
       if (mod.type == "cat") {
         counter <- 0
         modNameCounter <- 1
-        #for (i in 1:n.moderators) {
         for (i in 1:(length(unique.mod)-1)) {
           counter <- counter + 1
           current.mod.names <- mod.names[modNameCounter]; current.mod.names
@@ -459,6 +460,8 @@ ctmaModFull <- function(
     #modDrift_df <- modDrift_df + (n.studies-1) * n.latent^2; modDrift_df
     modDrift_df <- NULL
     model_Drift_Coef <- modDrift_Coeff[(rownames(modDrift_Coeff) == "DRIFT"), 3]; model_Drift_Coef
+    # re-sort
+    model_Drift_Coef <- c(matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE)); model_Drift_Coef
     names(model_Drift_Coef) <- driftNames; model_Drift_Coef
 
     model_Diffusion_Coef <- modDrift_Coeff[(rownames(modDrift_Coeff) == "DIFFUSIONcov"), 3]; model_Diffusion_Coef
