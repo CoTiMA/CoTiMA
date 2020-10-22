@@ -1,10 +1,29 @@
-
-# now requires package lavaan
-
 #######################################################################################################################
 ############################################ CoTiMA Statistical Power #################################################
 #######################################################################################################################
 
+#' ctmaPower
+#'
+#' @param ctmaInitFit ""
+#' @param activeDirectory ""
+#' @param statisticalPower ""
+#' @param timeRange ""
+#' @param useMBESS ""
+#' @param coresToUse ""
+#' @param activateRPB ""
+#' @param silentOverwrite ""
+#' @param digits ""
+#' @param saveStatPower ""
+#' @param loadStatPower ""
+#' @param loadAllInvFit ""
+#' @param saveAllInvFit ""
+#' @param loadAllInvWOSingFit ""
+#' @param saveAllInvWOSingFit ""
+#' @param skipScaling ""
+#'
+#' @return
+#' @export
+#'
 ctmaPower <- function(
   # Primary Study Fits
   ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
@@ -56,19 +75,20 @@ ctmaPower <- function(
                         control=list(adapt_delta = .8, adapt_window=2, max_treedepth=10, adapt_init_buffer=2, stepsize = .001),
                         verbose=0,
                         warmup=500)
+
 )
 
 {  # begin function definition (until end of file)
 
   { ### CHECKS
     if (is.null(activeDirectory)) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(red$bold("No working directory has been specified!", sep="\n"))
-      cat(red$bold(" ", " ", sep="\n"))
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold("No working directory has been specified!", sep="\n"))
+      cat(crayon::red$bold(" ", " ", sep="\n"))
       cat("Press 'q' to quit and change or 'c' to continue with the active directory of the ctmaInitFit file. Press ENTER afterwards ", "\n")
       char <- readline(" ")
       while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
-        cat((blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
+        cat((crayon::blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
         char <- readline(" ")
       }
       if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
@@ -77,20 +97,20 @@ ctmaPower <- function(
 
     # check if fit object is specified
     if (is.null(ctmaInitFit)){
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(red$bold("A fitted CoTiMA object (\"ctmaInitFit\") has to be supplied to analyse something. \n"))
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold("A fitted CoTiMA object (\"ctmaInitFit\") has to be supplied to analyse something. \n"))
       stop("Good luck for the next try!")
     }
 
     if (length(statisticalPower) < 1) {
-      if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(red$bold(" ", sep="\n"))
-      cat(red$bold("Levels (betas) for statistical power (\"statisticalPower\") have not been suppiled \n"))
-      cat(red$bold(" ", " ", sep="\n"))
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold(" ", sep="\n"))
+      cat(crayon::red$bold("Levels (betas) for statistical power (\"statisticalPower\") have not been suppiled \n"))
+      cat(crayon::red$bold(" ", " ", sep="\n"))
       cat("Press 'q' to quit and change or 'c' to continue with the statisticalPower=c(.90, .80). Press ENTER afterwards ", "\n")
       char <- readline(" ")
       while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
-        cat((blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
+        cat((crayon::blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
         char <- readline(" ")
       }
       if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
@@ -100,21 +120,21 @@ ctmaPower <- function(
     if (length(statisticalPower) > 0) {
       for (i in 1:length(statisticalPower)) {
         if (statisticalPower[i] < 0 | statisticalPower[i] > 1){
-          if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-          cat(red$bold("Parameter for statistical poweranalysis outside the allowed interval!\n"))
-          cat(red("Values have to be between 0 and 1\n"))
+          if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+          cat(crayon::red$bold("Parameter for statistical poweranalysis outside the allowed interval!\n"))
+          cat(crayon::red("Values have to be between 0 and 1\n"))
           stop("Good luck for the next try!")
         }
       }
     }
 
     #if (resultsFilePrefix=="ctmaPower") {
-    #  if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
     #  cat("The default results file prefix (ctmaPower) has been chosen.", "\n")
     #  cat("Press 'q' to quit and change or 'c' to continue. Press ENTER afterwards ", "\n")
     #  char <- readline(" ")
     #  while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
-    #    cat((blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
+    #    cat((crayon::blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
     #    char <- readline(" ")
     #  }
     #  if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
@@ -125,17 +145,17 @@ ctmaPower <- function(
   #######################################################################################################################
   ################################################# Check Cores To Use ##################################################
   #######################################################################################################################
-{
-  if  (length(coresToUse) > 0) {
-    if (coresToUse < 1)  coresToUse <- parallel::detectCores() + coresToUse
-  }
+  {
+    if  (length(coresToUse) > 0) {
+      if (coresToUse < 1)  coresToUse <- parallel::detectCores() + coresToUse
+    }
 
-  if (coresToUse >= parallel::detectCores()) {
-    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-    coresToUse <- parallel::detectCores() - 1
-    cat(crayon::red("No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.","\n"))
+    if (coresToUse >= parallel::detectCores()) {
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+      coresToUse <- parallel::detectCores() - 1
+      cat(crayon::red("No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.","\n"))
+    }
   }
-}
 
   #######################################################################################################################
   ############## Extracting Parameters from Fitted Primary Studies created with ctmaINIT Function  ######################
@@ -225,7 +245,7 @@ ctmaPower <- function(
     if (skipScaling == FALSE) {
       tmp1 <- grep("_T", colnames(tmp$alldata)); tmp1
       tmp$alldata[, tmp1] <- scale(tmp$alldata[, tmp1])
-      }
+    }
 
     datawide_all <- tmp$alldata
     groups <- tmp$groups
@@ -575,8 +595,8 @@ ctmaPower <- function(
             #
             #R2.j <- A.j[j1,j1]/( (A.j + S.j)[j1,j1] ); R2.j           # explained variance without j (counter) as predictor at later Tpoint
             model.wo.fit <- lavaan::sem(unlist(model.wo[[counter]]),
-                                sample.cov = implCov[[k]],
-                                sample.nobs = sample.nobs)
+                                        sample.cov = implCov[[k]],
+                                        sample.nobs = sample.nobs)
             #tmp <- inspect(model.wo.fit[[counter]], "est"); tmp
             tmp <- lavaan::inspect(model.wo.fit, "est"); tmp
             R2.j <- 1 - tmp$psi[j1,j1]; R2.j
@@ -595,14 +615,14 @@ ctmaPower <- function(
               # https://cran.r-project.org/web/packages/MBESS/MBESS.pdf
               if (useMBESS == TRUE) {
                 plotPairs[counter, h, k, 2] <- MBESS::ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
-                                                           p = n.latent, desired.power = statisticalPower[h],
-                                                           alpha.level = 0.05)[[1]] #
+                                                                        p = n.latent, desired.power = statisticalPower[h],
+                                                                        alpha.level = 0.05)[[1]] #
               } else {
                 # The following uses our own function
                 signalToNoiseRatios <- sqrt((R2-R2.j)/(1-R2)); signalToNoiseRatios
                 helper <- round(rootSolve::uniroot.all(nestedProbFunT, c(n.latent+2,999999999),
-                                            fvalue=signalToNoiseRatios, alpha=.05,
-                                            power=statisticalPower[h], p=n.latent) + .49999, 0)
+                                                       fvalue=signalToNoiseRatios, alpha=.05,
+                                                       power=statisticalPower[h], p=n.latent) + .49999, 0)
                 if (length(helper) < 1) helper <- NA
                 plotPairs[counter, h, k, 2] <- helper
               }
@@ -614,9 +634,9 @@ ctmaPower <- function(
                 empiricalN <- na.omit(empiricalN); empiricalN
                 for (l in empiricalN) {
                   p05 <- MBESS::ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
-                                           p = n.latent, Specified.N = l, alpha.level = 0.05)[2]
+                                                  p = n.latent, Specified.N = l, alpha.level = 0.05)[2]
                   p01 <- MBESS::ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
-                                           p = n.latent, Specified.N = l, alpha.level = 0.01)[2]
+                                                  p = n.latent, Specified.N = l, alpha.level = 0.01)[2]
                   for (m in 1:n.studies) { # poke power into matrices
                     if (tableNxDeltas[m,1] == l) { # if study has current empirical N ...
                       for (n in 2:(maxTpoints)) {  # ... loop through al lags
@@ -774,7 +794,8 @@ ctmaPower <- function(
                                estimates=list("Estimates of Model with all Effects Invariant"=round(homAll_effects, digits),
                                               "Requested Statistical Power"=statisticalPower,
                                               "Power (post hoc) for Drift Effects"=postHocPowerList,
-                                              "Required Sample Sizes"=round(requiredSampleSizes, digits))))
+                                              "Required Sample Sizes"=round(requiredSampleSizes, digits),
+                                              "Effect Sizes (based on discrete-time calcs"=round(effectSizes, digits))))
   class(results) <- "CoTiMAFit"
 
   invisible(results)
