@@ -1,3 +1,6 @@
+
+# now requires package lavaan
+
 #######################################################################################################################
 ############################################ CoTiMA Statistical Power #################################################
 #######################################################################################################################
@@ -32,7 +35,27 @@ ctmaPower <- function(
   loadAllInvWOSingFit=c(),
   saveAllInvWOSingFit=NULL,
 
-  skipScaling=TRUE
+  skipScaling=TRUE,
+
+  useSampleFraction=NULL, # select subsample (percent of the full sample, e.g. 20 selects every 5th case)
+
+  CoTiMAStanctArgs=list(test=TRUE, scaleTI=TRUE, scaleTime=1/1, scaleMod=TRUE, scaleLongData=FALSE,
+                        savesubjectmatrices=FALSE, verbose=1,
+                        datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
+                        iter=1000, intoverstates=TRUE,
+                        binomial=FALSE, fit=TRUE,
+                        intoverpop=FALSE, stationary=FALSE,
+                        plot=FALSE, derrind="all",
+                        optimize=TRUE, optimcontrol=list(is=F, stochastic=FALSE),
+                        nlcontrol=list(),
+                        nopriors=TRUE,
+                        chains=2,
+                        cores=1,
+                        inits=NULL, forcerecompile=FALSE,
+                        savescores=FALSE, gendata=FALSE,
+                        control=list(adapt_delta = .8, adapt_window=2, max_treedepth=10, adapt_init_buffer=2, stepsize = .001),
+                        verbose=0,
+                        warmup=500)
 )
 
 {  # begin function definition (until end of file)
@@ -160,14 +183,16 @@ ctmaPower <- function(
       colnames(all_SE) <- c(names(ctmaInitFit$modelResults$DRIFT[[1]]),
                             names(ctmaInitFit$modelResults$DIFFUSION[[1]]),
                             names(ctmaInitFit$modelResults$T0VAR[[1]]))
-      all_SE
+      #all_SE
     }
 
     allSampleSizes <- ctmaInitFit$statisticsList$allSampleSizes; allSampleSizes
 
-    maxTpointsModel <- which(ctmaInitFit$statisticsList$allTpoints == max(ctmaInitFit$statisticsList$allTpoints)); maxTpointsModel
+    # CHD maxTpointsModel <- which(ctmaInitFit$statisticsList$allTpoints == max(ctmaInitFit$statisticsList$allTpoints)); maxTpointsModel
+    maxTpoints <- max(allTpoints); maxTpoints # replacement
 
-    ctsemModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
+    # CHD ctsemModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
+    ctsemModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
                           DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE), # byrow because names are in stanct order
                           LAMBDA=diag(n.latent),
                           type='stanct',
@@ -181,14 +206,12 @@ ctmaPower <- function(
     allDeltas <- ctmaInitFit$statisticsList$allDeltas; allDeltas
     maxDelta <- max(allDeltas); maxDelta
     if (is.null(timeRange)) usedTimeRange <- seq(0, 1.5*maxDelta, 1) else usedTimeRange <- timeRange
-
     # augment by all existing time lags
     usedTimeRange <- sort(unique(c(usedTimeRange, allDeltas))); usedTimeRange
-    allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints; length(allTpoints)
+    allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
     maxTpoints <- max(allTpoints); maxTpoints
 
     stepWidth <- max(usedTimeRange)/(length(usedTimeRange)-1)
-
   }
 
 
@@ -206,6 +229,16 @@ ctmaPower <- function(
 
     datawide_all <- tmp$alldata
     groups <- tmp$groups
+
+    # possible subsample selection
+    if (!(is.null(useSampleFraction))) {
+      N <- dim(datawide_all)[1]; N
+      stepwidth <- 100/useSampleFraction
+      targetCases <- round(seq(1, N, stepwidth), 0); targetCases
+      datawide_all <- datawide_all[targetCases, ]
+      groups <- groups[targetCases]
+    }
+
     names(groups) <- c("Study_No_"); groups
     groupsNamed <- (paste0("Study_No_", groups)); groupsNamed
 
@@ -243,10 +276,11 @@ ctmaPower <- function(
   print(paste0("######## Fitting all fixed CoTiMA - ALL parameters equal across groups ##########"))
   print(paste0("#################################################################################"))
 
-  datalong_all <- datalong_all[, -grep("TI", colnames(datalong_all))];
+  datalong_all <- datalong_all[, -grep("TI", colnames(datalong_all))]
 
   # all fixed model is a model with no TI predictors (identical to ctsemModel)
-  allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
+  # CHD allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
+  allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
                            DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE), # byrow because names are in stanct order
                            LAMBDA=diag(n.latent),
                            type='stanct',
@@ -255,7 +289,7 @@ ctmaPower <- function(
                            T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
                            MANIFESTMEANS = matrix(c(0), nrow = n.latent, ncol = 1),
                            MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent))
-  # LOAD
+  # LOAD or Fit
   if (length(loadAllInvFit) > 0) {
     x1 <- paste0(activeDirectory, loadAllInvFit[1], ".rds"); x1
     results <- readRDS(file=x1)
@@ -299,9 +333,7 @@ ctmaPower <- function(
   }
 
   ### Extract estimates & statistics
-
   tmp <- grep("toV", rownames(resultsSummary$popmeans)); tmp
-
   homAll_Drift_Coef <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=TRUE)); homAll_Drift_Coef
   names(homAll_Drift_Coef) <- rownames(resultsSummary$popmeans)[tmp]; homAll_Drift_Coef
   homAll_Drift_SE <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Sd"], n.latent, byrow=TRUE)); homAll_Drift_SE
@@ -329,6 +361,8 @@ ctmaPower <- function(
 
   tmp <- grep("T0var", rownames(resultsSummary$popmeans)); tmp
   homAll_T0Var_Coef <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"]); homAll_T0Var_Coef
+  #homAll_T0Var_Coef <- cov2cor(vech2full(homAll_T0Var_Coef)); homAll_T0Var_Coef
+  #homAll_T0Var_Coef <- homAll_T0Var_Coef[lower.tri(homAll_T0Var_Coef, diag=TRUE)]; homAll_T0Var_Coef
   names(homAll_T0Var_Coef) <- rownames(resultsSummary$popmeans)[tmp]; homAll_T0Var_Coef
   homAll_T0Var_SE <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Sd"]); homAll_T0Var_SE
   names(homAll_T0Var_SE) <- rownames(resultsSummary$popmeans)[tmp]; homAll_T0Var_SE
@@ -344,7 +378,8 @@ ctmaPower <- function(
   ## Extract Model Fit
   homAll_Minus2LogLikelihood <- 2* results$stanfit$optimfit$f; homAll_Minus2LogLikelihood
   homAll_estimatedParameters <-length(results$stanfit$optimfit$par); homAll_estimatedParameters
-  homAll_df <- ctmaInitFit$summary$df+(ctmaInitFit$summary$n.parameters-homAll_estimatedParameters); homAll_df
+  #homAll_df <- ctmaInitFit$summary$df+(ctmaInitFit$summary$n.parameters-homAll_estimatedParameters); homAll_df
+  homAll_df <- NULL
 
   # Combine summary information
   homAll_effects <- matrix(t(cbind((homAll_Drift_Coef), (homAll_Drift_SE),
@@ -367,170 +402,103 @@ ctmaPower <- function(
   }
   colnames(homAll_effects) <- newColNames; homAll_effects
 
-
-
-  print(paste0("#################################################################################"))
-  print(paste0("############ Fitting model with single cross effects fixed to 0.0 ###############"))
-  print(paste0("#################################################################################"))
-
-  # Make series of models. In each one there is one drift effects set to zero
-  fullWOCross <- list()
-  counter <- 0
-  for (j in 1:n.latent) {
-    for (h in 1:n.latent) {
-      counter <- counter +1
-      tmpDriftNames <- driftNamesBackup
-      tmpDriftNames[counter] <- "0"; tmpDriftNames
-      fullWOCross[[counter]] <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
-                                        DRIFT=matrix(tmpDriftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE), # byrow because of order of stanct names
-                                        LAMBDA=diag(n.latent),
-                                        type='stanct',
-                                        #CINT=matrix(cintNames, nrow=n.latent, ncol=1),
-                                        CINT=matrix(0, nrow=n.latent, ncol=1),
-                                        T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                        MANIFESTMEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                        MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent))
-    }
-  }
-
-
-  # fit models
-  {
-    fullWOSingleFit <- list()
-    fullWOSingle_Diffusion_Coef  <- list()
-    fullWOSingle_Diffusion_SE <- list()
-    fullWOSingle_Diffusion_Tvalue <- list()
-    fullWOSingle_Diffusion_CI <- list()
-    fullWOSingle_T0Var_Coef  <- list()
-    fullWOSingle_T0Var_SE <- list()
-    fullWOSingle_T0Var_Tvalue <- list()
-    fullWOSingle_T0Var_CI <- list()
-    fullWOSingle_Drift_Coef <- list()
-    fullWOSingle_Drift_SE <- list()
-    fullWOSingle_Drift_Tvalue <- list()
-    fullWOSingle_Drift_CI <- list()
-
-    DRIFT.without.j <- list()             # coefficient in matrix format with missing coeff set to 0 (used in subsequent power computations)
-    DIFFUSION.without.j <- list()         # coefficient in matrix format (used in subsequent power computations)
-    T0VAR.without.j <- list()             # coefficient in matrix format (used in subsequent power computations)
-  }
-
-  counter <- 0
-  allMinus2LogLikelihood <- fullWOSingleFit <- list()
-  # Sequence of cross effects in drift matrices (only model without cross effects are computed to save time)
-  coeffSeq <- seq(1, n.latent^2, 1)[!(seq(1, n.latent^2, 1) %in% seq(1, n.latent^2, (n.latent+1)))]; coeffSeq
-
-  for (j in 1:(n.latent^2)) {
-    DRIFT.without.j[[j]] <- NA
-    DIFFUSION.without.j[[j]] <- NA
-    T0VAR.without.j[[j]] <- NA
-    counter <- counter + 1; counter
-    if (j %in% coeffSeq) {
-      # LOAD
-      loadable <- FALSE
-      if (length(loadAllInvWOSingFit) > 0)  {
-        x1 <- paste0(activeDirectory, loadAllInvWOSingFit[1], " WO", j, ".rds"); x1
-        if (file.exists(x1)) {
-          loadable <- TRUE
-          fullWOSingleFit[[j]] <- results <- readRDS(file=x1)
-        }
-      }
-
-      # FIT (NOT LOAD)
-      #loadAllInvWOSingFit <- c()
-      if (length(loadAllInvWOSingFit) < 1 || (loadable == FALSE) )  {
-        results <- ctStanFit(
-          datalong = datalong_all,
-          ctstanmodel = fullWOCross[[counter]],
-          savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
-          stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
-          iter=CoTiMAStanctArgs$iter,
-          intoverstates=CoTiMAStanctArgs$intoverstates,
-          binomial=CoTiMAStanctArgs$binomial,
-          fit=CoTiMAStanctArgs$fit,
-          intoverpop=CoTiMAStanctArgs$intoverpop,
-          stationary=CoTiMAStanctArgs$stationary,
-          plot=CoTiMAStanctArgs$plot,
-          derrind=CoTiMAStanctArgs$derrind,
-          optimize=CoTiMAStanctArgs$optimize,
-          optimcontrol=CoTiMAStanctArgs$optimcontrol,
-          nlcontrol=CoTiMAStanctArgs$nlcontrol,
-          nopriors=CoTiMAStanctArgs$nopriors,
-          chains=CoTiMAStanctArgs$chains,
-          forcerecompile=CoTiMAStanctArgs$forcerecompile,
-          savescores=CoTiMAStanctArgs$savescores,
-          gendata=CoTiMAStanctArgs$gendata,
-          control=CoTiMAStanctArgs$control,
-          verbose=CoTiMAStanctArgs$verbose,
-          warmup=CoTiMAStanctArgs$warmup,
-          cores=coresToUse)
-
-        cat("Computing summary of results for model without drift coefficient #", j, ".")
-        resultsSummary <- summary(results, digits=8)
-      }
-
-
-      # SAVE
-      if (length(saveAllInvWOSingFit) > 0)  {
-        x1 <- paste0(saveAllInvWOSingFit[1], " WO", j, ".rds"); x1
-        x2 <- paste0(""); x2
-        CoTiMASaveFile(activateRPB, activeDirectory, results, x1, x2, silentOverwrite=silentOverwrite)
-      }
-
-      resultsSummary$parmatrices
-
-      fullWOSingle_Drift_Coef[[j]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=TRUE)); fullWOSingle_Drift_Coef[[j]]
-      names(fullWOSingle_Drift_Coef[[j]]) <- names(homAll_Drift_Coef); fullWOSingle_Drift_Coef[[j]]
-      fullWOSingle_Drift_SE[[j]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Sd"], n.latent, byrow=TRUE)); fullWOSingle_Drift_SE[[j]]
-      names(fullWOSingle_Drift_SE[[j]]) <- names(homAll_Drift_Coef); fullWOSingle_Drift_SE[[j]]
-      tmp1 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "2.5%"], n.latent, byrow=TRUE)); tmp1
-      tmp2 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "97.5%"], n.latent, byrow=TRUE)); tmp2
-      fullWOSingle_Drift_CI[[j]] <- c(rbind(tmp1, tmp2)); fullWOSingle_Drift_CI[[j]]
-      tmp3 <- c(rbind(paste0(names(fullWOSingle_Drift_Coef[[j]]), c("LL")),
-                      paste0(names(fullWOSingle_Drift_Coef[[j]]), c("UL")))); tmp3
-      names(fullWOSingle_Drift_CI[[j]]) <- tmp3; fullWOSingle_Drift_CI[[j]]
-      fullWOSingle_Drift_Tvalue[[j]] <- fullWOSingle_Drift_Coef[[j]]/fullWOSingle_Drift_SE[[j]]; fullWOSingle_Drift_Tvalue[[j]]
-
-      fullWOSingle_Diffusion_Coef[[j]] <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Mean"]; fullWOSingle_Diffusion_Coef[[j]]
-      names(fullWOSingle_Diffusion_Coef[[j]]) <- names(homAll_Diffusion_Coef); fullWOSingle_Diffusion_Coef[[j]]
-      fullWOSingle_Diffusion_SE[[j]] <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Sd"]; fullWOSingle_Diffusion_SE[[j]]
-      names(fullWOSingle_Diffusion_SE[[j]]) <- names(homAll_Diffusion_Coef); fullWOSingle_Diffusion_SE[[j]]
-      tmp1 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "2.5%"]; tmp1
-      tmp2 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "97.5%"]; tmp2
-      fullWOSingle_Diffusion_CI[[j]] <- c(rbind(tmp1, tmp2)); fullWOSingle_Diffusion_CI[[j]]
-      tmp3 <- c(rbind(paste0(names(fullWOSingle_Diffusion_Coef[[j]]), c("LL")),
-                      paste0(names(fullWOSingle_Diffusion_Coef[[j]]), c("UL")))); tmp3
-      names(fullWOSingle_Diffusion_CI[[j]]) <- tmp3; fullWOSingle_Diffusion_CI[[j]]
-      fullWOSingle_Diffusion_Tvalue[[j]] <- fullWOSingle_Diffusion_Coef[[j]]/fullWOSingle_Diffusion_SE[[j]]; fullWOSingle_Diffusion_Tvalue[[j]]
-
-      fullWOSingle_T0Var_Coef[[j]] <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"]; fullWOSingle_T0Var_Coef[[j]]
-      names(fullWOSingle_T0Var_Coef[[j]]) <- names(homAll_T0Var_Coef); fullWOSingle_T0Var_Coef[[j]]
-      fullWOSingle_T0Var_SE[[j]] <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Sd"]; fullWOSingle_T0Var_SE[[j]]
-      names(fullWOSingle_T0Var_SE[[j]]) <- names(homAll_T0Var_Coef); fullWOSingle_T0Var_SE[[j]]
-      tmp1 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "2.5%"]; tmp1
-      tmp2 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "97.5%"]; tmp2
-      fullWOSingle_T0Var_CI[[j]] <- c(rbind(tmp1, tmp2)); fullWOSingle_T0Var_CI[[j]]
-      tmp3 <- c(rbind(paste0(names(fullWOSingle_T0Var_Coef[[j]]), c("LL")),
-                      paste0(names(fullWOSingle_T0Var_Coef[[j]]), c("UL")))); tmp3
-      names(fullWOSingle_T0Var_CI[[j]]) <- tmp3; fullWOSingle_T0Var_CI[[j]]
-      fullWOSingle_T0Var_Tvalue[[j]] <- fullWOSingle_T0Var_Coef[[j]]/fullWOSingle_T0Var_SE[[j]]; fullWOSingle_T0Var_Tvalue[[j]]
-
-      ### Make drift.without.j, diffusion.without.j & T0VAR.without.j matrices,
-      ## DRIFT
-      DRIFT.without.j[[j]] <- (matrix(fullWOSingle_Drift_Coef[[j]], n.latent, byrow=TRUE)); DRIFT.without.j[[j]] # transpose for stanct order
-
-      ## DIFFUSION
-      DIFFUSION.without.j[[j]] <- vech2full(fullWOSingle_Diffusion_Coef[[j]]); DIFFUSION.without.j[[j]]
-
-      ## T0VAR
-      T0VAR.without.j[[j]] <- vech2full(fullWOSingle_T0Var_Coef[[j]]); T0VAR.without.j[[j]]
-    } # if (j %in% coeffSeq)
-  } # for (j in 1:(n.latent^2))
-
   DRIFT <- matrix(homAll_Drift_Coef, n.latent, n.latent, byrow=TRUE); DRIFT
   DIFFUSION <- vech2full(homAll_Diffusion_Coef); DIFFUSION
   T0VAR <- vech2full(homAll_T0Var_Coef); T0VAR
 
+  print(paste0("#################################################################################"))
+  print(paste0("######## Computing implied covariance matrices for different time lags ##########"))
+  print(paste0("#################################################################################"))
+
+  {
+    # functions to compute dt-coefficients
+    discreteDriftFunction <- function(driftMatrix, timeScale, number) {
+      discreteDriftValue <- expm(timeScale %x% driftMatrix)
+      discreteDriftValue[number] }
+    discreteDiffusionFunction <- function(diffusionMatrix, driftMatrix, timeScale, number) {
+      driftHatch <- driftMatrix %x% diag(dim(diffusionMatrix)[1]) + diag(dim(diffusionMatrix)[1]) %x% driftMatrix
+      discreteDiffusionValue <- solve(driftHatch) %*% (expm(timeScale %x% driftHatch) - diag(dim(driftHatch)[1])) %*% c(diffusionMatrix)
+      discreteDiffusionValue[number] }
+
+    implCov <- list()
+
+    for (t in 1:length(usedTimeRange)) {
+      # compute the covariance matrix implied by the dt-coefficients across requested time intervals
+      # for equations see Neudecker, H. & Satorra, A. (1991). Linear structural relations: Gradient and ...
+      # ... Hessian of the fitting function. Statistics & Probability Letters 11 (1991) 57-61. North-Holland
+      beta <- discreteDriftFunction(DRIFT, t); beta
+      tmpMat <- matrix(0, n.latent, n.latent); tmpMat
+      B <- diag(1, 2*n.latent) - cbind(rbind(tmpMat, beta), rbind(tmpMat, tmpMat)); B
+      phi <- T0VAR; phi
+      psi <- matrix(discreteDiffusionFunction(DIFFUSION, DRIFT, t, 1:4), n.latent); psi
+      phi <- cbind(rbind(phi, tmpMat), rbind(tmpMat, tmpMat)); #phi
+      psi <- cbind(rbind(tmpMat, tmpMat), rbind(tmpMat, psi)); #psi
+      tmp <- solve(B) %*% phi %*% t(solve(B)) + psi; #tmp
+      implCov[[t]] <- cov2cor(tmp); implCov[[t]]
+      rownames(implCov[[t]]) <- varNames
+      colnames(implCov[[t]]) <- varNames
+    }
+
+  }
+
+  print(paste0("#################################################################################"))
+  print(paste0("################# Set up required discrete time lavaan models ###################"))
+  print(paste0("#################################################################################"))
+
+  {
+
+    # full lavaan model setup
+    {
+      modelText <- c()
+      counter <- 0
+      for (i in 1:n.latent) {
+        counter <- counter + 1
+        modelText[counter] <- ""
+        for (j in 1:n.latent) {
+          if (j == 1) modelText[counter] <- paste0(modelText[counter], paste0("V", i, "T1 ~ V", j, "T0"))
+          if (j != 1) modelText[counter] <- paste0(modelText[counter], paste0(" + V", j, "T0"))
+        }
+      }
+      counter <- n.latent; counter
+      for (i in 1:n.latent) {
+        for (j in i:n.latent) {
+          if (i != j) {
+            counter <- counter + 1; counter
+            modelText[counter] <- paste0("V", i, "T0 ~~ V", j, "T0")
+            counter <- counter + 1; counter
+            modelText[counter] <- paste0("V", i, "T1 ~~ V", j, "T1")
+          }
+        }
+      }
+    }
+    tmp1 <- paste(modelText, sep="", collapse="\n "); tmp1
+    model.full <- paste0("\n ", tmp1, "\n"); tmp1
+
+    # lavaan model setup without single cross effects
+    model.wo <- list()
+    counter <- 0
+    for (i in 1:n.latent) {
+      # split text of full model
+      tmp1 <- unlist(strsplit(model.full, "\n")); tmp1
+      tmp2 <- tmp1[tmp1 != ""]; tmp2
+      for (j in 1:n.latent) {
+        #j <- 2
+        if (i != j) {
+          counter <- counter + 1
+          if (i == 1) {
+            toDelete <- paste0(" \\+", " V", j, "T0"); toDelete
+          } else {
+            toDelete <- paste0("V", j, "T0 ", "\\+"); toDelete
+          }
+          tmp2[i] <- gsub(toDelete, "", tmp2[i]); tmp2[i]
+          tmp3 <- paste(tmp2, sep="", collapse="\n "); tmp3
+          model.wo[[counter]] <- paste0("\n ", tmp3, "\n"); model.wo[[counter]]
+        }
+      }
+    }
+    #model.wo
+
+  }
 
   print(paste0("#################################################################################"))
   print(paste0("########### Compute required sample size to achieve requested power #############"))
@@ -562,72 +530,81 @@ ctmaPower <- function(
   listPowerAlpha05 <- list()
   listPowerAlpha01 <- list()
 
-  # Define functions to compute discrete time effects
-  discreteDriftFunction <- function(driftMatrix, timeScale, number) {
-    discreteDriftValue <- expm(timeScale %x% driftMatrix)
-    discreteDriftValue[number] }
-  discreteDiffusionFunction <- function(diffusionMatrix, driftMatrix, timeScale, number) {
-    driftHatch <- driftMatrix %x% diag(dim(diffusionMatrix)[1]) + diag(dim(diffusionMatrix)[1]) %x% driftMatrix
-    discreteDiffusionValue <- solve(driftHatch) %*% (expm(timeScale %x% driftHatch) - diag(dim(driftHatch)[1])) %*% c(diffusionMatrix)
-    discreteDiffusionValue[number] }
+  effectSizes <- matrix(NA, nrow=length(usedTimeRange), ncol=(n.latent^2-n.latent))
 
   # Loop through a range of lags to determine sample sizes (same parameters as for plotting the effects furter below)
   plotPairs <- array(dim=c(n.latent^2, length(statisticalPower), length(usedTimeRange), 2))  # all drift effects, all powers, time range, timePoint+SampleSize
-  #dim(plotPairs)
 
   # Plot required sample size for cross effects.
   for (h in 1:length(statisticalPower)) {
     counter <- 0
     for (j1 in 1:(n.latent)) {
       for (j2 in 1:(n.latent)) {
-        counter <- counter + 1; counter
+        #counter <- counter + 1; counter
         if (j1 != j2) {
-          j <- counter; j
+          counter <- counter + 1; counter
+          #j <- counter; j
           for (k in 1:(length(usedTimeRange)-1)) {
             delta_t <- usedTimeRange[k+1]; delta_t
-            plotPairs[j, h, k, 1] <- usedTimeRange[k+1] # time point
+            #plotPairs[j, h, k, 1] <- usedTimeRange[k+1] # time point
+            plotPairs[counter, h, k, 1] <- usedTimeRange[k+1] # time point
 
             # R2 in terms of Kelley & Maxwell 2008
-            A <- expm(DRIFT %x% delta_t) %*% T0VAR %*% t(expm(DRIFT %x% delta_t)); A         # implied variance at later Tpoint
-            S <- matrix(discreteDiffusionFunction(DIFFUSION, DRIFT, delta_t, 1:(n.latent^2)),
-                        n.latent, n.latent); S   # residual variance at later Tpoint
-            R2 <- A[j1,j1]/( (A + S)[j1,j1] ); R2                                            # explained variance at later Tpoint
+            #A <- expm(DRIFT %x% delta_t) %*% T0VAR %*% t(expm(DRIFT %x% delta_t)); A         # implied variance at later Tpoint
+            #S <- matrix(discreteDiffusionFunction(DIFFUSION, DRIFT, delta_t, 1:(n.latent^2)),
+            #            n.latent, n.latent); S   # residual variance at later Tpoint
+            #R2 <- A[j1,j1]/( (A + S)[j1,j1] ); R2                                            # explained variance at later Tpoint
+            # betas & psis for model with all effects included
+            sample.nobs <- 1000 # large enough to prevent shrinkage
+            model.full.fit <- lavaan::sem(model.full, sample.cov = implCov[[k]], sample.nobs = sample.nobs)
+            tmp <- lavaan::inspect(model.full.fit, "est"); tmp
+            psi <- diag(tmp$psi)[grep("T1", names(diag(tmp$psi)))]; psi
+            beta <- tmp$beta[1:n.latent ,(n.latent+1):(2*n.latent)]; beta
+            R2 <- 1 - psi[j1]; R2
+            #j1; j2
+            effectSizes[k, counter] <- beta[j2, j1];
 
             # R2 without j (cross effect) in terms of Kelley & Maxwell 2008
-            A.j <- expm(DRIFT.without.j[[counter]] %x% delta_t) %*%
-              T0VAR.without.j[[j]] %*%
-              t(expm(DRIFT.without.j[[j]] %x% delta_t)); A.j           # implied variance without j (counter) as predictor at later Tpoint
-            S.j <- matrix(
-              discreteDiffusionFunction(DIFFUSION.without.j[[j]],      # implied residual variance without j (counter) as predictor at later Tpoint
-                                        DRIFT.without.j[[j]],
-                                        delta_t, 1:(n.latent^2)), n.latent,n.latent); S.j
-
-            R2.j <- A.j[j1,j1]/( (A.j + S.j)[j1,j1] ); R2.j           # explained variance without j (counter) as predictor at later Tpoint
+            #A.j <- expm(DRIFT.without.j[[counter]] %x% delta_t) %*%
+            #  T0VAR.without.j[[j]] %*%
+            #  t(expm(DRIFT.without.j[[j]] %x% delta_t)); A.j           # implied variance without j (counter) as predictor at later Tpoint
+            #S.j <- matrix(
+            #  discreteDiffusionFunction(DIFFUSION.without.j[[j]],      # implied residual variance without j (counter) as predictor at later Tpoint
+            #                            DRIFT.without.j[[j]],
+            #                            delta_t, 1:(n.latent^2)), n.latent,n.latent); S.j
+            #
+            #R2.j <- A.j[j1,j1]/( (A.j + S.j)[j1,j1] ); R2.j           # explained variance without j (counter) as predictor at later Tpoint
+            model.wo.fit <- lavaan::sem(unlist(model.wo[[counter]]),
+                                sample.cov = implCov[[k]],
+                                sample.nobs = sample.nobs)
+            #tmp <- inspect(model.wo.fit[[counter]], "est"); tmp
+            tmp <- lavaan::inspect(model.wo.fit, "est"); tmp
+            R2.j <- 1 - tmp$psi[j1,j1]; R2.j
 
             # Rounding to prevent endless computations
-            powerRounding <- 8
-            R2 <- round(R2, powerRounding); R2
-            R2.j <- round(R2.j, powerRounding); R2.j
+            #powerRounding <- 8
+            #R2 <- round(R2, powerRounding); R2
+            #R2.j <- round(R2.j, powerRounding); R2.j
 
             # Skip in case that more variance is explained after predictor is removed
             if (R2 < R2.j) {
-              plotPairs[j, h, k, 2] <- 1000000
+              plotPairs[counter, h, k, 2] <- 1000000
             } else {
               # The following is Kelley's function, which is replaced below by our own, which is > 50 times faster
               # Kelley, K. (2019). The MBESS R Package. R package version 4.6.0. Retrieved from:
               # https://cran.r-project.org/web/packages/MBESS/MBESS.pdf
               if (useMBESS == TRUE) {
-                plotPairs[j, h, k, 2] <- ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
+                plotPairs[counter, h, k, 2] <- MBESS::ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
                                                            p = n.latent, desired.power = statisticalPower[h],
                                                            alpha.level = 0.05)[[1]] #
               } else {
                 # The following uses our own function
                 signalToNoiseRatios <- sqrt((R2-R2.j)/(1-R2)); signalToNoiseRatios
-                helper <- round(uniroot.all(nestedProbFunT, c(n.latent+2,999999999),
+                helper <- round(rootSolve::uniroot.all(nestedProbFunT, c(n.latent+2,999999999),
                                             fvalue=signalToNoiseRatios, alpha=.05,
                                             power=statisticalPower[h], p=n.latent) + .49999, 0)
                 if (length(helper) < 1) helper <- NA
-                plotPairs[j, h, k, 2] <- helper
+                plotPairs[counter, h, k, 2] <- helper
               }
 
               # Post hoc power computations
@@ -636,9 +613,9 @@ ctmaPower <- function(
                 empiricalN <- matrix(tableNxDeltas[apply(M, 1, any), ], ncol=maxTpoints)[,1]; empiricalN
                 empiricalN <- na.omit(empiricalN); empiricalN
                 for (l in empiricalN) {
-                  p05 <- ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
+                  p05 <- MBESS::ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
                                            p = n.latent, Specified.N = l, alpha.level = 0.05)[2]
-                  p01 <- ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
+                  p01 <- MBESS::ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
                                            p = n.latent, Specified.N = l, alpha.level = 0.01)[2]
                   for (m in 1:n.studies) { # poke power into matrices
                     if (tableNxDeltas[m,1] == l) { # if study has current empirical N ...
@@ -660,13 +637,11 @@ ctmaPower <- function(
           }
         } # end j1!=j2 condition
       } # end j2 loop
-      listPowerAlpha05
     } # end j1 loop
     print(paste0("#################################################################################"))
     print(paste0("###################### power calculation for ", statisticalPower[h], " completed ######################"))
     print(paste0("#################################################################################"))
   } # end h loop (length(statisticalPower))
-
 
   # Table of required sample sizes for range of different time lags (a priori power)
   requiredSampleSizes <- list()
@@ -674,23 +649,24 @@ ctmaPower <- function(
   counter1 <- counter2 <- 0
   for (j1 in 1:(n.latent)) {
     for (j2 in 1:(n.latent)) {
-      counter1 <- counter1 + 1
+      counter1 <- counter1 + 1 # does not seem to be necessary
       if (j1 != j2 ) {
         counter2 <- counter2 + 1
-        requiredSampleSizes[[counter2]] <- plotPairs[counter1, , , 2]
+        #requiredSampleSizes[[counter2]] <- plotPairs[counter1, , , 2]
+        requiredSampleSizes[[counter2]] <- plotPairs[counter2, , , 2]
         currentDriftNames <- c(currentDriftNames, driftNamesBackup[counter1])
-        rowNames  <- plotPairs[counter1, 1, , 1]
+        #rowNames  <- plotPairs[counter1, 1, , 1]
+        rowNames  <- plotPairs[counter2, 1, , 1]
       }
     }
   }
-  currentDriftNames
 
   # re-structure into a single table and replace 100000 by NA
   numberOfEffects <- n.latent^2 - n.latent; numberOfEffects
   tmp <- requiredSampleSizes[[1]]; tmp
   for (h in 2:(numberOfEffects)) tmp <- rbind(tmp, requiredSampleSizes[[h]])
   requiredSampleSizes <- t(tmp); requiredSampleSizes
-  requiredSampleSizes[requiredSampleSizes==100000] <- NA
+  requiredSampleSizes[requiredSampleSizes==1000000] <- NA
 
   # Label columns
   columnNames <- c()
@@ -701,6 +677,35 @@ ctmaPower <- function(
   }
   colnames(requiredSampleSizes) <- columnNames
   rownames(requiredSampleSizes) <- round(rowNames, digits)
+  #requiredSampleSizes
+
+  # add (not really standardized) effect sizes based on matrix exponentiation
+  tmp1 <- as.numeric(rownames(requiredSampleSizes))
+  timeLags <- tmp1[!(is.na(tmp1))]; timeLags
+  effectSizes2 <- matrix(NA, nrow=length(usedTimeRange), ncol=(n.latent*(n.latent-1))); effectSizes2
+  effectCounter <- 0
+  for (i in 1:n.latent) {
+    for (j in 1:n.latent) {
+      if (i != j) {
+        effectCounter <- effectCounter + 1
+        rowCounter <- 0
+        for (k in 1:(length(usedTimeRange)-1)) {
+          rowCounter <- rowCounter + 1; rowCounter
+          A <- expm(DRIFT %x% usedTimeRange[k+1])
+          effectSizes2[rowCounter, effectCounter] <- round(A[i,j], digits)
+        }
+      }
+    }
+  }
+
+  diffDim <- dim(requiredSampleSizes)[1] - dim(effectSizes)[1]; diffDim
+  helperMat <- matrix(NA, nrow=diffDim, ncol=dim(effectSizes)[2]); helperMat
+  effectSizes <- rbind(effectSizes, helperMat)
+  tmp1 <- matrix(driftNames, n.latent, n.latent)
+  diag(tmp1) <- NA
+  tmp1 <- tmp1[!(is.na(tmp1))]; tmp1
+  colnames(effectSizes) <- tmp1
+  requiredSampleSizes <- cbind(requiredSampleSizes, effectSizes)
 
   # Determine optimal time lag in terms of min sample size required
   rowNames <- c(rownames(requiredSampleSizes), "Min N", "Opt. Lag"); rowNames
@@ -775,3 +780,4 @@ ctmaPower <- function(
   invisible(results)
 
 } ### END function definition
+
