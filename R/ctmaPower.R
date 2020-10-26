@@ -1,3 +1,6 @@
+
+# now requires package lavaan
+
 #######################################################################################################################
 ############################################ CoTiMA Statistical Power #################################################
 #######################################################################################################################
@@ -54,7 +57,27 @@ ctmaPower <- function(
   loadAllInvWOSingFit=c(),
   saveAllInvWOSingFit=NULL,
 
-  skipScaling=TRUE
+  skipScaling=TRUE,
+
+  useSampleFraction=NULL, # select subsample (percent of the full sample, e.g. 20 selects every 5th case)
+
+  CoTiMAStanctArgs=list(test=TRUE, scaleTI=TRUE, scaleTime=1/1, scaleMod=TRUE, scaleLongData=FALSE,
+                        savesubjectmatrices=FALSE, verbose=1,
+                        datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
+                        iter=1000, intoverstates=TRUE,
+                        binomial=FALSE, fit=TRUE,
+                        intoverpop=FALSE, stationary=FALSE,
+                        plot=FALSE, derrind="all",
+                        optimize=TRUE, optimcontrol=list(is=F, stochastic=FALSE),
+                        nlcontrol=list(),
+                        nopriors=TRUE,
+                        chains=2,
+                        cores=1,
+                        inits=NULL, forcerecompile=FALSE,
+                        savescores=FALSE, gendata=FALSE,
+                        control=list(adapt_delta = .8, adapt_window=2, max_treedepth=10, adapt_init_buffer=2, stepsize = .001),
+                        verbose=0,
+                        warmup=500)
 )
 
 {  # begin function definition (until end of file)
@@ -574,8 +597,8 @@ ctmaPower <- function(
             #
             #R2.j <- A.j[j1,j1]/( (A.j + S.j)[j1,j1] ); R2.j           # explained variance without j (counter) as predictor at later Tpoint
             model.wo.fit <- lavaan::sem(unlist(model.wo[[counter]]),
-                                        sample.cov = implCov[[k]],
-                                        sample.nobs = sample.nobs)
+                                sample.cov = implCov[[k]],
+                                sample.nobs = sample.nobs)
             #tmp <- inspect(model.wo.fit[[counter]], "est"); tmp
             tmp <- lavaan::inspect(model.wo.fit, "est"); tmp
             R2.j <- 1 - tmp$psi[j1,j1]; R2.j
@@ -594,14 +617,14 @@ ctmaPower <- function(
               # https://cran.r-project.org/web/packages/MBESS/MBESS.pdf
               if (useMBESS == TRUE) {
                 plotPairs[counter, h, k, 2] <- MBESS::ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
-                                                                        p = n.latent, desired.power = statisticalPower[h],
-                                                                        alpha.level = 0.05)[[1]] #
+                                                           p = n.latent, desired.power = statisticalPower[h],
+                                                           alpha.level = 0.05)[[1]] #
               } else {
                 # The following uses our own function
                 signalToNoiseRatios <- sqrt((R2-R2.j)/(1-R2)); signalToNoiseRatios
                 helper <- round(rootSolve::uniroot.all(nestedProbFunT, c(n.latent+2,999999999),
-                                                       fvalue=signalToNoiseRatios, alpha=.05,
-                                                       power=statisticalPower[h], p=n.latent) + .49999, 0)
+                                            fvalue=signalToNoiseRatios, alpha=.05,
+                                            power=statisticalPower[h], p=n.latent) + .49999, 0)
                 if (length(helper) < 1) helper <- NA
                 plotPairs[counter, h, k, 2] <- helper
               }
@@ -613,9 +636,9 @@ ctmaPower <- function(
                 empiricalN <- na.omit(empiricalN); empiricalN
                 for (l in empiricalN) {
                   p05 <- MBESS::ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
-                                                  p = n.latent, Specified.N = l, alpha.level = 0.05)[2]
+                                           p = n.latent, Specified.N = l, alpha.level = 0.05)[2]
                   p01 <- MBESS::ss.power.reg.coef(Rho2.Y_X = R2, Rho2.Y_X.without.j = R2.j,
-                                                  p = n.latent, Specified.N = l, alpha.level = 0.01)[2]
+                                           p = n.latent, Specified.N = l, alpha.level = 0.01)[2]
                   for (m in 1:n.studies) { # poke power into matrices
                     if (tableNxDeltas[m,1] == l) { # if study has current empirical N ...
                       for (n in 2:(maxTpoints)) {  # ... loop through al lags
