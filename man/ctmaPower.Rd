@@ -8,19 +8,31 @@ ctmaPower(
   ctmaInitFit = NULL,
   activeDirectory = NULL,
   statisticalPower = c(),
+  failSafeN = NULL,
+  failSafeP = NULL,
   timeRange = NULL,
   useMBESS = FALSE,
   coresToUse = 1,
+  digits = 4,
   activateRPB = FALSE,
   silentOverwrite = FALSE,
-  digits = 8,
   saveStatPower = "CoTiMAPower_AllResults",
   loadStatPower = NULL,
   loadAllInvFit = c(),
   saveAllInvFit = NULL,
   loadAllInvWOSingFit = c(),
   saveAllInvWOSingFit = NULL,
-  skipScaling = TRUE
+  skipScaling = TRUE,
+  useSampleFraction = NULL,
+  CoTiMAStanctArgs = list(test = TRUE, scaleTI = TRUE, scaleTime = 1/1, scaleMod =
+    TRUE, scaleLongData = FALSE, savesubjectmatrices = FALSE, verbose = 1, datalong = NA,
+    ctstanmodel = NA, stanmodeltext = NA, iter = 1000, intoverstates = TRUE, binomial =
+    FALSE, fit = TRUE, intoverpop = FALSE, stationary = FALSE, plot = FALSE, derrind =
+    "all", optimize = TRUE, optimcontrol = list(is = F, stochastic = FALSE), nlcontrol =
+    list(), nopriors = TRUE, chains = 2, cores = 1, inits = NULL, forcerecompile = FALSE,
+    savescores = FALSE,      gendata = FALSE, control = list(adapt_delta = 0.8,
+    adapt_window = 2, max_treedepth = 10, adapt_init_buffer = 2, stepsize = 0.001),
+    verbose = 0, warmup = 500)
 )
 }
 \arguments{
@@ -30,17 +42,21 @@ ctmaPower(
 
 \item{statisticalPower}{""}
 
+\item{failSafeN}{""}
+
+\item{failSafeP}{""}
+
 \item{timeRange}{""}
 
 \item{useMBESS}{""}
 
 \item{coresToUse}{""}
 
+\item{digits}{""}
+
 \item{activateRPB}{""}
 
 \item{silentOverwrite}{""}
-
-\item{digits}{""}
 
 \item{saveStatPower}{""}
 
@@ -55,6 +71,10 @@ ctmaPower(
 \item{saveAllInvWOSingFit}{""}
 
 \item{skipScaling}{""}
+
+\item{useSampleFraction}{""}
+
+\item{CoTiMAStanctArgs}{""}
 }
 \value{
 
