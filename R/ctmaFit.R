@@ -11,7 +11,6 @@
 #' @param activateRPB  ""
 #' @param digits  ""
 #' @param invariantDrift  ""
-#' @param type  ""
 #' @param coresToUse  ""
 #' @param CoTiMAStanctArgs  ""
 #'

@@ -1,6 +1,17 @@
 #######################################################################################################################
 ############################################ CoTiMA Publication Bias ##################################################
 #######################################################################################################################
+#' ctmaBias
+#'
+#' @param ctmaInitFit ""
+#' @param activeDirectory ""
+#' @param PETPEESEalpha ""
+#' @param activateRPB ""
+#' @param digits ""
+#'
+#' @return
+#' @export
+#'
 ctmaBias <- function(
   # Primary Study Fits
   ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
@@ -21,8 +32,8 @@ ctmaBias <- function(
 
   ### check if fit object is specified
   if (is.null(ctmaInitFit)){
-    if (activateRPB==TRUE) {pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(red$bold("A fitted CoTiMA (\"ctmaInitFit\") object has to be supplied to analyse something. \n"))
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat(crayon::red$bold("A fitted CoTiMA (\"ctmaInitFit\") object has to be supplied to analyse something. \n"))
     stop("Good luck for the next try!")
   }
 
@@ -61,7 +72,7 @@ ctmaBias <- function(
       tmp3 <- tmp3[, toSelect]
       tmp4 <- cbind(tmp1, tmp2, tmp3)
       apply(tmp4, 2, mean)
-      tmp4 <- apply(tmp4, 2, var)^.5
+      tmp4 <- apply(tmp4, 2, stats::var)^.5
       all_SE[i,] <- t(as.matrix(tmp4))
     }
     colnames(all_SE) <- c(names(ctmaInitFit$modelResults$DRIFT[[1]]),
@@ -97,7 +108,7 @@ ctmaBias <- function(
 
     eggerDrift <- list()
     for (j in 1:(n.latent^2)) {
-      eggerDrift[[j]] <- lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
+      eggerDrift[[j]] <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
       eggerDrift[[j]]$message <- "No sign. evidence for publication bias."
       if (summary(eggerDrift[[j]])$coefficients[1,1] > 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
         eggerDrift[[j]]$message <- message1
@@ -137,7 +148,7 @@ ctmaBias <- function(
     FixedEffect_DriftUpperLimit <- FixedEffect_Drift + 1.96*FixedEffect_DriftSE; FixedEffect_DriftUpperLimit
     FixedEffect_DriftLowerLimit <- FixedEffect_Drift - 1.96*FixedEffect_DriftSE; FixedEffect_DriftLowerLimit
     FixedEffect_DriftZ <- FixedEffect_Drift/FixedEffect_DriftSE; FixedEffect_DriftZ
-    FixedEffect_DriftProb <- round(1-pnorm(abs(FixedEffect_DriftZ),
+    FixedEffect_DriftProb <- round(1-stats::pnorm(abs(FixedEffect_DriftZ),
                                            mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log=F), digits=digits); FixedEffect_DriftProb
     Q_Drift <- colSums(DRIFTPrecision^2 * DRIFTCoeff^2)- (colSums(DRIFTPrecision^2 * DRIFTCoeff))^2 / colSums(DRIFTPrecision^2); Q_Drift
     H2_Drift <- Q_Drift/(n.studies-1); H2_Drift
@@ -182,7 +193,7 @@ ctmaBias <- function(
     RandomEffecttot_DriftUpperLimit <- RandomEffecttot_Drift + 1.96*RandomEffecttot_DriftSE; RandomEffecttot_DriftUpperLimit
     RandomEffecttot_DriftLowerLimit <- RandomEffecttot_Drift - 1.96*RandomEffecttot_DriftSE; RandomEffecttot_DriftLowerLimit
     RandomEffecttot_DriftZ <- RandomEffecttot_Drift/RandomEffecttot_DriftSE; RandomEffecttot_DriftZ
-    RandomEffecttot_DriftProb <- round(1-pnorm(abs(RandomEffecttot_DriftZ),
+    RandomEffecttot_DriftProb <- round(1-stats::pnorm(abs(RandomEffecttot_DriftZ),
                                                mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log=F), digits=digits); RandomEffecttot_DriftProb
     RandomEffectDriftResults <- rbind(RandomEffecttot_Drift, RandomEffecttot_DriftVariance, RandomEffecttot_DriftSE,
                                       RandomEffecttot_DriftUpperLimit, RandomEffecttot_DriftLowerLimit,
@@ -211,7 +222,7 @@ ctmaBias <- function(
       IV <- driftSE; IV
       DV <- driftCoeff; DV
       currentWeigths <- (1/(driftSE^2)); currentWeigths
-      PETDrift_fit[[ii]] <- lm(DV ~ IV, weights=currentWeigths); PETDrift_fit[[ii]]
+      PETDrift_fit[[ii]] <- stats::lm(DV ~ IV, weights=currentWeigths); PETDrift_fit[[ii]]
       summary(PETDrift_fit[[ii]])
 
       # Egger's Test (alternative but algebraically identical model)
@@ -221,7 +232,8 @@ ctmaBias <- function(
       IV <- driftSE^2; IV
       DV <- driftCoeff
       currentWeigths <- (1/(driftSE^2)); currentWeigths
-      PEESEDrift_fit[[ii]] <- lm(DV ~ IV, weights=currentWeigths); PEESEDrift_fit[[ii]]
+
+      PEESEDrift_fit[[ii]] <- stats::lm(DV ~ IV, weights=currentWeigths); PEESEDrift_fit[[ii]]
       summary(PEESEDrift_fit[[ii]])
 
       # PET-PEESE
@@ -235,7 +247,7 @@ ctmaBias <- function(
       # WLS
       DV <- driftCoeff/driftSE
       IV <- 1/driftSE
-      WLSDrift_fit[[ii]] <- lm(DV ~ IV + 0); WLSDrift_fit[[ii]]; FixedEffect_Drift[[ii]] # should be identical to FixedEffect_Drift
+      WLSDrift_fit[[ii]] <- stats::lm(DV ~ IV + 0); WLSDrift_fit[[ii]]; FixedEffect_Drift[[ii]] # should be identical to FixedEffect_Drift
       WLSDriftSE_fit <- summary(WLSDrift_fit[[ii]])$coefficients[2]; WLSDriftSE_fit; FixedEffect_DriftSE[[ii]] # should outperform FixedEffect_DriftSE
     }
 
