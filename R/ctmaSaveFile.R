@@ -9,8 +9,13 @@
 #' @param Directory "Directory to save file in"
 #' @param silentOverwrite "override old files without asking"
 #'
+<<<<<<< HEAD
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
+=======
+#' @import RPushbullet
+#' @import crayon
+>>>>>>> 04891f85cf4de7f719709e5405bff9d1d6a51695
 #'
 #' @export ctmaSaveFile
 #'

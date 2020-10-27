@@ -25,6 +25,7 @@
 #' @param useSampleFraction ""
 #' @param CoTiMAStanctArgs ""
 #'
+<<<<<<< HEAD
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
 #' @importFrom parallel detectCores
@@ -34,6 +35,17 @@
 #' @importFrom lavaan sem inspect
 #' @importFrom MBESS ss.power.reg.coef
 #' @importFrom rootSolve uniroot.all
+=======
+#' @import RPushbullet
+#' @import crayon
+#' @import parallel
+#' @import ctsem
+#' @import OpenMx
+#' @import stats
+#' @import lavaan
+#' @import MBESS
+#' @import rootSolve
+>>>>>>> 04891f85cf4de7f719709e5405bff9d1d6a51695
 #'
 #' @export ctmaPower
 #'

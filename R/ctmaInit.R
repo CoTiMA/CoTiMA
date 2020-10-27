@@ -19,11 +19,19 @@
 #' @param loadSingleStudyModelFit "load the fit of single study ctsem models"
 #' @param CoTiMAStanctArgs "CoTiMA Stanct Arguments"
 #'
+<<<<<<< HEAD
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  crayon red blue
 #' @importFrom  parallel detectCores
 #' @importFrom  ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit
 #' @importFrom  utils read.table write.table
+=======
+#' @import RPushbullet
+#' @import crayon
+#' @import parallel
+#' @import ctsem
+#' @import utils
+>>>>>>> 04891f85cf4de7f719709e5405bff9d1d6a51695
 #'
 #' @export ctmaInit
 #'

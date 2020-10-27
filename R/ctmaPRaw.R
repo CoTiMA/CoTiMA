@@ -8,11 +8,19 @@
 #' @param empVarVector ""
 #' @param activateRPB "set to TRUE to receive push messages with CoTiMA notifications on your phone"
 #'
+<<<<<<< HEAD
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
 #' @importFrom stats rnorm
 #' @importFrom MASS mvrnorm
 #' @importFrom psych corr.test
+=======
+#' @import RPushbullet
+#' @import crayon
+#' @import stats
+#' @import MASS
+#' @import psych
+>>>>>>> 04891f85cf4de7f719709e5405bff9d1d6a51695
 #'
 #' @export ctmaPRaw
 #'

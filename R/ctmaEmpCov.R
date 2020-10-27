@@ -16,8 +16,13 @@
 #' @param pairwiseN ""
 #' @param empcov ""
 #'
+<<<<<<< HEAD
 #' @importFrom psych corr.test
 #' @importFrom MASS mvrnorm
+=======
+#' @import psych
+#' @import MASS
+>>>>>>> 04891f85cf4de7f719709e5405bff9d1d6a51695
 #'
 #' @export ctmaEmpCov
 #'

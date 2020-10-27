@@ -18,11 +18,19 @@
 #' @param coresToUse ""
 #' @param CoTiMAStanctArgs ""
 #'
+<<<<<<< HEAD
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
 #' @importFrom parallel detectCores
 #' @importFrom ctsem ctWideToLong ctDeintervalise ctModel ctStanFit
 #' @importFrom OpenMx vech2full
+=======
+#' @import RPushbullet
+#' @import crayon
+#' @import parallel
+#' @import ctsem
+#' @import OpenMx
+>>>>>>> 04891f85cf4de7f719709e5405bff9d1d6a51695
 #'
 #' @export ctmaModFull
 #'

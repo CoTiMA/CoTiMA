@@ -17,12 +17,21 @@
 #' @param aggregateLabel ""
 #' @param aggregateLabel ""
 #'
+<<<<<<< HEAD
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
 #' @importFrom graphics plot.new polygon abline par rect axis title text legend
 #' @importFrom grDevices dev.copy png dev.off
 #' @importFrom OpenMx expm
 #' @importFrom stats quantile
+=======
+#' @import RPushbullet
+#' @import crayon
+#' @import graphics
+#' @import grDevices
+#' @import OpenMx
+#' @import stats
+>>>>>>> 04891f85cf4de7f719709e5405bff9d1d6a51695
 #'
 #' @export ctmaPlot
 #'

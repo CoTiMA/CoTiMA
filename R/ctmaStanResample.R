@@ -4,7 +4,11 @@
 #' @param CoTiMAStanctArgs ""
 #'
 #' @import ctsem
+<<<<<<< HEAD
 #' @importFrom abind abind
+=======
+#' @import abind
+>>>>>>> 04891f85cf4de7f719709e5405bff9d1d6a51695
 #'
 #' @export ctmaStanResample
 #'

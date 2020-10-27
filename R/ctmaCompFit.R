@@ -3,7 +3,11 @@
 #' @param model1 ""
 #' @param model2 ""
 #'
+<<<<<<< HEAD
 #' @importFrom stats pchisq
+=======
+#' @import stats
+>>>>>>> 04891f85cf4de7f719709e5405bff9d1d6a51695
 #'
 #' @export ctmaCompFit
 #'
