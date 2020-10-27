@@ -55,9 +55,6 @@ ctmaInit(
 
 \item{CoTiMAStanctArgs}{"CoTiMA Stanct Arguments"}
 }
-\value{
-
-}
 \description{
 ctmaInit
 }

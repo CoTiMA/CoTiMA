@@ -14,6 +14,12 @@
 #' @param coresToUse ""
 #' @param CoTiMAStanctArgs ""
 #'
+#' @importFrom  RPushbullet pbPost
+#' @importFrom  crayon red
+#' @importFrom  parallel detectCores
+#' @importFrom  ctsem ctStanFit
+#' @importFrom  OpenMx vech2full
+#'
 #' @export ctmaEqual
 #'
 ctmaEqual <- function(

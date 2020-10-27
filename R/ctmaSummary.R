@@ -3,7 +3,6 @@
 #'
 #' @param x ""
 #'
-#' @return
 #'
 summary.CoTiMAFit <- function(x)
   {

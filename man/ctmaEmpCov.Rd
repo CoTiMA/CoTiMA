@@ -38,9 +38,6 @@ ctmaEmpCov(
 
 \item{empcov}{""}
 }
-\value{
-
-}
 \description{
 ctmaEmpCov
 }

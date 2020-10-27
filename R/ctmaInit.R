@@ -19,8 +19,13 @@
 #' @param loadSingleStudyModelFit "load the fit of single study ctsem models"
 #' @param CoTiMAStanctArgs "CoTiMA Stanct Arguments"
 #'
-#' @return
-#' @export
+#' @importFrom  RPushbullet pbPost
+#' @importFrom  crayon red blue
+#' @importFrom  parallel detectCores
+#' @importFrom  ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit
+#' @importFrom  utils read.table write.table
+#'
+#' @export ctmaInit
 #'
 #' @examples ""
 ctmaInit <- function(
@@ -224,7 +229,7 @@ ctmaInit <- function(
             currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
           }
         }
-        tmp <- suppressWarnings(pRaw(empCovMat=currentEmpcov, empN=currentSampleSize, empNMat=currentPairwiseN))
+        tmp <- suppressWarnings(ctmaPRaw(empCovMat=currentEmpcov, empN=currentSampleSize, empNMat=currentPairwiseN))
         empraw[[i]] <- tmp$data
         lostN[[i]] <- tmp$lostN
         overallNDiff[[i]] <- tmp$overallLostN
@@ -596,7 +601,7 @@ ctmaInit <- function(
       if ( (length(saveSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% saveSingleStudyModelFit[-1]) ) {
         x1 <- paste0(saveSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
         x2 <- paste0(saveSingleStudyModelFit[1], " singleStudyFits/"); x2
-        CoTiMASaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
+        ctmaSaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
       }
 
       studyFit_Minus2LogLikelihood[[i]] <- studyFit[[i]]$stanfit$optimfit$f

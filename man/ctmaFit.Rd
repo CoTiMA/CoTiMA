@@ -2,7 +2,7 @@
 % Please edit documentation in R/ctmaFit.R
 \name{ctmaFit}
 \alias{ctmaFit}
-\title{ctmaFull}
+\title{ctmaFit}
 \usage{
 ctmaFit(
   ctmaInitFit = NULL,
@@ -43,9 +43,6 @@ ctmaFit(
 
 \item{CoTiMAStanctArgs}{""}
 }
-\value{
-
-}
 \description{
-ctmaFull
+ctmaFit
 }

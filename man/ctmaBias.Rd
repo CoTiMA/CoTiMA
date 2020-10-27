@@ -23,9 +23,6 @@ ctmaBias(
 
 \item{digits}{""}
 }
-\value{
-
-}
 \description{
 ctmaBias
 }

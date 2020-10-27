@@ -11,9 +11,6 @@ ctmaStanResample(fitStanctModel = NULL, CoTiMAStanctArgs = NULL)
 
 \item{CoTiMAStanctArgs}{""}
 }
-\value{
-
-}
 \description{
 ctmaStanResample
 }

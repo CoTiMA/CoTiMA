@@ -60,9 +60,6 @@ ctmaModFull(
 
 \item{type}{""}
 }
-\value{
-
-}
 \description{
 ctmaModFull
 }

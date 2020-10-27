@@ -8,10 +8,15 @@
 #' @param empVarVector ""
 #' @param activateRPB "set to TRUE to receive push messages with CoTiMA notifications on your phone"
 #'
-#' @return
-#' @export
+#' @importFrom RPushbullet pbPost
+#' @importFrom crayon red
+#' @importFrom stats rnorm
+#' @importFrom MASS mvrnorm
+#' @importFrom psych corr.test
 #'
-pRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumber=NULL,
+#' @export ctmaPRaw
+#'
+ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumber=NULL,
                           empMeanVector=NULL, empVarVector=NULL, activateRPB=FALSE)
 {  # begin function definition (until end of file)
 

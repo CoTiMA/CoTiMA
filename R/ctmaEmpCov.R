@@ -1,7 +1,7 @@
 # ctmaTargetMat changes a full covariance matrix: select target variables, recode them, combine them (add), and
 #    add rows/columns with NA if focal concepts are not available.
 
-# depends on mvrnorm, ctmapRaw, psych
+# depends on mvrnorm, ctmaPRaw, psych
 
 #' ctmaEmpCov
 #'
@@ -16,8 +16,10 @@
 #' @param pairwiseN ""
 #' @param empcov ""
 #'
-#' @return
-#' @export
+#' @importFrom psych corr.test
+#' @importFrom MASS mvrnorm
+#'
+#' @export ctmaEmpCov
 #'
 ctmaEmpCov <- function(targetVariables=c(), recodeVariables=c(), combineVariables=c(),
                              combineVariablesNames=c(), missingVariables=c(),
@@ -33,7 +35,7 @@ ctmaEmpCov <- function(targetVariables=c(), recodeVariables=c(), combineVariable
   # combine variables
   if (!(is.null(sampleSize))) tmpData <- as.data.frame(MASS::mvrnorm(n=sampleSize, mu=rep(0, dim(empcov)[1]), Sigma=empcov, empirical = TRUE))
   if (!(is.null(pairwiseN))) {
-    results <- pRaw(empCovMat=empcov, empNMat=pairwiseN, empN=NULL, studyNumber=1,
+    results <- ctmaPRaw(empCovMat=empcov, empNMat=pairwiseN, empN=NULL, studyNumber=1,
                              empMeanVector=NULL, empVarVector=NULL, activateRPB=FALSE)
     tmpData <- as.data.frame(results$data)
     names(tmpData) <- unlist(dimnames(empcov)[1])

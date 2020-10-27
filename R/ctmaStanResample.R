@@ -3,8 +3,10 @@
 #' @param fitStanctModel ""
 #' @param CoTiMAStanctArgs ""
 #'
-#' @return
-#' @export
+#' @import ctsem
+#' @importFrom abind abind
+#'
+#' @export ctmaStanResample
 #'
 ctmaStanResample <- function(fitStanctModel=NULL, CoTiMAStanctArgs=NULL) {
   nsamples <- CoTiMAStanctArgs$resample[1]

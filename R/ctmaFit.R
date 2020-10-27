@@ -2,7 +2,7 @@
 ############################################## CoTiMA InvariantDrift ##################################################
 #######################################################################################################################
 
-#' ctmaFull
+#' ctmaFit
 #'
 #' @param ctmaInitFit ""
 #' @param primaryStudyList  ""
@@ -14,8 +14,13 @@
 #' @param coresToUse  ""
 #' @param CoTiMAStanctArgs  ""
 #'
-#' @return
-#' @export
+#' @importFrom  RPushbullet pbPost
+#' @importFrom  crayon red
+#' @importFrom  parallel detectCores
+#' @importFrom  ctsem ctWideToLong ctDeintervalise ctModel ctStanFit
+#' @importFrom  OpenMx vech2full expm
+#'
+#' @export ctmaFit
 #'
 ctmaFit <- function(
   # Primary Study Fits

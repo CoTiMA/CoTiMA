@@ -3,8 +3,9 @@
 #' @param model1 ""
 #' @param model2 ""
 #'
-#' @return
-#' @export
+#' @importFrom stats pchisq
+#'
+#' @export ctmaCompFit
 #'
 #'
 ctmaCompFit <- function(model1=NULL, model2=NULL) {

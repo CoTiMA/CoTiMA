@@ -18,8 +18,13 @@
 #' @param coresToUse ""
 #' @param CoTiMAStanctArgs ""
 #'
-#' @return
-#' @export
+#' @importFrom RPushbullet pbPost
+#' @importFrom crayon red
+#' @importFrom parallel detectCores
+#' @importFrom ctsem ctWideToLong ctDeintervalise ctModel ctStanFit
+#' @importFrom OpenMx vech2full
+#'
+#' @export ctmaModFull
 #'
 ctmaModFull <- function(
   # Primary Study Fits

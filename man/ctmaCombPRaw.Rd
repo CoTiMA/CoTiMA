@@ -11,9 +11,6 @@ ctmaCombPRaw(listOfStudyFits = NULL, moderatorValues = NULL)
 
 \item{moderatorValues}{"Moderators}
 }
-\value{
-
-}
 \description{
 ctmaCombPRaw
 }

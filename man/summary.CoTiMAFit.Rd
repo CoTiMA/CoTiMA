@@ -9,9 +9,6 @@ summary.CoTiMAFit(x)
 \arguments{
 \item{x}{""}
 }
-\value{
-
-}
 \description{
 ctmaSummary
 }

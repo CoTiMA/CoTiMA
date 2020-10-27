@@ -9,10 +9,12 @@
 #' @param Directory "Directory to save file in"
 #' @param silentOverwrite "override old files without asking"
 #'
-#' @return
-#' @export
+#' @importFrom RPushbullet pbPost
+#' @importFrom crayon red blue
 #'
-CoTiMASaveFile <- function(activateRPB,
+#' @export ctmaSaveFile
+#'
+ctmaSaveFile <- function(activateRPB,
                            #workingDirectory=Null,
                            activeDirectory=activeDirectory,
                            SaveObject,

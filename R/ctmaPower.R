@@ -25,8 +25,17 @@
 #' @param useSampleFraction ""
 #' @param CoTiMAStanctArgs ""
 #'
-#' @return
-#' @export
+#' @importFrom RPushbullet pbPost
+#' @importFrom crayon red blue
+#' @importFrom parallel detectCores
+#' @importFrom ctsem ctModel ctWideToLong ctDeintervalise
+#' @importFrom OpenMx vech2full expm
+#' @importFrom stats cov2cor pt qt na.omit median
+#' @importFrom lavaan sem inspect
+#' @importFrom MBESS ss.power.reg.coef
+#' @importFrom rootSolve uniroot.all
+#'
+#' @export ctmaPower
 #'
 ctmaPower <- function(
   # Primary Study Fits
@@ -351,7 +360,7 @@ ctmaPower <- function(
   if (length(saveAllInvFit) > 0)  {
     x1 <- paste0(saveAllInvFit[1], ".rds"); x1
     x2 <- paste0(activeDirectory); x2
-    CoTiMASaveFile(activateRPB, "", results, x1, x2, silentOverwrite=silentOverwrite)
+    ctmaSaveFile(activateRPB, "", results, x1, x2, silentOverwrite=silentOverwrite)
   }
 
   ### Extract estimates & statistics
@@ -491,11 +500,11 @@ ctmaPower <- function(
   {
     # functions to compute dt-coefficients
     discreteDriftFunction <- function(driftMatrix, timeScale, number) {
-      discreteDriftValue <- expm::expm(timeScale %x% driftMatrix)
+      discreteDriftValue <- OpenMx::expm(timeScale %x% driftMatrix)
       discreteDriftValue[number] }
     discreteDiffusionFunction <- function(diffusionMatrix, driftMatrix, timeScale, number) {
       driftHatch <- driftMatrix %x% diag(dim(diffusionMatrix)[1]) + diag(dim(diffusionMatrix)[1]) %x% driftMatrix
-      discreteDiffusionValue <- solve(driftHatch) %*% (expm::expm(timeScale %x% driftHatch) - diag(dim(driftHatch)[1])) %*% c(diffusionMatrix)
+      discreteDiffusionValue <- solve(driftHatch) %*% (OpenMx::expm(timeScale %x% driftHatch) - diag(dim(driftHatch)[1])) %*% c(diffusionMatrix)
       discreteDiffusionValue[number] }
 
     implCov <- list()
@@ -731,7 +740,7 @@ ctmaPower <- function(
         rowCounter <- 0
         for (k in 1:(length(usedTimeRange)-1)) {
           rowCounter <- rowCounter + 1; rowCounter
-          A <- expm::expm(DRIFT %x% usedTimeRange[k+1])
+          A <- OpenMx::expm(DRIFT %x% usedTimeRange[k+1])
           effectSizes2[rowCounter, effectCounter] <- round(A[i,j], digits)
         }
       }

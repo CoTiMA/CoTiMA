@@ -9,8 +9,11 @@
 #' @param activateRPB ""
 #' @param digits ""
 #'
-#' @return
-#' @export
+#' @importFrom RPushbullet pbPost
+#' @importFrom crayon red
+#' @importFrom stats var lm pnorm
+#'
+#' @export ctmaBias
 #'
 ctmaBias <- function(
   # Primary Study Fits

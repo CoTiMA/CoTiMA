@@ -4,6 +4,8 @@
 #' @param excludedElements "Vector of Studyelements to exclude from CoTiMA"
 #' @param addElements "Vector of extra Studyelements to include in CoTiMA"
 #'
+#' @importFrom crayon red
+#'
 #' @return "List of primary studies and parameters for the following CoTiMA"
 #' @export ctmaPrep
 #'

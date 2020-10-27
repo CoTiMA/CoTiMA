@@ -11,9 +11,6 @@ ctmaCompFit(model1 = NULL, model2 = NULL)
 
 \item{model2}{""}
 }
-\value{
-
-}
 \description{
 ctmaCompFit
 }

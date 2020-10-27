@@ -17,6 +17,13 @@
 #' @param aggregateLabel ""
 #' @param aggregateLabel ""
 #'
+#' @importFrom RPushbullet pbPost
+#' @importFrom crayon red
+#' @importFrom graphics plot.new polygon abline par rect axis title text legend
+#' @importFrom grDevices dev.copy png dev.off
+#' @importFrom OpenMx expm
+#' @importFrom stats quantile
+#'
 #' @export ctmaPlot
 #'
 ctmaPlot <- function(
@@ -424,7 +431,7 @@ ctmaPlot <- function(
 
     # Function to compute discrete parameters using drift parameters and time-scaling factors
     discreteDrift <-function(driftMatrix, timeScale, number) {
-      discreteDriftValue <- expm::expm(timeScale %x% driftMatrix)
+      discreteDriftValue <- OpenMx::expm(timeScale %x% driftMatrix)
       discreteDriftValue[number] }
 
 

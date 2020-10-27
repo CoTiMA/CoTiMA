@@ -76,9 +76,6 @@ ctmaPower(
 
 \item{CoTiMAStanctArgs}{""}
 }
-\value{
-
-}
 \description{
 ctmaPower
 }
