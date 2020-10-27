@@ -399,16 +399,24 @@ ctmaPower <- function(
     homAll_df <- NULL
 
     # Combine summary information
+    #vech2full <- function(x) {
+    #  n.var <- -1/2 + sqrt(1/4 + 2*length(x)) ; n.var
+    #  tmp <- matrix(NA, n.var, n.var); tmp
+    #  tmp[lower.tri(tmp, diag=TRUE)] <- homAll_Diffusion_Coef; tmp
+    #  tmp[upper.tri(tmp, diag=TRUE)] <- t(homAll_Diffusion_Coef); tmp
+    #  return(tmp)
+    #}
+
     homAll_effects <- matrix(t(cbind((homAll_Drift_Coef), (homAll_Drift_SE),
                                      (homAll_Drift_Tvalue))), 1, 3*length(driftNames), byrow=T); homAll_effects
     homAll_effects <- rbind(homAll_effects,
-                            matrix(t(cbind((c(vech2full(homAll_Diffusion_Coef))),
-                                           c(vech2full((homAll_Diffusion_SE))),
-                                           c(vech2full((homAll_Diffusion_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
+                            matrix(t(cbind((c(OpenMx::vech2full(homAll_Diffusion_Coef))),
+                                           c(OpenMx::vech2full((homAll_Diffusion_SE))),
+                                           c(OpenMx::vech2full((homAll_Diffusion_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
     homAll_effects <- rbind(homAll_effects,
-                            matrix(t(cbind(c(vech2full((homAll_T0Var_Coef))),
-                                           c(vech2full((homAll_T0Var_SE))),
-                                           c(vech2full((homAll_T0Var_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
+                            matrix(t(cbind(c(OpenMx::vech2full((homAll_T0Var_Coef))),
+                                           c(OpenMx::vech2full((homAll_T0Var_SE))),
+                                           c(OpenMx::vech2full((homAll_T0Var_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
     # Label summary table
     rownames(homAll_effects) <- c("Fixed Effects Drift", "Fixed Effects Diffusion", "Fixed Effects T0Var")
     newColNames <- c()
@@ -421,8 +429,8 @@ ctmaPower <- function(
   }
 
   DRIFT <- matrix(homAll_Drift_Coef, n.latent, n.latent, byrow=TRUE); DRIFT
-  DIFFUSION <- vech2full(homAll_Diffusion_Coef); DIFFUSION
-  T0VAR <- vech2full(homAll_T0Var_Coef); T0VAR
+  DIFFUSION <- OpenMx::vech2full(homAll_Diffusion_Coef); DIFFUSION
+  T0VAR <- OpenMx::vech2full(homAll_T0Var_Coef); T0VAR
 
 
   print(paste0("#################################################################################"))
@@ -487,11 +495,11 @@ ctmaPower <- function(
   {
     # functions to compute dt-coefficients
     discreteDriftFunction <- function(driftMatrix, timeScale, number) {
-      discreteDriftValue <- expm(timeScale %x% driftMatrix)
+      discreteDriftValue <- OpenMx::expm(timeScale %x% driftMatrix)
       discreteDriftValue[number] }
     discreteDiffusionFunction <- function(diffusionMatrix, driftMatrix, timeScale, number) {
       driftHatch <- driftMatrix %x% diag(dim(diffusionMatrix)[1]) + diag(dim(diffusionMatrix)[1]) %x% driftMatrix
-      discreteDiffusionValue <- solve(driftHatch) %*% (expm(timeScale %x% driftHatch) - diag(dim(driftHatch)[1])) %*% c(diffusionMatrix)
+      discreteDiffusionValue <- solve(driftHatch) %*% (OpenMx::expm(timeScale %x% driftHatch) - diag(dim(driftHatch)[1])) %*% c(diffusionMatrix)
       discreteDiffusionValue[number] }
 
     implCov <- list()
@@ -500,7 +508,8 @@ ctmaPower <- function(
     pValues <- matrix(NA, nrow=length(usedTimeRange), ncol=(1+n.latent^2-n.latent)); pValues[1,]
     tmp1 <- diag(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); tmp1
     tmp2 <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); tmp2
-    colnames(pValues) <- c("Interval", paste0("p(", tmp2[!(tmp2 %in% tmp1)], ")") ); colnames(pValues)
+    #colnames(pValues) <- c("Interval", paste0("p(", tmp2[!(tmp2 %in% tmp1)], ")") ); colnames(pValues)
+    colnames(pValues) <- c("Interval", paste0("(", tmp2[!(tmp2 %in% tmp1)], ")") ); colnames(pValues)
 
     #for (t in 2:(length(usedTimeRange)-1)) {
     for (t in 2:(length(usedTimeRange))) {
@@ -516,7 +525,7 @@ ctmaPower <- function(
       phi <- cbind(rbind(phi, tmpMat), rbind(tmpMat, tmpMat)); #phi
       psi <- cbind(rbind(tmpMat, tmpMat), rbind(tmpMat, psi)); #psi
       tmp <- solve(B) %*% phi %*% t(solve(B)) + psi; #tmp
-      implCov[[t]] <- cov2cor(tmp); implCov[[t]]
+      implCov[[t]] <- cov2cor(tmp); #implCov[[t]]
       rownames(implCov[[t]]) <- varNames
       colnames(implCov[[t]]) <- varNames
 
@@ -549,14 +558,14 @@ ctmaPower <- function(
     tmp6 <- paste0("with p < ", failSafeP, " assuming N = ", round(failSafeN, 0), " is ", tmp2, ". "); tmp6
     tmp7 <- NULL
     if (is.null(timeRange)) {
-      tmp7 <- paste0("Note that you have not provided an epxlicit time range for analysis of stastistical power. "); tmp7
+      tmp7 <- paste0("Note that you have not provided an explicit time range for analysis of statistical power. "); tmp7
       tmp7 <- paste0(tmp7, "The time intervals used ranged from 1 to 1.5 times the longest interval used "); tmp7
       tmp7 <- paste0(tmp7, "in the primary studies, using integer steps of 1.0. These intervals were then "); tmp7
       tmp7 <- paste0(tmp7, "augmented by time intervals found in primary studies that were non-integers."); tmp7
     }
     significanceRange[i] <- paste0(tmp3, tmp4, tmp5, tmp6, tmp7); significanceRange[i]
   }
-  significanceRange
+  #significanceRange
 
 
   print(paste0("#################################################################################"))
@@ -727,7 +736,7 @@ ctmaPower <- function(
         rowCounter <- 0
         for (k in 1:(length(usedTimeRange)-1)) {
           rowCounter <- rowCounter + 1; rowCounter
-          A <- expm(DRIFT %x% usedTimeRange[k+1])
+          A <- OpenMx::expm(DRIFT %x% usedTimeRange[k+1])
           effectSizes2[rowCounter, effectCounter] <- round(A[i,j], digits)
         }
       }
