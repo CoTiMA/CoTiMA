@@ -36,7 +36,7 @@ ctmaFit <- function(
 
   # Fitting Parameters
   #type="stanct",
-  indVarying=TRUE,
+  indVarying=FALSE,
 
   coresToUse=c(-1),
   CoTiMAStanctArgs=list(test=TRUE, scaleTI=TRUE, scaleTime=1/1,

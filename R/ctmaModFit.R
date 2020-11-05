@@ -311,7 +311,7 @@ ctmaModFit <- function(
     {
       print(paste0("#################################################################################"))
       print(paste0("######## Fit Moderator Model with the following Drift Effects Moderated: ########"))
-      print(moderatedDrift)
+      print(paste0("### ",moderatedDrift, " ###"))
       print(paste0("#################################################################################"))
 
       # Make model with most time points
