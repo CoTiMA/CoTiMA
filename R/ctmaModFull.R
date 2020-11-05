@@ -182,6 +182,13 @@ ctmaModFull <- function(
     if (is.na((currentModerators[length(currentModerators)])[[1]][1])) currentModerators <- currentModerators[-dim(currentModerators)[1],]; currentModerators
     if (is.null(dim(currentModerators)[1])) currentModerators <- matrix(currentModerators, ncol=1)
 
+    if (var(currentModerators) == 0) {
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold("Moderator is constant across cases.", sep="\n"))
+      stop("Good luck for the next try!")
+
+    }
+
     }
 
     #######################################################################################################################
@@ -216,6 +223,8 @@ ctmaModFull <- function(
         tmp1 <- paste0("mod", 1:n.moderators); tmp1; dim(tmp1)
         if (length(tmp1) == 1) tmp <- matrix(dataTmp[ , tmp1], ncol=length(tmp1)) else tmp <- dataTmp[ , tmp1]
         if (CoTiMAStanctArgs$scaleMod == TRUE) tmp[ , 1:ncol(tmp)] <- scale(tmp[ , 1:ncol(tmp)])
+        tmp[1000:1360]
+        scale(tmp[ , 1:ncol(tmp)])
         currentStartNumber <- modTIstartNum; currentStartNumber
         currentEndNumber <- currentStartNumber + n.moderators-1; currentEndNumber
         colnames(tmp) <- paste0("TI", currentStartNumber:currentEndNumber); tmp
@@ -310,6 +319,7 @@ ctmaModFull <- function(
       }
 
     }
+
     #######################################################################################################################
     ########################################### Model with moderator effects  #############################################
     #######################################################################################################################

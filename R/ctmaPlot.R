@@ -158,7 +158,6 @@ ctmaPlot <- function(
       }
     }
 
-    #n.fitted.obj
     for (i in 1:n.fitted.obj) {
       #if (plot.type[[i]] == "power") plot.type[[i]] <- c("power", "drift")
       if ("power" %in% plot.type[[i]]) plot.type[[i]] <- c("power", "drift")
@@ -424,7 +423,7 @@ ctmaPlot <- function(
 
     # Function to compute discrete parameters using drift parameters and time-scaling factors
     discreteDrift <-function(driftMatrix, timeScale, number) {
-      discreteDriftValue <- expm::expm(timeScale %x% driftMatrix)
+      discreteDriftValue <- OpenMx::expm(timeScale %x% driftMatrix)
       discreteDriftValue[number] }
 
 
@@ -466,6 +465,7 @@ ctmaPlot <- function(
       # discrete effects across time range
       discreteDriftCoeff <- list()
       for (g in 1:n.fitted.obj) {
+        #g <- 1
         # check if moderator values should be plotted
         if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
           n.studies[g] <- length(mod.values); n.studies[g]
@@ -473,14 +473,18 @@ ctmaPlot <- function(
           targetDriftNames <- rownames(ctmaFitObject[[g]]$modelResults$MOD); targetDriftNames
           targetDriftNames <- gsub(paste0(ctmaFitObject[[g]]$mod.names[mod.num], "_on_"), "", targetDriftNames); targetDriftNames
           targetDriftNames <- gsub("_", "", targetDriftNames); targetDriftNames
-          targetDriftNames <- targetDriftNames[targetDriftNames %in% driftNames[[g]]]; targetDriftNames
+          tmp1 <- unlist(driftNames); tmp1
+          tmp2 <- c()
+          for (o in 1:length(tmp1)) tmp2 <- c(tmp2, grep(tmp1[o], targetDriftNames))
+          targetDriftNames <- sort(tmp2); targetDriftNames
+          #targetDriftNames <- targetDriftNames[targetDriftNames %in% driftNames[[g]]]; targetDriftNames
           targetRow <- mod.num * length(targetDriftNames) - length(targetDriftNames) + 1; targetRow
           targetRow <- targetRow:(targetRow+length(targetDriftNames)-1); targetRow
           DRIFTCoeff[[g]] <- list()
           counter <- 1
           for (i in mod.values) {
-            #i = 2
-            # adjust labels for plotting and used time Range according to the time label positiont
+            #i = 1
+            # adjust labels for plotting and used time Range according to the time label position
             ctmaFitObject[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
             tmp1 <- stats::quantile(usedTimeRange, probs = seq(0, 1, 1/(n.studies[g]+1))); tmp1 # used for positioning of moderator value in plot
             usedTimeRange <- sort(c(tmp1, usedTimeRange)); usedTimeRange # correcting for added time points
@@ -489,7 +493,8 @@ ctmaPlot <- function(
             ### compute moderated drift matrices
             # main effects
             tmp1 <- ctmaFitObject[[g]]$summary$estimates[,3]; tmp1
-            tmp1 <- tmp1[(names(tmp1) == "DRIFT")]; tmp1
+            #tmp1 <- tmp1[(names(tmp1) == "DRIFT")]; tmp1
+            tmp1 <- tmp1[grep("DRIFT", names(tmp1))]; tmp1
             tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE); tmp1 # main effect
             # moderator effects
             tmp2 <- ctmaFitObject[[g]]$summary$mod.effects[,3]; tmp2
@@ -613,8 +618,10 @@ ctmaPlot <- function(
         counter <- 0
         nlatent <- n.latent[[1]]; n.latent
         for (j in seq(1, nlatent^2, (nlatent+1))) { # diagonal elements only
+          #j <- 1
           counter <- counter + 1
           for (g in 1:n.fitted.obj) {
+            #g <- 1
             if (is.null(ctmaFitObject[[g]]$type)) plot..type <- "l" else plot..type <- ctmaFitObject[[g]]$type; plot..type
             if (is.null(ctmaFitObject[[g]]$col)) plot.col <- "grey" else plot.col <- ctmaFitObject[[g]]$col; plot.col
             if (is.null(ctmaFitObject[[g]]$lwd)) plot.lwd <- 1.5 else plot.lwd <- ctmaFitObject[[g]]$lwd; plot.lwd

@@ -39,6 +39,10 @@ ctmaInit <- function(
 
   # General Model Setup
   n.latent=NULL,
+  n.manifest=0,
+  lambda=NULL,                           # define the loadings of manifests on latents using matrix with nrow=nlatent & ncol=nmanifest
+  manifestVars=NULL,                     # define the error variances of the manifests with a single tpoint using matrix with nrow=n.manifest & ncol=n.manifest
+  drift=NULL,
 
   # Load/save Raw Data
   saveRawData=list(),                     # save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
@@ -77,7 +81,7 @@ ctmaInit <- function(
 {  # begin function definition (until end of file)
 
   start.time <- Sys.time()
-  options(scipen = 1) # turn scientific notation off.
+  options(scipen = 999) # turn scientific notation off.
 
 
   #######################################################################################################################
@@ -147,6 +151,19 @@ ctmaInit <- function(
       cat(crayon::red("No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.","\n"))
     }
 
+    if (n.manifest > n.latent ) {
+      if (is.null(lambda)) {
+        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+        cat(crayon::red("Manifest variables specified, but not matrix of loadings (lambda) specified, which is required.","\n"))
+        stop("Good luck for the next try!")
+      } else {
+        if ( (dim(lambda)[1] != n.manifest) | (dim(lambda)[2] != n.latent) ) {
+          if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+          cat(crayon::red("Dimensions of loadings matrix (lambda) do not match n.latent and n.manifest.","\n"))
+          stop("Good luck for the next try!")
+        }
+      }
+    }
   } ### END Check Model Specification ###
 
 
@@ -208,43 +225,68 @@ ctmaInit <- function(
     emprawLong <- list()
     if (is.na(primaryStudies$deltas[length(primaryStudies$deltas)])) primaryStudies$deltas <- primaryStudies$deltas[-length(primaryStudies$deltas)]
     allTpoints <-unlist(lapply(primaryStudies$deltas, function(extract) length(extract)+1)); allTpoints # more complicated thasn expected
-    manifestNames <- paste0("V", 1:n.latent); manifestNames
+
+    # ADDED TO DEAL WITH OBSERVED INDICATORS
+    if (n.manifest > n.latent) {
+      manifestNames <- paste0("y", 1:n.manifest); manifestNames
+      latentNames <- paste0("V", 1:n.latent); latentNames
+    } else {
+      manifestNames <- paste0("V", 1:n.latent); manifestNames
+    }
+    manifestNames; latentNames
+
     for (i in 1:n.studies) {
+      #i <- 1
       if (!(i %in% loadRawDataStudyNumbers)) {
-        currentVarnames <- c()
         currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
         currentEmpcov <- (lapply(studyList, function(extract) extract$empcov))[[i]]; currentEmpcov
         currentLags <- (lapply(studyList, function(extract) extract$delta_t))[[i]]; currentLags
         currentPairwiseN <- (lapply(studyList, function(extract) extract$pairwiseN))[[i]]; currentPairwiseN
         currentModerators <- (lapply(studyList, function(extract) extract$moderators))[[i]]; currentModerators
+
         currentVarnames <- c()
         for (j in 1:(currentTpoints)) {
-          for (h in 1:n.latent) {
-            currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
+          if (n.manifest == 0) {
+            for (h in 1:n.latent) {
+              currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
+            }
+          } else {
+            for (h in 1:n.manifest) {
+              currentVarnames <- c(currentVarnames, paste0("y",h,"_T", (j-1)))
+            }
           }
         }
-        tmp <- suppressWarnings(pRaw(empCovMat=currentEmpcov, empN=currentSampleSize, empNMat=currentPairwiseN))
+        #currentVarnames
+
+        # CORRECT FUNCTION NAME USED
+        tmp <- suppressWarnings(ctmaPRaw(empCovMat=currentEmpcov, empN=currentSampleSize, empNMat=currentPairwiseN))
+
         empraw[[i]] <- tmp$data
         lostN[[i]] <- tmp$lostN
         overallNDiff[[i]] <- tmp$overallLostN
         relativeNDiff[[i]] <- tmp$relativeLostN
         lags[[i]] <- matrix(currentLags, nrow=dim(empraw[[i]])[1], ncol=currentTpoints-1, byrow=TRUE)
         empraw[[i]] <- cbind(empraw[[i]], lags[[i]]);
+        head(empraw[[i]])
+        c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
         colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
         empraw[[i]] <- as.data.frame(empraw[[i]])
+
+        # ADDED TO DEAL WITH MANIFEST VARIABLES
+        n.var <- max(c(n.manifest, n.latent)); n.var
         ## START correction of current lags if entire time point is missing for a case
-        # wide to long
-        emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.latent, manifestNames=manifestNames)
+        emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames)
         emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
-        # eliminate rows where ALL latents are NA
-        emprawLongTmp <- emprawLongTmp[, ][ apply(emprawLongTmp[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+        ## eliminate rows where ALL latents are NA
+        if (n.manifest > n.latent) targetCols <- paste0("y", 1:n.manifest) else targetCols <- paste0("V", 1:n.latent)
+        emprawLongTmp <- emprawLongTmp[, ][ apply(emprawLongTmp[, targetCols], 1, function(x) sum(is.na(x)) != n.var ), ]
         # eliminate rows where time is NA
         emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
         # make wide format
         emprawWide <- suppressMessages(ctsem::ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
-        # inrervalise
-        emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide, Tpoints=currentTpoints, n.manifest=n.latent, manifestNames=manifestNames))
+        # intervalise
+        emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide, Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames))
         # restore
         empraw[[i]] <- as.data.frame(emprawWide)
         # END correction
@@ -258,9 +300,9 @@ ctmaInit <- function(
         tmp3 <- studyList[[i]]$rawData$dec; tmp3
         tmp4 <- studyList[[i]]$rawData$sep; tmp4
         tmpData <- utils::read.table(file=tmp1,
-                              header=tmp2,
-                              dec=tmp3,
-                              sep=tmp4)
+                                     header=tmp2,
+                                     dec=tmp3,
+                                     sep=tmp4)
         # replace missing values
         tmpData <- as.matrix(tmpData) # important: line below will not work without having data as a matrix
         tmpData[tmpData %in% studyList[[i]]$rawData$missingValues] <- NA
@@ -268,23 +310,31 @@ ctmaInit <- function(
         ## START correction of current lags if entire time point is missing for a case
         # change variable names
         tmp1 <- dim(empraw[[i]])[2]; tmp1
-        currentTpoints <- (tmp1 + 1)/(n.latent+1); currentTpoints
-        colnames(empraw[[i]])[1:(currentTpoints * n.latent)] <- paste0(paste0("V", 1:n.latent), "_T", rep(0:(currentTpoints-1), each=n.latent))
+        currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
+        if (n.manifest > n.latent) {
+          colnames(empraw[[i]])[1:(currentTpoints * n.manifest)] <- paste0(paste0("x", 1:n.manifest), "_T", rep(0:(currentTpoints-1), each=n.manifest))
+        } else {
+          colnames(empraw[[i]])[1:(currentTpoints * n.latent)] <- paste0(paste0("V", 1:n.latent), "_T", rep(0:(currentTpoints-1), each=n.latent))
+        }
         # wide to long
-        emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.latent, manifestNames=manifestNames)
+        emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames)
         emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
         # eliminate rows where ALL latents are NA
-        emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+        if (n.manifest > n.latent) {
+          emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("x", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
+        } else {
+          emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+        }
         # eliminate rows where time is NA
         emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
         # make wide format
         emprawWide <- suppressMessages(ctsem::ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
         # intervalise
         emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide,
-                                                     Tpoints=currentTpoints,
-                                                     n.manifest=n.latent,
-                                                     manifestNames=manifestNames,
-                                                     mininterval=minInterval))
+                                                            Tpoints=currentTpoints,
+                                                            n.manifest=n.var,
+                                                            manifestNames=manifestNames,
+                                                            mininterval=minInterval))
         # restore
         empraw[[i]] <- as.data.frame(emprawWide)
         # END correction
@@ -306,12 +356,7 @@ ctmaInit <- function(
       allSampleSizes[[i]] <- dim(empraw[[i]])[1]
       currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
       currentTpoints <- allTpoints[[i]]; currentTpoints
-      currentVarnames <- c()
-      for (j in 1:(currentTpoints)) {
-        for (h in 1:n.latent) {
-          currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
-        }
-      }
+
       colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
 
       # standardize (variables - not time lags) if option is chosen
@@ -327,18 +372,22 @@ ctmaInit <- function(
       if ( i %in% saveRawData$studyNumbers ) {
         x1 <- paste0(saveRawData$fileName, i, ".dat"); x1
         utils::write.table(empraw[[i]], file=x1, row.names=saveRawData$row.names, col.names=saveRawData$col.names,
-                    sep=saveRawData$sep, dec=saveRawData$dec)
+                           sep=saveRawData$sep, dec=saveRawData$dec)
       }
 
       # augment pseudo raw data for stanct model
       {
         dataTmp <- empraw[[i]]
-        dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=currentTpoints, n.manifest=n.latent, #n.TIpred = (n.studies-1),
-                                 manifestNames=manifestNames)
-        dataTmp3 <- ctsem::ctDeintervalise(dataTmp2)
+        dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=currentTpoints, n.manifest=n.var, #n.TIpred = (n.studies-1),
+                                        manifestNames=manifestNames)
+        dataTmp3 <- suppressMessages(ctsem::ctDeintervalise(dataTmp2))
         dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
         # eliminate rows where ALL latents are NA
-        dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+        if (n.manifest > n.latent) {
+          dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("y", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
+        } else {
+          dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+        }
         emprawLong[[i]] <- dataTmp3
       }
 
@@ -407,23 +456,95 @@ ctmaInit <- function(
     print(paste0("############ Create ctsem Model Template to fit all Primary Studies #############"))
     print(paste0("#################################################################################"))
 
+    # allow user-specified drift matrix
     driftNames <- c()
-    for (i in 1:(n.latent)) {
-      for (j in 1:(n.latent)) {
-        driftNames <- c(driftNames, paste0("V",i,"toV", j))
+      for (i in 1:(n.latent)) {
+        for (j in 1:(n.latent)) {
+          driftNames <- c(driftNames, paste0("V",i,"toV", j))
+        }
+      }
+    # backup full names for labelling output later
+    fullDriftNames <- driftNames
+    if (!(is.null(drift))) {
+      # check validity of user-provided drift names
+      tmp1 <- which(c(drift) %in% driftNames); tmp1
+      tmp2 <- which(c(drift) == "0"); tmp2
+      if ( (length(tmp1)+length(tmp2)) != length(driftNames) ) {
+        cat(crayon::red$bold("Drift names provided by user do not match requirements.", sep="\n"))
+        cat(crayon::red$bold(" ", " ", sep="\n"))
+        cat(crayon::blue("They should be of the type V1toV2 or just 0.", "\n"))
+        cat(crayon::red$bold(" ", " ", sep="\n"))
+        stop("Good luck for the next try!")
+
+      } else {
+      driftNames <- t(drift)
+      }
+      driftNames
+    }
+
+    # Adaptations if latent variables are measured with multiple indicators
+    # CHD
+    # loadings
+    if (n.manifest > n.latent) {
+      LAMBDA <- lambda
+    } else {
+      LAMBDA=diag(n.latent)
+    }
+    #LAMBDA
+
+    # error variances
+    if(!(is.null(manifestVars))) manifestVarPattern <- manifestVars else manifestVarPattern <- 0
+    manifestVarPattern
+
+    # T0 variance
+    T0VAR <- "auto"
+    skip <- 0
+    if (skip == 1) {
+      tmp1 <- which(LAMBDA == "0")
+      tmp2 <- which(LAMBDA == "1")
+      if ( (length(tmp1) + length(tmp2)) < n.var * n.latent ) {
+        tmp3 <- suppressWarnings(matrix(as.numeric(LAMBDA), nrow=nrow(LAMBDA))); tmp3
+        tmp3 <- as.data.frame(tmp3)
+        targetVar <- which(is.na(colSums(tmp3))); targetVar
+        T0VAR <- matrix(0, n.latent, n.latent); T0VAR
+        for (k in 1:n.latent) {
+          for (m in k:n.latent) {
+            T0VAR[k, m] <- paste0("T0VAR", k, m)
+            if ( (k == targetVar) & (k == m) ) T0VAR[k, m] <- 1
+          }
+        }
+        T0VAR <- t(T0VAR)
+      } else {
+        T0VAR <- "auto"
+      }
+      T0VAR
+    }
+
+    # manifest means (as interindividually varying params, which replaces error auto-correlations)
+    MANIFESTMEANS <- 0
+    skip <- 0
+    if (skip == 1) {
+      if ( (length(tmp1) + length(tmp2)) < n.var * n.latent ) {
+        MANIFESTMEANS <- rep("0", n.manifest); MANIFESTMEANS
+        targetVar <- which(is.na(rowSums(tmp3))); targetVar
+        MANIFESTMEANS[targetVar] <- paste0("mean_", targetVar); MANIFESTMEANS
+      } else {
+        MANIFESTMEANS <- 0
       }
     }
 
     # general ctsem model template
-    ctsemModelTemplate <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=2, manifestNames=manifestNames,    # 2 waves in the template only
-                                  DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent),
-                                  LAMBDA=diag(n.latent),
-                                  type='stanct',
-                                  CINT=matrix(0, nrow=n.latent, ncol=1),
-                                  T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                  MANIFESTMEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                  MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent))
-
+    ctsemModelTemplate <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=2, manifestNames=manifestNames,    # 2 waves in the template only
+                                         DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent),
+                                         LAMBDA=LAMBDA,
+                                         T0VAR=T0VAR,
+                                         type='stanct',
+                                         CINT=matrix(0, nrow=n.latent, ncol=1),
+                                         T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                         MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.var, ncol = 1),
+                                         MANIFESTVAR=matrix(manifestVarPattern, nrow=n.var, ncol=n.var)
+    )
+    ctsemModelTemplate$pars
 
     # ctsem models for each primary study with the correct number of time points
     ctsemModel <- list()
@@ -510,7 +631,7 @@ ctmaInit <- function(
   #######################################################################################################################
   ##################################### Fit ctsem Model to each Primary Study ###########################################
   #######################################################################################################################
-   {
+  {
     # loop through all primary studies
     studyFit <- studyFitCI <- studyFit_Minus2LogLikelihood <- studyFit_estimatedParameters <- list()
     model_Drift_Coef <- model_Drift_SE <- model_Drift_CI <- list()
@@ -538,7 +659,6 @@ ctmaInit <- function(
         } else {
           notLoadable <- TRUE
         }
-
       } # END if ( (length(loadSingleStudyModelFit) > 1) &  ...
 
       tmpLogic <- 0
@@ -590,33 +710,37 @@ ctmaInit <- function(
         df <- n.par.first.lag + sum(n.later.lags * n.par.later.lag) - studyFit[[i]]$resultsSummary$npars; df
         studyFit[[i]]$resultsSummary$'df (CoTiMA)' <- df
       } # END if (!(studyList[[i]]$originalStudyNo %in% ...
-
+      studyFit[[i]]$resultsSummary
 
       # SAVE
       if ( (length(saveSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% saveSingleStudyModelFit[-1]) ) {
         x1 <- paste0(saveSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
         x2 <- paste0(saveSingleStudyModelFit[1], " singleStudyFits/"); x2
-        CoTiMASaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
+        # CORRECT FUNCTION NAME USED
+        ctmaSaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
       }
 
       studyFit_Minus2LogLikelihood[[i]] <- studyFit[[i]]$stanfit$optimfit$f
       studyFit_estimatedParameters[[i]] <- length(studyFit[[i]]$stanfit$optimfit$par)
 
-
       resultsSummary <- studyFit[[i]]$resultsSummary; resultsSummary
 
       tmp <- grep("toV", rownames(resultsSummary$popmeans)); tmp
       model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=TRUE)); model_Drift_Coef[[i]]
-      names(model_Drift_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_Drift_Coef[[i]]
+      #names(model_Drift_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_Drift_Coef[[i]]
+      names(model_Drift_Coef[[i]]) <- c(fullDriftNames); model_Drift_Coef[[i]]
 
       model_Drift_SE[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Sd"], n.latent, byrow=TRUE)); model_Drift_SE[[i]]
-      names(model_Drift_SE[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_Drift_SE[[i]]
+      #names(model_Drift_SE[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_Drift_SE[[i]]
+      names(model_Drift_SE[[i]]) <- c(fullDriftNames); model_Drift_SE[[i]]
 
       tmp1 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "2.5%"], n.latent, byrow=TRUE)); tmp1
       tmp2 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "97.5%"], n.latent, byrow=TRUE)); tmp2
       model_Drift_CI[[i]] <- c(rbind(tmp1, tmp2)); model_Drift_CI[[i]]
-      tmp3 <- c(rbind(paste0(rownames(resultsSummary$popmeans)[tmp], "LL"),
-                      paste0(rownames(resultsSummary$popmeans)[tmp], "UL"))); tmp3
+      #tmp3 <- c(rbind(paste0(rownames(resultsSummary$popmeans)[tmp], "LL"),
+      #                paste0(rownames(resultsSummary$popmeans)[tmp], "UL"))); tmp3
+      tmp3 <- c(rbind(paste0(fullDriftNames, "LL"),
+                      paste0(fullDriftNames, "UL"))); tmp3
       names(model_Drift_CI[[i]]) <- tmp3; model_Drift_CI[[i]]
 
       tmp <- grep("diff", rownames(resultsSummary$popmeans)); tmp
@@ -652,17 +776,19 @@ ctmaInit <- function(
     } # END     for (i in 1:n.studies)
 
     # Combine summary information and fit statistics
-
     allStudies_Minus2LogLikelihood <- sum(unlist(studyFit_Minus2LogLikelihood)); allStudies_Minus2LogLikelihood
     allStudies_estimatedParameters <- sum(unlist(studyFit_estimatedParameters)); allStudies_estimatedParameters
     allStudies_df <- sum(unlist(lapply(studyFit, function(extract) extract$resultsSummary$`df (CoTiMA)`)))
+    allStudies_df <- NULL
     allStudiesDRIFT_effects <- matrix(t(cbind(unlist(model_Drift_Coef), unlist(model_Drift_SE)) ), n.studies, 2*n.latent^2, byrow=T)
-    tmp1 <- names(model_Drift_Coef[[1]]); tmp1
+    #tmp1 <- names(model_Drift_Coef[[1]]); tmp1
+    tmp1 <- fullDriftNames
     tmp2 <- rep("SE", length(tmp1)); tmp2
     colnames(allStudiesDRIFT_effects) <- c(rbind(tmp1, tmp2))
 
     source <- lapply(primaryStudies$source, function(extract) paste(extract, collapse=", ")); source
     source <- source[-length(source)]
+    for (l in 1:length(source)) if ( source[[l]] == "NA") source[[l]] <- "Reference not provided"
     allStudiesDRIFT_effects_ext <- cbind(unlist(source), allStudiesDRIFT_effects)
     tmp <- allStudiesDRIFT_effects_ext
     tmp[, 2:(ncol(tmp))] <- round(as.numeric(tmp[, 2:(ncol(tmp))]), digits)
@@ -682,23 +808,6 @@ ctmaInit <- function(
     # Label summary table
     rownames(allStudiesDRIFT_effects) <- paste0("Study No ", primaryStudies$studyNumbers)
     rownames(allStudiesDRIFT_effects_ext) <- paste0("Study No ", primaryStudies$studyNumbers)
-    #newColNames <- c()
-    #for (j in 1:n.latent) {
-    #  for (h in 1:n.latent) {
-    #    newColNames <- c(newColNames, paste0("V",j,"toV", h), "(SE)")
-    #  }
-    #}}
-    #newColNames
-    #oldColNames <- colnames(allStudiesDRIFT_effects); oldColNames) <- newColNames;
-    #allStudiesDRIFT_effects
-    #allStudiesDRIFT_effects_ext
-    #studyFit[[7]]$resultsSummary$parmatrices
-    #allStudiesCI
-
-    #colnames(allStudiesDRIFT_effects) <-    newColNames;
-    #newColNames <- c("Source", newColNames)
-    #colnames(allStudiesDRIFT_effects_ext) <- newColNames;
-
 
     # check single study results
     if (checkSingleStudyResults == TRUE) {
@@ -737,6 +846,7 @@ ctmaInit <- function(
                   plot.type="drift", model.type="stanct",
                   coresToUse=coresToUse, n.studies=n.studies,
                   n.latent=n.latent,
+                  n.manifest=n.manifest,
                   primaryStudyList=primaryStudies,
                   studyList=studyList, studyFitList=studyFit,
                   emprawList=empraw, statisticsList=statisticsList,
@@ -747,7 +857,8 @@ ctmaInit <- function(
                                 confidenceIntervals=allStudiesCI,
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),
-                                df= c(round(allStudies_df, digits)))))
+                                #df= c(round(allStudies_df, digits))),
+                                df= NULL )))
   class(results) <- "CoTiMAFit"
 
   invisible(results)
