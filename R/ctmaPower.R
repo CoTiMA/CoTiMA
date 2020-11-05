@@ -15,8 +15,6 @@
 #' @param activateRPB ""
 #' @param silentOverwrite ""
 #' @param digits ""
-#' @param saveStatPower ""
-#' @param loadStatPower ""
 #' @param loadAllInvFit ""
 #' @param saveAllInvFit ""
 #' @param loadAllInvWOSingFit ""
@@ -54,8 +52,8 @@ ctmaPower <- function(
   activateRPB=FALSE,
   silentOverwrite=FALSE,
 
-  saveStatPower="CoTiMAPower_AllResults",
-  loadStatPower=NULL,
+  #saveStatPower="CoTiMAPower_AllResults",
+  #loadStatPower=NULL,
   loadAllInvFit=c(),
   saveAllInvFit=NULL,
   loadAllInvWOSingFit=c(),
@@ -223,8 +221,8 @@ ctmaPower <- function(
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
     maxTpoints <- max(allTpoints); maxTpoints # replacement
 
-    # CHD ctsemModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
-    ctsemModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
+    # CHD ctsemModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
+    ctsemModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
                           DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE), # byrow because names are in stanct order
                           LAMBDA=diag(n.latent),
                           type='stanct',
@@ -285,9 +283,9 @@ ctmaPower <- function(
     }
     targetCols <- which(colnames(dataTmp) == "groups"); targetCols
     dataTmp <- dataTmp[ ,-targetCols]
-    dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1),
+    dataTmp2 <- ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1),
                              manifestNames=manifestNames)
-    dataTmp3 <- ctsem::ctDeintervalise(dataTmp2)
+    dataTmp3 <- ctDeintervalise(dataTmp2)
     dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
     # eliminate rows where ALL latents are NA
     dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
@@ -310,8 +308,8 @@ ctmaPower <- function(
   datalong_all <- datalong_all[, -grep("TI", colnames(datalong_all))]
 
   # all fixed model is a model with no TI predictors (identical to ctsemModel)
-  # CHD allFixedModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
-  allFixedModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
+  # CHD allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
+  allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
                            DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE), # byrow because names are in stanct order
                            LAMBDA=diag(n.latent),
                            type='stanct',
@@ -325,7 +323,7 @@ ctmaPower <- function(
     x1 <- paste0(activeDirectory, loadAllInvFit[1], ".rds"); x1
     results <- readRDS(file=x1)
   } else {
-    results <- ctsem::ctStanFit(
+    results <- ctStanFit(
       datalong = datalong_all,
       ctstanmodel = allFixedModel,
       savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
@@ -412,6 +410,14 @@ ctmaPower <- function(
     homAll_df <- NULL
 
     # Combine summary information
+    #vech2full <- function(x) {
+    #  n.var <- -1/2 + sqrt(1/4 + 2*length(x)) ; n.var
+    #  tmp <- matrix(NA, n.var, n.var); tmp
+    #  tmp[lower.tri(tmp, diag=TRUE)] <- homAll_Diffusion_Coef; tmp
+    #  tmp[upper.tri(tmp, diag=TRUE)] <- t(homAll_Diffusion_Coef); tmp
+    #  return(tmp)
+    #}
+
     homAll_effects <- matrix(t(cbind((homAll_Drift_Coef), (homAll_Drift_SE),
                                      (homAll_Drift_Tvalue))), 1, 3*length(driftNames), byrow=T); homAll_effects
     homAll_effects <- rbind(homAll_effects,
@@ -513,7 +519,8 @@ ctmaPower <- function(
     pValues <- matrix(NA, nrow=length(usedTimeRange), ncol=(1+n.latent^2-n.latent)); pValues[1,]
     tmp1 <- diag(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); tmp1
     tmp2 <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); tmp2
-    colnames(pValues) <- c("Interval", paste0("p(", tmp2[!(tmp2 %in% tmp1)], ")") ); colnames(pValues)
+    #colnames(pValues) <- c("Interval", paste0("p(", tmp2[!(tmp2 %in% tmp1)], ")") ); colnames(pValues)
+    colnames(pValues) <- c("Interval", paste0("(", tmp2[!(tmp2 %in% tmp1)], ")") ); colnames(pValues)
 
     #for (t in 2:(length(usedTimeRange)-1)) {
     for (t in 2:(length(usedTimeRange))) {
@@ -529,7 +536,7 @@ ctmaPower <- function(
       phi <- cbind(rbind(phi, tmpMat), rbind(tmpMat, tmpMat)); #phi
       psi <- cbind(rbind(tmpMat, tmpMat), rbind(tmpMat, psi)); #psi
       tmp <- solve(B) %*% phi %*% t(solve(B)) + psi; #tmp
-      implCov[[t]] <- stats::cov2cor(tmp); implCov[[t]]
+      implCov[[t]] <- stats::cov2cor(tmp); #implCov[[t]]
       rownames(implCov[[t]]) <- varNames
       colnames(implCov[[t]]) <- varNames
 
@@ -548,7 +555,7 @@ ctmaPower <- function(
   }
 
   print(paste0("#################################################################################"))
-  print(paste0("###### Compute min and max time interval in which effects are significant #######"))
+  print(paste0("# Compute min and max discrete time intervals for which effects are significant #"))
   print(paste0("#################################################################################"))
 
   targetNames <- colnames(pValues)[-1]; targetNames
@@ -562,14 +569,14 @@ ctmaPower <- function(
     tmp6 <- paste0("with p < ", failSafeP, " assuming N = ", round(failSafeN, 0), " is ", tmp2, ". "); tmp6
     tmp7 <- NULL
     if (is.null(timeRange)) {
-      tmp7 <- paste0("Note that you have not provided an epxlicit time range for analysis of stastistical power. "); tmp7
+      tmp7 <- paste0("Note that you have not provided an explicit time range for analysis of statistical power. "); tmp7
       tmp7 <- paste0(tmp7, "The time intervals used ranged from 1 to 1.5 times the longest interval used "); tmp7
       tmp7 <- paste0(tmp7, "in the primary studies, using integer steps of 1.0. These intervals were then "); tmp7
       tmp7 <- paste0(tmp7, "augmented by time intervals found in primary studies that were non-integers."); tmp7
     }
     significanceRange[i] <- paste0(tmp3, tmp4, tmp5, tmp6, tmp7); significanceRange[i]
   }
-  significanceRange
+  #significanceRange
 
 
   print(paste0("#################################################################################"))

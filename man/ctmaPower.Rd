@@ -16,8 +16,6 @@ ctmaPower(
   digits = 4,
   activateRPB = FALSE,
   silentOverwrite = FALSE,
-  saveStatPower = "CoTiMAPower_AllResults",
-  loadStatPower = NULL,
   loadAllInvFit = c(),
   saveAllInvFit = NULL,
   loadAllInvWOSingFit = c(),
@@ -57,10 +55,6 @@ ctmaPower(
 \item{activateRPB}{""}
 
 \item{silentOverwrite}{""}
-
-\item{saveStatPower}{""}
-
-\item{loadStatPower}{""}
 
 \item{loadAllInvFit}{""}
 
