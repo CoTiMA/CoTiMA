@@ -13,6 +13,7 @@
 #' @param invariantDrift  ""
 #' @param coresToUse  ""
 #' @param CoTiMAStanctArgs  ""
+#' @param indVarying ""
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  crayon red
@@ -26,7 +27,7 @@ ctmaFit <- function(
   # Primary Study Fits
   ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
   primaryStudyList=NULL,               # created by the PREP file for moderator analyses
-  cluster=NULL,                        # vecto with clust variables (e.g., countries)
+  cluster=NULL,                        # vector with cluster variables (e.g., countries)
 
   # Directory names and file names
   activeDirectory=NULL,
@@ -41,13 +42,15 @@ ctmaFit <- function(
 
   # Fitting Parameters
   #type="stanct",
+  indVarying=FALSE,
+
   coresToUse=c(-1),
   CoTiMAStanctArgs=list(test=TRUE, scaleTI=TRUE, scaleTime=1/1,
                         savesubjectmatrices=FALSE, verbose=1,
                         datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
                         iter=1000, intoverstates=TRUE,
                         binomial=FALSE, fit=TRUE,
-                        intoverpop=FALSE, stationary=FALSE,
+                        intoverpop='auto', stationary=FALSE,
                         plot=FALSE, derrind="all",
                         optimize=TRUE, optimcontrol=list(is=F, stochastic=FALSE),
                         nlcontrol=list(),
@@ -94,47 +97,29 @@ ctmaFit <- function(
     }
     ctmaTempFit$n.studies <- length(targetStudyNumbers); ctmaTempFit$n.studies
     ctmaTempFit$statisticsList$allDeltas <- unlist(lapply(ctmaTempFit$studyList, function(extract) extract$delta_t))
-    ctmaTempFit$statisticsList$allDeltas
     ctmaTempFit$statisticsList$minDelta <- min(ctmaTempFit$statisticsList$allDeltas, na.rm=TRUE)
-    ctmaTempFit$statisticsList$minDelta
     ctmaTempFit$statisticsList$maxDelta <- max(ctmaTempFit$statisticsList$allDeltas, na.rm=TRUE)
-    ctmaTempFit$statisticsList$maxDelta
     ctmaTempFit$statisticsList$meanDelta <- mean(ctmaTempFit$statisticsList$allDeltas, na.rm=TRUE)
-    ctmaTempFit$statisticsList$meanDelta
     ctmaTempFit$statisticsList$overallSampleSize <- sum(ctmaTempFit$statisticsList$allSampleSizes, na.rm = TRUE)
-    ctmaTempFit$statisticsList$overallSampleSize
     ctmaTempFit$statisticsList$meanSampleSize <- mean(ctmaTempFit$statisticsList$allSampleSizes, na.rm = TRUE)
-    ctmaTempFit$statisticsList$meanSampleSize
     ctmaTempFit$statisticsList$maxSampleSize <- max(ctmaTempFit$statisticsList$allSampleSizes, na.rm = TRUE)
-    ctmaTempFit$statisticsList$maxSampleSize
     ctmaTempFit$statisticsList$minSampleSize <- min(ctmaTempFit$statisticsList$allSampleSizes, na.rm = TRUE)
-    ctmaTempFit$statisticsList$minSampleSize
     ctmaTempFit$statisticsList$overallTpoints <- sum(ctmaTempFit$statisticsList$allTpoints, na.rm = TRUE)
-    ctmaTempFit$statisticsList$overallTpoints
     ctmaTempFit$statisticsList$meanTpoints <- mean(ctmaTempFit$statisticsList$allTpoints, na.rm = TRUE)
-    ctmaTempFit$statisticsList$meanTpoints
     ctmaTempFit$statisticsList$maxTpoints <- max(ctmaTempFit$statisticsList$allTpoints, na.rm = TRUE)
-    ctmaTempFit$statisticsList$maxTpoints
     ctmaTempFit$statisticsList$minTpoints <- min(ctmaTempFit$statisticsList$allTpoints, na.rm = TRUE)
-    ctmaTempFit$statisticsList$minTpoints
     ctmaTempFit$summary$model <- "Moderator Model (for details see model summary)"
     tmpStudyNumber <- as.numeric(gsub("Study No ", "", rownames(ctmaTempFit$summary$estimates))); tmpStudyNumber
     targetRows <- which(tmpStudyNumber %in% targetStudyNumbers); targetRows; length(targetRows)
     ctmaTempFit$summary$estimates <- ctmaTempFit$summary$estimates[targetRows, ]
-    ctmaTempFit$summary$estimates
     ctmaTempFit$summary$confidenceIntervals <- ctmaTempFit$summary$confidenceIntervals[targetRows, ]
-    ctmaTempFit$summary$confidenceIntervals
     ctmaTempFit$summary$n.parameters <- ctmaTempFit$studyFitList[[1]]$resultsSummary$npars * length(targetRows)
-    ctmaTempFit$summary$n.parameters
     ctmaTempFit$statisticsList$originalStudyNumbers <-
       ctmaTempFit$statisticsList$originalStudyNumbers[which(!(is.na(ctmaTempFit$statisticsList$originalStudyNumbers)))]
-    ctmaTempFit$statisticsList$originalStudyNumbers
     ctmaTempFit$statisticsList$allSampleSizes <-
       ctmaTempFit$statisticsList$allSampleSizes[which(!(is.na(ctmaTempFit$statisticsList$allSampleSizes)))]
-    ctmaTempFit$statisticsList$allSampleSizes
     ctmaTempFit$statisticsList$allTpoints <-
       ctmaTempFit$statisticsList$allTpoints[which(!(is.na(ctmaTempFit$statisticsList$allTpoints)))]
-    ctmaTempFit$statisticsList$allTpoints
 
     ctmaInitFit <- ctmaTempFit
   }
@@ -168,8 +153,8 @@ ctmaFit <- function(
     maxTpoints <- max(allTpoints); maxTpoints
     allDeltas <- ctmaInitFit$statisticsList$allDeltas; allDeltas
     maxDelta <- max(allDeltas, na.rm=TRUE); maxDelta
-    ctmaInitFit$studyFitList[[1]]$ctstanmodel$manifestNames
     manifestNames <- ctmaInitFit$studyFitList[[1]]$ctstanmodel$manifestNames; manifestNames
+    n.manifest <- length(manifestNames); n.manifest
     driftNames <- ctmaInitFit$parameterNames$DRIFT; driftNames
     if (is.null(invariantDrift)) invariantDrift <- driftNames
     usedTimeRange <- seq(0, 1.5*maxDelta, 1)
@@ -188,7 +173,7 @@ ctmaFit <- function(
     names(groups) <- c("Study_No_"); groups
     groupsNamed <- (paste0("Study_No_", groups)); groupsNamed
 
-    # auggment pseudo raw data for stanct model
+    # augment pseudo raw data for stanct model
     dataTmp <- cbind(datawide_all, groups)
     for (i in 1:(n.studies-1)) {
       tmp <- matrix(0, nrow=nrow(dataTmp)); tmp
@@ -222,13 +207,18 @@ ctmaFit <- function(
     } else {
       clusCounter <- 0
     }
-
-    dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1+clusCounter),
+    n.var <- max(n.manifest, n.latent); n.var
+    #dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1+clusCounter),
+    #                                manifestNames=manifestNames)
+    dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.var, n.TIpred = (n.studies-1+clusCounter),
                                     manifestNames=manifestNames)
     dataTmp3 <- ctsem::ctDeintervalise(dataTmp2)
     dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
+    utils::head(dataTmp3)
     # eliminate rows where ALL latents are NA
-    dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+    if (n.manifest > n.latent) namePart <- "y" else namePart <- "V"
+    #dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+    dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0(namePart, 1:n.var)], 1, function(x) sum(is.na(x)) != n.var ), ]
     datalong_all <- dataTmp3
   }
   datalong_all <- as.data.frame(datalong_all)
@@ -237,21 +227,56 @@ ctmaFit <- function(
   ############################################# CoTiMA (ctsem multigroup) ###############################################
   #######################################################################################################################
 
+  tmp1 <- ctmaInitFit$studyFitList[[1]]$ctstanmodelbase$pars
 
-  # Make model with most time points
+  tmp2 <- tmp1$matrix=="DRIFT"; tmp2
+  DRIFT <- tmp1[tmp2,]$param; DRIFT
+  DRIFT[is.na(DRIFT)] <- "0"; DRIFT
+
+  tmp2 <- tmp1$matrix=="LAMBDA"; tmp2
+  LAMBDA <- tmp1[tmp2,]$value; LAMBDA
+  LAMBDA <- matrix(LAMBDA, nrow= n.var, byrow=TRUE); LAMBDA
+
+  tmp2 <- tmp1$matrix=="MANIFESTVAR"; tmp2
+  MANIFESTVAR <- tmp1[tmp2,]$value; MANIFESTVAR
+  MANIFESTVAR <- matrix(MANIFESTVAR, nrow= n.var); MANIFESTVAR
+
+  # Make model with max time points
   {
-    stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
-                                  DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE),
-                                  LAMBDA=diag(n.latent),
+    stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
+                                  DRIFT=matrix(DRIFT, nrow=n.latent, ncol=n.latent, byrow=TRUE),
+                                  LAMBDA=LAMBDA,
                                   CINT=matrix(0, nrow=n.latent, ncol=1),
                                   T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                  MANIFESTMEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                  MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent),
-                                  MANIFESTTRAITVAR = 'auto',
+                                  MANIFESTMEANS = matrix(c(0), nrow = n.var, ncol = 1),
+                                  MANIFESTVAR=MANIFESTVAR,
                                   type = 'stanct',
                                   n.TIpred = (n.studies-1+clusCounter),
                                   TIpredNames = paste0("TI", 1:(n.studies-1+clusCounter)),
                                   TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter)))
+
+    if (indVarying == TRUE) {
+      print(paste0("#################################################################################"))
+      print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
+      print(paste0("#################################################################################"))
+
+      manifestNames <- paste0("y", 1:n.manifest); manifestNames
+      latentNames <- paste0("V", 1:2); latentNames
+      if (n.manifest == n.latent) manifestNames <- latentNames
+      MANIFESTMEANS <- manifestNames; MANIFESTMEANS
+
+      stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
+                                    DRIFT=matrix(DRIFT, nrow=n.latent, ncol=n.latent, byrow=TRUE),
+                                    LAMBDA=LAMBDA,
+                                    CINT=matrix(0, nrow=n.latent, ncol=1),
+                                    T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                    MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.manifest, ncol = 1),
+                                    MANIFESTVAR=MANIFESTVAR,
+                                    type = 'stanct',
+                                    n.TIpred = (n.studies-1+clusCounter),
+                                    TIpredNames = paste0("TI", 1:(n.studies-1+clusCounter)),
+                                    TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter)))
+    }
 
     #stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
@@ -271,8 +296,6 @@ ctmaFit <- function(
   tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDrift); tmp2
   #stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
   stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
-  stanctModel$pars
-
 
   fitStanctModel <- ctsem::ctStanFit(
     datalong = datalong_all,
@@ -295,7 +318,7 @@ ctmaFit <- function(
     forcerecompile=CoTiMAStanctArgs$forcerecompile,
     savescores=CoTiMAStanctArgs$savescores,
     gendata=CoTiMAStanctArgs$gendata,
-    control=CoTiMAStanctArgs$control,
+    #control=CoTiMAStanctArgs$control,
     verbose=CoTiMAStanctArgs$verbose,
     warmup=CoTiMAStanctArgs$warmup,
     cores=coresToUse)
@@ -313,6 +336,7 @@ ctmaFit <- function(
   # re-label
   tmp1 <- which(rownames(invariantDrift_Coeff) == "DRIFT"); tmp1
   driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); driftNamesTmp
+  #driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); driftNamesTmp
   #rownames(invariantDrift_Coeff)[tmp1] <- driftNames; invariantDrift_Coeff
   rownames(invariantDrift_Coeff)[tmp1] <- driftNamesTmp; invariantDrift_Coeff
   tmp2 <- which(rownames(invariantDrift_Coeff) %in% invariantDrift); tmp2
@@ -369,9 +393,13 @@ ctmaFit <- function(
       if (j != h) {
         targetRow <- j
         targetCol <- h
-        targetParameters <- sapply(usedTimeRange, OTL)
-        maxCrossEffect[j,h] <- max(abs(targetParameters))
-        optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])*1+0
+        if (driftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
+          targetParameters <- sapply(usedTimeRange, OTL)
+          maxCrossEffect[j,h] <- max(abs(targetParameters))
+          optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])*1+0
+        } else {
+          optimalCrossLag[j,h] <- NA
+        }
       }
     }
   }

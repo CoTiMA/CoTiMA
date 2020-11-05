@@ -7,11 +7,14 @@
 ctmaInit(
   primaryStudies = NULL,
   activeDirectory = NULL,
-  loadFilePrefix = "ctmaInit",
   activateRPB = FALSE,
   checkSingleStudyResults = TRUE,
   digits = 4,
   n.latent = NULL,
+  n.manifest = 0,
+  lambda = NULL,
+  manifestVars = NULL,
+  drift = NULL,
   saveRawData = list(),
   coresToUse = c(1),
   silentOverwrite = FALSE,
@@ -20,7 +23,7 @@ ctmaInit(
   CoTiMAStanctArgs = list(test = TRUE, scaleTI = TRUE, scaleMod = TRUE, scaleLongData =
     FALSE, scaleTime = 1/1, savesubjectmatrices = FALSE, verbose = 1, datalong = NA,
     ctstanmodel = NA, stanmodeltext = NA, iter = 1000, intoverstates = TRUE, binomial =
-    FALSE, fit = TRUE, intoverpop = FALSE, stationary = FALSE, plot = FALSE, derrind =
+    FALSE, fit = TRUE, intoverpop = "auto", stationary = FALSE, plot = FALSE, derrind =
     "all", optimize = TRUE, optimcontrol = list(is = F, stochastic = FALSE, finishsamples
     = 1000), nlcontrol = list(), nopriors = TRUE, chains = 2, cores = 1, inits = NULL,
     forcerecompile = FALSE,      savescores = FALSE, gendata = FALSE, control =
@@ -33,8 +36,6 @@ ctmaInit(
 
 \item{activeDirectory}{"Directory name"}
 
-\item{loadFilePrefix}{"File name prefix"}
-
 \item{activateRPB}{"set to TRUE to receive push messages with CoTiMA notifications on your phone"}
 
 \item{checkSingleStudyResults}{"displays estimates from single study ctsem models and waits for user inoput to continue"}
@@ -42,6 +43,14 @@ ctmaInit(
 \item{digits}{"Number of digits in outputs"}
 
 \item{n.latent}{"Number of latent variables of the model"}
+
+\item{n.manifest}{""}
+
+\item{lambda}{""}
+
+\item{manifestVars}{""}
+
+\item{drift}{""}
 
 \item{saveRawData}{"save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec"}
 

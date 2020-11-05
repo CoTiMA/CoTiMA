@@ -12,11 +12,12 @@ ctmaFit(
   activateRPB = FALSE,
   digits = 4,
   invariantDrift = NULL,
+  indVarying = FALSE,
   coresToUse = c(-1),
   CoTiMAStanctArgs = list(test = TRUE, scaleTI = TRUE, scaleTime = 1/1,
     savesubjectmatrices = FALSE, verbose = 1, datalong = NA, ctstanmodel = NA,
     stanmodeltext = NA, iter = 1000, intoverstates = TRUE, binomial = FALSE, fit = TRUE,
-    intoverpop = FALSE, stationary = FALSE, plot = FALSE, derrind = "all", optimize =
+    intoverpop = "auto", stationary = FALSE, plot = FALSE, derrind = "all", optimize =
     TRUE, optimcontrol = list(is = F, stochastic = FALSE), nlcontrol = list(), nopriors =
     TRUE, chains = 2, cores = 1, inits = NULL, forcerecompile = FALSE, savescores =
     FALSE, gendata = FALSE, control = list(adapt_delta = 0.8,      adapt_window = 2,
@@ -38,6 +39,8 @@ ctmaFit(
 \item{digits}{""}
 
 \item{invariantDrift}{""}
+
+\item{indVarying}{""}
 
 \item{coresToUse}{""}
 
