@@ -7,7 +7,6 @@
 #'
 #' @param primaryStudies "list of primary study information created with ctmaPrep"
 #' @param activeDirectory "Directory name"
-#' @param loadFilePrefix "File name prefix"
 #' @param activateRPB "set to TRUE to receive push messages with CoTiMA notifications on your phone"
 #' @param checkSingleStudyResults "displays estimates from single study ctsem models and waits for user inoput to continue"
 #' @param digits "Number of digits in outputs"
@@ -29,8 +28,6 @@ ctmaInit <- function(
 
   # Directory names and file names
   activeDirectory=NULL,
-  loadFilePrefix="ctmaInit",
-
 
   # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
   activateRPB=FALSE,                      #set to TRUE to receive push messages with CoTiMA notifications on your phone
@@ -64,7 +61,7 @@ ctmaInit <- function(
                         datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
                         iter=1000, intoverstates=TRUE,
                         binomial=FALSE, fit=TRUE,
-                        intoverpop=FALSE, stationary=FALSE,
+                        intoverpop='auto', stationary=FALSE,
                         plot=FALSE, derrind="all",
                         optimize=TRUE, optimcontrol=list(is=F, stochastic=FALSE, finishsamples=1000),
                         nlcontrol=list(),
@@ -232,8 +229,9 @@ ctmaInit <- function(
       latentNames <- paste0("V", 1:n.latent); latentNames
     } else {
       manifestNames <- paste0("V", 1:n.latent); manifestNames
+      latentNames <- paste0("V", 1:n.latent); latentNames
     }
-    manifestNames; latentNames
+    #manifestNames; latentNames
 
     for (i in 1:n.studies) {
       #i <- 1
@@ -494,7 +492,6 @@ ctmaInit <- function(
 
     # error variances
     if(!(is.null(manifestVars))) manifestVarPattern <- manifestVars else manifestVarPattern <- 0
-    manifestVarPattern
 
     # T0 variance
     T0VAR <- "auto"
