@@ -414,20 +414,6 @@ ctmaPlot <- function(
 
   if ("drift" %in% unlist(plot.type)) {
 
-    # check time unit
-    #if (timeUnit=="timeUnit") {
-    #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    #  cat(crayon::red$bold("The default time interval (timeUnit) has been chosen.", "\n"))
-    #  cat(red$bold("The default time interval (timeUnit) has been chosen.", "\n"))
-    #  cat(blue("Press 'q' to quit and specify or 'c' to continue. Press ENTER afterwards ", "\n"))
-    #  char <- readline(" ")
-    #  while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
-    #    cat((blue("Please press 'q' to quit and specify time interval or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
-    #    char <- readline(" ")
-    #  }
-    #  if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
-    #}
-
     # Function to compute discrete parameters using drift parameters and time-scaling factors
     discreteDrift <-function(driftMatrix, timeScale, number) {
       discreteDriftValue <- OpenMx::expm(timeScale %x% driftMatrix)
@@ -438,7 +424,7 @@ ctmaPlot <- function(
     ############## Extracting Parameters from Fitted Primary Studies created with ctmaInit Function  ######################
     #######################################################################################################################
 
-    # can only plot (overlay) mutiple fitted objects if n.latent is identical
+    # can only plot (overlay) multiple fitted objects if n.latent is identical
     if (length(unique(unlist(n.latent))) > 1) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat(crayon::red$bold("A fitted CoTiMA object has to be supplied to plot something. \n"))
@@ -468,7 +454,6 @@ ctmaPlot <- function(
         noOfSteps <- length(usedTimeRange); noOfSteps
       }
 
-      #yLimitsForEffects
       # discrete effects across time range
       discreteDriftCoeff <- list()
       for (g in 1:n.fitted.obj) {
