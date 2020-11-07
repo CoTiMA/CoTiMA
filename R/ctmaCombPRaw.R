@@ -10,6 +10,7 @@ ctmaCombPRaw <- function(listOfStudyFits=NULL, moderatorValues=NULL) {
   allSampleSizes <- maxLatents <- allTpoints <- c()
   n.latent <- listOfStudyFits$n.latent; n.latent
   n.manifest <- listOfStudyFits$n.manifest; n.manifest
+  if (is.null(n.manifest)) n.manifest <- 0
 
   allSampleSizes <- listOfStudyFits$statisticsList$allSampleSizes; allSampleSizes
   allTpoints <- listOfStudyFits$statisticsList$allTpoints; allTpoints; length(allTpoints)
