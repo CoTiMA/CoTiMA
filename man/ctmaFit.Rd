@@ -12,6 +12,7 @@ ctmaFit(
   activateRPB = FALSE,
   digits = 4,
   invariantDrift = NULL,
+  drift = NULL,
   indVarying = FALSE,
   coresToUse = c(-1),
   CoTiMAStanctArgs = list(test = TRUE, scaleTI = TRUE, scaleTime = 1/1,
@@ -39,6 +40,8 @@ ctmaFit(
 \item{digits}{""}
 
 \item{invariantDrift}{""}
+
+\item{drift}{""}
 
 \item{indVarying}{""}
 

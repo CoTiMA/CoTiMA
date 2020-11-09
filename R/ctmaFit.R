@@ -11,6 +11,7 @@
 #' @param activateRPB  ""
 #' @param digits  ""
 #' @param invariantDrift  ""
+#' @param drift ""
 #' @param coresToUse  ""
 #' @param CoTiMAStanctArgs  ""
 #' @param indVarying ""
@@ -39,6 +40,7 @@ ctmaFit <- function(
 
   # General Model Setup
   invariantDrift=NULL,
+  drift=NULL,
 
   # Fitting Parameters
   #type="stanct",
@@ -154,7 +156,7 @@ ctmaFit <- function(
     allDeltas <- ctmaInitFit$statisticsList$allDeltas; allDeltas
     maxDelta <- max(allDeltas, na.rm=TRUE); maxDelta
     manifestNames <- ctmaInitFit$studyFitList[[1]]$ctstanmodel$manifestNames; manifestNames
-    n.manifest <- length(manifestNames); n.manifest
+    if (is.null(manifestNames)) n.manifest <- 0 else n.manifest <- length(manifestNames)
     driftNames <- ctmaInitFit$parameterNames$DRIFT; driftNames
     if (is.null(invariantDrift)) invariantDrift <- driftNames
     usedTimeRange <- seq(0, 1.5*maxDelta, 1)
@@ -335,8 +337,8 @@ ctmaFit <- function(
   invariantDrift_Coeff <- round(cbind(invariantDriftStanctFit$parmatrices, Tvalues), digits); invariantDrift_Coeff
   # re-label
   tmp1 <- which(rownames(invariantDrift_Coeff) == "DRIFT"); tmp1
-  driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); driftNamesTmp
-  #driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); driftNamesTmp
+  #driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); driftNamesTmp
+  driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); driftNamesTmp
   #rownames(invariantDrift_Coeff)[tmp1] <- driftNames; invariantDrift_Coeff
   rownames(invariantDrift_Coeff)[tmp1] <- driftNamesTmp; invariantDrift_Coeff
   tmp2 <- which(rownames(invariantDrift_Coeff) %in% invariantDrift); tmp2

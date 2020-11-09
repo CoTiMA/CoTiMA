@@ -26,8 +26,8 @@ ctmaCompFit <- function(model1=NULL, model2=NULL) {
         }
       allResults[[counter]]$"Model: " <- paste0(names.model1[i], " COMPARED WITH   Model: ", names.model2[j]); allResults[[counter]]$comparison
       allResults[[counter]]$"Diff_Minus2LL: " <- abs((abs(model1$summary$minus2ll[[i]]) - abs(model2$summary$minus2ll[[j]]))); allResults[[counter]]$Diff_Minus2LL
-      allResults[[counter]]$"Diff_df: " <- abs((model1$summary$n.parameters[[i]] - model2$summary$n.parameters[[j]])); allResults[[counter]]$Diff_df
-      if (allResults[[counter]]$"Diff_df: " > 0 ) {
+      allResults[[counter]]$"Diff_df (= Diff_n.params): " <- abs((model1$summary$n.parameters[[i]] - model2$summary$n.parameters[[j]])); allResults[[counter]]$Diff_df
+      if (allResults[[counter]]$"Diff_df (= Diff_n.params): " > 0 ) {
         allResults[[counter]]$"prob: " <- 1-stats::pchisq(allResults[[counter]]$Diff_Minus2LL, allResults[[counter]]$Diff_df); allResults[[counter]]$prob
       } else {
         allResults[[counter]]$"prob: " <- "Diff_df = 0, thus probability cannot be computed"

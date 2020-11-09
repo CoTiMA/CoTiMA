@@ -732,16 +732,20 @@ ctmaInit <- function(
       resultsSummary <- studyFit[[i]]$resultsSummary; resultsSummary
 
       tmp <- grep("toV", rownames(resultsSummary$popmeans)); tmp
-      model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=TRUE)); model_Drift_Coef[[i]]
+      #model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=TRUE)); model_Drift_Coef[[i]]
+      model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=FALSE)); model_Drift_Coef[[i]]
       #names(model_Drift_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_Drift_Coef[[i]]
       names(model_Drift_Coef[[i]]) <- c(fullDriftNames); model_Drift_Coef[[i]]
 
-      model_Drift_SE[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Sd"], n.latent, byrow=TRUE)); model_Drift_SE[[i]]
+      #model_Drift_SE[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Sd"], n.latent, byrow=TRUE)); model_Drift_SE[[i]]
+      model_Drift_SE[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Sd"], n.latent, byrow=FALSE)); model_Drift_SE[[i]]
       #names(model_Drift_SE[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_Drift_SE[[i]]
       names(model_Drift_SE[[i]]) <- c(fullDriftNames); model_Drift_SE[[i]]
 
-      tmp1 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "2.5%"], n.latent, byrow=TRUE)); tmp1
-      tmp2 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "97.5%"], n.latent, byrow=TRUE)); tmp2
+      #tmp1 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "2.5%"], n.latent, byrow=TRUE)); tmp1
+      #tmp2 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "97.5%"], n.latent, byrow=TRUE)); tmp2
+      tmp1 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "2.5%"], n.latent, byrow=FALSE)); tmp1
+      tmp2 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "97.5%"], n.latent, byrow=FALSE)); tmp2
       model_Drift_CI[[i]] <- c(rbind(tmp1, tmp2)); model_Drift_CI[[i]]
       #tmp3 <- c(rbind(paste0(rownames(resultsSummary$popmeans)[tmp], "LL"),
       #                paste0(rownames(resultsSummary$popmeans)[tmp], "UL"))); tmp3

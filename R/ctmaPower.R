@@ -156,10 +156,17 @@ ctmaPower <- function(
 
   {
     n.latent <- ctmaInitFit$n.latent; n.latent
+    n.manifest <- ctmaInitFit$n.manifest; n.manifest
+    if (is.null(n.manifest)) n.manifest <- 0
     if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
     n.studies <- ctmaInitFit$n.studies; n.studies
     manifestNames <- ctmaInitFit$studyFitList[[1]]$ctstanmodel$manifestNames; manifestNames
     driftNames <- driftNamesBackup <- ctmaInitFit$parameterNames$DRIFT; driftNames
+    # check if drift effects were fixed to 0
+    tmp1 <- rownames(ctmaInitFit$studyFitList[[1]]$resultsSummary$popmeans); tmp1
+    tmp2 <- which(!(driftNames %in% tmp1)); tmp2
+    if (length(tmp2) != 0) driftNames[tmp2] <- "0"
+    driftNames <- c(matrix(driftNames, n.latent, byrow=TRUE));     driftNames
     diffusionNames <- diffusionNamesBackup <- ctmaInitFit$parameterNames$DIFFUSION; diffusionNames
     T0varNames <- T0varNamesBackup <- ctmaInitFit$parameterNames$T0VAR; T0varNames
 
@@ -222,15 +229,15 @@ ctmaPower <- function(
     maxTpoints <- max(allTpoints); maxTpoints # replacement
 
     # CHD ctsemModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
-    ctsemModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
-                          DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE), # byrow because names are in stanct order
-                          LAMBDA=diag(n.latent),
-                          type='stanct',
-                          #CINT=matrix(cintNames, nrow=n.latent, ncol=1),
-                          CINT=matrix(0, nrow=n.latent, ncol=1),
-                          T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                          MANIFESTMEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                          MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent))
+    #ctsemModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
+    #                      DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE), # byrow because names are in stanct order
+    #                      LAMBDA=diag(n.latent),
+    #                      type='stanct',
+    #                      #CINT=matrix(cintNames, nrow=n.latent, ncol=1),
+    #                      CINT=matrix(0, nrow=n.latent, ncol=1),
+    #                      T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+    #                      MANIFESTMEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+    #                      MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent))
 
     allDeltas <- ctmaInitFit$statisticsList$allDeltas; allDeltas
     maxDelta <- max(allDeltas); maxDelta
@@ -318,6 +325,7 @@ ctmaPower <- function(
                            T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
                            MANIFESTMEANS = matrix(c(0), nrow = n.latent, ncol = 1),
                            MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent))
+
   # LOAD or Fit
   if (length(loadAllInvFit) > 0) {
     x1 <- paste0(activeDirectory, loadAllInvFit[1], ".rds"); x1
@@ -365,14 +373,18 @@ ctmaPower <- function(
   {
     tmp <- grep("toV", rownames(resultsSummary$popmeans)); tmp
     homAll_Drift_Coef <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=TRUE)); homAll_Drift_Coef
-    names(homAll_Drift_Coef) <- rownames(resultsSummary$popmeans)[tmp]; homAll_Drift_Coef
+    names(homAll_Drift_Coef) <- driftNames
+    #names(homAll_Drift_Coef) <- rownames(resultsSummary$popmeans)[tmp]; homAll_Drift_Coef
     homAll_Drift_SE <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Sd"], n.latent, byrow=TRUE)); homAll_Drift_SE
-    names(homAll_Drift_SE) <- rownames(resultsSummary$popmeans)[tmp]; homAll_Drift_SE
+    names(homAll_Drift_SE) <- driftNames
+    #names(homAll_Drift_SE) <- rownames(resultsSummary$popmeans)[tmp]; homAll_Drift_SE
     tmp1 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "2.5%"], n.latent, byrow=TRUE)); tmp1
     tmp2 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "97.5%"], n.latent, byrow=TRUE)); tmp2
     homAll_Drift_CI <- c(rbind(tmp1, tmp2)); homAll_Drift_CI
-    tmp3 <- c(rbind(paste0(rownames(resultsSummary$popmeans)[tmp], "LL"),
-                    paste0(rownames(resultsSummary$popmeans)[tmp], "UL"))); tmp3
+    tmp3 <- c(rbind(paste0(driftNames, "LL"),
+                    paste0(driftNames, "UL"))); tmp3
+    #tmp3 <- c(rbind(paste0(rownames(resultsSummary$popmeans)[tmp], "LL"),
+    #                paste0(rownames(resultsSummary$popmeans)[tmp], "UL"))); tmp3
     names(homAll_Drift_CI) <- tmp3; homAll_Drift_CI
     homAll_Drift_Tvalue <- homAll_Drift_Coef/homAll_Drift_SE; homAll_Drift_Tvalue
 
@@ -409,15 +421,6 @@ ctmaPower <- function(
     #homAll_df <- ctmaInitFit$summary$df+(ctmaInitFit$summary$n.parameters-homAll_estimatedParameters); homAll_df
     homAll_df <- NULL
 
-    # Combine summary information
-    #vech2full <- function(x) {
-    #  n.var <- -1/2 + sqrt(1/4 + 2*length(x)) ; n.var
-    #  tmp <- matrix(NA, n.var, n.var); tmp
-    #  tmp[lower.tri(tmp, diag=TRUE)] <- homAll_Diffusion_Coef; tmp
-    #  tmp[upper.tri(tmp, diag=TRUE)] <- t(homAll_Diffusion_Coef); tmp
-    #  return(tmp)
-    #}
-
     homAll_effects <- matrix(t(cbind((homAll_Drift_Coef), (homAll_Drift_SE),
                                      (homAll_Drift_Tvalue))), 1, 3*length(driftNames), byrow=T); homAll_effects
     homAll_effects <- rbind(homAll_effects,
@@ -452,13 +455,24 @@ ctmaPower <- function(
     # full lavaan model setup
     {
       modelText <- c()
+      # check for drift effects fixed to 0 (reverse order here)
+      driftNamesTmp <- driftNamesBackup; driftNamesTmp
+      tmp1 <- rownames(ctmaInitFit$studyFitList[[1]]$resultsSummary$popmeans); tmp1
+      tmp2 <- which(!(driftNamesTmp %in% tmp1)); tmp2
+      if (length(tmp2) != 0) driftNamesTmp[tmp2] <- "0"
+      driftNamesTmp <- c(matrix(driftNamesTmp, n.latent, byrow=FALSE)); driftNamesTmp
+
       counter <- 0
       for (i in 1:n.latent) {
         counter <- counter + 1
         modelText[counter] <- ""
         for (j in 1:n.latent) {
-          if (j == 1) modelText[counter] <- paste0(modelText[counter], paste0("V", i, "T1 ~ V", j, "T0"))
-          if (j != 1) modelText[counter] <- paste0(modelText[counter], paste0(" + V", j, "T0"))
+          tmp1 <- paste0("V", j, "toV", i); tmp1
+          if(tmp1 %in% driftNamesTmp) {  # if drift effect is not fixed to 0
+            if (j == 1) modelText[counter] <- paste0(modelText[counter], paste0("V", i, "T1 ~ V", j, "T0"))
+            if (j != 1) modelText[counter] <- paste0(modelText[counter], paste0(" + V", j, "T0"))
+          }
+            modelText
         }
       }
       counter <- n.latent; counter
@@ -487,13 +501,14 @@ ctmaPower <- function(
         if (i != j) {
           counter <- counter + 1
           if (i == 1) {
-            toDelete <- paste0(" \\+", " V", j, "T0"); toDelete
+            toDelete <- paste0("\\+", " V", j, "T0"); toDelete
           } else {
             toDelete <- paste0("V", j, "T0 ", "\\+"); toDelete
           }
           tmp2[i] <- gsub(toDelete, "", tmp2[i]); tmp2[i]
           tmp3 <- paste(tmp2, sep="", collapse="\n "); tmp3
           model.wo[[counter]] <- paste0("\n ", tmp3, "\n"); model.wo[[counter]]
+          model.wo[[counter]] <- gsub("\\ \\ ", " ", model.wo[[counter]])
         }
       }
     }
@@ -524,10 +539,12 @@ ctmaPower <- function(
 
     #for (t in 2:(length(usedTimeRange)-1)) {
     for (t in 2:(length(usedTimeRange))) {
+      #t <- 2
       # compute the covariance matrix implied by the dt-coefficients across requested time intervals
       # for equations see Neudecker, H. & Satorra, A. (1991). Linear structural relations: Gradient and ...
       # ... Hessian of the fitting function. Statistics & Probability Letters 11 (1991) 57-61. North-Holland
       #
+
       beta <- discreteDriftFunction(DRIFT, usedTimeRange[t]); beta
       tmpMat <- matrix(0, n.latent, n.latent); tmpMat
       B <- diag(1, 2*n.latent) - cbind(rbind(tmpMat, beta), rbind(tmpMat, tmpMat)); B
@@ -546,6 +563,7 @@ ctmaPower <- function(
         failSafeN <- mean(allSampleSizes)
       }
       model.full.fit2 <- lavaan::sem(model.full, sample.cov = implCov[[t]], sample.nobs = failSafeN)
+
       tmp2 <- summary(model.full.fit2); #tmp2
       tmp3 <- which(tmp2$PE$op == '~'); #tmp3
       tmp4a <- gsub("T1", "", tmp2$PE$lhs[tmp3]); #tmp4a
@@ -559,6 +577,11 @@ ctmaPower <- function(
   print(paste0("#################################################################################"))
 
   targetNames <- colnames(pValues)[-1]; targetNames
+
+  # eliminate drift effects that were fixed to 0
+  tmp1 <- which(targetNames =="(0)"); tmp1
+  if (length(tmp1) != 0) targetNames <- targetNames[-tmp1]; targetNames
+
   significanceRange <- c()
   for (i in 1:(length(targetNames))) {
     tmp1 <- usedTimeRange[min(which(pValues[,targetNames[i]] < failSafeP))]; tmp1
@@ -702,6 +725,16 @@ ctmaPower <- function(
     print(paste0("#################################################################################"))
   } # end h loop (length(statisticalPower))
 
+  #effectSizesBackp <- effectSizes
+
+  # shortcut: eliminate effects that were fixed to zero
+  for (l in length(listPowerAlpha05):1) {
+    tmp1 <- apply(listPowerAlpha05[[l]], 2, mean, na.rm=TRUE); tmp1
+    if (round(tmp1[2], 4) == .0250) listPowerAlpha05[[l]] <- NULL
+    tmp1 <- apply(listPowerAlpha01[[l]], 2, mean, na.rm=TRUE); tmp1
+    if (round(tmp1[2], 4) == .0050) listPowerAlpha01[[l]] <- NULL
+  }
+
   # Table of required sample sizes for range of different time lags (a priori power)
   requiredSampleSizes <- list()
   currentDriftNames <- c()
@@ -711,17 +744,28 @@ ctmaPower <- function(
       counter1 <- counter1 + 1 # does not seem to be necessary
       if (j1 != j2 ) {
         counter2 <- counter2 + 1
-        requiredSampleSizes[[counter2]] <- plotPairs[counter2, , , 2]
-        currentDriftNames <- c(currentDriftNames, driftNamesBackup[counter1])
-        rowNames  <- plotPairs[counter2, 1, , 1]
+        if ( paste0("V", j2, "toV", j1) %in% driftNames) {
+            requiredSampleSizes[[counter2]] <- plotPairs[counter2, , , 2]
+            #currentDriftNames <- c(currentDriftNames, driftNamesBackup[counter1])
+            currentDriftNames <- c(currentDriftNames, driftNames[counter1])
+          rowNames  <- plotPairs[counter2, 1, , 1]
+        }
       }
     }
   }
+  # eliminate RSS for drift effects that were fixed to zero
+  for (l in length(requiredSampleSizes):1) if(is.null(requiredSampleSizes[[l]])) requiredSampleSizes[[l]] <- NULL
 
   # re-structure into a single table and replace 100000 by NA
-  numberOfEffects <- n.latent^2 - n.latent; numberOfEffects
-  tmp <- requiredSampleSizes[[1]]; tmp
-  for (h in 2:(numberOfEffects)) tmp <- rbind(tmp, requiredSampleSizes[[h]])
+  #numberOfEffects <- n.latent^2 - n.latent; numberOfEffects
+  tmp1 <- n.latent^2-n.latent; tmp1
+  tmp2 <- length(which(driftNames == "0")); tmp2
+  numberOfEffects <- tmp1 - tmp2; numberOfEffects
+
+  #tmp <- matrix(requiredSampleSizes[[1]], nrow=1); tmp
+  tmp <- matrix(requiredSampleSizes[[1]], nrow=dim(requiredSampleSizes[[1]])[1]); tmp
+  if (numberOfEffects > 1) for (h in 2:(numberOfEffects)) tmp <- rbind(tmp, requiredSampleSizes[[h]])
+
   requiredSampleSizes <- t(tmp); requiredSampleSizes
   requiredSampleSizes[requiredSampleSizes==1000000] <- NA
 
@@ -735,33 +779,47 @@ ctmaPower <- function(
   colnames(requiredSampleSizes) <- columnNames
   rownames(requiredSampleSizes) <- round(rowNames, digits)
 
+
   # add (not really standardized) effect sizes based on matrix exponentiation
-  tmp1 <- as.numeric(rownames(requiredSampleSizes))
+  tmp1 <- as.numeric(rownames(requiredSampleSizes)); tmp1
   timeLags <- tmp1[!(is.na(tmp1))]; timeLags
-  effectSizes2 <- matrix(NA, nrow=length(usedTimeRange), ncol=(n.latent*(n.latent-1))); effectSizes2
+  effectSizes2 <- matrix(NA, nrow=length(usedTimeRange), ncol=numberOfEffects); effectSizes2
   effectCounter <- 0
   for (i in 1:n.latent) {
     for (j in 1:n.latent) {
       if (i != j) {
-        effectCounter <- effectCounter + 1
-        rowCounter <- 0
-        for (k in 1:(length(usedTimeRange)-1)) {
-          rowCounter <- rowCounter + 1; rowCounter
-          A <- OpenMx::expm(DRIFT %x% usedTimeRange[k+1])
-          effectSizes2[rowCounter, effectCounter] <- round(A[i,j], digits)
+        if ( paste0("V", j, "toV", i) %in% driftNames) {
+          effectCounter <- effectCounter + 1; effectCounter
+          rowCounter <- 0
+          for (k in 1:(length(usedTimeRange)-1)) {
+            rowCounter <- rowCounter + 1; rowCounter
+            A <- OpenMx::expm(DRIFT %x% usedTimeRange[k+1])
+            effectSizes2[rowCounter, effectCounter] <- round(A[i,j], digits)
+          }
         }
       }
     }
   }
 
+  # shortcut: eliminate effects sizes fixed to 0
+  tmp1 <- apply(effectSizes, 2, mean, na.rm=TRUE); tmp1
+  tmp2 <- which(tmp1 == 0); tmp2
+  #effectSizesBackip <- effectSizes
+  if (length(tmp2) != 0) effectSizes <- effectSizes[, -tmp2]
+  if (is.null(dim(effectSizes)[1])) effectSizes <- matrix(effectSizes, ncol=1)
+
   diffDim <- dim(requiredSampleSizes)[1] - dim(effectSizes)[1]; diffDim
-  helperMat <- matrix(NA, nrow=diffDim, ncol=dim(effectSizes)[2]); helperMat
-  effectSizes <- rbind(effectSizes, helperMat)
-  tmp1 <- matrix(driftNames, n.latent, n.latent)
+  if (diffDim != 0) {
+    helperMat <- matrix(NA, nrow=diffDim, ncol=dim(effectSizes)[2]); helperMat
+    effectSizes <- rbind(effectSizes, helperMat); effectSizes
+  }
+  tmp1 <- matrix(driftNames, n.latent, n.latent); tmp1
   diag(tmp1) <- NA
   tmp1 <- tmp1[!(is.na(tmp1))]; tmp1
+  tmp1 <- tmp1[tmp1 != "0"]; tmp1
   colnames(effectSizes) <- tmp1
   requiredSampleSizes <- cbind(requiredSampleSizes, effectSizes)
+  #requiredSampleSizes
 
   # Determine optimal time lag in terms of min sample size required
   rowNames <- c(rownames(requiredSampleSizes), "Min N", "Opt. Lag"); rowNames
@@ -771,6 +829,11 @@ ctmaPower <- function(
   optimalCrossLagN <- optimalCrossLagN*stepWidth; optimalCrossLagN
   requiredSampleSizes <- rbind(requiredSampleSizes, minN, optimalCrossLagN)
   rownames(requiredSampleSizes) <- rowNames
+  tmp1 <- grep("Power", colnames(requiredSampleSizes)); tmp1
+  tmp2 <- 1:ncol(requiredSampleSizes); tmp2
+  tmp3 <- tmp2[!(tmp2 %in% tmp1)]; tmp3
+  requiredSampleSizes[c("Min N", "Opt. Lag"), tmp3] <-NA
+  #requiredSampleSizes
 
   # Formatting of post hoc results
   postHocPowerList <- list()
@@ -780,6 +843,7 @@ ctmaPower <- function(
   # Remove empty elements form list and combine
   listPowerAlpha05 <- listPowerAlpha05[!sapply(listPowerAlpha05, is.null)]
   listPowerAlpha01 <- listPowerAlpha01[!sapply(listPowerAlpha01, is.null)]
+
   for (j in 1:length(currentDriftNames)) {
     tmp05 <- round(listPowerAlpha05[[j]], digits)
     tmp01 <- round(listPowerAlpha01[[j]], digits)

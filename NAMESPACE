@@ -3,6 +3,7 @@
 export(ctmaBias)
 export(ctmaCombPRaw)
 export(ctmaCompFit)
+export(ctmaCorRel)
 export(ctmaEmpCov)
 export(ctmaEqual)
 export(ctmaFit)

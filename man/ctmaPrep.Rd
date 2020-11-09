@@ -22,11 +22,11 @@ Combines information of primary studies into a list object and returns this list
              Primary study information is expected to be assigned to 'numbered' objects. Some of these objects are pre-defined (e.g., 'empcov', 'ageM'). Most of the pre-defined objects could be empty, or they could be dropped by entering their names in the excludedElements-object (e.g., excludedElements = c('ageM')), but dropping them is not really necessary. Additional elements could also be added, which could be useful to put together all information about primary studies at the convenience of the researcher.
 }
 \note{
-#This example shows information a researcher has about two studies, which have the numbers '2' and '4'.
-#All information about these studies are stored in objects ending with '2' and '4', respectively.
-#In most instances, one relevant piece of information is the empirical correlation (or covariance) matrix reported in this study,
-#which is stored in the objects 'empcov2' and 'empcov4'. Note that full and symmetric matrices are required for ctmaPrep.
-#Usually, sample sizes ('sampleSize2', 'sampleSize4') and time lags ('delta_t2', 'delta_t4'), are required, too
+The following example shows information a researcher has about two studies, which have the numbers '2' and '4'.
+All information about these studies are stored in objects ending with '2' and '4', respectively.
+In most instances, one relevant piece of information is the empirical correlation (or covariance) matrix reported in this study,
+which is stored in the objects 'empcov2' and 'empcov4'. Note that full and symmetric matrices are required for ctmaPrep.
+Usually, sample sizes ('sampleSize2', 'sampleSize4') and time lags ('delta_t2', 'delta_t4'), are required, too
 }
 \examples{
 # First Study
