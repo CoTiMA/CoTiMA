@@ -475,7 +475,7 @@ ctmaPlot <- function(
           DRIFTCoeff[[g]] <- list()
           counter <- 1
           for (i in mod.values) {
-            #i = 1
+            #i = 2
             # adjust labels for plotting and used time Range according to the time label position
             ctmaFitObject[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
             tmp1 <- stats::quantile(usedTimeRange, probs = seq(0, 1, 1/(n.studies[g]+1))); tmp1 # used for positioning of moderator value in plot
@@ -489,7 +489,7 @@ ctmaPlot <- function(
             tmp1 <- tmp1[grep("DRIFT", names(tmp1))]; tmp1
             tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE); tmp1 # main effect
             # moderator effects
-            tmp2 <- ctmaFitObject[[g]]$summary$mod.effects[,3]; tmp2
+            tmp2 <- ctmaFitObject[[g]]$summary$mod.effects[,1]; tmp2
             tmp2 <- matrix(tmp2, n.latent[[g]], byrow=TRUE); tmp2 # moderator effect to be added to main effect
 
             if (ctmaFitObject[[1]]$mod.type == "cont") DRIFTCoeff[[g]][[counter]] <- tmp1 + (i) * tmp2
@@ -497,8 +497,8 @@ ctmaPlot <- function(
               if (i == 1) {
                 DRIFTCoeff[[g]][[counter]] <- tmp1 # copy main effects (= comparison group)
               } else {
-                tmp2 <- ctmaFitObject[[g]]$summary$mod.effects[,3]; tmp2
-                tmp2 <- tmp2[((i - 2) * n.latent^2 + 1): ((i - 2) * n.latent^2 + 0 + n.latent)]
+                tmp2 <- ctmaFitObject[[g]]$summary$mod.effects[,1]; tmp2
+                tmp2 <- tmp2[((i - 2) * n.latent^2 + 1): ((i - 2) * n.latent^2 + 0 + n.latent)]; tmp2
                 DRIFTCoeff[[g]][[counter]] <- tmp1 + (i) * tmp2; DRIFTCoeff[[g]][[counter]]
               }
             }
@@ -520,6 +520,7 @@ ctmaPlot <- function(
             stop("Good luck for the next try!")
           }
         }
+
         discreteDriftCoeff[[g]] <- array(dim=c(n.studies[[g]], noOfSteps, n.latent[[g]]^2))
         for (h in 1:n.studies[g]) {
           #h <- 1

@@ -158,7 +158,7 @@ ctmaModFit <- function(
     maxDelta <- max(allDeltas); maxDelta
     usedTimeRange <- seq(0, 1.5*maxDelta, 1); usedTimeRange
     manifestNames <- ctmaInitFit$studyFitList[[1]]$ctstanmodel$manifestNames; manifestNames
-    driftNames <- ctmaInitFit$parameterNames$DRIFT; driftNames
+    driftNames <- c(t(matrix(ctmaInitFit$parameterNames$DRIFT, n.latent))); driftNames
 
     if (length(moderatedDrift) < 1) moderatedDrift <- driftNames
 
@@ -357,6 +357,8 @@ ctmaModFit <- function(
       tmp1 <- which(stanctModModel$pars$matrix == "T0VAR"); tmp1
       stanctModModel$pars[tmp1, paste0(stanctModModel$TIpredNames[(n.studies):(n.studies+n.all.moderators-1)],'_effect')] <- FALSE
 
+      #stanctModModel$pars[, 1:4]
+
       fitStanctModModel <- ctsem::ctStanFit(
         datalong = datalong,
         ctstanmodel = stanctModModel,
@@ -394,7 +396,7 @@ ctmaModFit <- function(
     # Extract estimates & statistics
     tmp1 <- which(rownames(stanctModFit$parmatrices) %in% c("T0VAR")); tmp1
     tmp2 <- which(rownames(stanctModFit$parmatrices) %in% c("DRIFT")); tmp2
-    tmp2 <- c(matrix(tmp2, n.latent, byrow=TRUE)); tmp2
+    tmp2 <- c(matrix(tmp2, n.latent, byrow=TRUE)); tmp2 # correct order
     tmp3 <- which(rownames(stanctModFit$parmatrices) %in% c("DIFFUSIONcov")); tmp3
     targetRows <- c(tmp1, tmp2, tmp3); targetRows
     Tvalues <- stanctModFit$parmatrices[targetRows,3]/stanctModFit$parmatrices[targetRows, 4]; Tvalues
@@ -433,7 +435,7 @@ ctmaModFit <- function(
             targetNamePart <- paste0("tip_TI", n.studies+i-1); targetNamePart
             tmp1 <- grep(targetNamePart, rownames(modTI_Coeff)); tmp1
             rownames(modTI_Coeff) <- sub(targetNamePart, paste0(counter+1, ". smallest value (categorie) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
-            modTI_Coeff
+            #modTI_Coeff
           }
           counter <- 0
           modNameCounter <- modNameCounter + 1
@@ -464,7 +466,7 @@ ctmaModFit <- function(
     #model_Drift_Coef <- modDrift_Coeff["DRIFT" %in% rownames(modDrift_Coeff)), 3]; model_Drift_Coef
     model_Drift_Coef <- modDrift_Coeff[grep("DRIFT", rownames(modDrift_Coeff)), 3]; model_Drift_Coef
     # re-sort
-    model_Drift_Coef <- c(matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE)); model_Drift_Coef
+    #model_Drift_Coef <- c(matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE)); model_Drift_Coef
     names(model_Drift_Coef) <- driftNames; model_Drift_Coef
 
     #model_Diffusion_Coef <- modDrift_Coeff[(rownames(modDrift_Coeff) == "DIFFUSIONcov"), 3]; model_Diffusion_Coef
