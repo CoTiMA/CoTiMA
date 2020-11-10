@@ -2,7 +2,7 @@
 % Please edit documentation in R/ctmaPrep.R
 \name{ctmaPrep}
 \alias{ctmaPrep}
-\title{ctmaprep}
+\title{ctmaPrep}
 \usage{
 ctmaPrep(selectedStudies = NULL, excludedElements = NULL, addElements = NULL)
 }
