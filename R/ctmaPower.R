@@ -565,10 +565,15 @@ ctmaPower <- function(
       model.full.fit2 <- lavaan::sem(model.full, sample.cov = implCov[[t]], sample.nobs = failSafeN)
 
       tmp2 <- summary(model.full.fit2); #tmp2
-      tmp3 <- which(tmp2$PE$op == '~'); #tmp3
-      tmp4a <- gsub("T1", "", tmp2$PE$lhs[tmp3]); #tmp4a
-      tmp4b <- gsub("T0", "", tmp2$PE$rhs[tmp3]); #tmp4b
+      #tmp3 <- which(tmp2$PE$op == '~'); tmp3
+      tmp3 <- which(tmp2[["PE"]][["op"]] == '~'); tmp3
+      #tmp4a <- gsub("T1", "", tmp2$PE$lhs[tmp3]); #tmp4a
+      tmp5 <- tmp2[["PE"]][["lhs"]]
+      tmp4a <- gsub("T1", "", tmp5[tmp3]); #tmp4a
+      tmp5 <- tmp2[["PE"]][["rhs"]]
+      tmp4b <- gsub("T0", "", tmp5[tmp3]); #tmp4b
       pValues[t, ] <- c(usedTimeRange[t], tmp2$PE[tmp3,][tmp4a == tmp4b, "pvalue"]); pValues[t, ]
+
     }
   }
 
