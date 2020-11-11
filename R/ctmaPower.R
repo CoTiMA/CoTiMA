@@ -571,10 +571,10 @@ ctmaPower <- function(
       tmp4a <- gsub("T1", "", tmp4[tmp3]); tmp4a
       tmp4 <- c(tmp2["rhs"])[[1]]; tmp4
       tmp4b <- gsub("T0", "", tmp4[tmp3]); tmp4b
-      tmp2 <- as.matrix(tmp2)
+      tmp2 <- as.data.frame(tmp2); str(tmp2x)
       tmp5 <- tmp2[tmp3,]; tmp5
-      pValues[t, ] <- c(usedTimeRange[t], tmp5[tmp4a != tmp4b, "pvalue"]); pValues[t, ]
-
+      tmp5 <- tmp5[which(tmp4a != tmp4b), ]; tmp5
+      pValues[t, ] <- c(usedTimeRange[t], tmp5[ , "pvalue"]); pValues[t, ]
     }
   }
 
