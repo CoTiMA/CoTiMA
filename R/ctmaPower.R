@@ -568,7 +568,7 @@ ctmaPower <- function(
       print("1")
       tmp2 <- tmp2[[1]]; str(tmp2)
       print("2")
-      tmp3 <- which(tmp2[, "op"] == '~'); tmp3
+      tmp3 <- which(tmp2["op"] == '~'); tmp3
       print("3")
       tmp4a <- gsub("T1", "", tmp2["lhs"][tmp3, ]); tmp4a
       print("4")
