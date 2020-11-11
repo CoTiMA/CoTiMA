@@ -568,10 +568,15 @@ ctmaPower <- function(
       #tmp3 <- which(tmp2$PE$op == '~'); tmp3
       tmp3 <- which(tmp2[["PE"]][["op"]] == '~'); tmp3
       #tmp4a <- gsub("T1", "", tmp2$PE$lhs[tmp3]); #tmp4a
+<<<<<<< HEAD
       tmp5 <- tmp2[["PE"]][["lhs"]]
       tmp4a <- gsub("T1", "", tmp5[tmp3]); #tmp4a
       tmp5 <- tmp2[["PE"]][["rhs"]]
       tmp4b <- gsub("T0", "", tmp5[tmp3]); #tmp4b
+=======
+      tmp4a <- gsub("T1", "", tmp2[["PE"]][["lhs"]][tmp3]); #tmp4a
+      tmp4b <- gsub("T0", "", tmp2[["PE"]][["rhs"]][tmp3]); #tmp4b
+>>>>>>> c81807c7ad8a21cf3259f48ffce9a9811b562ba2
       pValues[t, ] <- c(usedTimeRange[t], tmp2$PE[tmp3,][tmp4a == tmp4b, "pvalue"]); pValues[t, ]
 
     }
