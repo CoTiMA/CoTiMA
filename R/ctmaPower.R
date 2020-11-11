@@ -566,13 +566,16 @@ ctmaPower <- function(
 
       tmp2 <- summary(model.full.fit2); #tmp2
       print("1")
-      tmp3 <- which(tmp2$PE[,"op"] == '~'); #tmp3
+      tmp2 <- tmp2[[1]]; str(tmp2)
       print("2")
-      tmp4a <- gsub("T1", "", tmp2$PE["lhs"][tmp3, ]); tmp4a
+      tmp3 <- which(tmp2[, "op"] == '~'); tmp3
       print("3")
-      tmp4b <- gsub("T0", "", tmp2$PE["rhs"][tmp3, ]); tmp4b
+      tmp4a <- gsub("T1", "", tmp2["lhs"][tmp3, ]); tmp4a
       print("4")
-      pValues[t, ] <- c(usedTimeRange[t], tmp2$PE[tmp3,][tmp4a == tmp4b, "pvalue"]); pValues[t, ]
+      tmp4b <- gsub("T0", "", tmp2["rhs"][tmp3, ]); tmp4b
+      print("5")
+      pValues[t, ] <- c(usedTimeRange[t], tmp2[tmp3,][tmp4a == tmp4b, "pvalue"]); pValues[t, ]
+
 
     }
   }
