@@ -570,7 +570,6 @@ ctmaPower <- function(
       tmp4b <- gsub("T0", "", tmp2$PE["rhs"][tmp3, ]); tmp4b
       pValues[t, ] <- c(usedTimeRange[t], tmp2$PE[tmp3,][tmp4a == tmp4b, "pvalue"]); pValues[t, ]
 
-
     }
   }
 
