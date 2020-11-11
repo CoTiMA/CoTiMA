@@ -574,7 +574,7 @@ ctmaPower <- function(
       print("4")
       tmp4b <- gsub("T0", "", tmp2["rhs"][tmp3]); tmp4b
       print("5")
-      pValues[t, ] <- c(usedTimeRange[t], tmp2[tmp3,][tmp4a == tmp4b, "pvalue"]); pValues[t, ]
+      pValues[t, ] <- c(usedTimeRange[t], tmp2[tmp3][tmp4a == tmp4b, "pvalue"]); pValues[t, ]
 
 
     }
