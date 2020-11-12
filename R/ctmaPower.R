@@ -585,7 +585,6 @@ ctmaPower <- function(
       z <- est/se; z
       p <- 2*pnorm(z, lower.tail=FALSE); p
       pValues[t, ] <- c(usedTimeRange[t], p); pValues[t, ]
-      # test
     }
   }
 
