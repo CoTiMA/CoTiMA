@@ -66,7 +66,7 @@ ctmaPower <- function(
                         datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
                         iter=1000, intoverstates=TRUE,
                         binomial=FALSE, fit=TRUE,
-                        intoverpop=FALSE, stationary=FALSE,
+                        intoverpop='auto', stationary=FALSE,
                         plot=FALSE, derrind="all",
                         optimize=TRUE, optimcontrol=list(is=F, stochastic=FALSE),
                         nlcontrol=list(),
@@ -207,22 +207,28 @@ ctmaPower <- function(
     allSampleSizes <- ctmaInitFit$statisticsList$allSampleSizes; allSampleSizes
     if ( (!(is.null(failSafeN)) & ((is.null(failSafeP))))
          | ((is.null(failSafeN)) & (!(is.null(failSafeP)))) )  {
-      RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))
-    cat(crayon::red$bold("Only one argument (failSafeN OR failSafeP) has been provided, but both are required!", sep="\n"))
-    cat(crayon::red$bold(" ", " ", sep="\n"))
-    round(mean(allSampleSizes+.5),0)
-    if (is.null(failSafeN)) failSafeN <- round(mean(allSampleSizes+.5),0)
-    if (is.null(failSafeP)) failSafeP <- .01
-    cat(crayon::red$bold("I will use failSafeN =", failSafeN, " and failSafeP = ", failSafeP, "!", sep=" "))
-    cat(crayon::red$bold(" ", " ", sep="\n"))
-    cat("Press 'q' to quit and change or 'c' to continue with the suggested values. Press ENTER afterwards ", "\n")
-    char <- readline(" ")
-    while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
-      cat((crayon::blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
+      if (activateRPB == TRUE) {
+        RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))
+      }
+      cat(crayon::red$bold("Only one argument (failSafeN OR failSafeP) has been provided, but both are required!", sep="\n"))
+      cat(crayon::red$bold(" ", " ", sep="\n"))
+      round(mean(allSampleSizes+.5),0)
+      failSafeNhelper <- ""
+      if (is.null(failSafeN)) {
+        failSafeN <- round(mean(allSampleSizes+.5),0)
+        failSafeNhelper <- "( = avg. N)"
+      }
+      if (is.null(failSafeP)) failSafeP <- .01
+      cat(crayon::red$bold("I will use failSafeN =", failSafeN, " and failSafeP = ", failSafeP, "!", sep=" "))
+      cat(crayon::red$bold(" ", " ", sep="\n"))
+      cat("Press 'q' to quit and change or 'c' to continue with the suggested values. Press ENTER afterwards ", "\n")
       char <- readline(" ")
+      while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
+        cat((crayon::blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
+        char <- readline(" ")
+      }
+      if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
     }
-    if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
-  }
 
     # CHD maxTpointsModel <- which(ctmaInitFit$statisticsList$allTpoints == max(ctmaInitFit$statisticsList$allTpoints)); maxTpointsModel
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
@@ -564,11 +570,32 @@ ctmaPower <- function(
       }
       model.full.fit2 <- lavaan::sem(model.full, sample.cov = implCov[[t]], sample.nobs = failSafeN)
 
-      tmp2 <- summary(model.full.fit2); #tmp2
-      tmp3 <- which(tmp2$PE$op == '~'); #tmp3
-      tmp4a <- gsub("T1", "", tmp2$PE$lhs[tmp3]); #tmp4a
-      tmp4b <- gsub("T0", "", tmp2$PE$rhs[tmp3]); #tmp4b
-      pValues[t, ] <- c(usedTimeRange[t], tmp2$PE[tmp3,][tmp4a == tmp4b, "pvalue"]); pValues[t, ]
+      # The following lines just extract p-values from lavaanÄs results, but the result ist delivered in 'strange' format.
+      # Strange format means the R can easily handle the fit objects, but NOT within a package.
+      # Therefore, we developed some weird code that finally turned out to work.
+      #str(model.full.fit2@Fit)
+      #est <- model.full.fit2@Fit@est; est
+      #se <- model.full.fit2@Fit@se; se
+      #tmp1 <- which(model.full.fit2@ParTable$op == '~'); tmp1
+      skip <- 1
+      if (skip == 1) {
+      est <- model.full.fit2@Fit@est; est
+      se <- model.full.fit2@Fit@se; se
+      tmp2 <- summary(model.full.fit2)[[1]]; tmp2
+      tmp2 <- as.matrix(tmp2); tmp2
+      tmp3 <- which(tmp2[,"op"] == '~'); tmp3
+      est <- est[tmp3]; est
+      se <- se[tmp3]; se
+      z <- est/se; T
+      p <- 2*pnorm(z, lower.tail=FALSE)
+      tmp4 <- tmp2[, 1]; tmp4
+      tmp4a <- gsub("T1", "", tmp4[tmp3]); tmp4a
+      tmp4 <- tmp2[, 3]; tmp4
+      tmp4b <- gsub("T0", "", tmp4[tmp3]); tmp4b
+      tmp2 <- t(rbind(est, se, z, p)); tmp2
+      tmp5 <- tmp2[which(tmp4a != tmp4b), ]; tmp5
+      pValues[t, ] <- c(usedTimeRange[t], tmp5[ , 4]); pValues[t, ]
+      }
     }
   }
 
@@ -587,9 +614,9 @@ ctmaPower <- function(
     tmp1 <- usedTimeRange[min(which(pValues[,targetNames[i]] < failSafeP))]; tmp1
     tmp2 <- usedTimeRange[max(which(pValues[,targetNames[i]] < failSafeP))]; tmp2
     tmp3 <- paste0("The shortest interval across which the effect ", targetNames[i], " is significant "); tmp3
-    tmp4 <- paste0("with p < ", failSafeP, " assuming N = ", round(failSafeN, 0), " is ", tmp1, ". "); tmp4
+    tmp4 <- paste0("with p < ", failSafeP, " assuming N = ", round(failSafeN, 0), " ", failSafeNhelper, " is ", tmp1, ". "); tmp4
     tmp5 <- paste0("The longest interval across which the effect ", targetNames[i], " is significant "); tmp5
-    tmp6 <- paste0("with p < ", failSafeP, " assuming N = ", round(failSafeN, 0), " is ", tmp2, ". "); tmp6
+    tmp6 <- paste0("with p < ", failSafeP, " assuming N = ", round(failSafeN, 0), " ", failSafeNhelper, " is ", tmp2, ". "); tmp6
     tmp7 <- NULL
     if (is.null(timeRange)) {
       tmp7 <- paste0("Note that you have not provided an explicit time range for analysis of statistical power. "); tmp7
@@ -741,12 +768,11 @@ ctmaPower <- function(
   counter1 <- counter2 <- 0
   for (j1 in 1:(n.latent)) {
     for (j2 in 1:(n.latent)) {
-      counter1 <- counter1 + 1 # does not seem to be necessary
+      counter1 <- counter1 + 1
       if (j1 != j2 ) {
         counter2 <- counter2 + 1
         if ( paste0("V", j2, "toV", j1) %in% driftNames) {
             requiredSampleSizes[[counter2]] <- plotPairs[counter2, , , 2]
-            #currentDriftNames <- c(currentDriftNames, driftNamesBackup[counter1])
             currentDriftNames <- c(currentDriftNames, driftNames[counter1])
           rowNames  <- plotPairs[counter2, 1, , 1]
         }
@@ -763,7 +789,15 @@ ctmaPower <- function(
   numberOfEffects <- tmp1 - tmp2; numberOfEffects
 
   #tmp <- matrix(requiredSampleSizes[[1]], nrow=1); tmp
-  tmp <- matrix(requiredSampleSizes[[1]], nrow=dim(requiredSampleSizes[[1]])[1]); tmp
+  #tmp <- matrix(requiredSampleSizes[[1]], nrow=dim(requiredSampleSizes[[1]])[1]); tmp
+  if (!(is.null(dim(requiredSampleSizes[[1]])[1]))){
+    nrows <- dim(requiredSampleSizes[[1]])[1]
+  } else {
+    #nrows <- length(requiredSampleSizes[[1]])
+    nrows <- 1
+  }
+
+  tmp <- matrix(requiredSampleSizes[[1]], nrow=nrows); tmp
   if (numberOfEffects > 1) for (h in 2:(numberOfEffects)) tmp <- rbind(tmp, requiredSampleSizes[[h]])
 
   requiredSampleSizes <- t(tmp); requiredSampleSizes
@@ -859,21 +893,22 @@ ctmaPower <- function(
     tmp <- postHocPower
     tmp[is.na(tmp)] <- 0; tmp
     targetCols <- grep("Power", columnNames); targetCols
-    meanPower0 <- apply(tmp[, targetCols[1:2]], 2, mean, na.rm=TRUE); meanPower0
-    meanPowerNA <- apply(postHocPower[, targetCols[1:2]], 2, mean, na.rm=TRUE); meanPowerNA
-    medianPower0 <- apply(tmp[, targetCols[1:2]], 2, stats::median, na.rm=TRUE); medianPower0
-    medianPowerNA <- apply(postHocPower[, targetCols[1:2]], 2, stats::median, na.rm=TRUE); medianPowerNA
+    #meanPower0 <- apply(tmp[, targetCols[1:2]], 2, mean, na.rm=TRUE); meanPower0
+    #meanPowerNA <- apply(postHocPower[, targetCols[1:2]], 2, mean, na.rm=TRUE); meanPowerNA
+    meanPower <- apply(tmp[, targetCols[1:2]], 2, mean, na.rm=TRUE); meanPower
+    #medianPower0 <- apply(tmp[, targetCols[1:2]], 2, stats::median, na.rm=TRUE); medianPower0
+    #medianPowerNA <- apply(postHocPower[, targetCols[1:2]], 2, stats::median, na.rm=TRUE); medianPowerNA
+    medianPower <- apply(tmp[, targetCols[1:2]], 2, stats::median, na.rm=TRUE); medianPower
     postHocPower <- rbind(postHocPower, c(c(NA), rep(NA, 3*(maxTpoints-1)))); postHocPower
     postHocPower <- rbind(postHocPower, c(c(NA), rep(NA, 3*(maxTpoints-1)))); postHocPower
-    postHocPower <- rbind(postHocPower, c(c(NA), rep(NA, 3*(maxTpoints-1)))); postHocPower
-    postHocPower <- rbind(postHocPower, c(c(NA), rep(NA, 3*(maxTpoints-1)))); postHocPower # four times is correct
-    postHocPower[dim(postHocPower)[1]-3, targetCols[1:2]] <- round(meanPower0, digits)
-    postHocPower[dim(postHocPower)[1]-2, targetCols[1:2]] <- round(meanPowerNA, digits)
-    postHocPower[dim(postHocPower)[1]-1, targetCols[1:2]] <- round(medianPower0, digits)
-    postHocPower[dim(postHocPower)[1], targetCols[1:2]] <- round(medianPowerNA, digits)
+    #postHocPower <- rbind(postHocPower, c(c(NA), rep(NA, 3*(maxTpoints-1)))); postHocPower
+    #postHocPower <- rbind(postHocPower, c(c(NA), rep(NA, 3*(maxTpoints-1)))); postHocPower # four times is correct
+    #postHocPower[dim(postHocPower)[1]-3, targetCols[1:2]] <- round(meanPower0, digits)
+    #postHocPower[dim(postHocPower)[1]-2, targetCols[1:2]] <- round(meanPowerNA, digits)
+    postHocPower[dim(postHocPower)[1]-1, targetCols[1:2]] <- round(meanPower, digits)
+    postHocPower[dim(postHocPower)[1], targetCols[1:2]] <- round(medianPower, digits)
     newNames <- c(paste0("Study_No_", 1:n.studies),
-                  "Mean (NA = 0 Power)", "Mean (NA = NA)",
-                  "Median (NA = 0 Power)", "Median (NA = NA)")
+                  "Mean", "Median")
     rownames(postHocPower) <- newNames
     postHocPowerList[[j]] <- postHocPower
     names(postHocPowerList)[[j]] <- currentDriftNames[j]

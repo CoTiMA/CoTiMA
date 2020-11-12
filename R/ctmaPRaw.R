@@ -53,17 +53,17 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
     stop("Good luck for the next try!")
   }
 
-  if (is.null(empMeanVector)) {
-    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("No vector of means was provided. All means are set to 0.0.", sep="\n"))
-    cat("\n")
-  }
+  #if (is.null(empMeanVector)) {
+  #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+  #  cat(crayon::red$bold("No vector of means was provided. All means are set to 0.0.", sep="\n"))
+  #  cat("\n")
+  #}
 
-  if (is.null(empVarVector)) {
-    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("No vector of variances was provided. All variances are set to 1.0.", sep="\n"))
-    cat("\n")
-  }
+  #if (is.null(empVarVector)) {
+  #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+  #  cat(crayon::red$bold("No vector of variances was provided. All variances are set to 1.0.", sep="\n"))
+  #  cat("\n")
+  #}
 
   if ( (!(is.null(empMeanVector))) & (length(empMeanVector) != (dim(empCovMat)[1]) )  ){
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}

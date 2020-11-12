@@ -25,7 +25,7 @@ ctmaPower(
   CoTiMAStanctArgs = list(test = TRUE, scaleTI = TRUE, scaleTime = 1/1, scaleMod =
     TRUE, scaleLongData = FALSE, savesubjectmatrices = FALSE, verbose = 1, datalong = NA,
     ctstanmodel = NA, stanmodeltext = NA, iter = 1000, intoverstates = TRUE, binomial =
-    FALSE, fit = TRUE, intoverpop = FALSE, stationary = FALSE, plot = FALSE, derrind =
+    FALSE, fit = TRUE, intoverpop = "auto", stationary = FALSE, plot = FALSE, derrind =
     "all", optimize = TRUE, optimcontrol = list(is = F, stochastic = FALSE), nlcontrol =
     list(), nopriors = TRUE, chains = 2, cores = 1, inits = NULL, forcerecompile = FALSE,
     savescores = FALSE,      gendata = FALSE, control = list(adapt_delta = 0.8,
