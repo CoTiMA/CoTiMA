@@ -573,7 +573,7 @@ ctmaPower <- function(
       # The following lines just extract p-values from lavaans results, but the result ist delivered in 'strange' format.
       # Strange format means the R can easily handle the fit objects, but NOT within a package.
       # Therefore, we developed some weird code that finally turned out to work.
-      #str(model.full.fit2)
+      str(model.full.fit2)
       tmp3 <- which(model.full.fit2@ParTable$op == '~'); tmp3
       tmp4 <- model.full.fit2@ParTable$lhs; tmp4
       tmp4a <- gsub("T1", "", tmp4[tmp3]); tmp4a
@@ -585,26 +585,6 @@ ctmaPower <- function(
       z <- est/se; z
       p <- 2*pnorm(z, lower.tail=FALSE); p
       pValues[t, ] <- c(usedTimeRange[t], p); pValues[t, ]
-
-      #skip <- 0
-      #if (skip == 1) {
-      #est <- model.full.fit2@Fit@est; est
-      #se <- model.full.fit2@Fit@se; se
-      #tmp2 <- summary(model.full.fit2)[[1]]; tmp2
-      #tmp2 <- as.matrix(tmp2); tmp2
-      #tmp3 <- which(tmp2[,"op"] == '~'); tmp3
-      #est <- est[tmp3]; est
-      #se <- se[tmp3]; se
-      #z <- est/se; z
-      #p <- 2*pnorm(z, lower.tail=FALSE)
-      #tmp4 <- tmp2[, 1]; tmp4
-      #tmp4a <- gsub("T1", "", tmp4[tmp3]); tmp4a
-      #tmp4 <- tmp2[, 3]; tmp4
-      #tmp4b <- gsub("T0", "", tmp4[tmp3]); tmp4b
-      #tmp2 <- t(rbind(est, se, z, p)); tmp2
-      #tmp5 <- tmp2[which(tmp4a != tmp4b), ]; tmp5
-      #pValues[t, ] <- c(usedTimeRange[t], tmp5[ , 4]); pValues[t, ]
-      #}
     }
   }
 
