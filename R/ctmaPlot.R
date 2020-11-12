@@ -28,23 +28,18 @@
 #'
 ctmaPlot <- function(
   # Primary Study Fits
-  ctmaFitObject=list(),                    #list of lists: could be more than one fit object
-
+  ctmaFitObject=list(),
   # Directory names and file names
   activeDirectory=NULL,
-  #sourceDirectory= NULL,
-  #resultsFilePrefix="ctmaPlot",           # the prefix for the result file that is created
   saveFilePrefix="ctmaPlot",
-
   # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
-  activateRPB=FALSE,                      #set to TRUE to receive push messages with CoTiMA notifications on your phone
-
+  activateRPB=FALSE,
   # Figure Parameters
-  plotCrossEffects=TRUE,                  # plot cross effects across a range of discrete intervals
-  plotAutoEffects=TRUE,                   # plot auto effects across a range of discrete intervals
-  timeUnit="timeUnit (not specified)",    # timelag unit to lable x-axis of plots
-  timeRange=c(),                          # used for Plotting and Poweranalysis. Populated by 0 to 1.5*maxDelta (Steptwidth = 1) if not specified as c(min,max,stepWidth)
-  yLimitsForEffects=c(),                  # used the y-axis of Drift-Plots. Populated by c("round(min(effects)-.05, 1)", "round(max(effects)-.05, 1)")
+  plotCrossEffects=TRUE,
+  plotAutoEffects=TRUE,
+  timeUnit="timeUnit (not specified)",
+  timeRange=c(),
+  yLimitsForEffects=c(),
   mod.values=-2:2,
   mod.num=1,
 
@@ -573,6 +568,7 @@ ctmaPlot <- function(
       plotPairs <- list()
       dotPlotPairs <- list()
       for (g in 1:n.fitted.obj) {
+        #g <- 1
         plotPairs[[g]] <- array(dim=c(n.studies[[g]], noOfSteps, 2+n.latent[[g]]^2))
         dotPlotPairs[[g]] <- array(dim=c(n.studies[[g]], noOfSteps, 2+n.latent[[g]]^2))
         for (currentTimeScale in 1:(noOfSteps-1)){
@@ -658,8 +654,14 @@ ctmaPlot <- function(
           # plot y-axis
           plot(c(0,0), type="l", col="white", lwd=1.5, xlim = c(xMin, xMax), ylim = c(yMin, 1), xaxt='n', ann=FALSE, las=1)
           # Correct differences in axis length
-          atSeq <- seq(0, targetRows, by = as.integer(targetRows/12)); atSeq
-          labelsSeq <- seq(0, (max(usedTimeRange)+1), as.integer(targetRows*stepWidth/12)); labelsSeq
+          #atSeq <- seq(0, targetRows, by = as.integer(targetRows/12)); atSeq
+          increseStep <- as.integer(targetRows/12); increseStep
+          if (increseStep == 0 ) increseStep <- 1
+          atSeq <- seq(0, targetRows, by = increseStep); atSeq
+          #labelsSeq <- seq(0, (max(usedTimeRange)+1), as.integer(targetRows*stepWidth/12)); labelsSeq
+          increseStep <- as.integer(targetRows*stepWidth/12); increseStep
+          if (increseStep == 0 ) increseStep <- 1
+          labelsSeq <- seq(0, (max(usedTimeRange)+1), increseStep); labelsSeq
           if(length(atSeq) > length(labelsSeq)) atSeq <- atSeq[0: length(labelsSeq)]; atSeq
           if(length(atSeq) < length(labelsSeq)) labelsSeq <- labelsSeq[0: length(atSeq)]; labelsSeq
           graphics::axis(side=1, at = atSeq*stepWidth, labels=labelsSeq, las=2)
@@ -731,8 +733,14 @@ ctmaPlot <- function(
           plot(c(0,0), type="l", col="white", lwd=1.5, xlim = c(xMin, xMax), ylim = c(yMin, 1), xaxt='n',ann=FALSE, las=1)
 
           # Correct differences in axis length
-          atSeq <- seq(0, targetRows, by = as.integer(targetRows/12)); atSeq
-          labelsSeq <- seq(0, (max(usedTimeRange)+1), as.integer(targetRows/12)*stepWidth); labelsSeq
+          increseStep <- as.integer(targetRows/12); increseStep
+          if (increseStep == 0 ) increseStep <- 1
+          #atSeq <- seq(0, targetRows, by = as.integer(targetRows/12)); atSeq
+          atSeq <- seq(0, targetRows, by = increseStep); atSeq
+          increseStep <- as.integer(targetRows/12*stepWidth); increseStep
+          if (increseStep == 0 ) increseStep <- 1
+          #labelsSeq <- seq(0, (max(usedTimeRange)+1), as.integer(targetRows/12)*stepWidth); labelsSeq
+          labelsSeq <- seq(0, (max(usedTimeRange)+1), increseStep); labelsSeq
           if(length(atSeq) > length(labelsSeq)) atSeq <- atSeq[0: length(labelsSeq)]; atSeq
           if(length(atSeq) < length(labelsSeq)) labelsSeq <- labelsSeq[0: length(atSeq)]; labelsSeq
           graphics::axis(side=1, at = atSeq*stepWidth, labels=labelsSeq, las=2)
