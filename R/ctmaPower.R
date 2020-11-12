@@ -205,6 +205,7 @@ ctmaPower <- function(
     }
 
     allSampleSizes <- ctmaInitFit$statisticsList$allSampleSizes; allSampleSizes
+    #failSafeN
     if ( (!(is.null(failSafeN)) & ((is.null(failSafeP))))
          | ((is.null(failSafeN)) & (!(is.null(failSafeP)))) )  {
       if (activateRPB == TRUE) {
@@ -229,6 +230,11 @@ ctmaPower <- function(
       }
       if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
     }
+    if (is.null(failSafeN)) {
+      failSafeN <- round(mean(allSampleSizes+.5),0)
+      failSafeNhelper <- "( = avg. N)"
+    }
+
 
     # CHD maxTpointsModel <- which(ctmaInitFit$statisticsList$allTpoints == max(ctmaInitFit$statisticsList$allTpoints)); maxTpointsModel
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
@@ -573,7 +579,7 @@ ctmaPower <- function(
       # The following lines just extract p-values from lavaans results, but the result ist delivered in 'strange' format.
       # Strange format means the R can easily handle the fit objects, but NOT within a package.
       # Therefore, we developed some weird code that finally turned out to work.
-      str(model.full.fit2)
+      # str(model.full.fit2)
       tmp3 <- which(model.full.fit2@ParTable$op == '~'); tmp3
       tmp4 <- model.full.fit2@ParTable$lhs; tmp4
       tmp4a <- gsub("T1", "", tmp4[tmp3]); tmp4a
