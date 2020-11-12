@@ -607,6 +607,7 @@ ctmaPower <- function(
 
   significanceRange <- c()
   for (i in 1:(length(targetNames))) {
+    #
     tmp1 <- suppressWarnings(usedTimeRange[min(which(pValues[,targetNames[i]] < failSafeP))]); tmp1
     tmp2 <- suppressWarnings(usedTimeRange[max(which(pValues[,targetNames[i]] < failSafeP))]); tmp2
     tmp3 <- paste0("The shortest interval across which the effect ", targetNames[i], " is significant "); tmp3
