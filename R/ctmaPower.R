@@ -570,7 +570,6 @@ ctmaPower <- function(
       est <- model.full.fit2@Fit@est; est
       se <- model.full.fit2@Fit@se; se
       tmp2 <- summary(model.full.fit2)[[1]]; tmp2
-      tmp2 <- tmp2[[1]]; tmp2
       tmp3 <- which(tmp2["op"] == '~'); tmp3
       est <- est[tmp3]; est
       se <- se[tmp3]; se
