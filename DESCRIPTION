@@ -1,7 +1,7 @@
 Package: CoTiMA
 Type: Package
 Title: Continuous time meta-analysis (CoTiMA) performs meta-analyses of correlation matrices of repeatedly measured variables
-Version: 0.2.0
+Version: 0.2.1
 Author: Dormann, C & Homberg, M.
 Maintainer: Homberg, M. <markus.homberg@uni-mainz.de>
 Description: Continuous Time Meta-Analysis (CoTiMA) performs meta-analyses of correlation matrices of repeatedly measured variables. As always, variables are measured at discrete time points (e.g., today at 4pm, next week on Monday etc.), which imposes a problem for meta-analysis of studies that repeatedly measured the variables because the time lags between measurement could vary across studies. However, so-called continuous time math can be used to ‘extrapolate’ or ‘intrapolate’ the results from all studies to any desired time lag. By this, effects obtained in studies that used different time lags can be meta-analyzed. In a nutshell, CoTiMA fits models to empirical data using the structural equation model (SEM) packages OpenMx and CTSEM, the effects specified in a SEM are related to parameters that are not directly included in the model (i.e., continuous time parameters; together, they represent the continuous time structural equation model, ctsem) which is done in a fashion similar to other SEM programs (e.g., like a = b × c to test for mediation in MPLUS) using matrix algebra functions (e.g., matrix exponentiation, which is not available in MPLUS), and statistical model comparisons and significance tests are performed on the continuous time parameter estimates. 
