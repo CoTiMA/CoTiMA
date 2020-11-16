@@ -43,7 +43,6 @@ ctmaFit <- function(
   drift=NULL,
 
   # Fitting Parameters
-  #type="stanct",
   indVarying=FALSE,
 
   coresToUse=c(-1),
@@ -439,6 +438,7 @@ ctmaFit <- function(
                   invariantDrift=invariantDrift,
                   summary=list(model=paste(invariantDrift, "unequal but invariant across samples", collapse=" "),
                                estimates=round(invariantDrift_Coeff, digits),
+                               randomEffects=invariantDriftStanctFit$popsd,
                                minus2ll= round(invariantDrift_Minus2LogLikelihood, digits),
                                n.parameters = round(invariantDrift_estimatedParameters, digits),
                                df= invariantDrift_df,

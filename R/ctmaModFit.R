@@ -512,6 +512,7 @@ ctmaModFit <- function(
                     parameterNames=ctmaInitFit$parameterNames,
                     summary=list(model="All Drift Effects Moderated",
                                  estimates=modDrift_Coeff,
+                                 randomEffects=stanctModFit$popsd,
                                  minus2ll= modDrift_Minus2LogLikelihood,
                                  n.parameters = modDrift_estimatedParameters,
                                  df=modDrift_df,
