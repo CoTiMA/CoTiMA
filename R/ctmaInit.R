@@ -801,7 +801,7 @@ ctmaInit <- function(
                       paste0(rownames(resultsSummary$popmeans)[tmp], "UL"))); tmp3
       names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
 
-      if (indVarying == TRUE) model_popsd[[i]] resultsSummary$popsd
+      if (indVarying == TRUE) model_popsd[[i]] <- resultsSummary$popsd
 
     } # END     for (i in 1:n.studies)
 
