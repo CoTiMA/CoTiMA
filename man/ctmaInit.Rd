@@ -15,6 +15,7 @@ ctmaInit(
   lambda = NULL,
   manifestVars = NULL,
   drift = NULL,
+  indVarying = FALSE,
   saveRawData = list(),
   coresToUse = c(1),
   silentOverwrite = FALSE,
@@ -32,41 +33,51 @@ ctmaInit(
 )
 }
 \arguments{
-\item{primaryStudies}{"list of primary study information created with ctmaPrep"}
+\item{primaryStudies}{list of primary study information created with ctmaPrep}
 
-\item{activeDirectory}{"Directory name"}
+\item{activeDirectory}{Directory name}
 
-\item{activateRPB}{"set to TRUE to receive push messages with CoTiMA notifications on your phone"}
+\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
 
-\item{checkSingleStudyResults}{"displays estimates from single study ctsem models and waits for user inoput to continue"}
+\item{checkSingleStudyResults}{Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before the are saved.}
 
-\item{digits}{"Number of digits in outputs"}
+\item{digits}{Number of digits used for rounding (in outputs)}
 
-\item{n.latent}{"Number of latent variables of the model"}
+\item{n.latent}{Number of latent variables of the model (hast to be specified)!}
 
-\item{n.manifest}{""}
+\item{n.manifest}{Number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).}
 
-\item{lambda}{""}
+\item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
 
-\item{manifestVars}{""}
+\item{manifestVars}{Define the error variances of the manifests with a single time point using R-type matrix with nrow=n.manifest & ncol=n.manifest.}
 
-\item{drift}{""}
+\item{drift}{Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)}
 
-\item{saveRawData}{"save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec"}
+\item{indVarying}{Control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
 
-\item{coresToUse}{"neg.if negative,value is subtracted from available cores, else value = cores to use"}
+\item{saveRawData}{Save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec}
 
-\item{silentOverwrite}{"override old files without asking"}
+\item{coresToUse}{If neg., the value is subtracted from available cores, else value = cores to use}
 
-\item{saveSingleStudyModelFit}{"save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)}
+\item{silentOverwrite}{Override old files without asking}
 
-\item{loadSingleStudyModelFit}{"load the fit of single study ctsem models"}
+\item{saveSingleStudyModelFit}{save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)}
 
-\item{CoTiMAStanctArgs}{"CoTiMA Stanct Arguments"}
+\item{loadSingleStudyModelFit}{load the fit of single study ctsem models}
+
+\item{CoTiMAStanctArgs}{CoTiMA Stanct Arguments}
 }
 \description{
-ctmaInit
+Fits a ctsem model to a list of primary studies prepared by ctmaPrep.
+#'
 }
 \examples{
-""
+# CoTiMAInitFit_Ex1 <- ctmaInit(
+activeDirectory = activeDirectory,
+primaryStudies = studyList_Ex1,
+n.latent = 2,
+saveSingleStudyModelFit = c("CoTiMAInitFit_D_BO", 1:500),
+silentOverwrite = TRUE)
+saveRDS(CoTiMAInitFit_D_BO, file=paste0(activeDirectory, "MAIN EFFECTS/CoTiMAInitFit_D_BO.rds"))
+summary(CoTiMAInitFit_D_BO)
 }

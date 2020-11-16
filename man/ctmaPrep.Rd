@@ -52,8 +52,9 @@ empcov4 <- matrix(c(c(1.00, 0.44, 0.74, 0.36, 0.71, 0.32,
                       nrow=6, ncol=6))
 moderator4 <- c(3, 1) #
 addedByResearcher4 <- "another comment"
+
 studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4),
                           excludedElements = "ageM",
-                          addElements ="addedByResearcher")
-
+                          addElements = "addedByResearcher")
+saveRDS(studyList_Ex1, file="/.../studyList_Ex1.rds")
 }
