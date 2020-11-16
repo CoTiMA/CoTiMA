@@ -1,26 +1,24 @@
-#######################################################################################################################
-#######################################################################################################################
-#######################################################################################################################
-
-
 #' ctmaInit
 #'
-#' @param primaryStudies "list of primary study information created with ctmaPrep"
-#' @param activeDirectory "Directory name"
-#' @param activateRPB "set to TRUE to receive push messages with CoTiMA notifications on your phone"
-#' @param checkSingleStudyResults "displays estimates from single study ctsem models and waits for user inoput to continue"
-#' @param digits "Number of digits in outputs"
-#' @param n.latent "Number of latent variables of the model"
-#' @param n.manifest ""
-#' @param lambda ""
-#' @param manifestVars ""
-#' @param drift ""
-#' @param saveRawData "save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec"
-#' @param coresToUse "neg.if negative,value is subtracted from available cores, else value = cores to use"
-#' @param silentOverwrite "override old files without asking"
-#' @param saveSingleStudyModelFit "save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
-#' @param loadSingleStudyModelFit "load the fit of single study ctsem models"
-#' @param CoTiMAStanctArgs "CoTiMA Stanct Arguments"
+#' @description Fits a ctsem model to a list of primary studies prepared by ctmaPrep.
+#' #'
+#' @param primaryStudies list of primary study information created with ctmaPrep
+#' @param activeDirectory Directory name
+#' @param activateRPB set to TRUE to receive push messages with CoTiMA notifications on your phone
+#' @param checkSingleStudyResults Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before the are saved.
+#' @param digits Number of digits used for rounding (in outputs)
+#' @param n.latent Number of latent variables of the model (hast to be specified)!
+#' @param n.manifest Number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
+#' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
+#' @param manifestVars Define the error variances of the manifests with a single time point using R-type matrix with nrow=n.manifest & ncol=n.manifest.
+#' @param drift Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)
+#' @param indVarying Control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
+#' @param saveRawData Save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
+#' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
+#' @param silentOverwrite Override old files without asking
+#' @param saveSingleStudyModelFit save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
+#' @param loadSingleStudyModelFit load the fit of single study ctsem models
+#' @param CoTiMAStanctArgs CoTiMA Stanct Arguments
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  crayon red blue
@@ -30,39 +28,38 @@
 #'
 #' @export ctmaInit
 #'
-#' @examples ""
+#' @examples # CoTiMAInitFit_Ex1 <- ctmaInit(
+#' activeDirectory = activeDirectory,
+#' primaryStudies = studyList_Ex1,
+#' n.latent = 2,
+#' saveSingleStudyModelFit = c("CoTiMAInitFit_D_BO", 1:500),
+#' silentOverwrite = TRUE)
+#' saveRDS(CoTiMAInitFit_D_BO, file=paste0(activeDirectory, "MAIN EFFECTS/CoTiMAInitFit_D_BO.rds"))
+#' summary(CoTiMAInitFit_D_BO)
 ctmaInit <- function(
   # Primary Study Information
-  primaryStudies=NULL,                    #list of primary study information created with ctmaPrep
-
+  primaryStudies=NULL,
   # Directory names and file names
   activeDirectory=NULL,
-
-  # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
-  activateRPB=FALSE,                      #set to TRUE to receive push messages with CoTiMA notifications on your phone
-  checkSingleStudyResults=TRUE,          # displays estimates from single study ctsem models and waits for user input to continue
+  # Workflow
+  activateRPB=FALSE,
+  checkSingleStudyResults=TRUE,
   digits=4,
-
   # General Model Setup
   n.latent=NULL,
   n.manifest=0,
-  lambda=NULL,                           # define the loadings of manifests on latents using matrix with nrow=nlatent & ncol=nmanifest
-  manifestVars=NULL,                     # define the error variances of the manifests with a single tpoint using matrix with nrow=n.manifest & ncol=n.manifest
+  lambda=NULL,
+  manifestVars=NULL,
   drift=NULL,
-
+  indVarying=FALSE,
   # Load/save Raw Data
-  saveRawData=list(),                     # save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
-
+  saveRawData=list(),
   # Fitting Parameters
-  coresToUse=c(1),                        # neg.if negative,value is subtracted from available cores, else value = cores to use
-
-  ## Save computed model fits or load previous fits (then provide (old) file prefix)
+  coresToUse=c(1),
+  # Save computed model fits or load previous fits
   silentOverwrite=FALSE,
-
-  # ctsem models for all primary studies (always required for getting good starting values (and model fit for heterogeneity model without fitting it))
-  saveSingleStudyModelFit=c(),            # save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
-  loadSingleStudyModelFit=c(),            # load the fit of single study ctsem models
-
+  saveSingleStudyModelFit=c(),
+  loadSingleStudyModelFit=c(),
   CoTiMAStanctArgs=list(test=TRUE,
                         scaleTI=TRUE, scaleMod=TRUE, scaleLongData=FALSE,
                         scaleTime=1/1,
@@ -550,7 +547,27 @@ ctmaInit <- function(
                                          MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.var, ncol = 1),
                                          MANIFESTVAR=matrix(manifestVarPattern, nrow=n.var, ncol=n.var)
     )
-    ctsemModelTemplate$pars
+
+    if (indVarying == TRUE) {
+      print(paste0("#################################################################################"))
+      print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
+      print(paste0("#################################################################################"))
+
+      MANIFESTMEANS <- paste0("mean_", manifestNames); MANIFESTMEANS # if provided, indVarying is the default
+
+      ctsemModelTemplate <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=2, manifestNames=manifestNames,    # 2 waves in the template only
+                                           DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent),
+                                           LAMBDA=LAMBDA,
+                                           T0VAR=T0VAR,
+                                           type='stanct',
+                                           CINT=matrix(0, nrow=n.latent, ncol=1),
+                                           T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                           MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.var, ncol = 1),
+                                           MANIFESTVAR=matrix(manifestVarPattern, nrow=n.var, ncol=n.var)
+      )
+
+
+    }
 
     # ctsem models for each primary study with the correct number of time points
     ctsemModel <- list()
@@ -644,6 +661,7 @@ ctmaInit <- function(
     model_Diffusion_Coef <- model_Diffusion_SE <- model_Diffusion_CI <- list()
     model_T0var_Coef <- model_T0var_SE <- model_T0var_CI <- list()
     model_Cint_Coef <- model_Cint_SE <- model_Cint_CI <- list()
+    model_popsd <- list()
     resultsSummary <- list()
     for (i in 1:n.studies) {
       notLoadable <- TRUE
@@ -716,7 +734,7 @@ ctmaInit <- function(
         df <- n.par.first.lag + sum(n.later.lags * n.par.later.lag) - studyFit[[i]]$resultsSummary$npars; df
         studyFit[[i]]$resultsSummary$'df (CoTiMA)' <- df
       } # END if (!(studyList[[i]]$originalStudyNo %in% ...
-      studyFit[[i]]$resultsSummary
+      #studyFit[[i]]$resultsSummary
 
       # SAVE
       if ( (length(saveSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% saveSingleStudyModelFit[-1]) ) {
@@ -782,6 +800,8 @@ ctmaInit <- function(
       tmp3 <- c(rbind(paste0(rownames(resultsSummary$popmeans)[tmp], "LL"),
                       paste0(rownames(resultsSummary$popmeans)[tmp], "UL"))); tmp3
       names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
+
+      if (indVarying == TRUE) model_popsd[[i]] resultsSummary$popsd
 
     } # END     for (i in 1:n.studies)
 
@@ -864,6 +884,7 @@ ctmaInit <- function(
                   parameterNames=list(DRIFT=names(model_Drift_Coef[[1]]), DIFFUSION=names(model_Diffusion_Coef[[1]]), T0VAR=names(model_T0var_Coef[[1]])),
                   summary=(list(model="all drift free (het. model)",
                                 estimates=allStudiesDRIFT_effects_ext,
+                                randomEffects=model_popsd,
                                 confidenceIntervals=allStudiesCI,
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),
