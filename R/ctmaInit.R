@@ -37,26 +37,19 @@
 #' saveRDS(CoTiMAInitFit_D_BO, file=paste0(activeDirectory, "MAIN EFFECTS/CoTiMAInitFit_D_BO.rds"))
 #' summary(CoTiMAInitFit_D_BO)
 ctmaInit <- function(
-  # Primary Study Information
   primaryStudies=NULL,
-  # Directory names and file names
   activeDirectory=NULL,
-  # Workflow
   activateRPB=FALSE,
   checkSingleStudyResults=TRUE,
   digits=4,
-  # General Model Setup
   n.latent=NULL,
   n.manifest=0,
   lambda=NULL,
   manifestVars=NULL,
   drift=NULL,
   indVarying=FALSE,
-  # Load/save Raw Data
   saveRawData=list(),
-  # Fitting Parameters
   coresToUse=c(1),
-  # Save computed model fits or load previous fits
   silentOverwrite=FALSE,
   saveSingleStudyModelFit=c(),
   loadSingleStudyModelFit=c(),
@@ -744,10 +737,13 @@ ctmaInit <- function(
         ctmaSaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
       }
 
-      studyFit_Minus2LogLikelihood[[i]] <- studyFit[[i]]$stanfit$optimfit$f
-      studyFit_estimatedParameters[[i]] <- length(studyFit[[i]]$stanfit$optimfit$par)
+      #studyFit_Minus2LogLikelihood[[i]] <- studyFit[[i]]$stanfit$optimfit$f
+      #studyFit_estimatedParameters[[i]] <- length(studyFit[[i]]$stanfit$optimfit$par)
 
       resultsSummary <- studyFit[[i]]$resultsSummary; resultsSummary
+
+      studyFit_Minus2LogLikelihood[[i]] <- -2 * resultsSummary$resultsSummary$loglik
+      studyFit_estimatedParameters[[i]] <- resultsSummary$resultsSummary$npars
 
       tmp <- grep("toV", rownames(resultsSummary$popmeans)); tmp
       #model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=TRUE)); model_Drift_Coef[[i]]
