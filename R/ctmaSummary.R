@@ -6,6 +6,6 @@
 #'
 summary.CoTiMAFit <- function(x)
   {
-  UseMethod("summary")
+  #UseMethod("summary")
   print(x$summary)
   }
