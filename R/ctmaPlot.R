@@ -55,13 +55,15 @@ ctmaPlot <- function(
   }
 
   # some re-arrangements to cover all possibilities from a single object (list) to a list of list of objects (lists)
-    if (!(is.null(names(ctmaFitObject)))) {
-      tmp2 <- ctmaFitObject
-      ctmaFitObject <- list()
-      ctmaFitObject[[1]] <- tmp2
-      }
 
-    n.fitted.obj <- length(ctmaFitObject); n.fitted.obj
+  #n.fitted.obj <- length(ctmaFitObject); n.fitted.obj # has to be done twice
+  if (!(is.null(names(ctmaFitObject)))) {
+    tmp2 <- ctmaFitObject
+    ctmaFitObject <- list()
+    ctmaFitObject[[1]] <- tmp2
+  }
+
+  n.fitted.obj <- length(ctmaFitObject); n.fitted.obj # has to be done twice
 
     plot.type <- list() # has to be a list because a single fit could be used for different plots (e.g. "power")
     tmp <- activeDirectory; tmp
@@ -107,7 +109,6 @@ ctmaPlot <- function(
       cat(unique(activeDirectory), "\n")
       stop("Good luck for the next try!")
     }
-
 
   #######################################################################################################################
   ############# Extracting Parameters from Fitted Primary Studies created with CoTiMAprep Function  #####################
@@ -615,7 +616,7 @@ ctmaPlot <- function(
               currentPlotPair <- cbind(plotPairs[[g]][h, , 1], plotPairs[[g]][h, , 1+j])
               plot(currentPlotPair, type=plot..type, col=plot.col, lwd=plot.lwd, lty=plot.lty,
                    xlim = c(plot.xMin, plot.xMax),
-                   ylim = c(plot.yMin, yMax),
+                   ylim = c(plot.yMin, plot.yMax), #xxx
                    xaxt='n', yaxt='n', ann=FALSE)
               graphics::par(new=T)
               if ( (is.null(ctmaFitObject[[g]]$plotStudyNo)) || (ctmaFitObject[[g]]$plotStudyNo==TRUE) ) {
@@ -648,7 +649,8 @@ ctmaPlot <- function(
           plot(c(0,0), type="l", col="white", lwd=1.5, xlim = c(xMin, xMax), ylim = c(yMinAuto, yMaxAuto), xaxt='n', ann=FALSE, las=1)
 
           xLabels <- xLabelsBckup; xLabels
-          if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange)+1),2), 1), 2); xLabels
+          #if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange)+1),2), 1), 2); xLabels
+          if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange+.4)),2), 1), 2); xLabels
           posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
           if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
 
@@ -748,7 +750,8 @@ ctmaPlot <- function(
           plot(c(0,0), type="l", col="white", lwd=1.5, xlim = c(xMin, xMax), ylim = c(yMinCross, yMaxCross), xaxt='n', ann=FALSE, las=1)
 
           xLabels <- xLabelsBckup; xLabels
-          if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange)+1),2), 1), 2); xLabels
+          #if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange)+1),2), 1), 2); xLabels
+          if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange+.4)),2), 1), 2); xLabels
           posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
           if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
 
