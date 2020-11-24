@@ -7,5 +7,9 @@
 #'
 summary.CoTiMAFit <- function(x) {
   #UseMethod("print")
-  print(x$summary)
-  }
+  y <- x$summary
+  class(y) <- "character"
+  #print(x$summary)
+  print(y)
+}
+
