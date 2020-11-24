@@ -8,7 +8,7 @@
 "CoTiMAStanctArgs"
 
 CoTiMAStanctArgs<-list(test=TRUE,
-                       scaleTI=TRUE, scaleMod=TRUE, scaleClus=FALSE, scaleLongData=FALSE,
+                       scaleTI=FALSE, scaleMod=TRUE, scaleClus=FALSE, scaleLongData=FALSE,
                        scaleTime=1/1,
                        savesubjectmatrices=FALSE, verbose=1,
                        datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
