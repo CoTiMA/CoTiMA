@@ -2,7 +2,7 @@
 #' ctmaSummary
 #'
 #' @param x A CoTiMA Fit object
-#' @method summary ctStanFit
+#' @method summary CoTiMAFit
 #' @export
 #'
 summary.CoTiMAFit <- function(x)
