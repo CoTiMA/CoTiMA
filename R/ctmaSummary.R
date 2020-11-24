@@ -1,12 +1,11 @@
 # Summary function for CoTiMA results
-#' ctmaSummary
+#' summary.CoTiMAFit
 #'
-#' @param x A CoTiMA Fit object
+#' @param x ""
 #' @method summary CoTiMAFit
 #' @export
 #'
-summary.CoTiMAFit <- function(x)
-  {
-  #UseMethod("summary")
+summary.CoTiMAFit <- function(x) {
+  #UseMethod("print")
   print(x$summary)
   }
