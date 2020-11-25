@@ -443,6 +443,8 @@ ctmaPower <- function(
 
 
   print(paste0("#################################################################################"))
+  print(paste0("# Use estimates from all fixed model to compute corr-matrices for all time lags #"))
+  print(paste0("#################################################################################"))
   print(paste0("################# Set up required discrete time lavaan models ###################"))
   print(paste0("#################################################################################"))
   {
@@ -509,7 +511,7 @@ ctmaPower <- function(
   }
 
   print(paste0("#################################################################################"))
-  print(paste0("######## Computing implied correlation matrices for different time lags #########"))
+  print(paste0("###### Now computing implied correlation matrices for different time lags #######"))
   print(paste0("#################################################################################"))
   {
     # functions to compute dt-coefficients
@@ -550,7 +552,7 @@ ctmaPower <- function(
       rownames(implCov[[t]]) <- varNames
       colnames(implCov[[t]]) <- varNames
 
-      # Compute p-value
+      # Compute p-value (used in next section for min max intervals for which effects are sign.)
       if ( (is.null(failSafeN)) & ((is.null(failSafeP)))) {
         failSafeP <- .01
         failSafeN <- mean(allSampleSizes)
@@ -693,7 +695,7 @@ ctmaPower <- function(
                                                                         p = n.latent, desired.power = statisticalPower[h],
                                                                         alpha.level = 0.05)[[1]] #
               } else {
-                # The following uses our own function
+                # The following uses our own function (much faster)
                 signalToNoiseRatios <- sqrt((R2-R2.j)/(1-R2)); signalToNoiseRatios
                 helper <- round(rootSolve::uniroot.all(nestedProbFunT, c(n.latent+2,999999999),
                                                        fvalue=signalToNoiseRatios, alpha=.05,
