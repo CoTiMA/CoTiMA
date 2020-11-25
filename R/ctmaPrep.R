@@ -234,11 +234,11 @@ ctmaPrep <- function(selectedStudies=NULL,
       }
       tmpTable
       colnames(tmpTable) <- tmpTableNames
-      summaryTable <- cbind(summaryTable, tmpTable)
+      if (tmpTableNamesBackup == "source") summaryTable <- cbind(tmpTable,summaryTable) else summaryTable <- cbind(summaryTable, tmpTable)
     } # end if (maxLength > 0)
   }
 
-  primaryStudies$summary <- summaryTable
+  primaryStudies$summary <- as.data.frame(summaryTable)
 
   class(primaryStudies) <-  "CoTiMAFit"
 
