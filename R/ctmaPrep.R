@@ -157,5 +157,91 @@ ctmaPrep <- function(selectedStudies=NULL,
 
   primaryStudies$n.studies <- length(selectedStudies)
 
+  # create summary
+  # values required for printing matrix values in a single row
+  primaryStudies2 <- primaryStudies
+  n.studies  <- primaryStudies$n.studies
+  maxWaves <- max(unlist(lapply(primaryStudies$deltas, length)))+1; maxWaves
+  maxEmpcov <- max(unlist(lapply(primaryStudies$empcovs, length)))^.5; maxEmpcov
+  n.variables <- maxEmpcov/maxWaves; n.variables
+
+  studyListCategories <- vector("list", length=length(names(primaryStudies2))); studyListCategories
+  names(studyListCategories) <- names(primaryStudies2); studyListCategories
+  studyListCategories$n.studies <- NULL # do not summarize n.studies (is constant)
+  primaryStudies2$n.studies <- NULL #
+  studyListCategories$startValues <- NULL # do not summarize start values
+  primaryStudies2$startValues <- NULL
+  studyListCategories$rawData <- NULL # do not summarize raw data
+  primaryStudies2$rawData <- NULL #
+  studyListCategories$empMeans <- NULL # do not summarize means
+  primaryStudies2$empMeans <- NULL
+  studyListCategories$empVars <- NULL # do not summarize variances
+  primaryStudies2$empVars <- NULL
+
+  summaryTable <- matrix(NA, nrow=n.studies, ncol=0); summaryTable
+  for (i in 1:length(studyListCategories)) {
+    maxLength <- max(unlist(lapply(primaryStudies2[[i]], length))); maxLength
+    object <- "vector"
+    if (names(studyListCategories)[i] %in% c("empcovs")) object <- "matrix"
+    if (object == "matrix") {
+      maxLength <- maxLength ^.5; maxLength # correction if input is matrix
+      maxLength <- maxLength * (maxLength - 1) / 2; maxLength
+    }
+    if (names(studyListCategories)[i] %in% c("alphas")) maxLength <- maxWaves * n.variables
+    if (maxLength > 0) {
+      tmpTable <- matrix(NA, nrow=n.studies, ncol=maxLength); tmpTable
+      for (j in (1:n.studies)) {
+        if (object == "matrix") {
+          currentLength <- length(primaryStudies2[[i]][[j]])^.5; currentLength
+          currentLength <-currentLength * (currentLength-1) / 2
+          for (k in 1:currentLength) tmpTable[j, k] <- round(primaryStudies2[[i]][[j]][lower.tri(primaryStudies2[[i]][[j]])][k], digits)
+        } else {
+          for (k in 1:maxLength) tmpTable[j, k] <- primaryStudies2[[i]][[j]][k]
+        }
+      }
+      if (names(studyListCategories)[i] %in% c("ageM", "ageSD", "malePercent")) tmpTable <- round(tmpTable, digits)
+
+      tmpTableNames <- tmpTableNamesBackup <- gsub("$", "", names(studyListCategories[i])); tmpTableNames
+      if (tmpTableNamesBackup == "deltas") tmpTableNames <- paste0("Delta", " Lag ", seq(1, maxLength, 1)); tmpTableNames
+      if (tmpTableNamesBackup == "moderators") tmpTableNames <- paste0("Moderator", " # ", seq(1, maxLength, 1)); tmpTableNames
+      if (tmpTableNamesBackup == "sampleSizes") tmpTableNames <- "N"; tmpTableNames
+      if (tmpTableNamesBackup == "studyNumbers") tmpTableNames <- "Orig. Study No."; tmpTableNames
+      if (tmpTableNamesBackup == "source") tmpTableNames <- paste0("Source Info ", seq(1, maxLength, 1)); tmpTableNames
+      if (tmpTableNamesBackup == "occupation") tmpTableNames <- paste0("Occupation ", seq(1, maxLength, 1)); tmpTableNames
+      if (tmpTableNamesBackup == "targetVariables") tmpTableNames <- paste0("Variable ", seq(1, maxLength, 1)); tmpTableNames
+      if (tmpTableNamesBackup == "country") tmpTableNames <- paste0("Country ", seq(1, maxLength, 1)); tmpTableNames
+      if (tmpTableNamesBackup == "alphas") {
+        tmpTableNames <- c()
+        for (k in 1:maxWaves) {
+          for (l in 1:n.variables) {
+            tmpTableNames <- c(tmpTableNames, paste0("alpha Y", l, "_T", k-1)); tmpTableNames
+          }
+        }
+      }
+      if (tmpTableNamesBackup == "empcovs") {
+        tmpTableNames <- c()
+        for (k in 1:maxWaves) {
+          for (l in 1:n.variables) {
+            for (m in 1:maxWaves) {
+              for (n in 1:n.variables) {
+                tmpTableNames <- c(tmpTableNames, paste0("r(Y", l, "_T", k-1, ") (Y", n, "_T", m-1, ")"))
+              }
+            }
+          }
+        }
+        tmpTableNames
+        tmpTableNamesMat <- matrix(tmpTableNames, n.variables*maxWaves, n.variables*maxWaves); tmpTableNamesMat
+        tmpTableNames <- tmpTableNamesMat[lower.tri(tmpTableNamesMat)]; tmpTableNames
+      }
+      tmpTable
+      colnames(tmpTable) <- tmpTableNames
+      summaryTable <- cbind(summaryTable, tmpTable)
+    } # end if (maxLength > 0)
+  }
+
+  primaryStudies$summary <- summaryTable
+
+  class(primaryStudies) <-  "CoTiMAFit"
+
   return(primaryStudies)
 }
