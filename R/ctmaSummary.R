@@ -6,11 +6,6 @@
 #' @export
 #'
 summary.CoTiMAFit <- function(x) {
-  #UseMethod("print")
-  #y <- x$summary
-  #class(y) <- "character"
-  #for (i in 1:length(y)) class(y[[i]]) <- "print"
-  print(x$summary)
-  #return(y)
+  return(print(x$summary))
 }
 
