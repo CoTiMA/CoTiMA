@@ -7,6 +7,7 @@
 #' @param excludedElements Vector of predefined objects used to code primary study information. Some predefined objects are strongly defined; they have to be used in a special way because they are actually used in subsequent analyses. Some other objects could be used at the researcher's convenience (information is just collected). Strongly predefined objects are 'delta_t' (vector of time intervals; the only mandatory requirement; should be of the type c(NA, NA) in cases when raw data are provided), 'sampleSize' (single number), 'pairwiseN' (matrix of pairwise N; could be used if correlation matrix is based on pairwise N), 'empcov' (correlation matrix), 'moderator' (vector of numbers; could be continuous or categorical), 'startValues' (vector of start values), 'rawData' (information about file name and structure of raw data), 'empMeans' (means for variables; usually 0), and 'empVars' (varainces for variables; usually 1). Weakly predefined objects are 'studyNumber' (intended as a special number used for the outputs of subsequently fitted CoTiMA models), 'source' (intended as vector of authors' names and publication year), 'ageM' (intended as
 #'                          value indicating the mean age of participants in a primary study), 'malePercent' (intended as value indicating the percentage of male participants in a primary study), 'occupation' (intended as vector of character strings representing the occupations of participants in a primary study), 'country' (intended as single character string representing the country in which a primary study was conducted), 'alphas' (intended as vector of Cronbach's alphas of the variables of a primary study; not yet functional), and 'targetVariables' (intended as vector of character strings representing information about the variables used).'
 #' @param addElements User-added objects that are handled as the weakly predefined objects. The major purpose is to collect information a researcher regards as important.
+#' @param digits Rounding used for summary function
 #'
 #' @importFrom crayon red
 #'
@@ -49,11 +50,9 @@
 #'                           addElements = "addedByResearcher")
 #' saveRDS(studyList_Ex1, file="/.../studyList_Ex1.rds")
 ctmaPrep <- function(selectedStudies=NULL,
-                     excludedElements=NULL, # vector that might include and of the following (just for cosmetic reasons:
-                                            # "deltas", "sampleSizes", "pairwiseNs", "empcovs", "moderators", "startValues",
-                                            # "studyNumbers", "rawData", "empMeans", "empVars", "source",
-                                            # "ageM", "malePercent", "occupation", "country", "alphas", "targetVariables"
-                     addElements=NULL       # vector of names of additiona variables, (e.g. "quality") included in "PREP xxx.R"
+                     excludedElements=NULL,
+                     addElements=NULL,
+                     digits=4
                      ) {
 
     if (is.null(selectedStudies)) {
@@ -156,6 +155,92 @@ ctmaPrep <- function(selectedStudies=NULL,
   }
 
   primaryStudies$n.studies <- length(selectedStudies)
+
+  # create summary
+  # values required for printing matrix values in a single row
+  primaryStudies2 <- primaryStudies
+  n.studies  <- primaryStudies$n.studies
+  maxWaves <- max(unlist(lapply(primaryStudies$deltas, length)))+1; maxWaves
+  maxEmpcov <- max(unlist(lapply(primaryStudies$empcovs, length)))^.5; maxEmpcov
+  n.variables <- maxEmpcov/maxWaves; n.variables
+
+  studyListCategories <- vector("list", length=length(names(primaryStudies2))); studyListCategories
+  names(studyListCategories) <- names(primaryStudies2); studyListCategories
+  studyListCategories$n.studies <- NULL # do not summarize n.studies (is constant)
+  primaryStudies2$n.studies <- NULL #
+  studyListCategories$startValues <- NULL # do not summarize start values
+  primaryStudies2$startValues <- NULL
+  studyListCategories$rawData <- NULL # do not summarize raw data
+  primaryStudies2$rawData <- NULL #
+  studyListCategories$empMeans <- NULL # do not summarize means
+  primaryStudies2$empMeans <- NULL
+  studyListCategories$empVars <- NULL # do not summarize variances
+  primaryStudies2$empVars <- NULL
+
+  summaryTable <- matrix(NA, nrow=n.studies, ncol=0); summaryTable
+  for (i in 1:length(studyListCategories)) {
+    maxLength <- max(unlist(lapply(primaryStudies2[[i]], length))); maxLength
+    object <- "vector"
+    if (names(studyListCategories)[i] %in% c("empcovs")) object <- "matrix"
+    if (object == "matrix") {
+      maxLength <- maxLength ^.5; maxLength # correction if input is matrix
+      maxLength <- maxLength * (maxLength - 1) / 2; maxLength
+    }
+    if (names(studyListCategories)[i] %in% c("alphas")) maxLength <- maxWaves * n.variables
+    if (maxLength > 0) {
+      tmpTable <- matrix(NA, nrow=n.studies, ncol=maxLength); tmpTable
+      for (j in (1:n.studies)) {
+        if (object == "matrix") {
+          currentLength <- length(primaryStudies2[[i]][[j]])^.5; currentLength
+          currentLength <-currentLength * (currentLength-1) / 2
+          for (k in 1:currentLength) tmpTable[j, k] <- round(primaryStudies2[[i]][[j]][lower.tri(primaryStudies2[[i]][[j]])][k], digits)
+        } else {
+          for (k in 1:maxLength) tmpTable[j, k] <- primaryStudies2[[i]][[j]][k]
+        }
+      }
+      if (names(studyListCategories)[i] %in% c("ageM", "ageSD", "malePercent")) tmpTable <- round(tmpTable, digits)
+
+      tmpTableNames <- tmpTableNamesBackup <- gsub("$", "", names(studyListCategories[i])); tmpTableNames
+      if (tmpTableNamesBackup == "deltas") tmpTableNames <- paste0("Delta", " Lag ", seq(1, maxLength, 1)); tmpTableNames
+      if (tmpTableNamesBackup == "moderators") tmpTableNames <- paste0("Moderator", " # ", seq(1, maxLength, 1)); tmpTableNames
+      if (tmpTableNamesBackup == "sampleSizes") tmpTableNames <- "N"; tmpTableNames
+      if (tmpTableNamesBackup == "studyNumbers") tmpTableNames <- "Orig. Study No."; tmpTableNames
+      if (tmpTableNamesBackup == "source") tmpTableNames <- paste0("Source Info ", seq(1, maxLength, 1)); tmpTableNames
+      if (tmpTableNamesBackup == "occupation") tmpTableNames <- paste0("Occupation ", seq(1, maxLength, 1)); tmpTableNames
+      if (tmpTableNamesBackup == "targetVariables") tmpTableNames <- paste0("Variable ", seq(1, maxLength, 1)); tmpTableNames
+      if (tmpTableNamesBackup == "country") tmpTableNames <- paste0("Country ", seq(1, maxLength, 1)); tmpTableNames
+      if (tmpTableNamesBackup == "alphas") {
+        tmpTableNames <- c()
+        for (k in 1:maxWaves) {
+          for (l in 1:n.variables) {
+            tmpTableNames <- c(tmpTableNames, paste0("alpha Y", l, "_T", k-1)); tmpTableNames
+          }
+        }
+      }
+      if (tmpTableNamesBackup == "empcovs") {
+        tmpTableNames <- c()
+        for (k in 1:maxWaves) {
+          for (l in 1:n.variables) {
+            for (m in 1:maxWaves) {
+              for (n in 1:n.variables) {
+                tmpTableNames <- c(tmpTableNames, paste0("r(Y", l, "_T", k-1, ") (Y", n, "_T", m-1, ")"))
+              }
+            }
+          }
+        }
+        tmpTableNames
+        tmpTableNamesMat <- matrix(tmpTableNames, n.variables*maxWaves, n.variables*maxWaves); tmpTableNamesMat
+        tmpTableNames <- tmpTableNamesMat[lower.tri(tmpTableNamesMat)]; tmpTableNames
+      }
+      tmpTable
+      colnames(tmpTable) <- tmpTableNames
+      summaryTable <- cbind(summaryTable, tmpTable)
+    } # end if (maxLength > 0)
+  }
+
+  primaryStudies$summary <- summaryTable
+
+  class(primaryStudies) <-  "CoTiMAFit"
 
   return(primaryStudies)
 }
