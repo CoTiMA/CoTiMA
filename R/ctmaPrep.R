@@ -8,6 +8,8 @@
 #'                          value indicating the mean age of participants in a primary study), 'malePercent' (intended as value indicating the percentage of male participants in a primary study), 'occupation' (intended as vector of character strings representing the occupations of participants in a primary study), 'country' (intended as single character string representing the country in which a primary study was conducted), 'alphas' (intended as vector of Cronbach's alphas of the variables of a primary study; not yet functional), and 'targetVariables' (intended as vector of character strings representing information about the variables used).'
 #' @param addElements User-added objects that are handled as the weakly predefined objects. The major purpose is to collect information a researcher regards as important.
 #' @param digits Rounding used for summary function
+#' @param moderatorLabels vector of names
+#' @param moderatorValues list of character vectors
 #'
 #' @importFrom crayon red
 #' @importFrom xlsx addDataFrame createWorkbook
@@ -33,7 +35,7 @@
 #' moderator2 <- c(2, 2)
 #' addedByResearcher2 <- "something you want to add"
 #'
-#  Second Study
+#' Second Study
 #' delta_t4 <- c(12, 6)
 #' sampleSize4 <- 261
 #' empcov4 <- matrix(c(c(1.00, 0.44, 0.74, 0.36, 0.71, 0.32,
@@ -43,17 +45,54 @@
 #'                       0.71, 0.38, 0.83, 0.41, 1.00, 0.44,
 #'                       0.32, 0.65, 0.35, 0.71, 0.44, 1.00),
 #'                       nrow=6, ncol=6))
-#' moderator4 <- c(3, 1) #
+#' moderator4 <- c(3, 1)
 #' addedByResearcher4 <- "another comment"
 #'
-#' studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4),
+#' Third Study
+#' source17 <- c()
+#' delta_t17 <- c(12)
+#' sampleSize17 <- 440
+#' empcov17 <- matrix(c(c( 1.00,  0.60,  0.36,  0.62,  0.47,  0.18,
+#'                         0.60,  1.00,  0.55,  0.43,  0.52,  0.27,
+#'                         0.36,  0.55,  1.00,  0.26,  0.37,  0.51,
+#'                         0.62,  0.43,  0.26,  1.00,  0.63,  0.30,
+#'                         0.47,  0.52,  0.37,  0.63,  1.00,  0.55,
+#'                         0.18,  0.27,  0.51,  0.30,  0.55,  1.00,
+#'                        nrow=6, ncol=6))
+#' moderator16 <- c(3, 2)
+#' targetVariables17 <- c("Workload_1", "Exhaustion_1", "Cynicism_1",
+#'                        "Workload_2", "Exhaustion_2", "Cynicism_2")
+#' recodeVariables17 <- c(1, 4)
+#' combineVariables17 <- list("Workload_1", c("Exhaustion_1", "Cynicism_1"),
+#'                            "Workload_2", c("Exhaustion_2", "Cynicism_2"))
+#' combineVariablesNames17 <- c("Demands_1",  "Burnout_1",
+#'                              "Demands_2",  "Burnout_2");
+#' missingVariables17 <- c();
+#' results <- ctmaEmpCov(targetVariables=targetVariables17,
+#'                       recodeVariables=recodeVariables17,
+#'                       combineVariables=combineVariables17,
+#'                       combineVariablesNames=combineVariablesNames17,
+#'                       missingVariables=missingVariables17,
+#'                       nlatents=2, sampleSize=sampleSize17, Tpoints=2, empcov=empcov17)
+#' empcov17 <- results$r
+#'
+#' Add Labels and Values for Moderators (just for optional excel tables)
+#' moderatorLabels <- c("Social Support", "Control")
+#' moderatorValues <- list("continuous", c("1 = very low", "2 = low" ... "5 = very high"))
+#'
+#' studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4, 17),
 #'                           excludedElements = "ageM",
-#'                           addElements = "addedByResearcher")
+#'                           addElements = "addedByResearcher",
+#'                           moderatorLabels=moderatorLabels,
+#'                           moderatorValues=moderatorValues)
 #' saveRDS(studyList_Ex1, file="/.../studyList_Ex1.rds")
+#'
 ctmaPrep <- function(selectedStudies=NULL,
                      excludedElements=NULL,
                      addElements=NULL,
-                     digits=4
+                     digits=4,
+                     moderatorLabels=NULL,
+                     moderatorValues=NULL
                      ) {
 
     if (is.null(selectedStudies)) {
@@ -240,9 +279,11 @@ ctmaPrep <- function(selectedStudies=NULL,
   }
 
   primaryStudies$summary <- as.data.frame(summaryTable)
+  primaryStudies$moderatorLabels <- moderatorLabels
+  primaryStudies$moderatorValues <- moderatorValues
 
   ### prepare Excel Workbook with several sheets
-  xlsx::wb <- createWorkbook()         # create blank workbook
+  wb <- xlsx::createWorkbook()         # create blank workbook
   sheet1 <- xlsx::createSheet(wb, sheetName="All Primary Study Information") # create different sheets
   sheet2 <- xlsx::createSheet(wb, sheetName="Deltas")
   sheet3 <- xlsx::createSheet(wb, sheetName="Sample Sizes")
@@ -261,8 +302,35 @@ ctmaPrep <- function(selectedStudies=NULL,
   xlsx::addDataFrame(primaryStudies$summary[c(tmp1, tmp2, tmp3)], sheet3)
   tmp3 <- grep("r\\(", colnames(primaryStudies$summary)); tmp3
   xlsx::addDataFrame(primaryStudies$summary[c(tmp1, tmp2, tmp3)], sheet4)
+
   tmp3 <- grep("Moderator", colnames(primaryStudies$summary)); tmp3
-  xlsx::addDataFrame(primaryStudies$summary[c(tmp1, tmp2, tmp3)], sheet5)
+  tmp8 <- primaryStudies$summary[c(tmp1, tmp2, tmp3)]; tmp8
+  xlsx::addDataFrame(tmp8, sheet5)
+  if (!(is.null(primaryStudies$moderatorLabels))) {
+    #tmp4 <- primaryStudies$summary[c(tmp1, tmp2, tmp3)]; tmp4
+    #tmp5 <- grep("Moderator", colnames(tmp4)); tmp5
+    tmp5 <- grep("Moderator", colnames(tmp8)); tmp5
+    tmp6 <- rep("", (min(tmp5)-1)); tmp6
+    tmp7 <- c(tmp6, moderatorLabels); tmp7
+    tmp8 <- rbind(tmp8, tmp7); tmp8
+    xlsx::addDataFrame(tmp8, sheet5)
+  }
+  skip <- 0
+  if (skip == 1) {
+  if (!(is.null(primaryStudies$moderatorValues))) {
+    #tmp4 <- primaryStudies$summary[c(tmp1, tmp2, tmp3)]; tmp4
+    #tmp5 <- grep("Moderator", colnames(tmp4)); tmp5
+    tmp5 <- grep("Moderator", colnames(tmp8)); tmp5
+    tmp6 <- rep("", (min(tmp5)-1)); tmp6
+    tmp7 <- c()
+    cat(moderatorValues[[1]])
+    for (i in 1:length(moderatorValues)) tmp7 <- c(tmp7, cat(moderatorValues[[i]])); tmp7
+    #tmp7 <- c(tmp6, moderatorValues); tmp7
+    str(tmp7)
+    tmp8 <- rbind(tmp8, tmp7); tmp8
+    xlsx::addDataFrame(tmp8, sheet5)
+  }
+  }
   tmp3 <- grep("Country", colnames(primaryStudies$summary)); tmp3
   xlsx::addDataFrame(primaryStudies$summary[c(tmp1, tmp2, tmp3)], sheet6)
   tmp3 <- grep("Occupation", colnames(primaryStudies$summary)); tmp3
