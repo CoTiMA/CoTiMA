@@ -12,7 +12,7 @@
 #' @param moderatorValues list of character vectors
 #'
 #' @importFrom crayon red
-#' @importFrom xlsx addDataFrame createWorkbook
+#' @importFrom xlsx addDataFrame createWorkbook createSheet
 #'
 #' @return List of primary studies and parameters for the following CoTiMA
 #' @export ctmaPrep
