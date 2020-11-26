@@ -28,7 +28,8 @@ Imports:
     graphics,
     base,
     grDevices,
-    RPushbullet (>= 0.3.3)
+    RPushbullet (>= 0.3.3),
+    xlsx (>= 0.6.5)
 Suggests:
 Exports: ctmaPrep
 RoxygenNote: 7.1.1
