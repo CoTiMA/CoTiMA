@@ -10,6 +10,7 @@
 #' @param digits Rounding used for summary function
 #'
 #' @importFrom crayon red
+#' @importFrom xlsx addDataFrame createWorkbook
 #'
 #' @return List of primary studies and parameters for the following CoTiMA
 #' @export ctmaPrep
@@ -239,6 +240,41 @@ ctmaPrep <- function(selectedStudies=NULL,
   }
 
   primaryStudies$summary <- as.data.frame(summaryTable)
+
+  ### prepare Excel Workbook with several sheets
+  xlsx::wb <- createWorkbook()         # create blank workbook
+  sheet1 <- xlsx::createSheet(wb, sheetName="All Primary Study Information") # create different sheets
+  sheet2 <- xlsx::createSheet(wb, sheetName="Deltas")
+  sheet3 <- xlsx::createSheet(wb, sheetName="Sample Sizes")
+  sheet4 <- xlsx::createSheet(wb, sheetName="Correlations")
+  sheet5 <- xlsx::createSheet(wb, sheetName="Moderators")
+  sheet6 <- xlsx::createSheet(wb, sheetName="Countries")
+  sheet7 <- xlsx::createSheet(wb, sheetName="Occupations")
+  sheet8 <- xlsx::createSheet(wb, sheetName="Demographics")
+  sheet9 <- xlsx::createSheet(wb, sheetName="Variables & alphas")
+  xlsx::addDataFrame(primaryStudies$summary, sheet1)  # add data to the sheets
+  tmp1 <- grep("Source", colnames(primaryStudies$summary)); tmp1
+  tmp2 <- grep("Orig.", colnames(primaryStudies$summary)); tmp2
+  tmp3 <- grep("Delta", colnames(primaryStudies$summary)); tmp3
+  xlsx::addDataFrame(primaryStudies$summary[c(tmp1, tmp2, tmp3)], sheet2)
+  tmp3 <- which(colnames(primaryStudies$summary) == "N")
+  xlsx::addDataFrame(primaryStudies$summary[c(tmp1, tmp2, tmp3)], sheet3)
+  tmp3 <- grep("r\\(", colnames(primaryStudies$summary)); tmp3
+  xlsx::addDataFrame(primaryStudies$summary[c(tmp1, tmp2, tmp3)], sheet4)
+  tmp3 <- grep("Moderator", colnames(primaryStudies$summary)); tmp3
+  xlsx::addDataFrame(primaryStudies$summary[c(tmp1, tmp2, tmp3)], sheet5)
+  tmp3 <- grep("Country", colnames(primaryStudies$summary)); tmp3
+  xlsx::addDataFrame(primaryStudies$summary[c(tmp1, tmp2, tmp3)], sheet6)
+  tmp3 <- grep("Occupation", colnames(primaryStudies$summary)); tmp3
+  xlsx::addDataFrame(primaryStudies$summary[c(tmp1, tmp2, tmp3)], sheet7)
+  tmp3 <- grep("age", colnames(primaryStudies$summary)); tmp3
+  tmp3 <- c(tmp3, grep("male", colnames(primaryStudies$summary))); tmp3
+  xlsx::addDataFrame(primaryStudies$summary[c(tmp1, tmp2, tmp3)], sheet8)
+  tmp3 <- grep("Variable", colnames(primaryStudies$summary)); tmp3
+  tmp3 <- c(tmp3, grep("alpha", colnames(primaryStudies$summary))); tmp3
+  xlsx::addDataFrame(primaryStudies$summary[c(tmp1, tmp2, tmp3)], sheet9)
+
+  primaryStudies$StudyInformation <- wb
 
   class(primaryStudies) <-  "CoTiMAFit"
 
