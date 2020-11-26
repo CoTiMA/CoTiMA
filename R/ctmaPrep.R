@@ -12,7 +12,7 @@
 #' @param moderatorValues list of character vectors
 #'
 #' @importFrom crayon red
-#' @importFrom openxlsx createWorkbook addWorksheet writeData openXL saveWorkbook
+#' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
 #'
 #' @return List of primary studies and parameters for the following CoTiMA (plus StudyInformation which could be saved to Excel)
 #' @export ctmaPrep
@@ -351,7 +351,7 @@ ctmaPrep <- function(selectedStudies=NULL,
   primaryStudies$moderatorValues <- moderatorValues
 
   ### prepare Excel Workbook with several sheets
-  wb <- createWorkbook()
+  wb <- openxlsx::createWorkbook()
   sheet1 <- openxlsx::addWorksheet(wb, sheetName="All Primary Study Information")
   sheet2 <- openxlsx::addWorksheet(wb, sheetName="Deltas")
   sheet3 <- openxlsx::addWorksheet(wb, sheetName="Sample Sizes")
