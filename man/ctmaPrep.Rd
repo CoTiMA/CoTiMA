@@ -4,7 +4,12 @@
 \alias{ctmaPrep}
 \title{ctmaPrep}
 \usage{
-ctmaPrep(selectedStudies = NULL, excludedElements = NULL, addElements = NULL)
+ctmaPrep(
+  selectedStudies = NULL,
+  excludedElements = NULL,
+  addElements = NULL,
+  digits = 4
+)
 }
 \arguments{
 \item{selectedStudies}{Vector of primary study numbers (numeric values with no leading 0; e.g., '2' but not '02')}
@@ -13,6 +18,8 @@ ctmaPrep(selectedStudies = NULL, excludedElements = NULL, addElements = NULL)
 value indicating the mean age of participants in a primary study), 'malePercent' (intended as value indicating the percentage of male participants in a primary study), 'occupation' (intended as vector of character strings representing the occupations of participants in a primary study), 'country' (intended as single character string representing the country in which a primary study was conducted), 'alphas' (intended as vector of Cronbach's alphas of the variables of a primary study; not yet functional), and 'targetVariables' (intended as vector of character strings representing information about the variables used).'}
 
 \item{addElements}{User-added objects that are handled as the weakly predefined objects. The major purpose is to collect information a researcher regards as important.}
+
+\item{digits}{Rounding used for summary function}
 }
 \value{
 List of primary studies and parameters for the following CoTiMA

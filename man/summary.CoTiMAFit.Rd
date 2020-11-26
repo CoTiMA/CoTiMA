@@ -2,13 +2,13 @@
 % Please edit documentation in R/ctmaSummary.R
 \name{summary.CoTiMAFit}
 \alias{summary.CoTiMAFit}
-\title{ctmaSummary}
+\title{summary.CoTiMAFit}
 \usage{
 \method{summary}{CoTiMAFit}(x)
 }
 \arguments{
-\item{x}{""}
+\item{x}{líst}
 }
 \description{
-ctmaSummary
+summary.CoTiMAFit
 }
