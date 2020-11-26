@@ -12,7 +12,9 @@ LazyData: true
 Depends:
     OpenMx (>= 2.15.5),
     ctsem (>= 3.3.11),
-    lavaan
+    lavaan,
+    xlsx (>= 0.6.5),
+    rJava
 Imports: 
     MASS (>= 7.3.51.4),
     MBESS (>= 4.6.0),
@@ -29,7 +31,6 @@ Imports:
     base,
     grDevices,
     RPushbullet (>= 0.3.3),
-    xlsx (>= 0.6.5)
 Suggests:
 Exports: ctmaPrep
 RoxygenNote: 7.1.1
