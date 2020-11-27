@@ -1,3 +1,7 @@
+#######################################################################################################################
+############################################ CoTiMA Statistical Power #################################################
+#######################################################################################################################
+
 #' ctmaPower
 #'
 #' @param ctmaInitFit ""
@@ -32,21 +36,24 @@
 #' @export ctmaPower
 #'
 ctmaPower <- function(
+  # Primary Study Fits
   ctmaInitFit=NULL,
-
+  # Directory names and file names
   activeDirectory=NULL,
   statisticalPower=c(),
-  failSafeN =NULL,
-  failSafeP=NULL,
-  timeRange=NULL,
+  failSafeN =NULL,                    # power calc: sample size used to determine when effects become non-sign.
+  failSafeP=NULL,                     # power calc: p-value used to determine when effects become non-sign.
+  timeRange=NULL,                     # e.g., seq(0, 120, 1)
   useMBESS=FALSE,
-
+  # Fitting Parameters
   coresToUse=1,
   digits=4,
-
+  # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
   activateRPB=FALSE,
   silentOverwrite=FALSE,
 
+  #saveStatPower="CoTiMAPower_AllResults",
+  #loadStatPower=NULL,
   loadAllInvFit=c(),
   saveAllInvFit=NULL,
   loadAllInvWOSingFit=c(),
@@ -203,7 +210,6 @@ ctmaPower <- function(
     #failSafeN
     if ( (!(is.null(failSafeN)) & ((is.null(failSafeP))))
          | ((is.null(failSafeN)) & (!(is.null(failSafeP)))) )  {
-<<<<<<< Updated upstream
       if (activateRPB == TRUE) {
         RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))
       }
@@ -215,13 +221,6 @@ ctmaPower <- function(
         failSafeN <- round(mean(allSampleSizes+.5),0)
         failSafeNhelper <- "( = avg. N)"
       }
-=======
-      RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))
-      cat(crayon::red$bold("Only one argument (failSafeN OR failSafeP) has been provided, but both are required!", sep="\n"))
-      cat(crayon::red$bold(" ", " ", sep="\n"))
-      round(mean(allSampleSizes+.5),0)
-      if (is.null(failSafeN)) failSafeN <- round(mean(allSampleSizes+.5),0)
->>>>>>> Stashed changes
       if (is.null(failSafeP)) failSafeP <- .01
       cat(crayon::red$bold("I will use failSafeN =", failSafeN, " and failSafeP = ", failSafeP, "!", sep=" "))
       cat(crayon::red$bold(" ", " ", sep="\n"))
@@ -233,14 +232,11 @@ ctmaPower <- function(
       }
       if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
     }
-<<<<<<< Updated upstream
     if (is.null(failSafeN)) {
       failSafeN <- round(mean(allSampleSizes+.5),0)
       failSafeNhelper <- "( = avg. N)"
     }
     if (is.null(failSafeP)) failSafeP <- .01
-=======
->>>>>>> Stashed changes
 
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
     maxTpoints <- max(allTpoints); maxTpoints # replacement
@@ -763,10 +759,6 @@ ctmaPower <- function(
         counter2 <- counter2 + 1
         if ( paste0("V", j2, "toV", j1) %in% driftNames) {
           requiredSampleSizes[[counter2]] <- plotPairs[counter2, , , 2]
-<<<<<<< Updated upstream
-=======
-          #currentDriftNames <- c(currentDriftNames, driftNamesBackup[counter1])
->>>>>>> Stashed changes
           currentDriftNames <- c(currentDriftNames, driftNames[counter1])
           rowNames  <- plotPairs[counter2, 1, , 1]
         }
@@ -925,3 +917,4 @@ ctmaPower <- function(
   invisible(results)
 
 } ### END function definition
+
