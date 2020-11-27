@@ -28,14 +28,6 @@
 #'
 #' @export ctmaInit
 #'
-#' @examples # CoTiMAInitFit_Ex1 <- ctmaInit(
-#' activeDirectory = activeDirectory,
-#' primaryStudies = studyList_Ex1,
-#' n.latent = 2,
-#' saveSingleStudyModelFit = c("CoTiMAInitFit_D_BO", 1:500),
-#' silentOverwrite = TRUE)
-#' saveRDS(CoTiMAInitFit_D_BO, file=paste0(activeDirectory, "MAIN EFFECTS/CoTiMAInitFit_D_BO.rds"))
-#' summary(CoTiMAInitFit_D_BO)
 ctmaInit <- function(
   primaryStudies=NULL,
   activeDirectory=NULL,
