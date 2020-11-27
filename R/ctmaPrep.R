@@ -68,7 +68,7 @@ ctmaPrep <- function(selectedStudies=NULL,
     recodeVariables[[i]] <- NA
     combineVariables[[i]] <- NA
     combineVariablesNames[[i]] <- NA
-    missingVariables <- NA
+    missingVariables[[i]] <- NA
 
     if (!(is.null(addElements))) for (j in 1:length(addElements)) addElementsList[[j]][[i]] <- NA
   }
