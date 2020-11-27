@@ -66,7 +66,8 @@ ctmaPrep <- function(selectedStudies=NULL,
     alphas[[i]] <- NA
     targetVariables[[i]] <- NA
     recodeVariables[[i]] <- NA
-    combineVariables[[i]] <- NA
+    #combineVariables[[i]] <- NA
+    combineVariables[[i]] <- list()
     combineVariablesNames[[i]] <- NA
     missingVariables[[i]] <- NA
 
@@ -108,9 +109,25 @@ ctmaPrep <- function(selectedStudies=NULL,
       recodeVariables[[i]] <- NA
     }
 
+
+    #tmp1 <- (get(paste0("combineVariables", 14))); tmp1
+    #length(tmp1)
     if (exists(paste0("combineVariables", selectedStudies[i]))) {
       tmp1 <- get(paste0("combineVariables", selectedStudies[i])); tmp1
-      if (!(is.null(tmp1))) combineVariables[[i]] <- get(paste0("combineVariables", selectedStudies[i])) else combineVariables[[i]] <- NA
+      if (length(tmp1) > 0) {
+        tmp2 <- c()
+        for (l in 1:length(tmp1)) {
+          tmp3 <- c()
+          for (m in 1:length(tmp1[[l]])) {
+            tmp3 <- paste0(tmp3, tmp1[[l]][m])
+          }
+          tmp2[l] <- tmp3
+        }
+        #combineVariables[[i]] <- get(paste0("combineVariables", selectedStudies[i]))
+        combineVariables[[i]] <- tmp2
+      } else {
+        combineVariables[[i]] <- NA
+      }
     } else {
       combineVariables[[i]] <- NA
     }
