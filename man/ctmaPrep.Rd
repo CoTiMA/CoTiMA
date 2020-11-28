@@ -61,3 +61,35 @@ In most instances, one relevant piece of information is the empirical correlatio
 which is stored in the objects 'empcov2' and 'empcov4'. Note that full and symmetric matrices are required for ctmaPrep.
 Usually, sample sizes ('sampleSize2', 'sampleSize4') and time lags ('delta_t2', 'delta_t4'), are required, too
 }
+\examples{
+# First Study
+source2 <- c("Dollard", "& Bakker", "2010")
+delta_t2 <- 12
+sampleSize2 <- 209
+empcov2 <- matrix(c(
+ 1, 0.55, 0.69, 0.37,
+ 0.55, 1, 0.43, 0.55,
+ 0.69, 0.43, 1, 0.58,
+ 0.37, 0.55, 0.58, 1), nrow = 4, ncol = 4)
+moderator2 <- c(2, 2)
+addedByResearcher2 <- "something you want to add"
+
+delta_t4 <- c(12, 6)
+sampleSize4 <- 261
+empcov4 <- matrix(c(c(1.00, 0.44, 0.74, 0.36, 0.71, 0.32,
+                      0.44, 1.00, 0.35, 0.66, 0.38, 0.65,
+                      0.74, 0.35, 1.00, 0.43, 0.83, 0.35,
+                      0.36, 0.66, 0.43, 1.00, 0.41, 0.71,
+                      0.71, 0.38, 0.83, 0.41, 1.00, 0.44,
+                      0.32, 0.65, 0.35, 0.71, 0.44, 1.00),
+                      nrow=6, ncol=6))
+moderator4 <- c(3, 1) #
+addedByResearcher4 <- "another comment"
+
+studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4),
+                          excludedElements = "ageM",
+                          addElements = "addedByResearcher")
+saveRDS(studyList_Ex1, file="/.../studyList_Ex1.rds")
+openXL(studyList_Ex1$excelSheets)
+
+}
