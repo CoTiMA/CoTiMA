@@ -54,6 +54,13 @@ ctmaPlot <- function(
     stop("Good luck for the next try!")
   }
 
+  # check if object can be plotted
+  if ( (class(ctmaFitObject) != "CoTiMAFit") | (ctmaFitObject$plot.type == "none") ) {
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat("This is nothing CoTiMA-related that I can plot . \n")
+    stop("Good luck for the next try!")
+  }
+
   # some re-arrangements to cover all possibilities from a single object (list) to a list of list of objects (lists)
 
   #n.fitted.obj <- length(ctmaFitObject); n.fitted.obj # has to be done twice
