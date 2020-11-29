@@ -21,15 +21,14 @@ ctmaInit(
   silentOverwrite = FALSE,
   saveSingleStudyModelFit = c(),
   loadSingleStudyModelFit = c(),
-  CoTiMAStanctArgs = list(test = TRUE, scaleTI = TRUE, scaleMod = TRUE, scaleLongData =
-    FALSE, scaleTime = 1/1, savesubjectmatrices = FALSE, verbose = 1, datalong = NA,
-    ctstanmodel = NA, stanmodeltext = NA, iter = 1000, intoverstates = TRUE, binomial =
-    FALSE, fit = TRUE, intoverpop = "auto", stationary = FALSE, plot = FALSE, derrind =
-    "all", optimize = TRUE, optimcontrol = list(is = F, stochastic = FALSE, finishsamples
-    = 1000), nlcontrol = list(), nopriors = TRUE, chains = 2, cores = 1, inits = NULL,
-    forcerecompile = FALSE,      savescores = FALSE, gendata = FALSE, control =
-    list(adapt_delta = 0.8, adapt_window = 2, max_treedepth = 10, adapt_init_buffer = 2,
-    stepsize = 0.001), verbose = 0)
+  scaleTI = NULL,
+  scaleMod = NULL,
+  scaleTime = NULL,
+  optimize = TRUE,
+  nopriors = TRUE,
+  finishsamples = NULL,
+  chains = NULL,
+  verbose = NULL
 )
 }
 \arguments{
@@ -65,7 +64,21 @@ ctmaInit(
 
 \item{loadSingleStudyModelFit}{load the fit of single study ctsem models}
 
-\item{CoTiMAStanctArgs}{CoTiMA Stanct Arguments}
+\item{scaleTI}{scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances}
+
+\item{scaleMod}{scale moderators - useful in particular if continuous moderators are used}
+
+\item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
+
+\item{optimize}{if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
+
+\item{nopriors}{if TRUE, any priors are disabled – sometimes desirable for optimization}
+
+\item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
+
+\item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
+
+\item{finishsample}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
 }
 \description{
 Fits a ctsem model to a list of primary studies prepared by ctmaPrep.
