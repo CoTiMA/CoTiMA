@@ -28,6 +28,12 @@
 #'
 #' @export ctmaInit
 #'
+#' @examples # First Study
+#' CoTiMAInitFit <- ctmaInitc(
+#' primaryStudies=studyList_Ex1,
+#' n.latent=2,
+#' saveSingleStudyModelFit=c(2, 4, 17))
+#'
 ctmaInit <- function(
   primaryStudies=NULL,
   activeDirectory=NULL,

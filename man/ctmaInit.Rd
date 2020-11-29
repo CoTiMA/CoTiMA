@@ -71,3 +71,11 @@ ctmaInit(
 Fits a ctsem model to a list of primary studies prepared by ctmaPrep.
 #'
 }
+\examples{
+# First Study
+CoTiMAInitFit <- ctmaInitc(
+primaryStudies=studyList_Ex1,
+n.latent=2,
+saveSingleStudyModelFit=c(2, 4, 17))
+
+}

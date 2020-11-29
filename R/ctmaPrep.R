@@ -48,11 +48,46 @@
 #' moderator4 <- c(3, 1) #
 #' addedByResearcher4 <- "another comment"
 #'
-#' studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4),
+#' #' Third Study
+#' source17 <- c()
+#' delta_t17 <- c(12)
+#' sampleSize17 <- 440
+#' empcov17 <- matrix(c(c( 1.00,  0.60,  0.36,  0.62,  0.47,  0.18,
+#'                         0.60,  1.00,  0.55,  0.43,  0.52,  0.27,
+#'                         0.36,  0.55,  1.00,  0.26,  0.37,  0.51,
+#'                         0.62,  0.43,  0.26,  1.00,  0.63,  0.30,
+#'                         0.47,  0.52,  0.37,  0.63,  1.00,  0.55,
+#'                         0.18,  0.27,  0.51,  0.30,  0.55,  1.00,
+#'                        nrow=6, ncol=6))
+#' moderator16 <- c(3, 2)
+#' targetVariables17 <- c("Workload_1", "Exhaustion_1", "Cynicism_1",
+#'                        "Workload_2", "Exhaustion_2", "Cynicism_2")
+#' recodeVariables17 <- c(1, 4)
+#' combineVariables17 <- list("Workload_1", c("Exhaustion_1", "Cynicism_1"),
+#'                            "Workload_2", c("Exhaustion_2", "Cynicism_2"))
+#' combineVariablesNames17 <- c("Demands_1",  "Burnout_1",
+#'                              "Demands_2",  "Burnout_2");
+#' missingVariables17 <- c();
+#' results <- ctmaEmpCov(targetVariables=targetVariables17,
+#'                       recodeVariables=recodeVariables17,
+#'                       combineVariables=combineVariables17,
+#'                       combineVariablesNames=combineVariablesNames17,
+#'                       missingVariables=missingVariables17,
+#'                       nlatents=2, sampleSize=sampleSize17, Tpoints=2, empcov=empcov17)
+#' empcov17 <- results$r
+#'
+#' Add Labels and Values for Moderators (just for optional excel tables)
+#' moderatorLabels <- c("Social Support", "Control")
+#' moderatorValues <- list("continuous", c("1 = very low", "2 = low" ... "5 = very high"))
+#'
+#' studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4, 17),
 #'                           excludedElements = "ageM",
-#'                           addElements = "addedByResearcher")
+#'                           addElements = "addedByResearcher",
+#'                           moderatorLabels=moderatorLabels,
+#'                           moderatorValues=moderatorValues)
 #' saveRDS(studyList_Ex1, file="/.../studyList_Ex1.rds")
-#' openXL(studyList_Ex1$excelSheets)
+#' saveWorkbook(studyList_Ex1$StudyInformation, "MyExcelSheet.xlsx", overwrite = TRUE)
+#'
 #'
 ctmaPrep <- function(selectedStudies=NULL,
                      excludedElements=NULL,
