@@ -18,7 +18,14 @@
 #' @param silentOverwrite Override old files without asking
 #' @param saveSingleStudyModelFit save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
 #' @param loadSingleStudyModelFit load the fit of single study ctsem models
-#' @param CoTiMAStanctArgs CoTiMA Stanct Arguments
+#' @param scaleTI scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances
+#' @param scaleMod scale moderators - useful in particular if continuous moderators are used
+#' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
+#' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
+#' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
+#' @param finishsample number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
+#' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
+#' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  crayon red blue
@@ -51,24 +58,33 @@ ctmaInit <- function(
   silentOverwrite=FALSE,
   saveSingleStudyModelFit=c(),
   loadSingleStudyModelFit=c(),
-  CoTiMAStanctArgs=list(test=TRUE,
-                        scaleTI=TRUE, scaleMod=TRUE, scaleLongData=FALSE,
-                        scaleTime=1/1,
-                        savesubjectmatrices=FALSE, verbose=1,
-                        datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
-                        iter=1000, intoverstates=TRUE,
-                        binomial=FALSE, fit=TRUE,
-                        intoverpop='auto', stationary=FALSE,
-                        plot=FALSE, derrind="all",
-                        optimize=TRUE, optimcontrol=list(is=F, stochastic=FALSE, finishsamples=1000),
-                        nlcontrol=list(),
-                        nopriors=TRUE,
-                        chains=2,
-                        cores=1,
-                        inits=NULL, forcerecompile=FALSE,
-                        savescores=FALSE, gendata=FALSE,
-                        control=list(adapt_delta = .8, adapt_window=2, max_treedepth=10, adapt_init_buffer=2, stepsize = .001),
-                        verbose=0)
+  scaleTI=NULL,
+  scaleMod=NULL,
+  scaleTime=NULL, # fraction (e.g., 1/30) to scale time
+  optimize=TRUE, # Stan’s Hamiltonian Monte Carlo sampler is NOT used (default = maximum a posteriori / importance sampling) .
+  nopriors=TRUE, # If TRUE, any priors are disabled – sometimes desirable for optimization
+  finishsamples=NULL, # Number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation.
+  chains=NULL, #number of chains to sample, during HMC or post-optimization importance sampling.
+  verbose=NULL
+  #
+  #CoTiMAStanctArgs=list(test=TRUE,
+  #                      scaleTI=TRUE, scaleMod=TRUE, scaleLongData=FALSE,
+  #                      scaleTime=1/1,
+  #                      savesubjectmatrices=FALSE,
+  #                      datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
+  #                      iter=1000, intoverstates=TRUE,
+  #                      binomial=FALSE, fit=TRUE,
+  #                      intoverpop='auto', stationary=FALSE,
+  #                      plot=FALSE, derrind="all",
+  #                      optimize=TRUE, optimcontrol=list(is=F, stochastic=FALSE, finishsamples=1000),
+  #                      nlcontrol=list(),
+  #                      nopriors=TRUE,
+  #                      chains=2,
+  #                      cores=1,
+  #                      inits=NULL, forcerecompile=FALSE,
+  #                      savescores=FALSE, gendata=FALSE,
+  #                      control=list(adapt_delta = .8, adapt_window=2, max_treedepth=10, adapt_init_buffer=2, stepsize = .001),
+  #                      verbose=1)
 
 )
 
@@ -158,6 +174,18 @@ ctmaInit <- function(
         }
       }
     }
+
+    { # fitting params
+      if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
+      if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
+      if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
+      if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
+      if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
+      if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
+      if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
+      if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
+    }
+
   } ### END Check Model Specification ###
 
 
