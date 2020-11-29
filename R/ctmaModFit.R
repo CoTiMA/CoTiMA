@@ -48,7 +48,17 @@ ctmaModFit <- function(
   mod.names=NULL,
   activateRPB=FALSE,
   digits=4,
-  moderatedDrift=c()
+  moderatedDrift=c(),
+  coresToUse=c(1),
+  indVarying=FALSE,
+  scaleTI=NULL,
+  scaleMod=NULL,
+  scaleTime=NULL,
+  optimize=TRUE,
+  nopriors=TRUE,
+  finishsamples=NULL,
+  chains=NULL,
+  verbose=NULL
 )
 {  # begin function definition (until end of file)
 

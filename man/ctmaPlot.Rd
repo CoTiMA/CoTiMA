@@ -21,31 +21,31 @@ ctmaPlot(
 )
 }
 \arguments{
-\item{ctmaFitObject}{""}
+\item{ctmaFitObject}{CoTiMA Fit object}
 
-\item{activeDirectory}{""}
+\item{activeDirectory}{defines another active directory than the one used in ctmaInitFit}
 
-\item{saveFilePrefix}{""}
+\item{saveFilePrefix}{Prefix used for saved plots}
 
-\item{activateRPB}{""}
+\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
 
-\item{plotCrossEffects}{""}
+\item{plotCrossEffects}{logical}
 
-\item{plotAutoEffects}{""}
+\item{plotAutoEffects}{logical}
 
-\item{timeUnit}{""}
+\item{timeUnit}{label for x-axis when plotting discrete time plots}
 
-\item{timeRange}{""}
+\item{timeRange}{time range for x-axis}
 
-\item{yLimitsForEffects}{""}
+\item{yLimitsForEffects}{range for y-axis}
 
-\item{mod.values}{""}
+\item{mod.values}{moderator values that should be used for plots}
 
-\item{mod.num}{""}
+\item{mod.num}{which of possible multiple moderator effects should be plotted}
 
-\item{aggregateLabel}{""}
+\item{aggregateLabel}{label to indicat aggregated discrete time effects}
 
-\item{xLabels}{""}
+\item{xLabels}{labes used for x-axis}
 }
 \description{
 ctmaPlot

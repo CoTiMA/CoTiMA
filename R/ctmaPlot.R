@@ -3,19 +3,19 @@
 #######################################################################################################################
 #' ctmaPlot
 #'
-#' @param ctmaFitObject ""
-#' @param activeDirectory ""
-#' @param saveFilePrefix ""
-#' @param activateRPB ""
-#' @param plotCrossEffects ""
-#' @param plotAutoEffects ""
-#' @param timeUnit ""
-#' @param timeRange ""
-#' @param yLimitsForEffects ""
-#' @param mod.values ""
-#' @param mod.num ""
-#' @param aggregateLabel ""
-#' @param xLabels ""
+#' @param ctmaFitObject CoTiMA Fit object
+#' @param activeDirectory  defines another active directory than the one used in ctmaInitFit
+#' @param saveFilePrefix Prefix used for saved plots
+#' @param activateRPB  set to TRUE to receive push messages with CoTiMA notifications on your phone
+#' @param plotCrossEffects logical
+#' @param plotAutoEffects logical
+#' @param timeUnit label for x-axis when plotting discrete time plots
+#' @param timeRange time range for x-axis
+#' @param yLimitsForEffects range for y-axis
+#' @param mod.values moderator values that should be used for plots
+#' @param mod.num which of possible multiple moderator effects should be plotted
+#' @param aggregateLabel label to indicat aggregated discrete time effects
+#' @param xLabels labes used for x-axis
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
@@ -27,14 +27,10 @@
 #' @export ctmaPlot
 #'
 ctmaPlot <- function(
-  # Primary Study Fits
   ctmaFitObject=list(),
-  # Directory names and file names
   activeDirectory=NULL,
   saveFilePrefix="ctmaPlot",
-  # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
   activateRPB=FALSE,
-  # Figure Parameters
   plotCrossEffects=TRUE,
   plotAutoEffects=TRUE,
   timeUnit="timeUnit (not specified)",
@@ -128,7 +124,8 @@ ctmaPlot <- function(
     maxDelta <- minDelta <- meanDelta <- c()
     allDeltas <- list()
     requiredSampleSizes <- list()
-    mod.values <- list
+    mod.values.backup <- mod.values; mod.values.backup
+    mod.values <- list()
 
     for (i in 1:n.fitted.obj) {
       if (!(is.null(ctmaFitObject[[i]]$mod.type))) {
@@ -137,6 +134,7 @@ ctmaPlot <- function(
         }
       }
     }
+    if (length(mod.values) == 0) mod.values <- mod.values.backup; mod.values
 
     for (i in 1:n.fitted.obj) {
       if ("power" %in% plot.type[[i]]) plot.type[[i]] <- c("power", "drift")
@@ -448,6 +446,7 @@ ctmaPlot <- function(
             targetRow <- targetRow:(targetRow+length(targetDriftNames)-1); targetRow
             DRIFTCoeff[[g]] <- list()
             counter <- 1
+
             for (i in mod.values) {
               ctmaFitObject[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
               tmp1 <- stats::quantile(usedTimeRange, probs = seq(0, 1, 1/(n.studies[g]+1))); tmp1 # used for positioning of moderator value in plot
