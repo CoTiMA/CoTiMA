@@ -1,11 +1,11 @@
 #' ctmaPRaw
 #'
-#' @param empCovMat ""
-#' @param empNMat ""
-#' @param empN ""
-#' @param studyNumber ""
-#' @param empMeanVector ""
-#' @param empVarVector ""
+#' @param empCovMat empirical primary study covariance matrix
+#' @param empNMat matrix of (possibly pairwise) N
+#' @param empN N (in case of listwise N)
+#' @param studyNumber internal number
+#' @param empMeanVector vector of means for all variables, usually 0
+#' @param empVarVector vector of variances for all variables, usually 1
 #' @param activateRPB "set to TRUE to receive push messages with CoTiMA notifications on your phone"
 #'
 #' @importFrom RPushbullet pbPost
