@@ -18,26 +18,30 @@ ctmaEmpCov(
 )
 }
 \arguments{
-\item{targetVariables}{""}
+\item{targetVariables}{names of the targeted variables}
 
-\item{recodeVariables}{""}
+\item{recodeVariables}{which of the targeted variables require inverse coding}
 
-\item{combineVariables}{""}
+\item{combineVariables}{list of vectors, which put together the targeted variables that should be used for composite variables}
 
-\item{combineVariablesNames}{""}
+\item{combineVariablesNames}{new names for combined variables - not really important}
 
-\item{missingVariables}{""}
+\item{missingVariables}{missing variables}
 
-\item{nlatents}{""}
+\item{nlatents}{number of (latent) variables - actually it is the number of all variables}
 
-\item{Tpoints}{""}
+\item{Tpoints}{Number of time points.}
 
-\item{sampleSize}{""}
+\item{sampleSize}{sample size}
 
-\item{pairwiseN}{""}
+\item{pairwiseN}{matrix of same dimensions as empcov containing possible pairwiseN.}
 
-\item{empcov}{""}
+\item{empcov}{empirical correlation matrix}
 }
 \description{
 ctmaEmpCov
+}
+\examples{
+
+
 }

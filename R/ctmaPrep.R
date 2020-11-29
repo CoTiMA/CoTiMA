@@ -277,16 +277,16 @@ ctmaPrep <- function(selectedStudies=NULL,
   studyListCategories$empVars <- NULL # do not summarize variances
   primaryStudies2$empVars <- NULL
 
+  #studyListCategories
 
   summaryTable <- matrix(NA, nrow=n.studies, ncol=0); summaryTable
   for (i in 1:length(studyListCategories)) {
-  #for (i in 1:2) {
-    #i <- 1
     #(any(!(is.na(primaryStudies2[[i]]))))
     if (any(!(is.na(primaryStudies2[[i]])))) {
       # check max length of list elements across studies
       maxLength <- max(unlist(lapply(primaryStudies2[[i]], length))); maxLength
-
+      #primaryStudies2[[i]]
+      #studyListCategories[i]
       object <- "vector"
       if (names(studyListCategories)[i] %in% c("empcovs", "pairwiseNs")) object <- "matrix"
       if (names(studyListCategories)[i] %in% c("combineVariables")) object <- "list"
@@ -385,20 +385,15 @@ ctmaPrep <- function(selectedStudies=NULL,
           tmpTableNames <- tmpTableNamesMat[lower.tri(tmpTableNamesMat)]; tmpTableNames
           tmpTableNames <- tmpTableNames[1:maxLength] # test
         }
-        #tmpTableNamesMat
-        #tmpTableNames[1:currentLength]
 
-
-        #str(tmpTableNames)
-        #tmpTable
-        #dim(tmpTable)
+        # if less columnames than columns are present
+        if (length(tmpTableNames) < dim(tmpTable)[2]) tmpTableNames <- rep(tmpTableNames[1], dim(tmpTable)[2])
         colnames(tmpTable) <- tmpTableNames
 
         if (tmpTableNamesBackup == "source") summaryTable <- cbind(tmpTable,summaryTable) else summaryTable <- cbind(summaryTable, tmpTable)
       } # end if (maxLength > 0)
     }
   }
-
   #summaryTable
   #colnames(summaryTable)
 
@@ -445,13 +440,20 @@ ctmaPrep <- function(selectedStudies=NULL,
     openxlsx::writeData(wb, sheet5, tmp8)
   }
   if (!(is.null(primaryStudies$moderatorValues))) {
+    maxCategories <- max(unlist(lapply(moderatorValues, function(extract) length(extract)))); maxCategories
     tmp5 <- grep("Moderator", colnames(tmp8)); tmp5
     tmp6 <- rep("", (min(tmp5)-1)); tmp6
     tmp7 <- c()
-    for (i in 1:length(moderatorValues)) tmp7 <- cbind(tmp7, paste0(moderatorValues[[i]])); tmp7
-    tmp6b <- tmp6
+    for (j in 1: maxCategories){
+      for (i in 1:length(moderatorValues)){
+        tmp7 <- cbind(tmp7, paste0(moderatorValues[[i]][j]))
+      }
+    }
+    tmp7 <- matrix(tmp7, ncol=length(tmp5), byrow=TRUE); tmp7
+    tmp6b <- tmp6; tmp6b
     for (i in 1:(dim(tmp7)[1]-1)) tmp6b <- rbind(tmp6b, tmp6); tmp6b
     tmp7 <- cbind(tmp6b, tmp7); tmp7
+    tmp7[which(tmp7 =="NA")] <- ""
     colnames(tmp7) <- colnames(tmp8)
     rownames(tmp7) <- NULL
     tmp8 <- rbind(tmp8, tmp7); tmp8

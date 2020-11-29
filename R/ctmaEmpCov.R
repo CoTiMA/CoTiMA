@@ -5,21 +5,23 @@
 
 #' ctmaEmpCov
 #'
-#' @param targetVariables ""
-#' @param recodeVariables ""
-#' @param combineVariables ""
-#' @param combineVariablesNames ""
-#' @param missingVariables ""
-#' @param nlatents ""
-#' @param Tpoints ""
-#' @param sampleSize ""
-#' @param pairwiseN ""
-#' @param empcov ""
+#' @param targetVariables names of the targeted variables
+#' @param recodeVariables which of the targeted variables require inverse coding
+#' @param combineVariables list of vectors, which put together the targeted variables that should be used for composite variables
+#' @param combineVariablesNames new names for combined variables - not really important
+#' @param missingVariables missing variables
+#' @param nlatents number of (latent) variables - actually it is the number of all variables
+#' @param Tpoints Number of time points.
+#' @param sampleSize sample size
+#' @param pairwiseN matrix of same dimensions as empcov containing possible pairwiseN.
+#' @param empcov empirical correlation matrix
 #'
 #' @importFrom psych corr.test
 #' @importFrom MASS mvrnorm
 #'
 #' @export ctmaEmpCov
+#' @examples
+#'
 #'
 ctmaEmpCov <- function(targetVariables=c(), recodeVariables=c(), combineVariables=c(),
                              combineVariablesNames=c(), missingVariables=c(),
@@ -30,7 +32,6 @@ ctmaEmpCov <- function(targetVariables=c(), recodeVariables=c(), combineVariable
   for (i in recodeVariables) {
     empcov[i, ] <- -1 * empcov[i, ]
     empcov[ ,i] <- -1 * empcov[ ,i]
-    #print(i)
   }
   # combine variables
   if (!(is.null(sampleSize))) tmpData <- as.data.frame(MASS::mvrnorm(n=sampleSize, mu=rep(0, dim(empcov)[1]), Sigma=empcov, empirical = TRUE))
