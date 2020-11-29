@@ -35,7 +35,7 @@
 #' moderator2 <- c(2, 2)
 #' addedByResearcher2 <- "something you want to add"
 #'
-#  Second Study
+# Second Study
 #' delta_t4 <- c(12, 6)
 #' sampleSize4 <- 261
 #' empcov4 <- matrix(c(c(1.00, 0.44, 0.74, 0.36, 0.71, 0.32,
@@ -48,7 +48,7 @@
 #' moderator4 <- c(3, 1) #
 #' addedByResearcher4 <- "another comment"
 #'
-#' #' Third Study
+# Third Study
 #' source17 <- c()
 #' delta_t17 <- c(12)
 #' sampleSize17 <- 440
@@ -59,7 +59,7 @@
 #'                         0.47,  0.52,  0.37,  0.63,  1.00,  0.55,
 #'                         0.18,  0.27,  0.51,  0.30,  0.55,  1.00,
 #'                        nrow=6, ncol=6))
-#' moderator16 <- c(3, 2)
+#' moderator17 <- c(3, 2)
 #' targetVariables17 <- c("Workload_1", "Exhaustion_1", "Cynicism_1",
 #'                        "Workload_2", "Exhaustion_2", "Cynicism_2")
 #' recodeVariables17 <- c(1, 4)
@@ -76,7 +76,7 @@
 #'                       nlatents=2, sampleSize=sampleSize17, Tpoints=2, empcov=empcov17)
 #' empcov17 <- results$r
 #'
-#' Add Labels and Values for Moderators (just for optional excel tables)
+# Add Labels and Values for Moderators (just for optional excel tables)
 #' moderatorLabels <- c("Social Support", "Control")
 #' moderatorValues <- list("continuous", c("1 = very low", "2 = low" ... "5 = very high"))
 #'
@@ -86,8 +86,7 @@
 #'                           moderatorLabels=moderatorLabels,
 #'                           moderatorValues=moderatorValues)
 #' saveRDS(studyList_Ex1, file="/.../studyList_Ex1.rds")
-#' saveWorkbook(studyList_Ex1$StudyInformation, "MyExcelSheet.xlsx", overwrite = TRUE)
-#'
+#' openXL(studyList_Ex1$excelSheets)
 #'
 ctmaPrep <- function(selectedStudies=NULL,
                      excludedElements=NULL,
