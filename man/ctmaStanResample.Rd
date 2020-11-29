@@ -4,12 +4,14 @@
 \alias{ctmaStanResample}
 \title{ctmaStanResample}
 \usage{
-ctmaStanResample(fitStanctModel = NULL, CoTiMAStanctArgs = NULL)
+ctmaStanResample(ctmaFittedModel = NULL, nsamples = 25, overallSamples = 500)
 }
 \arguments{
-\item{fitStanctModel}{""}
+\item{ctmaFittedModel}{a model fitted ith CoTiMA R package, usually with few 'finishsamples' to prevent memory exhaustion}
 
-\item{CoTiMAStanctArgs}{""}
+\item{nsamples}{sample size per rund}
+
+\item{overallSamples}{overall samples isze to be achieved}
 }
 \description{
 ctmaStanResample
