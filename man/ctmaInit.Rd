@@ -22,7 +22,6 @@ ctmaInit(
   saveSingleStudyModelFit = c(),
   loadSingleStudyModelFit = c(),
   scaleTI = NULL,
-  scaleMod = NULL,
   scaleTime = NULL,
   optimize = TRUE,
   nopriors = TRUE,
@@ -34,7 +33,7 @@ ctmaInit(
 \arguments{
 \item{primaryStudies}{list of primary study information created with ctmaPrep}
 
-\item{activeDirectory}{Directory name}
+\item{activeDirectory}{defines another active directory than the one used in ctmaPrep}
 
 \item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
 
@@ -66,8 +65,6 @@ ctmaInit(
 
 \item{scaleTI}{scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances}
 
-\item{scaleMod}{scale moderators - useful in particular if continuous moderators are used}
-
 \item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
 
 \item{optimize}{if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
@@ -85,10 +82,11 @@ Fits a ctsem model to a list of primary studies prepared by ctmaPrep.
 #'
 }
 \examples{
-# First Study
-CoTiMAInitFit <- ctmaInitc(
+# Fit a ctsem model to all primary studies summarized in studyList_Ex1 and save fitted models
+CoTiMAInitFit_Ex1 <- ctmaInit(
 primaryStudies=studyList_Ex1,
 n.latent=2,
 saveSingleStudyModelFit=c(2, 4, 17))
 
+summary(CoTiMAInitFit_Ex1)
 }

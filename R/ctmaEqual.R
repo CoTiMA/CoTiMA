@@ -1,18 +1,10 @@
-#######################################################################################################################
-############################## CoTiMA Multiple Drift Effects Invariant Across primary Studies #########################
-#######################################################################################################################
-
-# takes a fitted CoTiMA as argumnt, and all parameters that were set invariant in these model are set equal
-
 #' ctmaEqual
 #'
-#' @param ctmaInvariantFit ""
-#' @param activeDirectory ""
-#' @param activateRPB ""
-#' @param digits ""
-#' @param equalDrift ""
-#' @param coresToUse ""
-#' @param CoTiMAStanctArgs ""
+#' @param ctmaInvariantFit  object to which a CoTiMA fit has been assigned to (i.e., what has been returned by ctmaFit). In most cases probably a model in which only (two) effects were specified with invaraintDrift.
+#' @param activeDirectory defines another active directory than the one used in ctmaInvariantFit
+#' @param activateRPB  set to TRUE to receive push messages with CoTiMA notifications on your phone
+#' @param digits Number of digits used for rounding (in outputs)
+#' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  crayon red
@@ -22,61 +14,34 @@
 #'
 #' @export ctmaEqual
 #'
+#' @examples Fit a CoTiMA to all primary studies previously fitted one by one with the fits assigned to CoTiMAInitFit_Ex1
+#' CoTiMAEqualFit_Ex1 <- ctmaEqual(ctmaInvariantFit=CoTiMA12Fit_Ex2)
+#'
 ctmaEqual <- function(
-  # Primary Study Fits
-  ctmaInvariantFit=NULL,                    #list of lists: could be more than one fit object
-
-  # Directory names and file names
+  ctmaInvariantFit=NULL,
   activeDirectory=NULL,
-  #sourceDirectory= NULL,
-  #resultsFilePrefix="CoTiMAEqualDrift",
-  #saveFilePrefix="CoTiMAEqualDrift",
-
-  # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
   activateRPB=FALSE,
-  #checkSingleStudyResults=FALSE,
-  #silentOverwrite=FALSE,
-
   digits=4,
-
-  # General Model Setup
-
-  # Fitting Parameters
-  equalDrift=NULL,
-  coresToUse=1,
-  CoTiMAStanctArgs=list(test=TRUE, scaleTI=TRUE, scaleTime=1/1,
-                        savesubjectmatrices=FALSE, verbose=1,
-                        datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
-                        iter=1000, intoverstates=TRUE,
-                        binomial=FALSE, fit=TRUE,
-                        intoverpop=FALSE, stationary=FALSE,
-                        plot=FALSE, derrind="all",
-                        optimize=TRUE, optimcontrol=list(is=F, stochastic=FALSE),
-                        nlcontrol=list(),
-                        nopriors=TRUE,
-                        chains=2,
-                        cores=1,
-                        inits=NULL, forcerecompile=FALSE,
-                        savescores=FALSE, gendata=FALSE,
-                        control=list(adapt_delta = .8, adapt_window=2, max_treedepth=10, adapt_init_buffer=2, stepsize = .001),
-                        verbose=0)
-
+  coresToUse=1
 )
 
 
 {  # begin function definition (until end of file)
 
+  # use same fitting params as used to fit ctmaInvariantFit
+  CoTiMAStanctArgs <- ctmaInvariantFit$CoTiMAStanctArgs
+
   # check if mutipleDriftFit object is supplied
   if (! ((ctmaInvariantFit$model.type == "mx") || (ctmaInvariantFit$model.type == "stanct")) ) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("A fitted CoTiMA object with more than a single invariant drift effect (fit of CoTiMAMultipleDrift) has to be supplied compare the effects. \n"))
+    cat(crayon::red$bold("A fitted CoTiMA object with more than a single invariant drift effect (fit of ctmaFit) has to be supplied compare the effects. \n"))
     stop("Good luck for the next try!")
   }
 
   # check if fit object is specified
   if (is.null(ctmaInvariantFit)){
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("A fitted CoTiMA object with more than a single invariant drift effect (fit of CoTiMAMultipleDrift) has to be supplied compare the effects. \n"))
+    cat(crayon::red$bold("A fitted CoTiMA object with more than a single invariant drift effect (fit of ctmaFit) has to be supplied compare the effects. \n"))
     stop("Good luck for the next try!")
   }
 
@@ -104,8 +69,8 @@ ctmaEqual <- function(
 
 
   #######################################################################################################################
-  ######## Extracting parameters from fitted primary studies created with CoTiMAMultipleDrift Function  #################
-  ############### and estimating modified model in which invsariant (fixed) effcts are set equal. #######################
+  ############## Extracting parameters from fitted primary studies created with ctmaFit Function  #######################
+  ############### and estimating modified model in which invariant (fixed) effects are set equal. #######################
   #######################################################################################################################
 
   start.time <- Sys.time(); start.time
@@ -120,7 +85,6 @@ ctmaEqual <- function(
   manifestNames <- ctmaInvariantFit$studyFitList$ctstanmodel$manifestNames; manifestNames
   parameterNames <- ctmaInvariantFit$parameterNames; parameterNames
   driftNames <- ctmaInvariantFit$parameterNames$DRIFT; driftNames
-  #driftNames <- names(ctmaInvariantFit$modelResults$DRIFT); driftNames
   targetNames <- names(ctmaInvariantFit$modelResults$DRIFT[grep("invariant", names(ctmaInvariantFit$modelResults$DRIFT))]); targetNames
 }
 

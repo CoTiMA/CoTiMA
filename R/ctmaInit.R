@@ -3,7 +3,7 @@
 #' @description Fits a ctsem model to a list of primary studies prepared by ctmaPrep.
 #' #'
 #' @param primaryStudies list of primary study information created with ctmaPrep
-#' @param activeDirectory Directory name
+#' @param activeDirectory defines another active directory than the one used in ctmaPrep
 #' @param activateRPB set to TRUE to receive push messages with CoTiMA notifications on your phone
 #' @param checkSingleStudyResults Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before the are saved.
 #' @param digits Number of digits used for rounding (in outputs)
@@ -19,7 +19,6 @@
 #' @param saveSingleStudyModelFit save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
 #' @param loadSingleStudyModelFit load the fit of single study ctsem models
 #' @param scaleTI scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances
-#' @param scaleMod scale moderators - useful in particular if continuous moderators are used
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
@@ -35,12 +34,13 @@
 #'
 #' @export ctmaInit
 #'
-#' @examples # First Study
-#' CoTiMAInitFit <- ctmaInitc(
+#' @examples # Fit a ctsem model to all primary studies summarized in studyList_Ex1 and save fitted models
+#' CoTiMAInitFit_Ex1 <- ctmaInit(
 #' primaryStudies=studyList_Ex1,
 #' n.latent=2,
 #' saveSingleStudyModelFit=c(2, 4, 17))
 #'
+#' summary(CoTiMAInitFit_Ex1)
 ctmaInit <- function(
   primaryStudies=NULL,
   activeDirectory=NULL,
@@ -59,33 +59,12 @@ ctmaInit <- function(
   saveSingleStudyModelFit=c(),
   loadSingleStudyModelFit=c(),
   scaleTI=NULL,
-  scaleMod=NULL,
-  scaleTime=NULL, # fraction (e.g., 1/30) to scale time
-  optimize=TRUE, # Stan’s Hamiltonian Monte Carlo sampler is NOT used (default = maximum a posteriori / importance sampling) .
-  nopriors=TRUE, # If TRUE, any priors are disabled – sometimes desirable for optimization
-  finishsamples=NULL, # Number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation.
-  chains=NULL, #number of chains to sample, during HMC or post-optimization importance sampling.
+  scaleTime=NULL,
+  optimize=TRUE,
+  nopriors=TRUE,
+  finishsamples=NULL,
+  chains=NULL,
   verbose=NULL
-  #
-  #CoTiMAStanctArgs=list(test=TRUE,
-  #                      scaleTI=TRUE, scaleMod=TRUE, scaleLongData=FALSE,
-  #                      scaleTime=1/1,
-  #                      savesubjectmatrices=FALSE,
-  #                      datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
-  #                      iter=1000, intoverstates=TRUE,
-  #                      binomial=FALSE, fit=TRUE,
-  #                      intoverpop='auto', stationary=FALSE,
-  #                      plot=FALSE, derrind="all",
-  #                      optimize=TRUE, optimcontrol=list(is=F, stochastic=FALSE, finishsamples=1000),
-  #                      nlcontrol=list(),
-  #                      nopriors=TRUE,
-  #                      chains=2,
-  #                      cores=1,
-  #                      inits=NULL, forcerecompile=FALSE,
-  #                      savescores=FALSE, gendata=FALSE,
-  #                      control=list(adapt_delta = .8, adapt_window=2, max_treedepth=10, adapt_init_buffer=2, stepsize = .001),
-  #                      verbose=1)
-
 )
 
 {  # begin function definition (until end of file)
@@ -177,7 +156,7 @@ ctmaInit <- function(
 
     { # fitting params
       if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
-      if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
+      #if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
       if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
       if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors

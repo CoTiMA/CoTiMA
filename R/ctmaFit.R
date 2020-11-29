@@ -4,17 +4,23 @@
 
 #' ctmaFit
 #'
-#' @param ctmaInitFit ""
-#' @param primaryStudyList  ""
-#' @param cluster  ""
-#' @param activeDirectory  ""
-#' @param activateRPB  ""
-#' @param digits  ""
-#' @param invariantDrift  ""
-#' @param drift ""
-#' @param coresToUse  ""
-#' @param CoTiMAStanctArgs  ""
-#' @param indVarying ""
+#' @param ctmaInitFit object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by ctmaInit)
+#' @param primaryStudyList  could be a list of primary studies compiled with ctmaPrep that defines the subset of studies in ctmaInitFit that should actually be used
+#' @param cluster  vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in ctmaPrep later.
+#' @param activeDirectory  defines another active directory than the one used in ctmaInitFit
+#' @param activateRPB  set to TRUE to receive push messages with CoTiMA notifications on your phone
+#' @param digits Number of digits used for rounding (in outputs)
+#' @param invariantDrift  drift Labels for drift effects that are set invariant across primary studies (default = all drift effects).
+#' @param drift Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)
+#' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
+#' @param indVarying Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heteregeneity)
+#' @param scaleTI scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances
+#' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
+#' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
+#' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
+#' @param finishsample number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
+#' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
+#' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  crayon red
@@ -24,56 +30,37 @@
 #'
 #' @export ctmaFit
 #'
-#' @examples # CoTiMAInitFit_Ex1 <- ctmaInit(
-#' activeDirectory = activeDirectory,
-#' primaryStudies = studyList_Ex1,
-#' n.latent = 2,
-#' saveSingleStudyModelFit = c("CoTiMAInitFit_D_BO", 1:500),
-#' silentOverwrite = TRUE)
-#' saveRDS(CoTiMAInitFit_D_BO, file=paste0(activeDirectory, "MAIN EFFECTS/CoTiMAInitFit_D_BO.rds"))
-#' summary(CoTiMAInitFit_D_BO)
+#' @examples Example 1. Fit a CoTiMA to all primary studies previously fitted one by one with the fits assigned to CoTiMAInitFit_Ex1
+#' CoTiMAFullFit_Ex1 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_Ex1)
+#'
+#' saveRDS(CoTiMAFullFit_Ex1, file=paste0(activeDirectory, "CoTiMAFullFit_Ex1.rds"))
+#' summary(CoTiMAFullFit_Ex1)
+#'
+#' @examples Example 2. Fit a CoTiMA with only 2 cross effects invariant (not the auto effects) to all primary studies previously fitted one by one with the fits assigned to CoTiMAInitFit_Ex1
+#' CoTiMA12lFit_Ex2 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_Ex1,
+#' invariantDrift=c("V1toV2", "V2toV1"))
+#'
+#' saveRDS(CoTiMA12Fit_Ex2, file=paste0(activeDirectory, "CoTiMA12Fit_Ex2.rds"))
+#' summary(CoTiMA12lFit_Ex2)
 #'
 ctmaFit <- function(
-  # Primary Study Fits
-  ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
-  primaryStudyList=NULL,               # created by the PREP file for moderator analyses
-  cluster=NULL,                        # vector with cluster variables (e.g., countries)
-
-  # Directory names and file names
+  ctmaInitFit=NULL,
+  primaryStudyList=NULL,
+  cluster=NULL,
   activeDirectory=NULL,
-
-  # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
   activateRPB=FALSE,
-
   digits=4,
-
-  # General Model Setup
   invariantDrift=NULL,
   drift=NULL,
-
-  # Fitting Parameters
   indVarying=FALSE,
-
-  coresToUse=c(-1)
-  #CoTiMAStanctArgs=CoTiMAStanctArgs
-  #CoTiMAStanctArgs=list(test=TRUE, scaleTI=TRUE, scaleTime=1/1,
-  #                      savesubjectmatrices=FALSE, verbose=1,
-  #                      datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
-  #                      iter=1000, intoverstates=TRUE,
-  #                      binomial=FALSE, fit=TRUE,
-  #                      intoverpop='auto', stationary=FALSE,
-  #                      plot=FALSE, derrind="all",
-  #                      optimize=TRUE, optimcontrol=list(is=F, stochastic=FALSE),
-  #                      nlcontrol=list(),
-  #                      nopriors=TRUE,
-  #                      chains=2,
-  #                      cores=1,
-  #                      inits=NULL, forcerecompile=FALSE,
-  #                      savescores=FALSE, gendata=FALSE,
-  #                      control=list(adapt_delta = .8, adapt_window=2, max_treedepth=10, adapt_init_buffer=2, stepsize = .001),
-  #                      verbose=0,
-  #                      warmup=500)
-
+  coresToUse=c(1),
+  scaleTI=NULL,
+  scaleTime=NULL,
+  optimize=TRUE,
+  nopriors=TRUE,
+  finishsamples=NULL,
+  chains=NULL,
+  verbose=NULL
 )
 
 
@@ -85,6 +72,17 @@ ctmaFit <- function(
     cat(crayon::red$bold("A fitted CoTiMA object has to be supplied to plot something. \n"))
     stop("Good luck for the next try!")
   }
+
+  { # fitting params
+    if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
+    if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
+    if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
+    if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
+    if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
+    if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
+    if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
+  }
+
 
   #######################################################################################################################
   ####### Copy/Change INIT File based on information delivered by different PREP files (e.g., moderator studies ) #######
