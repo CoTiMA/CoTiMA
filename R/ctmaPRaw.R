@@ -20,13 +20,6 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
                           empMeanVector=NULL, empVarVector=NULL, activateRPB=FALSE)
 {  # begin function definition (until end of file)
 
-  #if("MASS" %in% rownames(installed.packages()) == FALSE) {install.packages("MASS")} # for computing pseudo raw data
-  #if("crayon" %in% rownames(installed.packages()) == FALSE) {install.packages("crayon")}
-  #if("psych" %in% rownames(installed.packages()) == FALSE) {install.packages("psych")}
-  #if (!("MASS" %in% (.packages()))) library(MASS)
-  #if (!("crayon" %in% (.packages()))) library(crayon)
-  #if (!("psych" %in% (.packages()))) library(psych)
-
   if (is.null(empCovMat)) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
     cat(crayon::red$bold("No empirical covariance matrix provided for pseudo raw data generation!", sep="\n"))
@@ -52,18 +45,6 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
     cat(crayon::red$bold("EITHER a matrix with pairwise N OR an overall N has to be provided pseudo raw data generation!", sep="\n"))
     stop("Good luck for the next try!")
   }
-
-  #if (is.null(empMeanVector)) {
-  #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-  #  cat(crayon::red$bold("No vector of means was provided. All means are set to 0.0.", sep="\n"))
-  #  cat("\n")
-  #}
-
-  #if (is.null(empVarVector)) {
-  #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-  #  cat(crayon::red$bold("No vector of variances was provided. All variances are set to 1.0.", sep="\n"))
-  #  cat("\n")
-  #}
 
   if ( (!(is.null(empMeanVector))) & (length(empMeanVector) != (dim(empCovMat)[1]) )  ){
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}

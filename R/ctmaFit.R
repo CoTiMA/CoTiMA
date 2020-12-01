@@ -217,11 +217,9 @@ ctmaFit <- function(
       clusCounter <- 0
     }
     n.var <- max(n.manifest, n.latent); n.var
-    #dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1+clusCounter),
-    #                                manifestNames=manifestNames)
     dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.var, n.TIpred = (n.studies-1+clusCounter),
                                     manifestNames=manifestNames)
-    dataTmp3 <- ctsem::ctDeintervalise(dataTmp2)
+    dataTmp3 <- suppressMessages(ctsem::ctDeintervalise(dataTmp2))
     dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
     utils::head(dataTmp3)
     # eliminate rows where ALL latents are NA

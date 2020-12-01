@@ -15,12 +15,6 @@ ctmaCombPRaw <- function(listOfStudyFits=NULL, moderatorValues=NULL) {
   allSampleSizes <- listOfStudyFits$statisticsList$allSampleSizes; allSampleSizes
   allTpoints <- listOfStudyFits$statisticsList$allTpoints; allTpoints; length(allTpoints)
 
-  #currentVarnames <- c()
-  #for (j in 1:(max(allTpoints))) {
-  #  for (h in 1:n.latent) {
-  #    currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
-  #  }
-  #}
   currentVarnames <- c()
   for (j in 1:(max(allTpoints))) {
     if (n.manifest == 0) {
@@ -37,18 +31,15 @@ ctmaCombPRaw <- function(listOfStudyFits=NULL, moderatorValues=NULL) {
   targetColNames <- c(c(currentVarnames, paste0("dT", seq(1:(max(allTpoints)-1))))); targetColNames
 
   n.var <- max(n.latent, n.manifest); n.var
-  #alldata <- matrix(NA, 0, (n.latent*max(allTpoints)+max(allTpoints)-1)); dim(alldata)
   alldata <- matrix(NA, 0, (n.var*max(allTpoints)+max(allTpoints)-1)); dim(alldata)
   colnames(alldata) <- targetColNames; alldata
 
   groups <- c()
-  #if (!(is.null(moderatorValues))) moderatorGroups <- matrix(NA, nrow=0, ncol=length(moderatorValues[[1]]))
   if (!(is.null(moderatorValues))) {
     moderatorGroups <- matrix(NA, nrow=0, ncol=dim(moderatorValues)[[2]])
   }
 
   for (i in 1:length(listOfStudyFits$studyFitList)) {
-    #i <- 1
     tmp <- listOfStudyFits$emprawList[[i]]
     tmp2 <- colnames(tmp); tmp2
     if (n.manifest >0) colnames(tmp) <- gsub("V", "y", tmp2)
