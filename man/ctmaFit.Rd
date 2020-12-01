@@ -53,11 +53,11 @@ ctmaFit(
 
 \item{nopriors}{if TRUE, any priors are disabled – sometimes desirable for optimization}
 
+\item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
+
 \item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
 
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
-
-\item{finishsample}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
 }
 \description{
 ctmaFit

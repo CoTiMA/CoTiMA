@@ -19,7 +19,7 @@
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
-#' @param finishsample number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
+#' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 #'
