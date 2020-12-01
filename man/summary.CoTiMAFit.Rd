@@ -4,7 +4,7 @@
 \alias{summary.CoTiMAFit}
 \title{summary.CoTiMAFit}
 \usage{
-\method{summary}{CoTiMAFit}(x)
+\method{summary}{CoTiMAFit}(x, ...)
 }
 \arguments{
 \item{x}{líst}
