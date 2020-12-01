@@ -27,7 +27,7 @@
 #' @export ctmaPlot
 #'
 ctmaPlot <- function(
-  ctmaFitObject=list(),
+  ctmaFitObject=NULL,
   activeDirectory=NULL,
   saveFilePrefix="ctmaPlot",
   activateRPB=FALSE,
@@ -50,8 +50,10 @@ ctmaPlot <- function(
     stop("Good luck for the next try!")
   }
 
-  # check if object can be plotted
-  if ( (class(ctmaFitObject) != "CoTiMAFit") | (ctmaFitObject$plot.type == "none") ) {
+  # check #1 if object can be plotted
+  if (class(ctmaFitObject) == "list") testObject <- ctmaFitObject[[1]] else testObject <- ctmaFitObject
+  #if ( (class(testObject) != "CoTiMAFit") | (testObject$plot.type == "none") ) {
+  if (class(testObject) != "CoTiMAFit")  {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
     cat("This is nothing CoTiMA-related that I can plot . \n")
     stop("Good luck for the next try!")
@@ -65,6 +67,14 @@ ctmaPlot <- function(
     ctmaFitObject <- list()
     ctmaFitObject[[1]] <- tmp2
   }
+
+  # check #2 if object can be plotted
+  if (ctmaFitObject[[1]]$plot.type == "none")  {
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    cat("This is nothing CoTiMA-related that I can plot . \n")
+    stop("Good luck for the next try!")
+  }
+
 
   n.fitted.obj <- length(ctmaFitObject); n.fitted.obj # has to be done twice
 

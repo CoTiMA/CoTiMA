@@ -5,7 +5,7 @@
 \title{ctmaPlot}
 \usage{
 ctmaPlot(
-  ctmaFitObject = list(),
+  ctmaFitObject = NULL,
   activeDirectory = NULL,
   saveFilePrefix = "ctmaPlot",
   activateRPB = FALSE,
