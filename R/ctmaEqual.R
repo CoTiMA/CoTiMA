@@ -143,7 +143,7 @@ ctmaEqual <- function(
     cores=coresToUse)
 
   if (!(is.null(CoTiMAStanctArgs$resample))) {
-    fitStanctModel <- ctmaStanResample(fitStanctModel=fitStanctModel, CoTiMAStanctArgs=CoTiMAStanctArgs)
+    fitStanctModel <- ctmaStanResample(fitStanctModel=fitStanctModel) #, CoTiMAStanctArgs=CoTiMAStanctArgs)
   }
 
   equalDriftStanctFit <- summary(fitStanctModel, digits=digits)

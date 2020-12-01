@@ -386,7 +386,7 @@ ctmaModFit <- function(
 
 
       if (!(is.null(CoTiMAStanctArgs$resample))) {
-        fitStanctModModel <- ctmaStanResample(fitStanctModel=fitStanctModModel, CoTiMAStanctArgs=CoTiMAStanctArgs)
+        fitStanctModModel <- ctmaStanResample(fitStanctModel=fitStanctModModel) #, CoTiMAStanctArgs=CoTiMAStanctArgs)
       }
 
       stanctModFit <- summary(fitStanctModModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)

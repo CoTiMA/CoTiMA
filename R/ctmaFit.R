@@ -334,7 +334,7 @@ ctmaFit <- function(
 
   ### resample in parcels to avoid memory crash and speed up
   if (!(is.null(CoTiMAStanctArgs$resample))) {
-    fitStanctModel <- ctmaStanResample(fitStanctModel=fitStanctModel, CoTiMAStanctArgs=CoTiMAStanctArgs)
+    fitStanctModel <- ctmaStanResample(fitStanctModel=fitStanctModel) #, CoTiMAStanctArgs=CoTiMAStanctArgs)
   }
 
   invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
