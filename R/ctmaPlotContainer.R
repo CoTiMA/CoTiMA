@@ -6,6 +6,6 @@
 #' @export
 #'
 plot.CoTiMAFit <- function(x, ...) {
-  return(ctmaPlot(x))
+  return(ctmaPlot(x, ...))
 }
 
