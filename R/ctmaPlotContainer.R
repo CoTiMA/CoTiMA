@@ -5,7 +5,7 @@
 #' @method plot CoTiMAFit
 #' @export
 #'
-plot.CoTiMAFit <- function(x) {
+plot.CoTiMAFit <- function(x, ...) {
   return(ctmaPlot(x))
 }
 

@@ -4,7 +4,7 @@
 \alias{plot.CoTiMAFit}
 \title{plot.CoTiMAFit}
 \usage{
-\method{plot}{CoTiMAFit}(x)
+\method{plot}{CoTiMAFit}(x, ...)
 }
 \arguments{
 \item{x}{líst}
