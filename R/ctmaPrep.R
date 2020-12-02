@@ -23,42 +23,43 @@
 #' which is stored in the objects 'empcov2' and 'empcov4'. Note that full and symmetric matrices are required for ctmaPrep.
 #' Usually, sample sizes ('sampleSize2', 'sampleSize4') and time lags ('delta_t2', 'delta_t4'), are required, too
 #'
-#' @examples # First Study
+#' @examples
+#' # First Study
 #' source2 <- c("Dollard", "& Bakker", "2010")
 #' delta_t2 <- 12
 #' sampleSize2 <- 209
-#' empcov2 <- matrix(c(
-#'  1, 0.55, 0.69, 0.37,
-#'  0.55, 1, 0.43, 0.55,
-#'  0.69, 0.43, 1, 0.58,
-#'  0.37, 0.55, 0.58, 1), nrow = 4, ncol = 4)
+#' empcov2 <- matrix(c(1.00, 0.55, 0.69, 0.37,
+#'                     0.55, 1.00, 0.43, 0.55,
+#'                     0.69, 0.43, 1.00, 0.58,
+#'                     0.37, 0.55, 0.58, 1.00),
+#'                    nrow = 4, ncol = 4)
 #' moderator2 <- c(2, 2)
 #' addedByResearcher2 <- "something you want to add"
 #'
-# Second Study
+#' # Second Study
 #' delta_t4 <- c(12, 6)
 #' sampleSize4 <- 261
-#' empcov4 <- matrix(c(c(1.00, 0.44, 0.74, 0.36, 0.71, 0.32,
-#'                       0.44, 1.00, 0.35, 0.66, 0.38, 0.65,
-#'                       0.74, 0.35, 1.00, 0.43, 0.83, 0.35,
-#'                       0.36, 0.66, 0.43, 1.00, 0.41, 0.71,
-#'                       0.71, 0.38, 0.83, 0.41, 1.00, 0.44,
-#'                       0.32, 0.65, 0.35, 0.71, 0.44, 1.00),
-#'                       nrow=6, ncol=6))
+#' empcov4 <- matrix(c(1.00, 0.44, 0.74, 0.36, 0.71, 0.32,
+#'                     0.44, 1.00, 0.35, 0.66, 0.38, 0.65,
+#'                     0.74, 0.35, 1.00, 0.43, 0.83, 0.35,
+#'                     0.36, 0.66, 0.43, 1.00, 0.41, 0.71,
+#'                     0.71, 0.38, 0.83, 0.41, 1.00, 0.44,
+#'                     0.32, 0.65, 0.35, 0.71, 0.44, 1.00),
+#'                     nrow=6, ncol=6)
 #' moderator4 <- c(3, 1) #
 #' addedByResearcher4 <- "another comment"
 #'
-# Third Study
+#' # Third Study
 #' source17 <- c()
 #' delta_t17 <- c(12)
 #' sampleSize17 <- 440
-#' empcov17 <- matrix(c(c( 1.00,  0.60,  0.36,  0.62,  0.47,  0.18,
-#'                         0.60,  1.00,  0.55,  0.43,  0.52,  0.27,
-#'                         0.36,  0.55,  1.00,  0.26,  0.37,  0.51,
-#'                         0.62,  0.43,  0.26,  1.00,  0.63,  0.30,
-#'                         0.47,  0.52,  0.37,  0.63,  1.00,  0.55,
-#'                         0.18,  0.27,  0.51,  0.30,  0.55,  1.00,
-#'                        nrow=6, ncol=6))
+#' empcov17 <- matrix(c( 1.00,  0.60,  0.36,  0.62,  0.47,  0.18,
+#'                       0.60,  1.00,  0.55,  0.43,  0.52,  0.27,
+#'                       0.36,  0.55,  1.00,  0.26,  0.37,  0.51,
+#'                       0.62,  0.43,  0.26,  1.00,  0.63,  0.30,
+#'                       0.47,  0.52,  0.37,  0.63,  1.00,  0.55,
+#'                       0.18,  0.27,  0.51,  0.30,  0.55,  1.00,
+#'                      nrow=6, ncol=6))
 #' moderator17 <- c(3, 2)
 #' targetVariables17 <- c("Workload_1", "Exhaustion_1", "Cynicism_1",
 #'                        "Workload_2", "Exhaustion_2", "Cynicism_2")
@@ -66,8 +67,9 @@
 #' combineVariables17 <- list("Workload_1", c("Exhaustion_1", "Cynicism_1"),
 #'                            "Workload_2", c("Exhaustion_2", "Cynicism_2"))
 #' combineVariablesNames17 <- c("Demands_1",  "Burnout_1",
-#'                              "Demands_2",  "Burnout_2");
+#'                              "Demands_2",  "Burnout_2")
 #' missingVariables17 <- c();
+#' \dontrun{
 #' results <- ctmaEmpCov(targetVariables=targetVariables17,
 #'                       recodeVariables=recodeVariables17,
 #'                       combineVariables=combineVariables17,
@@ -75,18 +77,22 @@
 #'                       missingVariables=missingVariables17,
 #'                       nlatents=2, sampleSize=sampleSize17, Tpoints=2, empcov=empcov17)
 #' empcov17 <- results$r
+#' }
 #'
-# Add Labels and Values for Moderators (just for optional excel tables)
+#' # Add Labels and Values for Moderators (just for optional excel tables)
 #' moderatorLabels <- c("Social Support", "Control")
-#' moderatorValues <- list("continuous", c("1 = very low", "2 = low" ... "5 = very high"))
+#' moderatorValues <- list("continuous", c("1 = very low", "2 = low",
+#'                        "3 = medium", "4 = high", "5 = very high"))
 #'
+#' \dontrun{
 #' studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4, 17),
 #'                           excludedElements = "ageM",
 #'                           addElements = "addedByResearcher",
 #'                           moderatorLabels=moderatorLabels,
 #'                           moderatorValues=moderatorValues)
-#' saveRDS(studyList_Ex1, file="/.../studyList_Ex1.rds")
+#' library(openxlsx)
 #' openXL(studyList_Ex1$excelSheets)
+#' }
 #'
 ctmaPrep <- function(selectedStudies=NULL,
                      excludedElements=NULL,

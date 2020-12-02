@@ -12,17 +12,14 @@
 ctmaStanResample <- function(ctmaFittedModel=NULL,
                              nsamples=25,
                              overallSamples=500) {
-  #nsamples <- subsampleSize
-  #if (is.null(nsamples)) nsamples <- 25
-  #overallSamples <- fullsampleSize
-  #if (is.null(overallSamples)) overallSamples <- 500
+
   sm1 <- ctmaFittedModel
   sm1$stanfit$rawposterior <- sm1$stanfit$rawposterior[1:2,]
   runs <- round(overallSamples/nsamples+0.5); runs
   currentResults <- list()
   for (i in 1:runs) {
     cat(i*nsamples, "out of", overallSamples, "\n")
-    currentResults[[i]] <- ctsem:::ctAddSamples(sm1, nsamples=nsamples, cores=1)
+    currentResults[[i]] <- ctsem:::ctAddSamples(sm1, nsamples=nsamples, cores=1) # ctmaAddSamples
   }
   ## combine resampled results
   # extract 2 rawposteriors

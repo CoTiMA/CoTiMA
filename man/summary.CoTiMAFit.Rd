@@ -4,10 +4,12 @@
 \alias{summary.CoTiMAFit}
 \title{summary.CoTiMAFit}
 \usage{
-\method{summary}{CoTiMAFit}(x, ...)
+\method{summary}{CoTiMAFit}(object, ...)
 }
 \arguments{
-\item{x}{líst}
+\item{object}{one CoTiMAFit object or more as ctmaFitList(object1, object2, ...)}
+
+\item{...}{further arguments to be passed through to summary()}
 }
 \description{
 summary.CoTiMAFit

@@ -13,10 +13,12 @@
 #' @export ctmaBias
 #'
 #' @examples
-#' ctmaBias(ctmaInitFit= studyList_Ex1)
+#' \dontrun{
+#' ctmaBias(ctmaInitFit=studyList_Ex1)
+#' }
 #'
 ctmaBias <- function(
-  ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
+  ctmaInitFit=NULL,
   activeDirectory=NULL,
   PETPEESEalpha=.10,
   activateRPB=FALSE,

@@ -17,7 +17,8 @@ ctmaPlot(
   mod.values = -2:2,
   mod.num = 1,
   aggregateLabel = "",
-  xLabels = NULL
+  xLabels = NULL,
+  ...
 )
 }
 \arguments{
@@ -46,6 +47,8 @@ ctmaPlot(
 \item{aggregateLabel}{label to indicat aggregated discrete time effects}
 
 \item{xLabels}{labes used for x-axis}
+
+\item{...}{arguments passed through to plot()}
 }
 \description{
 ctmaPlot

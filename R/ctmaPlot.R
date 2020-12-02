@@ -16,6 +16,7 @@
 #' @param mod.num which of possible multiple moderator effects should be plotted
 #' @param aggregateLabel label to indicat aggregated discrete time effects
 #' @param xLabels labes used for x-axis
+#' @param ... arguments passed through to plot()
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
@@ -39,7 +40,8 @@ ctmaPlot <- function(
   mod.values=-2:2,
   mod.num=1,
   aggregateLabel="",
-  xLabels=NULL
+  xLabels=NULL,
+  ...
 )
 {  # begin function definition (until end of file)
 

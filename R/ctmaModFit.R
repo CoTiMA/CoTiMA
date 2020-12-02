@@ -31,12 +31,16 @@
 #'
 #' @export ctmaModFit
 #'
-#' @examples # # Fit a moderated CoTiMA to all primary studies previously fitted one by one with the fits assigned to CoTiMAInitFit_Ex1
+#' @examples
+#' # Fit a moderated CoTiMA to all primary studies previously fitted
+#' # one by one with the fits assigned to CoTiMAInitFit_Ex1
+#' \dontrun{
 #' CoTiMAModlFit_Ex1 <- ctmaModFit(ctmaInitFit=CoTiMAInitFit_Ex1,
 #' mod.number=2, mod.type="cat", mod.names=c("H not stated"))
 #'
 #' saveRDS(CoTiMAModlFit_Ex1, file=paste0(activeDirectory, "CoTiMAModlFit_Ex1.rds"))
 #' summary(CoTiMAModlFit_Ex1)
+#' }
 #'
 ctmaModFit <- function(
   ctmaInitFit=NULL,

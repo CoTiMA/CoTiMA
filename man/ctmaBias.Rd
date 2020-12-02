@@ -27,6 +27,8 @@ ctmaBias(
 ctmaBias
 }
 \examples{
-ctmaBias(ctmaInitFit= studyList_Ex1)
+\dontrun{
+ctmaBias(ctmaInitFit=studyList_Ex1)
+}
 
 }

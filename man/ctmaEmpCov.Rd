@@ -41,7 +41,3 @@ ctmaEmpCov(
 \description{
 ctmaEmpCov
 }
-\examples{
-
-
-}

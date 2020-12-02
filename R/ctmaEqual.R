@@ -14,8 +14,12 @@
 #'
 #' @export ctmaEqual
 #'
-#' @examples Fit a CoTiMA to all primary studies previously fitted one by one with the fits assigned to CoTiMAInitFit_Ex1
-#' CoTiMAEqualFit_Ex1 <- ctmaEqual(ctmaInvariantFit=CoTiMA12Fit_Ex2)
+#' @examples
+#' # Fit a CoTiMA to all primary studies previously fitted one
+#' # by one with the fits assigned to CoTiMAInitFit_Ex1
+#' \dontrun{
+#' CoTiMAEqualFit_Ex1 <- ctmaEqual(ctmaInvariantFit=CoTiMA12Fit_Ex1)
+#' }
 #'
 ctmaEqual <- function(
   ctmaInvariantFit=NULL,
@@ -24,7 +28,6 @@ ctmaEqual <- function(
   digits=4,
   coresToUse=1
 )
-
 
 {  # begin function definition (until end of file)
 

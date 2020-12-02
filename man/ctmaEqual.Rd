@@ -27,7 +27,10 @@ ctmaEqual(
 ctmaEqual
 }
 \examples{
-Fit a CoTiMA to all primary studies previously fitted one by one with the fits assigned to CoTiMAInitFit_Ex1
-CoTiMAEqualFit_Ex1 <- ctmaEqual(ctmaInvariantFit=CoTiMA12Fit_Ex2)
+# Fit a CoTiMA to all primary studies previously fitted one
+# by one with the fits assigned to CoTiMAInitFit_Ex1
+\dontrun{
+CoTiMAEqualFit_Ex1 <- ctmaEqual(ctmaInvariantFit=CoTiMA12Fit_Ex1)
+}
 
 }

@@ -30,18 +30,27 @@
 #'
 #' @export ctmaFit
 #'
-#' @examples Example 1. Fit a CoTiMA to all primary studies previously fitted one by one with the fits assigned to CoTiMAInitFit_Ex1
+#' @examples
+#' # Example 1. Fit a CoTiMA to all primary studies previously fitted one by one
+#' # with the fits assigned to CoTiMAInitFit_Ex1
+#' \dontrun{
 #' CoTiMAFullFit_Ex1 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_Ex1)
 #'
 #' saveRDS(CoTiMAFullFit_Ex1, file=paste0(activeDirectory, "CoTiMAFullFit_Ex1.rds"))
 #' summary(CoTiMAFullFit_Ex1)
+#' }
 #'
-#' @examples Example 2. Fit a CoTiMA with only 2 cross effects invariant (not the auto effects) to all primary studies previously fitted one by one with the fits assigned to CoTiMAInitFit_Ex1
+#' @examples
+#' # Example 2. Fit a CoTiMA with only 2 cross effects invariant (not the auto
+#' # effects) to all primary studies previously fitted one by one with the fits assigned
+#' # to CoTiMAInitFit_Ex1
+#' \dontrun{
 #' CoTiMA12lFit_Ex2 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_Ex1,
 #' invariantDrift=c("V1toV2", "V2toV1"))
 #'
 #' saveRDS(CoTiMA12Fit_Ex2, file=paste0(activeDirectory, "CoTiMA12Fit_Ex2.rds"))
 #' summary(CoTiMA12lFit_Ex2)
+#' }
 #'
 ctmaFit <- function(
   ctmaInitFit=NULL,

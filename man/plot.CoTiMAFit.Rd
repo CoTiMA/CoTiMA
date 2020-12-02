@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{x}{líst}
+
+\item{...}{further arguments to be passed through to summary()}
 }
 \description{
 plot.CoTiMAFit

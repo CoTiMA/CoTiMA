@@ -20,7 +20,6 @@
 #' @importFrom MASS mvrnorm
 #'
 #' @export ctmaEmpCov
-#' @examples
 #'
 #'
 ctmaEmpCov <- function(targetVariables=c(), recodeVariables=c(), combineVariables=c(),
