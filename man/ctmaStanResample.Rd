@@ -14,5 +14,5 @@ ctmaStanResample(ctmaFittedModel = NULL, nsamples = 25, overallSamples = 500)
 \item{overallSamples}{overall samples isze to be achieved}
 }
 \description{
-ctmaStanResample
+Re-sample from a fitted stanct model to achieve desired number of finishsamples (could be useful to prevent exhausted memory)
 }

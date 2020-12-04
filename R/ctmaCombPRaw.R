@@ -1,5 +1,6 @@
-# Combine Pseudo Raw Data (extrect them from ctmaInitFit$studyFitList)
 #' ctmaCombPRaw
+#'
+#' @description Combine Pseudo Raw Data (extract them from 'CoTiMAFit object'$studyFitList)
 #'
 #' @param listOfStudyFits "Listobject of Studyfits"
 #' @param moderatorValues "Moderators

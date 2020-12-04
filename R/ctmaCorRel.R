@@ -1,7 +1,9 @@
 #' ctmaCorRel
 #'
-#' @param empcov "Empirical correlation matrix"
-#' @param alpha "Vector reliabilities"
+#' @description Disattenuates correlation matrix using vector of reliabilities
+#'
+#' @param empcov Empirical correlation matrix
+#' @param alpha Vector reliabilities
 #'
 #' @return "Empirical correlation matrix corrected for unreliability"
 #' @export ctmaCorRel

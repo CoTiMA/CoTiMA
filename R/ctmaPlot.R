@@ -1,7 +1,6 @@
-#######################################################################################################################
-################################################## Plotting ###########################################################
-#######################################################################################################################
 #' ctmaPlot
+#'
+#' @description Forest plot, funnel plots, plots of discrete time cross-lagged and autoregressive effect, and plots of required sample sizes
 #'
 #' @param ctmaFitObject CoTiMA Fit object
 #' @param activeDirectory  defines another active directory than the one used in ctmaInitFit

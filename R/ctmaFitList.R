@@ -1,5 +1,6 @@
-# Function to combine CoTiMAFits into a list with class CoTiMAFit (so that generic functions know what to do)
 #' ctmaFitList
+#'
+#' @description Combines CoTiMAFit objects into a list with class CoTiMAFit to inform generic functions what to do
 #'
 #' @param ... any number of CoTiMAFit objects
 #'

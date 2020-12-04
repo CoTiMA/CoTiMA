@@ -1,5 +1,7 @@
 #' ctmaEqual
 #'
+#' @description Test if the two or more invariant drift parameters in the CoTiMAFit object supplied are equal
+#'
 #' @param ctmaInvariantFit  object to which a CoTiMA fit has been assigned to (i.e., what has been returned by ctmaFit). In most cases probably a model in which only (two) effects were specified with invaraintDrift.
 #' @param activeDirectory defines another active directory than the one used in ctmaInvariantFit
 #' @param activateRPB  set to TRUE to receive push messages with CoTiMA notifications on your phone

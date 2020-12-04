@@ -1,5 +1,6 @@
-# Summary function for CoTiMA results
 #' summary.CoTiMAFit
+#'
+#' @description defins summary for CoTiMAFit objects
 #'
 #' @param object one CoTiMAFit object or more as ctmaFitList(object1, object2, ...)
 #' @param ... further arguments to be passed through to summary()

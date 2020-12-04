@@ -7,10 +7,10 @@
 ctmaCompFit(model1 = NULL, model2 = NULL)
 }
 \arguments{
-\item{model1}{""}
+\item{model1}{Model 1}
 
-\item{model2}{""}
+\item{model2}{Model 2}
 }
 \description{
-ctmaCompFit
+Performs -2ll different tests of 2 Models (CoTiMAFit objects))
 }

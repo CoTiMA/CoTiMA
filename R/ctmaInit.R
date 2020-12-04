@@ -1,7 +1,7 @@
 #' ctmaInit
 #'
 #' @description Fits a ctsem model to a list of primary studies prepared by ctmaPrep.
-#' #'
+#'
 #' @param primaryStudies list of primary study information created with ctmaPrep
 #' @param activeDirectory defines another active directory than the one used in ctmaPrep
 #' @param activateRPB set to TRUE to receive push messages with CoTiMA notifications on your phone

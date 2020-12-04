@@ -27,5 +27,5 @@ ctmaSaveFile(
 \item{silentOverwrite}{"override old files without asking"}
 }
 \description{
-ctmaSaveFile
+Internal fcuntion to save files
 }

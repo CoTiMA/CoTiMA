@@ -51,5 +51,5 @@ ctmaPlot(
 \item{...}{arguments passed through to plot()}
 }
 \description{
-ctmaPlot
+Forest plot, funnel plots, plots of discrete time cross-lagged and autoregressive effect, and plots of required sample sizes
 }

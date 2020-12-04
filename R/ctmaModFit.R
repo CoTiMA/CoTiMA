@@ -2,6 +2,8 @@
 #######################################################################################################################
 #' ctmaModFit
 #'
+#' @description Performs moderator analysis of one or more drift coefficients moderated by one or more time independent moderators
+#'
 #' @param ctmaInitFit object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by ctmaInit)
 #' @param primaryStudyList  could be a list of primary studies compiled with ctmaPrep that defines the subset of studies in ctmaInitFit that should actually be used
 #' @param cluster  vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in ctmaPrep later.

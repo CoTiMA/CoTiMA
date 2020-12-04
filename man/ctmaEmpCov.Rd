@@ -39,5 +39,5 @@ ctmaEmpCov(
 \item{empcov}{empirical correlation matrix}
 }
 \description{
-ctmaEmpCov
+changes a full covariance matrix: select target variables, recode them, combine them (add), and
 }

@@ -1,5 +1,6 @@
-# Plot function for CoTiMA results
 #' plot.CoTiMAFit
+#'
+#' @description call ctmaPlot if a CoTiMAFit object is supplied to plot()
 #'
 #' @param x líst
 #' @param ... further arguments to be passed through to summary()

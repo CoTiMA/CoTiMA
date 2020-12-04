@@ -1,5 +1,8 @@
 #' ctmaBias
 #'
+#' @description Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients.
+#'
+
 #' @param ctmaInitFit fit object created with ctmaInti containing the fitted ctsem model of each primary study
 #' @param activeDirectory the directory where to save results (if not specified, it is taken from ctmaInitFit)
 #' @param PETPEESEalpha   # probability level (condition) below which to switch from PET to PEESE (Stanley, 2017, SPPS,p. 582, below Eq. 2; (default p = .10)

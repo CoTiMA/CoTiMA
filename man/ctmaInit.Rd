@@ -79,7 +79,6 @@ ctmaInit(
 }
 \description{
 Fits a ctsem model to a list of primary studies prepared by ctmaPrep.
-#'
 }
 \examples{
 # Fit a ctsem model to all primary studies summarized in

@@ -1,9 +1,7 @@
-# ctmaTargetMat changes a full covariance matrix: select target variables, recode them, combine them (add), and
-#    add rows/columns with NA if focal concepts are not available.
-
-# depends on mvrnorm, ctmaPRaw, psych
-
 #' ctmaEmpCov
+#'
+#' @description changes a full covariance matrix: select target variables, recode them, combine them (add), and
+#    add rows/columns with NA if focal concepts are not available.
 #'
 #' @param targetVariables names of the targeted variables
 #' @param recodeVariables which of the targeted variables require inverse coding

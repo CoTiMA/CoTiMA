@@ -69,7 +69,7 @@ ctmaModFit(
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
 }
 \description{
-ctmaModFit
+Performs moderator analysis of one or more drift coefficients moderated by one or more time independent moderators
 }
 \examples{
 # Fit a moderated CoTiMA to all primary studies previously fitted

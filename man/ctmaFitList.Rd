@@ -10,5 +10,5 @@ ctmaFitList(...)
 \item{...}{any number of CoTiMAFit objects}
 }
 \description{
-ctmaFitList
+Combines CoTiMAFit objects into a list with class CoTiMAFit to inform generic functions what to do
 }

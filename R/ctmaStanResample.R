@@ -1,5 +1,7 @@
 #' ctmaStanResample
 #'
+#' @description Re-sample from a fitted stanct model to achieve desired number of finishsamples (could be useful to prevent exhausted memory)
+#'
 #' @param ctmaFittedModel a model fitted ith CoTiMA R package, usually with few 'finishsamples' to prevent memory exhaustion
 #' @param nsamples sample size per rund
 #' @param overallSamples overall samples isze to be achieved

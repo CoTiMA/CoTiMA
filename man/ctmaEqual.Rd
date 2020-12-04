@@ -24,7 +24,7 @@ ctmaEqual(
 \item{coresToUse}{If neg., the value is subtracted from available cores, else value = cores to use}
 }
 \description{
-ctmaEqual
+Test if the two or more invariant drift parameters in the CoTiMAFit object supplied are equal
 }
 \examples{
 # Fit a CoTiMA to all primary studies previously fitted one

@@ -7,13 +7,13 @@
 ctmaCorRel(empcov = NULL, alpha = NULL)
 }
 \arguments{
-\item{empcov}{"Empirical correlation matrix"}
+\item{empcov}{Empirical correlation matrix}
 
-\item{alpha}{"Vector reliabilities"}
+\item{alpha}{Vector reliabilities}
 }
 \value{
 "Empirical correlation matrix corrected for unreliability"
 }
 \description{
-ctmaCorRel
+Disattenuates correlation matrix using vector of reliabilities
 }

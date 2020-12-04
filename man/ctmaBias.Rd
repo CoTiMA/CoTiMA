@@ -24,7 +24,7 @@ ctmaBias(
 \item{digits}{rounding (default = 4)}
 }
 \description{
-ctmaBias
+Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients.
 }
 \examples{
 \dontrun{

@@ -12,5 +12,5 @@
 \item{...}{further arguments to be passed through to summary()}
 }
 \description{
-plot.CoTiMAFit
+call ctmaPlot if a CoTiMAFit object is supplied to plot()
 }

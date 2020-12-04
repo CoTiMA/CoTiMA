@@ -60,7 +60,7 @@ ctmaFit(
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
 }
 \description{
-ctmaFit
+Fits a ctsem model with invariant drift effects across primary studies
 }
 \examples{
 # Example 1. Fit a CoTiMA to all primary studies previously fitted one by one
