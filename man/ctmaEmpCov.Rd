@@ -5,7 +5,7 @@
 \title{ctmaEmpCov}
 \usage{
 ctmaEmpCov(
-  targetVariables = c(),
+  targetVariables = NULL,
   recodeVariables = c(),
   combineVariables = c(),
   combineVariablesNames = c(),
@@ -18,9 +18,9 @@ ctmaEmpCov(
 )
 }
 \arguments{
-\item{targetVariables}{names of the targeted variables}
+\item{targetVariables}{(col-/row-) number or names of the target variables}
 
-\item{recodeVariables}{which of the targeted variables require inverse coding}
+\item{recodeVariables}{(col-/row-) number or names of the target variables require inverse coding}
 
 \item{combineVariables}{list of vectors, which put together the targeted variables that should be used for composite variables}
 
