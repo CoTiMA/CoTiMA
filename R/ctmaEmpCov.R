@@ -37,20 +37,22 @@ ctmaEmpCov <- function(targetVariables=NULL, recodeVariables=c(), combineVariabl
     stop("Good luck for the next try!")
   }
 
-  # select subset of variables
-  if (!(is.null(targetVariables))) {
-    tmp1 <- which(colnames(empcov) %in% targetVariables)
-    empcov <- empcov[targetVariables, targetVariables]; empcov
-  } else {
-    tmp1 <- 1:dim(empcov)[1]
-  }
-
   # correct and then replace pairwise N (not required for data generation; only to provide corrected paiwise N after variables are combined)
   if (!(is.null(pairwiseN))) {
     pairwiseN <- pairwiseN[tmp1, tmp1]
     pairwiseNbackup <- pairwiseN
     if (is.null(sampleSize)) sampleSize <- max(pairwiseN) # max to avoid 0
     pairwiseN <- NULL
+  } else {
+    pairwiseNbackup <- matrix(sampleSize, dim(empcov)[1], dim(empcov)[2])
+  }
+
+  # select subset of variables
+  if (!(is.null(targetVariables))) {
+    tmp1 <- which(colnames(empcov) %in% targetVariables)
+    empcov <- empcov[targetVariables, targetVariables]; empcov
+  } else {
+    tmp1 <- 1:dim(empcov)[1]
   }
 
   # recode variables (correlations)
