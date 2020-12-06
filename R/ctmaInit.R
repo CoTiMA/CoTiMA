@@ -18,7 +18,7 @@
 #' @param silentOverwrite Override old files without asking
 #' @param saveSingleStudyModelFit save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
 #' @param loadSingleStudyModelFit load the fit of single study ctsem models
-#' @param scaleTI scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances
+#' @param scaleTI scale TI predictors
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
@@ -189,11 +189,10 @@ ctmaInit <- function(
 
     # resorting primary study information
     if (!(exists("moderatorNumber"))) moderatorNumber <- 1; moderatorNumber
-
     # determine number of studies (if list is created by ctmaInit.R it is 1 element too long)
     # Option 1: Applies for older versions of ctmaPrep
     tmp <- length(unlist(primaryStudies$studyNumbers)); tmp
-    if ( is.na(primaryStudies$deltas[tmp]) &
+    if  ( is.na(primaryStudies$deltas[tmp]) &
          is.na(primaryStudies$sampleSizes[tmp]) &
          is.na(primaryStudies$deltas[tmp]) &
          is.null(dim(primaryStudies$pairwiseNs[tmp])) &
@@ -207,6 +206,10 @@ ctmaInit <- function(
     }
     # Option 2: versions of ctmaPrep after 14. August 2020
     if (!(is.null(primaryStudies$n.studies))) n.studies <- primaryStudies$n.studies; n.studies
+    primaryStudies
+    # delete empty list entries
+    tmp1 <- which(names(primaryStudies) == "n.studies"); tmp1
+    for (i in 1:(tmp1-1)) primaryStudies[[i]][[n.studies+1]] <- NULL
 
 
     for (i in 1:n.studies) {
@@ -243,7 +246,6 @@ ctmaInit <- function(
     #manifestNames; latentNames
 
     for (i in 1:n.studies) {
-      #i <- 1
       if (!(i %in% loadRawDataStudyNumbers)) {
         currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
@@ -275,8 +277,8 @@ ctmaInit <- function(
         relativeNDiff[[i]] <- tmp$relativeLostN
         lags[[i]] <- matrix(currentLags, nrow=dim(empraw[[i]])[1], ncol=currentTpoints-1, byrow=TRUE)
         empraw[[i]] <- cbind(empraw[[i]], lags[[i]]);
-        utils::head(empraw[[i]])
-        c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
+        #utils::head(empraw[[i]])
+        #c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
         colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
         empraw[[i]] <- as.data.frame(empraw[[i]])
 
@@ -405,15 +407,19 @@ ctmaInit <- function(
   N1 <- sum(unlist((lapply(empraw, function(extract) dim(extract)[1]))) , na.rm=TRUE); N1
   N2 <- sum(unlist(primaryStudies$sampleSizes), na.rm=TRUE); N2
   if (!(N1 == N2)) {
-    cat(crayon::red$bold(" ", " ", sep="\n"))
-    cat(crayon::red$bold(" There is a possible mismatch between sample sizes specified in the primary study list
+    tmp1 <- unlist(lapply(empraw, function(extract) dim(extract)[1])); tmp1
+    tmp2 <- unlist(primaryStudies$sampleSizes); tmp2
+    if (!(any(is.na(tmp2)))) {   # check if mismatch is because >= 1 study used pairwise N
+      cat(crayon::red$bold(" ", " ", sep="\n"))
+      cat(crayon::red$bold(" There is a possible mismatch between sample sizes specified in the primary study list
     (created with the PREP R-file) and the cases pwovided in raw data files.", sep="\n"))
-    cat(crayon::red$bold(" ", " ", sep="\n"))
-    cat(crayon::red$bold("N based on raw data:   ", sep="\n"))
-    print(unlist((lapply(empraw, function(extract) dim(extract)[1]))))
-    cat(crayon::red$bold(" ", " ", sep="\n"))
-    cat(crayon::red$bold("N as specified in list:", sep="\n"))
-    unlist(primaryStudies$sampleSizes)
+      cat(crayon::red$bold(" ", " ", sep="\n"))
+      cat(crayon::red$bold("N based on raw data:   ", sep="\n"))
+      print(tmp1)
+      cat(crayon::red$bold(" ", " ", sep="\n"))
+      cat(crayon::red$bold("N as specified in list:", sep="\n"))
+      print(tmp2)
+    }
   }
 
 
@@ -737,7 +743,6 @@ ctmaInit <- function(
         df <- n.par.first.lag + sum(n.later.lags * n.par.later.lag) - studyFit[[i]]$resultsSummary$npars; df
         studyFit[[i]]$resultsSummary$'df (CoTiMA)' <- df
       } # END if (!(studyList[[i]]$originalStudyNo %in% ...
-      #studyFit[[i]]$resultsSummary
 
       # SAVE
       if ( (length(saveSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% saveSingleStudyModelFit[-1]) ) {
@@ -747,32 +752,21 @@ ctmaInit <- function(
         ctmaSaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
       }
 
-      #studyFit_Minus2LogLikelihood[[i]] <- studyFit[[i]]$stanfit$optimfit$f
-      #studyFit_estimatedParameters[[i]] <- length(studyFit[[i]]$stanfit$optimfit$par)
-
       resultsSummary <- studyFit[[i]]$resultsSummary; resultsSummary
 
-      studyFit_Minus2LogLikelihood[[i]] <- -2 * resultsSummary$resultsSummary$loglik
-      studyFit_estimatedParameters[[i]] <- resultsSummary$resultsSummary$npars
+      studyFit_Minus2LogLikelihood[[i]] <- -2 * resultsSummary$loglik
+      studyFit_estimatedParameters[[i]] <- resultsSummary$npars
 
       tmp <- grep("toV", rownames(resultsSummary$popmeans)); tmp
-      #model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=TRUE)); model_Drift_Coef[[i]]
       model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=FALSE)); model_Drift_Coef[[i]]
-      #names(model_Drift_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_Drift_Coef[[i]]
       names(model_Drift_Coef[[i]]) <- c(fullDriftNames); model_Drift_Coef[[i]]
 
-      #model_Drift_SE[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Sd"], n.latent, byrow=TRUE)); model_Drift_SE[[i]]
       model_Drift_SE[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Sd"], n.latent, byrow=FALSE)); model_Drift_SE[[i]]
-      #names(model_Drift_SE[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_Drift_SE[[i]]
       names(model_Drift_SE[[i]]) <- c(fullDriftNames); model_Drift_SE[[i]]
 
-      #tmp1 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "2.5%"], n.latent, byrow=TRUE)); tmp1
-      #tmp2 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "97.5%"], n.latent, byrow=TRUE)); tmp2
       tmp1 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "2.5%"], n.latent, byrow=FALSE)); tmp1
       tmp2 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "97.5%"], n.latent, byrow=FALSE)); tmp2
       model_Drift_CI[[i]] <- c(rbind(tmp1, tmp2)); model_Drift_CI[[i]]
-      #tmp3 <- c(rbind(paste0(rownames(resultsSummary$popmeans)[tmp], "LL"),
-      #                paste0(rownames(resultsSummary$popmeans)[tmp], "UL"))); tmp3
       tmp3 <- c(rbind(paste0(fullDriftNames, "LL"),
                       paste0(fullDriftNames, "UL"))); tmp3
       names(model_Drift_CI[[i]]) <- tmp3; model_Drift_CI[[i]]
@@ -823,13 +817,12 @@ ctmaInit <- function(
     colnames(allStudiesDRIFT_effects) <- c(rbind(tmp1, tmp2))
 
     source <- lapply(primaryStudies$source, function(extract) paste(extract, collapse=", ")); source
-    source <- source[-length(source)]
+    #source <- source[-length(source)]
     for (l in 1:length(source)) if ( source[[l]] == "NA") source[[l]] <- "Reference not provided"
     allStudiesDRIFT_effects_ext <- cbind(unlist(source), allStudiesDRIFT_effects)
     tmp <- allStudiesDRIFT_effects_ext
     tmp[, 2:(ncol(tmp))] <- round(as.numeric(tmp[, 2:(ncol(tmp))]), digits)
     allStudiesDRIFT_effects_ext <- tmp
-    allStudiesDRIFT_effects_ext
 
     allStudiesDriftCI <- matrix(unlist(model_Drift_CI), nrow=n.studies, byrow=TRUE)
     colnames(allStudiesDriftCI) <- names(model_Drift_CI[[1]])
@@ -859,7 +852,7 @@ ctmaInit <- function(
 
     if (n.studies < 2) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(crayon::blue("Only a single primary study was handed over to CoTiMA. No further (meta-) analyses can be conducted."))
+      cat(crayon::blue("Only a single primary study was handed over to ctmaInitFit. No further (meta-) analyses can be conducted."))
       cat(" ", sep="\n")
       cat(crayon::blue("I guess this stop is intended! You could ignore further warning messages such as \"sqrt(n-2): NaNs produced\""))
       cat(" ", sep="\n")

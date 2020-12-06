@@ -160,7 +160,7 @@ ctmaPrep <- function(selectedStudies=NULL,
     if (exists(paste0("malePercent", selectedStudies[i]))) malePercent[[i]] <- get(paste0("malePercent", selectedStudies[i]))
     if (exists(paste0("occupation", selectedStudies[i]))) occupation[[i]] <- get(paste0("occupation", selectedStudies[i]))
     if (exists(paste0("country", selectedStudies[i]))) country[[i]] <- get(paste0("country", selectedStudies[i]))
-    if (exists(paste0("targetAlphas", selectedStudies[i]))) alphas[[i]] <- get(paste0("targetAlphas", selectedStudies[i]))
+    if (exists(paste0("alphas", selectedStudies[i]))) alphas[[i]] <- get(paste0("alphas", selectedStudies[i]))
     #if (exists(paste0("targetVariables", selectedStudies[i]))) targetVariables[[i]] <- get(paste0("targetVariables", selectedStudies[i]))
     #if (exists(paste0("recodeVariables", selectedStudies[i]))) recodeVariables[[i]] <- get(paste0("recodeVariables", selectedStudies[i]))
     #if (exists(paste0("combineVariables", selectedStudies[i]))) combineVariables[[i]] <- get(paste0("combineVariables", selectedStudies[i]))

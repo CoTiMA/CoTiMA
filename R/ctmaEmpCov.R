@@ -61,6 +61,7 @@ ctmaEmpCov <- function(targetVariables=NULL, recodeVariables=c(), combineVariabl
 
   # combine variables
   tmpData <- as.data.frame(MASS::mvrnorm(n=sampleSize, mu=rep(0, dim(empcov)[1]), Sigma=empcov, empirical = TRUE))
+  newPairwiseN <- c()
 
   if(length(combineVariables) > 0) {
     for (i in 1:length(combineVariables)) {

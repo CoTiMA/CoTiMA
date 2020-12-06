@@ -63,7 +63,7 @@ ctmaInit(
 
 \item{loadSingleStudyModelFit}{load the fit of single study ctsem models}
 
-\item{scaleTI}{scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances}
+\item{scaleTI}{scale TI predictors}
 
 \item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
 
