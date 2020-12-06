@@ -39,6 +39,7 @@ ctmaEmpCov <- function(targetVariables=NULL, recodeVariables=c(), combineVariabl
 
   # correct and then replace pairwise N (not required for data generation; only to provide corrected paiwise N after variables are combined)
   if (!(is.null(pairwiseN))) {
+    tmp1 <- which(colnames(empcov) %in% targetVariables)
     pairwiseN <- pairwiseN[tmp1, tmp1]
     pairwiseNbackup <- pairwiseN
     if (is.null(sampleSize)) sampleSize <- max(pairwiseN) # max to avoid 0
