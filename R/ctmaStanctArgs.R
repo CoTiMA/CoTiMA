@@ -1,12 +1,6 @@
 #' This are preset arguments
 #'
 #' @name CoTiMAStanctArgs
-#' @docType data
-#' @author My Name \email{blahblah@@roxygen.org}
-#' @references \url{data_blah.com}
-#' @keywords data
-"CoTiMAStanctArgs"
-
 CoTiMAStanctArgs<-list(test=TRUE,
                        scaleTI=FALSE, scaleMod=TRUE, scaleClus=FALSE, scaleLongData=FALSE,
                        scaleTime=1/1,
