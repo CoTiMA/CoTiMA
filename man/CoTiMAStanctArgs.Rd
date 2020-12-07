@@ -13,10 +13,4 @@ CoTiMAStanctArgs
 \description{
 This are preset arguments
 }
-\references{
-\url{data_blah.com}
-}
-\author{
-My Name \email{blahblah@roxygen.org}
-}
-\keyword{data}
+\keyword{datasets}

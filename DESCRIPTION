@@ -1,18 +1,18 @@
-Package: CoTiMA
+Package: cotima
 Type: Package
-Title: Continuous time meta-analysis (CoTiMA) performs meta-analyses of correlation matrices of repeatedly measured variables
-Version: 0.2.2
-Author: Dormann, C & Homberg, M.
-Maintainer: Homberg, M. <markus.homberg@uni-mainz.de>
+Title: Continuous Time Meta-Analysis (CoTiMA) Performs Meta-Analyses of Correlation Matrices of Repeatedly Measured Variables
+Version: 0.3.1
+Author: Christian Dormann, Markus Homberg
+Maintainer: "Markus Homberg" <cotima@uni-mainz.de>
 Description: Continuous Time Meta-Analysis (CoTiMA) performs meta-analyses of correlation matrices of repeatedly measured variables. As always, variables are measured at discrete time points (e.g., today at 4pm, next week on Monday etc.), which imposes a problem for meta-analysis of studies that repeatedly measured the variables because the time lags between measurement could vary across studies. However, so-called continuous time math can be used to ‘extrapolate’ or ‘intrapolate’ the results from all studies to any desired time lag. By this, effects obtained in studies that used different time lags can be meta-analyzed. In a nutshell, CoTiMA fits models to empirical data using the structural equation model (SEM) packages OpenMx and CTSEM, the effects specified in a SEM are related to parameters that are not directly included in the model (i.e., continuous time parameters; together, they represent the continuous time structural equation model, ctsem) which is done in a fashion similar to other SEM programs (e.g., like a = b × c to test for mediation in MPLUS) using matrix algebra functions (e.g., matrix exponentiation, which is not available in MPLUS), and statistical model comparisons and significance tests are performed on the continuous time parameter estimates. 
     Of course, extrapolating or intrapolating effects always rests on particular assumptions. A critical assumption is the underlying causal model that describes the process under investigation. For example, a causal system that describes how a single variable that is measured repeatedly (e.g., X1, X2, X2, etc.) could propose that X1 affects X2, X2 affects X3 and so forth. This is called a first order autoregressive structure and the model which is used by default for a CoTiMA of a single variable. In a two-variable model of X and Y, the underlying CoTiMA model is a cross-lagged model with autoregressive effects for X and Y and, in addition, a cross-lagged effect of Xt on Yt+1 and of Yt on Xt+1. More complex models (e.g., including Xt on Yt+1  and Xt on Yt+2) could be meta-analyzed, too, but they require user-specific adaptations. More simple models (e.g., Xt on Yt+1 but not Yt on Xt+1) are easier to implement and several specific models (e.g., Xt on Yt+1 exactly of the same size as Yt on Xt+1) could be optionally requested. Usually, researchers are interested in the sizes of these effects rather than the correlations on which they are based. Thus, correlations of primary studies serve as an input for CoTiMA and synthesized (i.e., meta-analytically aggregated) effect sizes represent the output of CoTiMA.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends:
-    OpenMx (>= 2.15.5),
+    OpenMx (>= 2.18.1),
     ctsem (>= 3.3.11),
-    lavaan
+    lavaan (>= 0.6)
 Imports: 
     MASS (>= 7.3.51.4),
     MBESS (>= 4.6.0),
@@ -24,12 +24,10 @@ Imports:
     utils (>= 3.6.2),
     stats (>= 3.6.2),
     abind (>= 1.4-5),
-    expm,
-    graphics,
-    base,
-    grDevices,
+    expm (>= 0.999),
+    graphics (>= 4.0.3),
+    base (>= 4.0.3),
+    grDevices (>= 4.0.3),
     RPushbullet (>= 0.3.3),
     openxlsx (>= 4.2.2)
-Suggests:
-Exports: ctmaPrep openXL
 RoxygenNote: 7.1.1
