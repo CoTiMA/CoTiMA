@@ -12,5 +12,5 @@ ctmaCombPRaw(listOfStudyFits = NULL, moderatorValues = NULL)
 \item{moderatorValues}{"Moderators}
 }
 \description{
-ctmaCombPRaw
+Combine Pseudo Raw Data (extract them from 'CoTiMAFit object'$studyFitList)
 }

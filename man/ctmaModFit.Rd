@@ -12,54 +12,74 @@ ctmaModFit(
   mod.number = 1,
   mod.type = "cont",
   mod.names = NULL,
-  datalong = NULL,
   activateRPB = FALSE,
-  silentOverwrite = FALSE,
   digits = 4,
   moderatedDrift = c(),
-  coresToUse = 1,
-  CoTiMAStanctArgs = list(test = TRUE, scaleTI = TRUE, scaleTime = 1/1, scaleMod =
-    TRUE, scaleLongData = FALSE, savesubjectmatrices = FALSE, verbose = 1, datalong = NA,
-    ctstanmodel = NA, stanmodeltext = NA, iter = 1000, intoverstates = TRUE, binomial =
-    FALSE, fit = TRUE, intoverpop = FALSE, stationary = FALSE, plot = FALSE, derrind =
-    "all", optimize = TRUE, optimcontrol = list(is = F, stochastic = FALSE), nlcontrol =
-    list(), nopriors = TRUE, chains = 2, cores = 1, inits = NULL, forcerecompile = FALSE,
-    savescores = FALSE,      gendata = FALSE, control = list(adapt_delta = 0.8,
-    adapt_window = 2, max_treedepth = 10, adapt_init_buffer = 2, stepsize = 0.001),
-    verbose = 0, warmup = 500)
+  coresToUse = c(1),
+  indVarying = FALSE,
+  scaleTI = NULL,
+  scaleMod = NULL,
+  scaleTime = NULL,
+  optimize = TRUE,
+  nopriors = TRUE,
+  finishsamples = NULL,
+  chains = NULL,
+  verbose = NULL
 )
 }
 \arguments{
-\item{ctmaInitFit}{""}
+\item{ctmaInitFit}{object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by ctmaInit)}
 
-\item{primaryStudyList}{""}
+\item{primaryStudyList}{could be a list of primary studies compiled with ctmaPrep that defines the subset of studies in ctmaInitFit that should actually be used}
 
-\item{cluster}{""}
+\item{cluster}{vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in ctmaPrep later.}
 
-\item{activeDirectory}{""}
+\item{activeDirectory}{defines another active directory than the one used in ctmaInitFit}
 
-\item{mod.number}{""}
+\item{mod.number}{which in the vector of moderator values to use (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)}
 
-\item{mod.type}{""}
+\item{mod.type}{"cont" or "cat" (mixing them in a single model not yet possible)}
 
-\item{mod.names}{""}
+\item{mod.names}{vector of names for moderators used in output}
 
-\item{datalong}{""}
+\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
 
-\item{activateRPB}{""}
+\item{digits}{Number of digits used for rounding (in outputs)}
 
-\item{silentOverwrite}{""}
+\item{moderatedDrift}{drift Labels for drift effects that are moderated (default = all drift effects)}
 
-\item{digits}{""}
+\item{coresToUse}{If neg., the value is subtracted from available cores, else value = cores to use}
 
-\item{moderatedDrift}{""}
+\item{indVarying}{Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heteregeneity)}
 
-\item{coresToUse}{""}
+\item{scaleTI}{scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances}
 
-\item{CoTiMAStanctArgs}{""}
+\item{scaleMod}{scale moderators - useful in particular if continuous moderators are used}
 
-\item{type}{""}
+\item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
+
+\item{optimize}{if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
+
+\item{nopriors}{if TRUE, any priors are disabled – sometimes desirable for optimization}
+
+\item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
+
+\item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
+
+\item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
 }
 \description{
-ctmaModFit
+Performs moderator analysis of one or more drift coefficients moderated by one or more time independent moderators
+}
+\examples{
+# Fit a moderated CoTiMA to all primary studies previously fitted
+# one by one with the fits assigned to CoTiMAInitFit_Ex1
+\dontrun{
+CoTiMAModlFit_Ex1 <- ctmaModFit(ctmaInitFit=CoTiMAInitFit_Ex1,
+mod.number=2, mod.type="cat", mod.names=c("H not stated"))
+
+saveRDS(CoTiMAModlFit_Ex1, file=paste0(activeDirectory, "CoTiMAModlFit_Ex1.rds"))
+summary(CoTiMAModlFit_Ex1)
+}
+
 }

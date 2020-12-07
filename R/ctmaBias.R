@@ -1,13 +1,13 @@
-#######################################################################################################################
-############################################ CoTiMA Publication Bias ##################################################
-#######################################################################################################################
 #' ctmaBias
 #'
-#' @param ctmaInitFit ""
-#' @param activeDirectory ""
-#' @param PETPEESEalpha ""
-#' @param activateRPB ""
-#' @param digits ""
+#' @description Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients.
+#'
+
+#' @param ctmaInitFit fit object created with ctmaInti containing the fitted ctsem model of each primary study
+#' @param activeDirectory the directory where to save results (if not specified, it is taken from ctmaInitFit)
+#' @param PETPEESEalpha   # probability level (condition) below which to switch from PET to PEESE (Stanley, 2017, SPPS,p. 582, below Eq. 2; (default p = .10)
+#' @param activateRPB if TRUE, messages (warning, finishs) could be send to smart phone (default = FALSE)
+#' @param digits rounding (default = 4)
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
@@ -15,17 +15,15 @@
 #'
 #' @export ctmaBias
 #'
+#' @examples
+#' \dontrun{
+#' ctmaBias(ctmaInitFit=studyList_Ex1)
+#' }
+#'
 ctmaBias <- function(
-  # Primary Study Fits
-  ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
-
-  # Directory names and file names
+  ctmaInitFit=NULL,
   activeDirectory=NULL,
-
-  # probability level (condition) below which to switch from PET to PEESE (Stanley, 2017, SPPS,p. 582, below Eq. 2)
   PETPEESEalpha=.10,
-
-  # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
   activateRPB=FALSE,
   digits=4
 )

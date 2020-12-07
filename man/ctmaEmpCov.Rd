@@ -5,7 +5,7 @@
 \title{ctmaEmpCov}
 \usage{
 ctmaEmpCov(
-  targetVariables = c(),
+  targetVariables = NULL,
   recodeVariables = c(),
   combineVariables = c(),
   combineVariablesNames = c(),
@@ -18,26 +18,26 @@ ctmaEmpCov(
 )
 }
 \arguments{
-\item{targetVariables}{""}
+\item{targetVariables}{(col-/row-) number or names of the target variables}
 
-\item{recodeVariables}{""}
+\item{recodeVariables}{(col-/row-) number or names of the target variables require inverse coding}
 
-\item{combineVariables}{""}
+\item{combineVariables}{list of vectors, which put together the targeted variables that should be used for composite variables}
 
-\item{combineVariablesNames}{""}
+\item{combineVariablesNames}{new names for combined variables - not really important}
 
-\item{missingVariables}{""}
+\item{missingVariables}{missing variables}
 
-\item{nlatents}{""}
+\item{nlatents}{number of (latent) variables - actually it is the number of all variables}
 
-\item{Tpoints}{""}
+\item{Tpoints}{Number of time points.}
 
-\item{sampleSize}{""}
+\item{sampleSize}{sample size}
 
-\item{pairwiseN}{""}
+\item{pairwiseN}{matrix of same dimensions as empcov containing possible pairwiseN.}
 
-\item{empcov}{""}
+\item{empcov}{empirical correlation matrix}
 }
 \description{
-ctmaEmpCov
+changes a full covariance matrix: select target variables, recode them, combine them (add), and
 }

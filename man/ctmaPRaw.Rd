@@ -15,17 +15,17 @@ ctmaPRaw(
 )
 }
 \arguments{
-\item{empCovMat}{""}
+\item{empCovMat}{empirical primary study covariance matrix}
 
-\item{empNMat}{""}
+\item{empNMat}{matrix of (possibly pairwise) N}
 
-\item{empN}{""}
+\item{empN}{N (in case of listwise N)}
 
-\item{studyNumber}{""}
+\item{studyNumber}{internal number}
 
-\item{empMeanVector}{""}
+\item{empMeanVector}{vector of means for all variables, usually 0}
 
-\item{empVarVector}{""}
+\item{empVarVector}{vector of variances for all variables, usually 1}
 
 \item{activateRPB}{"set to TRUE to receive push messages with CoTiMA notifications on your phone"}
 }

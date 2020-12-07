@@ -5,7 +5,7 @@
 \alias{CoTiMAStanctArgs}
 \title{This are preset arguments}
 \format{
-An object of class \code{list} of length 32.
+An object of class \code{list} of length 31.
 }
 \usage{
 CoTiMAStanctArgs
@@ -13,10 +13,4 @@ CoTiMAStanctArgs
 \description{
 This are preset arguments
 }
-\references{
-\url{data_blah.com}
-}
-\author{
-My Name \email{blahblah@roxygen.org}
-}
-\keyword{data}
+\keyword{datasets}

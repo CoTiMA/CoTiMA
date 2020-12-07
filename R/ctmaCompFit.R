@@ -1,7 +1,9 @@
 #' ctmaCompFit
 #'
-#' @param model1 ""
-#' @param model2 ""
+#' @description Performs -2ll different tests of 2 Models (CoTiMAFit objects))
+#'
+#' @param model1 Model 1
+#' @param model2 Model 2
 #'
 #' @importFrom stats pchisq
 #'

@@ -15,58 +15,81 @@ ctmaInit(
   lambda = NULL,
   manifestVars = NULL,
   drift = NULL,
+  indVarying = FALSE,
   saveRawData = list(),
   coresToUse = c(1),
   silentOverwrite = FALSE,
   saveSingleStudyModelFit = c(),
   loadSingleStudyModelFit = c(),
-  CoTiMAStanctArgs = list(test = TRUE, scaleTI = TRUE, scaleMod = TRUE, scaleLongData =
-    FALSE, scaleTime = 1/1, savesubjectmatrices = FALSE, verbose = 1, datalong = NA,
-    ctstanmodel = NA, stanmodeltext = NA, iter = 1000, intoverstates = TRUE, binomial =
-    FALSE, fit = TRUE, intoverpop = "auto", stationary = FALSE, plot = FALSE, derrind =
-    "all", optimize = TRUE, optimcontrol = list(is = F, stochastic = FALSE, finishsamples
-    = 1000), nlcontrol = list(), nopriors = TRUE, chains = 2, cores = 1, inits = NULL,
-    forcerecompile = FALSE,      savescores = FALSE, gendata = FALSE, control =
-    list(adapt_delta = 0.8, adapt_window = 2, max_treedepth = 10, adapt_init_buffer = 2,
-    stepsize = 0.001), verbose = 0)
+  scaleTI = NULL,
+  scaleTime = NULL,
+  optimize = TRUE,
+  nopriors = TRUE,
+  finishsamples = NULL,
+  chains = NULL,
+  verbose = NULL
 )
 }
 \arguments{
-\item{primaryStudies}{"list of primary study information created with ctmaPrep"}
+\item{primaryStudies}{list of primary study information created with ctmaPrep}
 
-\item{activeDirectory}{"Directory name"}
+\item{activeDirectory}{defines another active directory than the one used in ctmaPrep}
 
-\item{activateRPB}{"set to TRUE to receive push messages with CoTiMA notifications on your phone"}
+\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
 
-\item{checkSingleStudyResults}{"displays estimates from single study ctsem models and waits for user inoput to continue"}
+\item{checkSingleStudyResults}{Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before the are saved.}
 
-\item{digits}{"Number of digits in outputs"}
+\item{digits}{Number of digits used for rounding (in outputs)}
 
-\item{n.latent}{"Number of latent variables of the model"}
+\item{n.latent}{Number of latent variables of the model (hast to be specified)!}
 
-\item{n.manifest}{""}
+\item{n.manifest}{Number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).}
 
-\item{lambda}{""}
+\item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
 
-\item{manifestVars}{""}
+\item{manifestVars}{Define the error variances of the manifests with a single time point using R-type matrix with nrow=n.manifest & ncol=n.manifest.}
 
-\item{drift}{""}
+\item{drift}{Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)}
 
-\item{saveRawData}{"save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec"}
+\item{indVarying}{Control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
 
-\item{coresToUse}{"neg.if negative,value is subtracted from available cores, else value = cores to use"}
+\item{saveRawData}{Save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec}
 
-\item{silentOverwrite}{"override old files without asking"}
+\item{coresToUse}{If neg., the value is subtracted from available cores, else value = cores to use}
 
-\item{saveSingleStudyModelFit}{"save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)}
+\item{silentOverwrite}{Override old files without asking}
 
-\item{loadSingleStudyModelFit}{"load the fit of single study ctsem models"}
+\item{saveSingleStudyModelFit}{save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)}
 
-\item{CoTiMAStanctArgs}{"CoTiMA Stanct Arguments"}
+\item{loadSingleStudyModelFit}{load the fit of single study ctsem models}
+
+\item{scaleTI}{scale TI predictors}
+
+\item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
+
+\item{optimize}{if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
+
+\item{nopriors}{if TRUE, any priors are disabled – sometimes desirable for optimization}
+
+\item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
+
+\item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
+
+\item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
 }
 \description{
-ctmaInit
+Fits a ctsem model to a list of primary studies prepared by ctmaPrep.
 }
 \examples{
-""
+# Fit a ctsem model to all primary studies summarized in
+# studyList_Ex1 and save fitted models
+\dontrun{
+CoTiMAInitFit_Ex1 <- ctmaInit(
+primaryStudies=studyList_Ex1,
+n.latent=2,
+saveSingleStudyModelFit=c(2, 4, 17))
+
+summary(CoTiMAInitFit_Ex1)
+}
+
 }

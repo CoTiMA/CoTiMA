@@ -2,21 +2,28 @@
 #######################################################################################################################
 #' ctmaModFit
 #'
-#' @param ctmaInitFit ""
-#' @param primaryStudyList ""
-#' @param cluster ""
-#' @param activeDirectory ""
-#' @param mod.number ""
-#' @param mod.type ""
-#' @param mod.names ""
-#' @param datalong ""
-#' @param activateRPB ""
-#' @param silentOverwrite ""
-#' @param digits ""
-#' @param moderatedDrift ""
-#' @param type ""
-#' @param coresToUse ""
-#' @param CoTiMAStanctArgs ""
+#' @description Performs moderator analysis of one or more drift coefficients moderated by one or more time independent moderators
+#'
+#' @param ctmaInitFit object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by ctmaInit)
+#' @param primaryStudyList  could be a list of primary studies compiled with ctmaPrep that defines the subset of studies in ctmaInitFit that should actually be used
+#' @param cluster  vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in ctmaPrep later.
+#' @param activeDirectory  defines another active directory than the one used in ctmaInitFit
+#' @param activateRPB  set to TRUE to receive push messages with CoTiMA notifications on your phone
+#' @param mod.number which in the vector of moderator values to use (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
+#' @param mod.type "cont" or "cat" (mixing them in a single model not yet possible)
+#' @param mod.names vector of names for moderators used in output
+#' @param digits Number of digits used for rounding (in outputs)
+#' @param moderatedDrift drift Labels for drift effects that are moderated (default = all drift effects)
+#' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
+#' @param indVarying Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heteregeneity)
+#' @param scaleTI scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances
+#' @param scaleMod scale moderators - useful in particular if continuous moderators are used
+#' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
+#' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
+#' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
+#' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
+#' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
+#' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
@@ -26,52 +33,51 @@
 #'
 #' @export ctmaModFit
 #'
+#' @examples
+#' # Fit a moderated CoTiMA to all primary studies previously fitted
+#' # one by one with the fits assigned to CoTiMAInitFit_Ex1
+#' \dontrun{
+#' CoTiMAModlFit_Ex1 <- ctmaModFit(ctmaInitFit=CoTiMAInitFit_Ex1,
+#' mod.number=2, mod.type="cat", mod.names=c("H not stated"))
+#'
+#' saveRDS(CoTiMAModlFit_Ex1, file=paste0(activeDirectory, "CoTiMAModlFit_Ex1.rds"))
+#' summary(CoTiMAModlFit_Ex1)
+#' }
+#'
 ctmaModFit <- function(
-  # Primary Study Fits
-  ctmaInitFit=NULL,                    #list of lists: could be more than one fit object
-  primaryStudyList=NULL,               # created by the PREP file for moderator analyses
-  cluster=NULL,                        # vecto with clust variables (e.g., countries)
-
-  # Directory names and file names
+  ctmaInitFit=NULL,
+  primaryStudyList=NULL,
+  cluster=NULL,
   activeDirectory=NULL,
-
-  # Moderator Specs
-  mod.number=1,                         # which in the vector of moderator values to use (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
-  mod.type="cont",                      # "cont" vs. "cat"
+  mod.number=1,
+  mod.type="cont",
   mod.names=NULL,
-  datalong=NULL,
-
-  # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
   activateRPB=FALSE,
-  silentOverwrite=FALSE,
-
   digits=4,
-
-  # General Model Setup
   moderatedDrift=c(),
-
-  # Fitting Parameters
-  #type="stanct",
-  coresToUse=1,
-  CoTiMAStanctArgs=list(test=TRUE, scaleTI=TRUE, scaleTime=1/1, scaleMod=TRUE, scaleLongData=FALSE,
-                        savesubjectmatrices=FALSE, verbose=1,
-                        datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
-                        iter=1000, intoverstates=TRUE,
-                        binomial=FALSE, fit=TRUE,
-                        intoverpop=FALSE, stationary=FALSE,
-                        plot=FALSE, derrind="all",
-                        optimize=TRUE, optimcontrol=list(is=F, stochastic=FALSE),
-                        nlcontrol=list(),
-                        nopriors=TRUE,
-                        chains=2,
-                        cores=1,
-                        inits=NULL, forcerecompile=FALSE,
-                        savescores=FALSE, gendata=FALSE,
-                        control=list(adapt_delta = .8, adapt_window=2, max_treedepth=10, adapt_init_buffer=2, stepsize = .001),
-                        verbose=0,
-                        warmup=500)
+  coresToUse=c(1),
+  indVarying=FALSE,
+  scaleTI=NULL,
+  scaleMod=NULL,
+  scaleTime=NULL,
+  optimize=TRUE,
+  nopriors=TRUE,
+  finishsamples=NULL,
+  chains=NULL,
+  verbose=NULL
 )
 {  # begin function definition (until end of file)
+
+  { # fitting params
+    if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
+    if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
+    if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
+    if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
+    if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
+    if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
+    if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
+    if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
+  }
 
   #######################################################################################################################
   ################################################# Check Cores To Use ##################################################
@@ -386,7 +392,7 @@ ctmaModFit <- function(
 
 
       if (!(is.null(CoTiMAStanctArgs$resample))) {
-        fitStanctModModel <- ctmaStanResample(fitStanctModel=fitStanctModModel, CoTiMAStanctArgs=CoTiMAStanctArgs)
+        fitStanctModModel <- ctmaStanResample(ctmaFittedModel=fitStanctModModel) #, CoTiMAStanctArgs=CoTiMAStanctArgs)
       }
 
       stanctModFit <- summary(fitStanctModModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
@@ -512,6 +518,7 @@ ctmaModFit <- function(
                     parameterNames=ctmaInitFit$parameterNames,
                     summary=list(model="All Drift Effects Moderated",
                                  estimates=modDrift_Coeff,
+                                 randomEffects=stanctModFit$popsd,
                                  minus2ll= modDrift_Minus2LogLikelihood,
                                  n.parameters = modDrift_estimatedParameters,
                                  df=modDrift_df,

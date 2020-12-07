@@ -14,41 +14,73 @@ ctmaFit(
   invariantDrift = NULL,
   drift = NULL,
   indVarying = FALSE,
-  coresToUse = c(-1),
-  CoTiMAStanctArgs = list(test = TRUE, scaleTI = TRUE, scaleTime = 1/1,
-    savesubjectmatrices = FALSE, verbose = 1, datalong = NA, ctstanmodel = NA,
-    stanmodeltext = NA, iter = 1000, intoverstates = TRUE, binomial = FALSE, fit = TRUE,
-    intoverpop = "auto", stationary = FALSE, plot = FALSE, derrind = "all", optimize =
-    TRUE, optimcontrol = list(is = F, stochastic = FALSE), nlcontrol = list(), nopriors =
-    TRUE, chains = 2, cores = 1, inits = NULL, forcerecompile = FALSE, savescores =
-    FALSE, gendata = FALSE, control = list(adapt_delta = 0.8,      adapt_window = 2,
-    max_treedepth = 10, adapt_init_buffer = 2, stepsize = 0.001), verbose = 0, warmup =
-    500)
+  coresToUse = c(1),
+  scaleTI = NULL,
+  scaleTime = NULL,
+  optimize = TRUE,
+  nopriors = TRUE,
+  finishsamples = NULL,
+  chains = NULL,
+  verbose = NULL
 )
 }
 \arguments{
-\item{ctmaInitFit}{""}
+\item{ctmaInitFit}{object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by ctmaInit)}
 
-\item{primaryStudyList}{""}
+\item{primaryStudyList}{could be a list of primary studies compiled with ctmaPrep that defines the subset of studies in ctmaInitFit that should actually be used}
 
-\item{cluster}{""}
+\item{cluster}{vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in ctmaPrep later.}
 
-\item{activeDirectory}{""}
+\item{activeDirectory}{defines another active directory than the one used in ctmaInitFit}
 
-\item{activateRPB}{""}
+\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
 
-\item{digits}{""}
+\item{digits}{Number of digits used for rounding (in outputs)}
 
-\item{invariantDrift}{""}
+\item{invariantDrift}{drift Labels for drift effects that are set invariant across primary studies (default = all drift effects).}
 
-\item{drift}{""}
+\item{drift}{Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)}
 
-\item{indVarying}{""}
+\item{indVarying}{Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heteregeneity)}
 
-\item{coresToUse}{""}
+\item{coresToUse}{If neg., the value is subtracted from available cores, else value = cores to use}
 
-\item{CoTiMAStanctArgs}{""}
+\item{scaleTI}{scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances}
+
+\item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
+
+\item{optimize}{if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
+
+\item{nopriors}{if TRUE, any priors are disabled – sometimes desirable for optimization}
+
+\item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
+
+\item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
+
+\item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
 }
 \description{
-ctmaFit
+Fits a ctsem model with invariant drift effects across primary studies
+}
+\examples{
+# Example 1. Fit a CoTiMA to all primary studies previously fitted one by one
+# with the fits assigned to CoTiMAInitFit_Ex1
+\dontrun{
+CoTiMAFullFit_Ex1 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_Ex1)
+
+saveRDS(CoTiMAFullFit_Ex1, file=paste0(activeDirectory, "CoTiMAFullFit_Ex1.rds"))
+summary(CoTiMAFullFit_Ex1)
+}
+
+# Example 2. Fit a CoTiMA with only 2 cross effects invariant (not the auto
+# effects) to all primary studies previously fitted one by one with the fits assigned
+# to CoTiMAInitFit_Ex1
+\dontrun{
+CoTiMA12lFit_Ex2 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_Ex1,
+invariantDrift=c("V1toV2", "V2toV1"))
+
+saveRDS(CoTiMA12Fit_Ex2, file=paste0(activeDirectory, "CoTiMA12Fit_Ex2.rds"))
+summary(CoTiMA12lFit_Ex2)
+}
+
 }
