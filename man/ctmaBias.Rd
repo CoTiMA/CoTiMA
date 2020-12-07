@@ -13,16 +13,22 @@ ctmaBias(
 )
 }
 \arguments{
-\item{ctmaInitFit}{""}
+\item{ctmaInitFit}{fit object created with ctmaInti containing the fitted ctsem model of each primary study}
 
-\item{activeDirectory}{""}
+\item{activeDirectory}{the directory where to save results (if not specified, it is taken from ctmaInitFit)}
 
-\item{PETPEESEalpha}{""}
+\item{PETPEESEalpha}{# probability level (condition) below which to switch from PET to PEESE (Stanley, 2017, SPPS,p. 582, below Eq. 2; (default p = .10)}
 
-\item{activateRPB}{""}
+\item{activateRPB}{if TRUE, messages (warning, finishs) could be send to smart phone (default = FALSE)}
 
-\item{digits}{""}
+\item{digits}{rounding (default = 4)}
 }
 \description{
-ctmaBias
+Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients.
+}
+\examples{
+\dontrun{
+ctmaBias(ctmaInitFit=studyList_Ex1)
+}
+
 }

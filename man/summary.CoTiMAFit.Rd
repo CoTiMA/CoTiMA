@@ -2,13 +2,15 @@
 % Please edit documentation in R/ctmaSummary.R
 \name{summary.CoTiMAFit}
 \alias{summary.CoTiMAFit}
-\title{ctmaSummary}
+\title{summary.CoTiMAFit}
 \usage{
-summary.CoTiMAFit(x)
+\method{summary}{CoTiMAFit}(object, ...)
 }
 \arguments{
-\item{x}{""}
+\item{object}{one CoTiMAFit object or more as ctmaFitList(object1, object2, ...)}
+
+\item{...}{further arguments to be passed through to summary()}
 }
 \description{
-ctmaSummary
+defins summary for CoTiMAFit objects
 }

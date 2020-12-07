@@ -4,7 +4,14 @@
 \alias{ctmaPrep}
 \title{ctmaPrep}
 \usage{
-ctmaPrep(selectedStudies = NULL, excludedElements = NULL, addElements = NULL)
+ctmaPrep(
+  selectedStudies = NULL,
+  excludedElements = NULL,
+  addElements = NULL,
+  digits = 4,
+  moderatorLabels = NULL,
+  moderatorValues = NULL
+)
 }
 \arguments{
 \item{selectedStudies}{Vector of primary study numbers (numeric values with no leading 0; e.g., '2' but not '02')}
@@ -13,9 +20,15 @@ ctmaPrep(selectedStudies = NULL, excludedElements = NULL, addElements = NULL)
 value indicating the mean age of participants in a primary study), 'malePercent' (intended as value indicating the percentage of male participants in a primary study), 'occupation' (intended as vector of character strings representing the occupations of participants in a primary study), 'country' (intended as single character string representing the country in which a primary study was conducted), 'alphas' (intended as vector of Cronbach's alphas of the variables of a primary study; not yet functional), and 'targetVariables' (intended as vector of character strings representing information about the variables used).'}
 
 \item{addElements}{User-added objects that are handled as the weakly predefined objects. The major purpose is to collect information a researcher regards as important.}
+
+\item{digits}{Rounding used for summary function}
+
+\item{moderatorLabels}{vector of names}
+
+\item{moderatorValues}{list of character vectors}
 }
 \value{
-List of primary studies and parameters for the following CoTiMA
+List of primary studies and parameters for the following CoTiMA (plus StudyInformation which could be saved to Excel)
 }
 \description{
 Combines information of primary studies into a list object and returns this list. This list is then used as input to fit CoTiMA models (ctmaFit, ctmaModFit), for analyses of publication bias (ctmaBias) or statistical power (ctmaPower), or for plotting the results (ctmaPlot).
@@ -33,27 +46,70 @@ Usually, sample sizes ('sampleSize2', 'sampleSize4') and time lags ('delta_t2', 
 source2 <- c("Dollard", "& Bakker", "2010")
 delta_t2 <- 12
 sampleSize2 <- 209
-empcov2 <- matrix(c(
- 1, 0.55, 0.69, 0.37,
- 0.55, 1, 0.43, 0.55,
- 0.69, 0.43, 1, 0.58,
- 0.37, 0.55, 0.58, 1), nrow = 4, ncol = 4)
+empcov2 <- matrix(c(1.00, 0.55, 0.69, 0.37,
+                    0.55, 1.00, 0.43, 0.55,
+                    0.69, 0.43, 1.00, 0.58,
+                    0.37, 0.55, 0.58, 1.00),
+                   nrow = 4, ncol = 4)
 moderator2 <- c(2, 2)
 addedByResearcher2 <- "something you want to add"
 
+# Second Study
 delta_t4 <- c(12, 6)
 sampleSize4 <- 261
-empcov4 <- matrix(c(c(1.00, 0.44, 0.74, 0.36, 0.71, 0.32,
-                      0.44, 1.00, 0.35, 0.66, 0.38, 0.65,
-                      0.74, 0.35, 1.00, 0.43, 0.83, 0.35,
-                      0.36, 0.66, 0.43, 1.00, 0.41, 0.71,
-                      0.71, 0.38, 0.83, 0.41, 1.00, 0.44,
-                      0.32, 0.65, 0.35, 0.71, 0.44, 1.00),
-                      nrow=6, ncol=6))
+empcov4 <- matrix(c(1.00, 0.44, 0.74, 0.36, 0.71, 0.32,
+                    0.44, 1.00, 0.35, 0.66, 0.38, 0.65,
+                    0.74, 0.35, 1.00, 0.43, 0.83, 0.35,
+                    0.36, 0.66, 0.43, 1.00, 0.41, 0.71,
+                    0.71, 0.38, 0.83, 0.41, 1.00, 0.44,
+                    0.32, 0.65, 0.35, 0.71, 0.44, 1.00),
+                    nrow=6, ncol=6)
 moderator4 <- c(3, 1) #
 addedByResearcher4 <- "another comment"
-studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4),
+
+# Third Study
+source17 <- c()
+delta_t17 <- c(12)
+sampleSize17 <- 440
+empcov17 <- matrix(c( 1.00,  0.60,  0.36,  0.62,  0.47,  0.18,
+                      0.60,  1.00,  0.55,  0.43,  0.52,  0.27,
+                      0.36,  0.55,  1.00,  0.26,  0.37,  0.51,
+                      0.62,  0.43,  0.26,  1.00,  0.63,  0.30,
+                      0.47,  0.52,  0.37,  0.63,  1.00,  0.55,
+                      0.18,  0.27,  0.51,  0.30,  0.55,  1.00,
+                     nrow=6, ncol=6))
+moderator17 <- c(3, 2)
+targetVariables17 <- c("Workload_1", "Exhaustion_1", "Cynicism_1",
+                       "Workload_2", "Exhaustion_2", "Cynicism_2")
+recodeVariables17 <- c(1, 4)
+combineVariables17 <- list("Workload_1", c("Exhaustion_1", "Cynicism_1"),
+                           "Workload_2", c("Exhaustion_2", "Cynicism_2"))
+combineVariablesNames17 <- c("Demands_1",  "Burnout_1",
+                             "Demands_2",  "Burnout_2")
+missingVariables17 <- c();
+\dontrun{
+results <- ctmaEmpCov(targetVariables=targetVariables17,
+                      recodeVariables=recodeVariables17,
+                      combineVariables=combineVariables17,
+                      combineVariablesNames=combineVariablesNames17,
+                      missingVariables=missingVariables17,
+                      nlatents=2, sampleSize=sampleSize17, Tpoints=2, empcov=empcov17)
+empcov17 <- results$r
+}
+
+# Add Labels and Values for Moderators (just for optional excel tables)
+moderatorLabels <- c("Social Support", "Control")
+moderatorValues <- list("continuous", c("1 = very low", "2 = low",
+                       "3 = medium", "4 = high", "5 = very high"))
+
+\dontrun{
+studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4, 17),
                           excludedElements = "ageM",
-                          addElements ="addedByResearcher")
+                          addElements = "addedByResearcher",
+                          moderatorLabels=moderatorLabels,
+                          moderatorValues=moderatorValues)
+library(openxlsx)
+openXL(studyList_Ex1$excelSheets)
+}
 
 }

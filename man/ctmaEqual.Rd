@@ -9,33 +9,28 @@ ctmaEqual(
   activeDirectory = NULL,
   activateRPB = FALSE,
   digits = 4,
-  equalDrift = NULL,
-  coresToUse = 1,
-  CoTiMAStanctArgs = list(test = TRUE, scaleTI = TRUE, scaleTime = 1/1,
-    savesubjectmatrices = FALSE, verbose = 1, datalong = NA, ctstanmodel = NA,
-    stanmodeltext = NA, iter = 1000, intoverstates = TRUE, binomial = FALSE, fit = TRUE,
-    intoverpop = FALSE, stationary = FALSE, plot = FALSE, derrind = "all", optimize =
-    TRUE, optimcontrol = list(is = F, stochastic = FALSE), nlcontrol = list(), nopriors =
-    TRUE, chains = 2, cores = 1, inits = NULL, forcerecompile = FALSE, savescores =
-    FALSE, gendata = FALSE, control = list(adapt_delta = 0.8,      adapt_window = 2,
-    max_treedepth = 10, adapt_init_buffer = 2, stepsize = 0.001), verbose = 0)
+  coresToUse = 1
 )
 }
 \arguments{
-\item{ctmaInvariantFit}{""}
+\item{ctmaInvariantFit}{object to which a CoTiMA fit has been assigned to (i.e., what has been returned by ctmaFit). In most cases probably a model in which only (two) effects were specified with invaraintDrift.}
 
-\item{activeDirectory}{""}
+\item{activeDirectory}{defines another active directory than the one used in ctmaInvariantFit}
 
-\item{activateRPB}{""}
+\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
 
-\item{digits}{""}
+\item{digits}{Number of digits used for rounding (in outputs)}
 
-\item{equalDrift}{""}
-
-\item{coresToUse}{""}
-
-\item{CoTiMAStanctArgs}{""}
+\item{coresToUse}{If neg., the value is subtracted from available cores, else value = cores to use}
 }
 \description{
-ctmaEqual
+Test if the two or more invariant drift parameters in the CoTiMAFit object supplied are equal
+}
+\examples{
+# Fit a CoTiMA to all primary studies previously fitted one
+# by one with the fits assigned to CoTiMAInitFit_Ex1
+\dontrun{
+CoTiMAEqualFit_Ex1 <- ctmaEqual(ctmaInvariantFit=CoTiMA12Fit_Ex1)
+}
+
 }

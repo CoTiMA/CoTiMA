@@ -4,16 +4,16 @@
 \alias{ctmaCorRel}
 \title{ctmaCorRel}
 \usage{
-ctmaCorRel(empcov = NULL, alpha = NULL)
+ctmaCorRel(empcov = NULL, alphas = NULL)
 }
 \arguments{
-\item{empcov}{"Empirical correlation matrix"}
+\item{empcov}{Empirical correlation matrix}
 
-\item{alpha}{"Vector reliabilities"}
+\item{alphas}{Vector reliabilities}
 }
 \value{
 "Empirical correlation matrix corrected for unreliability"
 }
 \description{
-ctmaCorRel
+Disattenuates correlation matrix using vector of reliabilities
 }

@@ -1,6 +1,6 @@
-##### CoTiMA fitting procedure - singleStudyModelFit
-
 #' ctmaSaveFile
+#'
+#' @description Internal fcuntion to save files
 #'
 #' @param activateRPB "set to TRUE to receive push messages with CoTiMA notifications on your phone"
 #' @param activeDirectory "Directory name"
@@ -15,7 +15,6 @@
 #' @export ctmaSaveFile
 #'
 ctmaSaveFile <- function(activateRPB,
-                           #workingDirectory=Null,
                            activeDirectory=activeDirectory,
                            SaveObject,
                            FileName,
@@ -23,9 +22,7 @@ ctmaSaveFile <- function(activateRPB,
                            silentOverwrite=FALSE)
 {
   x1 <- paste0(activeDirectory, "/", Directory); x1
-  #if (!(dir.exists(Directory))) {dir.create(Directory);print("Directory added!")}
   if (!(dir.exists(x1))) {dir.create(x1);print("Directory added!")}
-  #setwd(Directory)
   wdFileList <- list.files(x1)
   if (FileName %in% wdFileList) {
     if (silentOverwrite==FALSE) {
@@ -60,5 +57,4 @@ ctmaSaveFile <- function(activateRPB,
     FileName <- paste0(x1, FileName)
     saveRDS(SaveObject, file=FileName)
     }
-  #setwd(workingDirectory)
 }

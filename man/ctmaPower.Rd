@@ -71,5 +71,5 @@ ctmaPower(
 \item{CoTiMAStanctArgs}{""}
 }
 \description{
-ctmaPower
+Fits a full invariant model to a list of primary studies and performs analyses of expected power and required sample sizes
 }
