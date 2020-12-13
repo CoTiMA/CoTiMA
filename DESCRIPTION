@@ -1,4 +1,4 @@
-Package: cotima
+Package: CoTiMA
 Type: Package
 Title: Continuous Time Meta-Analysis (CoTiMA) Performs Meta-Analyses of Correlation Matrices of Repeatedly Measured Variables
 Version: 0.3.1
