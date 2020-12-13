@@ -200,11 +200,14 @@ ctmaModFit <- function(
       tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit, moderatorValues= currentModerators)
       datawide_all <- tmp$alldata
       groups <- tmp$groups
+
       # delete cases with missing moderator values
       casesToDelete <- tmp$casesToDelete; casesToDelete
-      datawide_all <- datawide_all[-casesToDelete, ]
-      groups <- groups[-casesToDelete]
-      n.studies <- length(unique(groups))
+      if (!(is.null(casesToDelete))) {
+        datawide_all <- datawide_all[-casesToDelete, ]
+        groups <- groups[-casesToDelete]
+        n.studies <- length(unique(groups))
+      }
       #
       names(groups) <- c("Study_No_"); groups
       groupsNamed <- (paste0("Study_No_", groups)); groupsNamed

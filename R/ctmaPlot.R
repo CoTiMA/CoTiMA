@@ -143,12 +143,14 @@ ctmaPlot <- function(
         }
       }
     }
+
+    tmp <- length(mod.values); tmp
     for (i in 1:n.fitted.obj) {
-      #if (length(mod.values) == 0) mod.values <- mod.values.backup; mod.values
-      if (length(mod.values) == 0) {
-        mod.values[[i]] <- mod.values.backup; mod.values
-      } else {
+      i <- 2
+      if (tmp != 0) {
         if (length(mod.values[[i]]) <= 1) mod.values[[i]] <- mod.values.backup; mod.values
+      } else {
+        mod.values[[i]] <- mod.values.backup; mod.values
       }
     }
 
