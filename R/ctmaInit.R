@@ -5,7 +5,7 @@
 #' @param primaryStudies list of primary study information created with ctmaPrep
 #' @param activeDirectory defines another active directory than the one used in ctmaPrep
 #' @param activateRPB set to TRUE to receive push messages with CoTiMA notifications on your phone
-#' @param checkSingleStudyResults Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before the are saved.
+#' @param checkSingleStudyResults Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.
 #' @param digits Number of digits used for rounding (in outputs)
 #' @param n.latent Number of latent variables of the model (hast to be specified)!
 #' @param n.manifest Number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
@@ -15,7 +15,7 @@
 #' @param indVarying Control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
 #' @param saveRawData Save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
 #' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
-#' @param silentOverwrite Override old files without asking
+#' @param silentOverwrite Overwrite old files without asking
 #' @param saveSingleStudyModelFit save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
 #' @param loadSingleStudyModelFit load the fit of single study ctsem models
 #' @param scaleTI scale TI predictors
@@ -24,6 +24,7 @@
 #' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
+#' @param iter number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 #'
 #' @importFrom  RPushbullet pbPost
@@ -69,6 +70,7 @@ ctmaInit <- function(
   nopriors=TRUE,
   finishsamples=NULL,
   chains=NULL,
+  iter=NULL,
   verbose=NULL
 )
 
@@ -85,6 +87,8 @@ ctmaInit <- function(
     print(paste0("#################################################################################"))
     print(paste0("########################## Check Model Specification ############################"))
     print(paste0("#################################################################################"))
+
+    if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMAStanctArgs$verbose}
 
     if (is.null(primaryStudies)) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
@@ -167,6 +171,7 @@ ctmaInit <- function(
       if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
       if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
       if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
+      if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
       if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
     }
 
@@ -730,7 +735,7 @@ ctmaInit <- function(
           savescores=CoTiMAStanctArgs$savescores,
           gendata=CoTiMAStanctArgs$gendata,
           control=CoTiMAStanctArgs$control,
-          verbose=CoTiMAStanctArgs$verbose,
+          verbose=verbose,
           warmup=CoTiMAStanctArgs$warmup,
           cores=coresToUse)
 
@@ -748,7 +753,6 @@ ctmaInit <- function(
       if ( (length(saveSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% saveSingleStudyModelFit[-1]) ) {
         x1 <- paste0(saveSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
         x2 <- paste0(saveSingleStudyModelFit[1], " singleStudyFits/"); x2
-        # CORRECT FUNCTION NAME USED
         ctmaSaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
       }
 

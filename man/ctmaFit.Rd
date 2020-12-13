@@ -16,10 +16,13 @@ ctmaFit(
   indVarying = FALSE,
   coresToUse = c(1),
   scaleTI = NULL,
+  scaleMod = NULL,
+  scaleClus = NULL,
   scaleTime = NULL,
   optimize = TRUE,
   nopriors = TRUE,
   finishsamples = NULL,
+  iter = NULL,
   chains = NULL,
   verbose = NULL
 )
@@ -47,6 +50,10 @@ ctmaFit(
 
 \item{scaleTI}{scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances}
 
+\item{scaleMod}{scale moderator variables - TRUE (default) highly recommended}
+
+\item{scaleClus}{scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster}
+
 \item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
 
 \item{optimize}{if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
@@ -54,6 +61,8 @@ ctmaFit(
 \item{nopriors}{if TRUE, any priors are disabled – sometimes desirable for optimization}
 
 \item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
+
+\item{iter}{number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation}
 
 \item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
 

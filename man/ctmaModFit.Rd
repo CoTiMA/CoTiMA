@@ -23,6 +23,7 @@ ctmaModFit(
   optimize = TRUE,
   nopriors = TRUE,
   finishsamples = NULL,
+  iter = NULL,
   chains = NULL,
   verbose = NULL
 )
@@ -63,6 +64,8 @@ ctmaModFit(
 \item{nopriors}{if TRUE, any priors are disabled – sometimes desirable for optimization}
 
 \item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
+
+\item{iter}{number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation}
 
 \item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
 

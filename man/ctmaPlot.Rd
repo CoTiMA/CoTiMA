@@ -36,7 +36,7 @@ ctmaPlot(
 
 \item{timeUnit}{label for x-axis when plotting discrete time plots}
 
-\item{timeRange}{time range for x-axis}
+\item{timeRange}{vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))}
 
 \item{yLimitsForEffects}{range for y-axis}
 

@@ -13,7 +13,7 @@ ctmaEqual(
 )
 }
 \arguments{
-\item{ctmaInvariantFit}{object to which a CoTiMA fit has been assigned to (i.e., what has been returned by ctmaFit). In most cases probably a model in which only (two) effects were specified with invaraintDrift.}
+\item{ctmaInvariantFit}{object to which a CoTiMA fit has been assigned to (i.e., what has been returned by ctmaFit). In most cases probably a model in which only (two) effects were specified with invariantDrift.}
 
 \item{activeDirectory}{defines another active directory than the one used in ctmaInvariantFit}
 

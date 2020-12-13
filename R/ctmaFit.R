@@ -13,10 +13,13 @@
 #' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
 #' @param indVarying Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heteregeneity)
 #' @param scaleTI scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances
+#' @param scaleClus scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster
+#' @param scaleMod scale moderator variables - TRUE (default) highly recommended
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
+#' @param iter number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 #'
@@ -62,16 +65,21 @@ ctmaFit <- function(
   indVarying=FALSE,
   coresToUse=c(1),
   scaleTI=NULL,
+  scaleMod=NULL,
+  scaleClus=NULL,
   scaleTime=NULL,
   optimize=TRUE,
   nopriors=TRUE,
   finishsamples=NULL,
+  iter=NULL,
   chains=NULL,
   verbose=NULL
 )
 
 
 {  # begin function definition (until end of file)
+
+  if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMAStanctArgs$verbose}
 
   # check if fit object is specified
   if (is.null(ctmaInitFit)){
@@ -82,11 +90,14 @@ ctmaFit <- function(
 
   { # fitting params
     if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
+    if (!(is.null(scaleClus))) CoTiMAStanctArgs$scaleClus <- scaleClus
+    if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
     if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
     if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
     if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
     if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
     if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
+    if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
     if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
   }
 
@@ -98,6 +109,7 @@ ctmaFit <- function(
   if (!(is.null(primaryStudyList))) {
     ctmaTempFit <- ctmaInitFit
     targetStudyNumbers <- unlist(primaryStudyList$studyNumbers); targetStudyNumbers; length(targetStudyNumbers)
+    targetStudyNumbers <- targetStudyNumbers[-which(is.na(targetStudyNumbers))]; targetStudyNumbers
     for (i in (length(ctmaTempFit$studyFitList)):1) {
       if (!(ctmaTempFit$studyList[[i]]$originalStudyNo %in% targetStudyNumbers)) {
         ctmaTempFit$studyList[[i]] <- NULL
@@ -172,9 +184,17 @@ ctmaFit <- function(
     manifestNames <- ctmaInitFit$studyFitList[[1]]$ctstanmodel$manifestNames; manifestNames
     if (is.null(manifestNames)) n.manifest <- 0 else n.manifest <- length(manifestNames)
     driftNames <- ctmaInitFit$parameterNames$DRIFT; driftNames
+    if (!(is.null(drift))) driftNames <- c(t(matrix(drift, n.latent, n.latent)))
     if (is.null(invariantDrift)) invariantDrift <- driftNames
     usedTimeRange <- seq(0, 1.5*maxDelta, 1)
+  }
 
+  if (!(is.null(cluster))) {
+    if (length(cluster) != n.studies) {
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold("The vector of cluster numbers does not match the number of primary studies.\n"))
+      stop("Good luck for the next try!")
+    }
   }
 
 
@@ -216,12 +236,27 @@ ctmaFit <- function(
         tmpTI[tmp2, i] <- 1
       }
       if (CoTiMAStanctArgs$scaleClus == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)])
+      cluster.weights <- cluster.sizes <- matrix(NA, nrow=ncol(tmpTI), ncol=2)
+      for (l in 1:ncol(tmpTI)) {
+        cluster.weights[l,] <- round(as.numeric(names(table(tmpTI[ , l]))), digits)
+        cluster.sizes[l,] <- table(tmpTI[ , l])
+      }
+      rownames(cluster.weights) <- paste0(1:ncol(tmpTI), "_on__")
+      colnames(cluster.weights) <- c("non Members", "Cluster Member")
+      rownames(cluster.sizes) <- rep("N", ncol(tmpTI))
+      colnames(cluster.sizes) <- c("non Members", "Cluster Member")
+      cluster.note <- capture.output(cat("The weights should be used to multiply a cluster's TI effect and then add the product to the",
+                          "average effect shown in $estimates  .",
+                          sep="\n"))
       currentStartNumber <- n.studies; currentStartNumber
       currentEndNumber <- currentStartNumber + clusCounter -1; currentEndNumber
       colnames(tmpTI) <- paste0("TI", currentStartNumber:currentEndNumber); colnames(tmpTI)
       dataTmp <- cbind(dataTmp, tmpTI); dim(dataTmp)
     } else {
       clusCounter <- 0
+      cluster.weights <- c()
+      cluster.sizes <- c()
+      cluster.note <- c()
     }
     n.var <- max(n.manifest, n.latent); n.var
     dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.var, n.TIpred = (n.studies-1+clusCounter),
@@ -231,7 +266,6 @@ ctmaFit <- function(
     utils::head(dataTmp3)
     # eliminate rows where ALL latents are NA
     if (n.manifest > n.latent) namePart <- "y" else namePart <- "V"
-    #dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
     dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0(namePart, 1:n.var)], 1, function(x) sum(is.na(x)) != n.var ), ]
     datalong_all <- dataTmp3
   }
@@ -243,9 +277,14 @@ ctmaFit <- function(
 
   tmp1 <- ctmaInitFit$studyFitList[[1]]$ctstanmodelbase$pars
 
-  tmp2 <- tmp1$matrix=="DRIFT"; tmp2
-  DRIFT <- tmp1[tmp2,]$param; DRIFT
-  DRIFT[is.na(DRIFT)] <- "0"; DRIFT
+  if (is.null(drift)) {
+    tmp2 <- tmp1$matrix=="DRIFT"; tmp2
+    DRIFT <- tmp1[tmp2,]$param; DRIFT
+    DRIFT[is.na(DRIFT)] <- "0"; DRIFT
+  } else {
+    DRIFT <- matrix(driftNames, n.latent, n.latent, byrow = TRUE); DRIFT
+    #DRIFT <- matrix(driftNames, n.latent, n.latent); DRIFT
+  }
 
   tmp2 <- tmp1$matrix=="LAMBDA"; tmp2
   LAMBDA <- tmp1[tmp2,]$value; LAMBDA
@@ -300,10 +339,12 @@ ctmaFit <- function(
     stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTVAR',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
     if (!(is.null(cluster))) {
-      stanctModel$pars[stanctModel$pars$matrix %in% 'DIFFUSION',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- FALSE
-      stanctModel$pars[stanctModel$pars$matrix %in% 'T0VAR',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- FALSE
+      ## stanctModel$pars[stanctModel$pars$matrix %in% 'DIFFUSION',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- FALSE
+      ##stanctModel$pars[stanctModel$pars$matrix %in% 'T0VAR',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- FALSE
+      stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- TRUE
     }
   }
+  #stanctModel$pars
 
   # the target effects
   tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
@@ -342,7 +383,7 @@ ctmaFit <- function(
     fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel) #, CoTiMAStanctArgs=CoTiMAStanctArgs)
   }
 
-  invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
+invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
 
   # Extract estimates & statistics
   Tvalues <- invariantDriftStanctFit$parmatrices[,3]/invariantDriftStanctFit$parmatrices[,4]; Tvalues
@@ -361,11 +402,6 @@ ctmaFit <- function(
 
   invariantDrift_Minus2LogLikelihood  <- -2*invariantDriftStanctFit$loglik; invariantDrift_Minus2LogLikelihood
   invariantDrift_estimatedParameters  <- invariantDriftStanctFit$npars; invariantDrift_estimatedParameters
-  #n.par.first.lag <- ((2 * n.latent) * (2 * n.latent + 1)) / 2; n.par.first.lag
-  #n.par.later.lag <- ((2 * n.latent) * (2 * n.latent - 1)) / 2; n.par.later.lag
-  #n.later.lags <- allTpoints - n.latent; n.later.lags
-  #invariantDrift_df <- sum(n.later.lags * n.par.later.lag); invariantDrift_df
-  #invariantDrift_df <- invariantDrift_df + (n.studies-1) * n.latent^2; invariantDrift_df
   invariantDrift_df <- NULL
 
   model_Drift_Coef <- invariantDrift_Coeff[(grep("DRIFT ", rownames(invariantDrift_Coeff))), 3]; model_Drift_Coef
@@ -396,7 +432,7 @@ ctmaFit <- function(
 
   ### Numerically compute Optimal Time lag sensu Dormann & Griffin (2015)
   driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE); driftMatrix # byrow set because order is different compared to mx model
-  #driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=TRUE); driftMatrix # byrow set because order is different compared to mx model
+  #if (!(is.null(drift))) driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=TRUE); driftMatrix # hard shortcut
   OTL <- function(timeRange) {
     OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]}
   # loop through all cross effects
@@ -457,7 +493,7 @@ ctmaFit <- function(
                                df= invariantDrift_df,
                                opt.lag = optimalCrossLag,
                                max.effects = round(maxCrossEffect, digits),
-                               clus.effects=clusTI_Coeff))
+                               clus.effects=list(effects=clusTI_Coeff, weights=cluster.weights, sizes=cluster.sizes, note=cluster.note)))
   class(results) <- "CoTiMAFit"
 
   invisible(results)

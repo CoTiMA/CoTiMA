@@ -31,7 +31,7 @@ value indicating the mean age of participants in a primary study), 'malePercent'
 List of primary studies and parameters for the following CoTiMA (plus StudyInformation which could be saved to Excel)
 }
 \description{
-Combines information of primary studies into a list object and returns this list. This list is then used as input to fit CoTiMA models (ctmaFit, ctmaModFit), for analyses of publication bias (ctmaBias) or statistical power (ctmaPower), or for plotting the results (ctmaPlot).
+Combines information of primary studies into a list object and returns this list. This list is then used as input to fit CoTiMA models (ctmaFit, ctmaModFit).
              Primary study information is expected to be assigned to 'numbered' objects. Some of these objects are pre-defined (e.g., 'empcov', 'ageM'). Most of the pre-defined objects could be empty, or they could be dropped by entering their names in the excludedElements-object (e.g., excludedElements = c('ageM')), but dropping them is not really necessary. Additional elements could also be added, which could be useful to put together all information about primary studies at the convenience of the researcher.
 }
 \note{

@@ -2,24 +2,29 @@
 #'
 #' @description Fits a full invariant model to a list of primary studies and performs analyses of expected power and required sample sizes
 #'
-#' @param ctmaInitFit ""
-#' @param activeDirectory ""
-#' @param statisticalPower ""
-#' @param failSafeN ""
-#' @param failSafeP ""
-#' @param timeRange ""
-#' @param useMBESS ""
-#' @param coresToUse ""
-#' @param activateRPB ""
-#' @param silentOverwrite ""
-#' @param digits ""
-#' @param loadAllInvFit ""
-#' @param saveAllInvFit ""
-#' @param loadAllInvWOSingFit ""
-#' @param saveAllInvWOSingFit ""
-#' @param skipScaling ""
-#' @param useSampleFraction ""
-#' @param CoTiMAStanctArgs ""
+#' @param ctmaInitFit object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by ctmaInit)
+#' @param activeDirectory defines another active directory than the one used in ctmaInit
+#' @param statisticalPower vector of requested statistical power values
+#' @param failSafeN  sample size used to determine across which time intervals effects become non-sign
+#' @param failSafeP  p-value used to determine across which time intervals effects become non-sign.
+#' @param timeRange vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))
+#' @param useMBESS use MBESS package to calculate statistical power (slower)
+#' @param coresToUse vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))
+#' @param activateRPB set to TRUE to receive push messages with CoTiMA notifications on your phone
+#' @param silentOverwrite Overwrite old files without asking
+#' @param digits Number of digits used for rounding (in outputs)
+#' @param loadAllInvFit load the fit of fully constrained CoTiMA model
+#' @param saveAllInvFit save the fit of fully constrained CoTiMA model
+#' @param loadAllInvWOSingFit load series of fits of fully constrained CoTiMA model withoutwith one cross effect excluded, respectively
+#' @param saveAllInvWOSingFit save series of fits of fully constrained CoTiMA model withoutwith one cross effect excluded, respectively
+#' @param skipScaling Does not (re-)scale raw data (re-scaling of imported pseudo raw data achieves correlations = 1)
+#' @param useSampleFraction To speed up debugging. Provided as fraction (e.g., 1/10)
+#' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
+#' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
+#' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
+#' @param iter number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation
+#' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
+#' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
@@ -34,67 +39,45 @@
 #' @export ctmaPower
 #'
 ctmaPower <- function(
-  # Primary Study Fits
   ctmaInitFit=NULL,
-  # Directory names and file names
   activeDirectory=NULL,
   statisticalPower=c(),
-  failSafeN =NULL,                    # power calc: sample size used to determine when effects become non-sign.
-  failSafeP=NULL,                     # power calc: p-value used to determine when effects become non-sign.
-  timeRange=NULL,                     # e.g., seq(0, 120, 1)
+  failSafeN =NULL,
+  failSafeP=NULL,
+  timeRange=NULL,
   useMBESS=FALSE,
-  # Fitting Parameters
   coresToUse=1,
   digits=4,
-  # Workflow (receive messages and request inspection checks to avoid proceeding with non admissible in-between results)
   activateRPB=FALSE,
   silentOverwrite=FALSE,
-
-  #saveStatPower="CoTiMAPower_AllResults",
-  #loadStatPower=NULL,
   loadAllInvFit=c(),
   saveAllInvFit=NULL,
   loadAllInvWOSingFit=c(),
   saveAllInvWOSingFit=NULL,
-
   skipScaling=TRUE,
   useSampleFraction=NULL,
-  CoTiMAStanctArgs=list(test=TRUE, scaleTI=TRUE, scaleTime=1/1, scaleMod=TRUE, scaleLongData=FALSE,
-                        savesubjectmatrices=FALSE, verbose=1,
-                        datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
-                        iter=1000, intoverstates=TRUE,
-                        binomial=FALSE, fit=TRUE,
-                        intoverpop='auto', stationary=FALSE,
-                        plot=FALSE, derrind="all",
-                        optimize=TRUE, optimcontrol=list(is=F, stochastic=FALSE),
-                        nlcontrol=list(),
-                        nopriors=TRUE,
-                        chains=2,
-                        cores=1,
-                        inits=NULL, forcerecompile=FALSE,
-                        savescores=FALSE, gendata=FALSE,
-                        control=list(adapt_delta = .8, adapt_window=2, max_treedepth=10, adapt_init_buffer=2, stepsize = .001),
-                        verbose=0,
-                        warmup=500)
-
+  optimize=TRUE,
+  nopriors=TRUE,
+  finishsamples=NULL,
+  iter=NULL,
+  chains=NULL,
+  verbose=NULL
 )
 
 {  # begin function definition (until end of file)
 
   { ### CHECKS
-    if (is.null(activeDirectory)) {
-      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(crayon::red$bold("No working directory has been specified!", sep="\n"))
-      cat(crayon::red$bold(" ", " ", sep="\n"))
-      cat("Press 'q' to quit and change or 'c' to continue with the active directory of the ctmaInitFit file. Press ENTER afterwards ", "\n")
-      char <- readline(" ")
-      while (!(char == 'c') & !(char == 'C') & !(char == 'q') & !(char == 'Q')) {
-        cat((crayon::blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
-        char <- readline(" ")
-      }
-      if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
-      activeDirectory <- ctmaInitFit$activeDirectory
+
+    { # fitting params
+      if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
+      if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
+      if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
+      if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
+      if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
+      if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
     }
+
+    if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
 
     # check if fit object is specified
     if (is.null(ctmaInitFit)){
@@ -256,6 +239,7 @@ ctmaPower <- function(
   {
     # combine pseudo raw data for model
     tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit)
+    #var(tmp$alldata[,1:8], na.rm=TRUE)
 
     if (skipScaling == FALSE) {
       tmp1 <- grep("_T", colnames(tmp$alldata)); tmp1
@@ -273,6 +257,8 @@ ctmaPower <- function(
       datawide_all <- datawide_all[targetCases, ]
       groups <- groups[targetCases]
     }
+    #var(datawide_all[,1:8], na.rm=TRUE)
+
 
     names(groups) <- c("Study_No_"); groups
     groupsNamed <- (paste0("Study_No_", groups)); groupsNamed
@@ -289,9 +275,9 @@ ctmaPower <- function(
     }
     targetCols <- which(colnames(dataTmp) == "groups"); targetCols
     dataTmp <- dataTmp[ ,-targetCols]
-    dataTmp2 <- ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1),
-                             manifestNames=manifestNames)
-    dataTmp3 <- ctDeintervalise(dataTmp2)
+    dataTmp2 <- suppressMessages(ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1),
+                             manifestNames=manifestNames))
+    dataTmp3 <- suppressMessages(ctDeintervalise(dataTmp2))
     dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
     # eliminate rows where ALL latents are NA
     dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
@@ -312,6 +298,7 @@ ctmaPower <- function(
   print(paste0("#################################################################################"))
 
   datalong_all <- datalong_all[, -grep("TI", colnames(datalong_all))]
+
 
   # all fixed model is a model with no TI predictors (identical to ctsemModel)
   # CHD allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
@@ -366,6 +353,7 @@ ctmaPower <- function(
     x2 <- paste0(activeDirectory); x2
     ctmaSaveFile(activateRPB, "", allFixedModelFit, x1, x2, silentOverwrite=silentOverwrite)
   }
+
 
   ### Extract estimates & statistics
   {
@@ -438,7 +426,6 @@ ctmaPower <- function(
   DRIFT <- matrix(homAll_Drift_Coef, n.latent, n.latent, byrow=TRUE); DRIFT
   DIFFUSION <- OpenMx::vech2full(homAll_Diffusion_Coef); DIFFUSION
   T0VAR <- OpenMx::vech2full(homAll_T0Var_Coef); T0VAR
-
 
   print(paste0("#################################################################################"))
   print(paste0("# Use estimates from all fixed model to compute corr-matrices for all time lags #"))
@@ -525,8 +512,10 @@ ctmaPower <- function(
     tmp1 <- paste0("V", 1:n.latent); tmp1
     varNames <- paste0(rep(tmp1, 2), c(rep("T0", n.latent), rep("T1", n.latent))); varNames
     pValues <- matrix(NA, nrow=length(usedTimeRange), ncol=(1+n.latent^2-n.latent)); pValues[1,]
-    tmp1 <- diag(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); tmp1
-    tmp2 <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); tmp2
+    #tmp1 <- diag(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); tmp1
+    tmp1 <- diag(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); tmp1
+    #tmp2 <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); tmp2
+    tmp2 <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); tmp2
     #colnames(pValues) <- c("Interval", paste0("p(", tmp2[!(tmp2 %in% tmp1)], ")") ); colnames(pValues)
     colnames(pValues) <- c("Interval", paste0("(", tmp2[!(tmp2 %in% tmp1)], ")") ); colnames(pValues)
 
@@ -583,12 +572,15 @@ ctmaPower <- function(
     targetNames <- colnames(pValues)[-1]; targetNames
 
     # eliminate drift effects that were fixed to 0
-    tmp1 <- which(targetNames =="(0)"); tmp1
+    tmp1 <- which(targetNames == "(0)"); tmp1
     if (length(tmp1) != 0) targetNames <- targetNames[-tmp1]; targetNames
 
     significanceRange <- c()
     for (i in 1:(length(targetNames))) {
-      #i <- 2
+      #i <- 1
+      #pValues
+      #targetNames[i]
+      #pValues[,targetNames[i]]
       tmp1 <- suppressWarnings(usedTimeRange[min(which(pValues[,targetNames[i]] < failSafeP))]); tmp1
       tmp2 <- suppressWarnings(usedTimeRange[max(which(pValues[,targetNames[i]] < failSafeP))]); tmp2
       if (!(is.na(tmp1))) {
@@ -817,7 +809,7 @@ ctmaPower <- function(
   # shortcut: eliminate effects sizes fixed to 0
   tmp1 <- apply(effectSizes, 2, mean, na.rm=TRUE); tmp1
   tmp2 <- which(tmp1 == 0); tmp2
-  #effectSizesBackip <- effectSizes
+
   if (length(tmp2) != 0) effectSizes <- effectSizes[, -tmp2]
   if (is.null(dim(effectSizes)[1])) effectSizes <- matrix(effectSizes, ncol=1)
 
@@ -893,6 +885,7 @@ ctmaPower <- function(
   }
 
   allFixedModelFit$resultsSummary <- allFixedModelFitSummary
+  allFixedModelFit$resultsSummary
 
   results <- list(activeDirectory=activeDirectory,
                   plot.type=c("power"), model.type="stanct", #model.type="mx",

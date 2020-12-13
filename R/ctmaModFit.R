@@ -22,6 +22,7 @@
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
+#' @param iter number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 #'
@@ -63,10 +64,13 @@ ctmaModFit <- function(
   optimize=TRUE,
   nopriors=TRUE,
   finishsamples=NULL,
+  iter=NULL,
   chains=NULL,
   verbose=NULL
 )
 {  # begin function definition (until end of file)
+
+  if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMAStanctArgs$verbose}
 
   { # fitting params
     if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
@@ -76,6 +80,7 @@ ctmaModFit <- function(
     if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
     if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
     if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
+    if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
     if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
   }
 
@@ -192,13 +197,20 @@ ctmaModFit <- function(
     #######################################################################################################################
     {
       # combine pseudo raw data for model
-      tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit, moderatorValues = currentModerators)
+      tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit, moderatorValues= currentModerators)
       datawide_all <- tmp$alldata
       groups <- tmp$groups
+      # delete cases with missing moderator values
+      casesToDelete <- tmp$casesToDelete; casesToDelete
+      datawide_all <- datawide_all[-casesToDelete, ]
+      groups <- groups[-casesToDelete]
+      n.studies <- length(unique(groups))
+      #
       names(groups) <- c("Study_No_"); groups
       groupsNamed <- (paste0("Study_No_", groups)); groupsNamed
       moderatorGroups <- tmp$moderatorGroups
-      colnames(moderatorGroups) <- paste0("mod", 1:(dim(currentModerators)[2]))
+      if (!(is.matrix(moderatorGroups))) moderatorGroups <- matrix(moderatorGroups, ncol=1)
+      colnames(moderatorGroups) <- paste0("mod", 1:(dim(currentModerators)[2])); colnames(moderatorGroups)
 
       # augment pseudo raw data for stanct model
       modTIstartNum <- n.studies; modTIstartNum

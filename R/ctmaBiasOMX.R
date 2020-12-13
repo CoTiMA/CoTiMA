@@ -1,6 +1,6 @@
-#' ctmaBias
+#' ctmaBiasOMX
 #'
-#' @description Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients.
+#' @description Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients IF OLD OMX FIT FILES ARE DETECTED
 #'
 #' @param ctmaInitFit fit object created with ctmaInti containing the fitted ctsem model of each primary study
 #' @param activeDirectory the directory where to save results (if not specified, it is taken from ctmaInitFit)
@@ -10,16 +10,17 @@
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
-#' @importFrom stats var lm pnorm
+#' @importFrom stats lm pnorm
+#' @importFrom OpenMx vec2diag diag2vec
+#' @importFrom utils capture.output
 #'
-#' @export ctmaBias
+#' @return
+#'
+#' @export
 #'
 #' @examples
-#' \dontrun{
-#' ctmaBias(ctmaInitFit=studyList_Ex1)
-#' }
 #'
-ctmaBias <- function(
+ctmaBiasOMX <- function(
   ctmaInitFit=NULL,
   activeDirectory=NULL,
   PETPEESEalpha=.10,
@@ -27,31 +28,24 @@ ctmaBias <- function(
   digits=4
 )
 
-
 {  # begin function definition (until end of file)
 
-  ### check if fit object is specified
+  { ### CHECKS
+  # check if fit object is specified
   if (is.null(ctmaInitFit)){
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
     cat(crayon::red$bold("A fitted CoTiMA (\"ctmaInitFit\") object has to be supplied to analyse something. \n"))
     stop("Good luck for the next try!")
   }
 
-  if (ctmaInitFit$model.type == "mx") {
-    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Your attention is required."))}
-    cat(crayon::red$bold(" I found old OpenMx-fitted Init fits. Will try ctmaBiasOMX!", sep="\n"))
-    cat(crayon::red$bold(" ", " ", sep="\n"))
-    result <- ctmaBiasOMX(ctmaInitFit=ctmaInitFit,
-                          activeDirectory=activeDirectory,
-                          PETPEESEalpha=PETPEESEalpha,
-                          activateRPB=activateRPB,
-                          digits=digits)
-
-    class(results) <- "CoTiMAFit"
-
-    return(result)
-    #stop("Please check results carefully")
   }
+
+  base2Full <- function(baseMat=NULL) {
+    result <- OpenMx::vec2diag(exp(OpenMx::diag2vec(baseMat))) + baseMat - OpenMx::vec2diag(OpenMx::diag2vec(baseMat))
+    result <- result %*% t(result)
+    return(result) # @ instead of $ introduced
+  }
+
 
   #######################################################################################################################
   ############# Extracting Parameters from Fitted Primary Studies created with CoTiMAprep Function  #####################
@@ -59,76 +53,47 @@ ctmaBias <- function(
 
   start.time <- Sys.time(); start.time
 
-  if (ctmaInitFit$model.type != "mx") {
-
-    { # start extracting
-      n.latent <- ctmaInitFit$n.latent; n.latent
-      if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
-      n.studies <- ctmaInitFit$n.studies; n.studies
-      tmp1 <- matrix(unlist(ctmaInitFit$modelResults$DRIFT), ncol=n.latent^2, byrow=TRUE); tmp1
-      tmp2 <- matrix(unlist(ctmaInitFit$modelResults$DIFFUSION), ncol=(n.latent * (n.latent+1) / 2), byrow=TRUE); tmp2
-      tmp3 <- matrix(unlist(ctmaInitFit$modelResults$T0VAR), ncol=(n.latent * (n.latent+1) / 2), byrow=TRUE); tmp3
-      all_Coeff <- cbind(tmp1, tmp2, tmp3); all_Coeff
-      colnames(all_Coeff) <- c(names(ctmaInitFit$modelResults$DRIFT[[1]]),
-                               names(ctmaInitFit$modelResults$DIFFUSION[[1]]),
-                               names(ctmaInitFit$modelResults$T0VAR[[1]])); all_Coeff
-      all_Coeff
-
-      # compute SE
-      all_SE <- matrix(NA, ncol=dim(all_Coeff)[2], nrow=dim(all_Coeff)[1]); all_SE
-      # identify lower.tri elements
-      tmp1 <- matrix(99, ncol=n.latent, nrow=n.latent); tmp1
-      toSelect <- which(lower.tri(tmp1, diag=TRUE)); toSelect
-      for (i in 1:n.studies) {
-        ("transformedpars" %in% names(ctmaInitFit$studyFitList[[i]]$stanfit))
-        #i <- 1
-        if ("transformedpars" %in% names(ctmaInitFit$studyFitList[[i]]$stanfit)) {
-          tmp1 <- cbind(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DRIFT[, , 1],
-                        ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DRIFT[, , 2])
-          tmp1 <- tmp1[, c(1,3,2,4)]; tmp1
-          tmp2 <- cbind(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DIFFUSION[, , 1],
-                        ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DIFFUSION[, , 2])
-          tmp2 <- tmp2[, toSelect]
-          tmp3 <- cbind(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0VAR[, , 1],
-                        ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0VAR[, , 2])
-          tmp3 <- tmp3[, toSelect]
-          tmp4 <- cbind(tmp1, tmp2, tmp3); tmp4
-          tmp4 <- apply(tmp4, 2, stats::var)^.5
-          all_SE[i,] <- t(as.matrix(tmp4))
-        } else if ("ll" %in% names(ctmaInitFit$studyFitList[[i]]$stanfit)) { # if NUTS sampler was used
-          stanSummary <- summary(ctmaInitFit$studyFitList[[i]]$stanfit)
-          stanSummary <- stanSummary$summary
-          tmp <- grep("pop_DRIFT", rownames(stanSummary)); tmp
-          tmp1 <- stanSummary[tmp, 3]; tmp1
-          tmp <- grep("pop_DIFFUSIONcov", rownames(stanSummary)); tmp
-          tmp2 <- stanSummary[tmp, 3][toSelect]; tmp2
-          tmp <- grep("pop_T0VAR", rownames(stanSummary)); tmp
-          tmp3 <- stanSummary[tmp, 3][toSelect]; tmp3
-          tmp4 <- c(tmp1, tmp2, tmp3); tmp4
-          all_SE[i,] <- t(as.matrix(tmp4))
-        }
-      }
-
-      colnames(all_SE) <- c(names(ctmaInitFit$modelResults$DRIFT[[1]]),
-                            names(ctmaInitFit$modelResults$DIFFUSION[[1]]),
-                            names(ctmaInitFit$modelResults$T0VAR[[1]]))
-      allSampleSizes <- ctmaInitFit$statisticsList$allSampleSizes; allSampleSizes
-    } # end extracting
+  {
+    n.latent <- length(ctmaInitFit$modelResults$DRIFT[[1]])^.5; n.latent
+    if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
+    n.studies <- unlist(ctmaInitFit$n.studies); n.studies
+    all_Coeff <- (lapply(ctmaInitFit$studyFitList, function(extract) extract$mxobj$output$estimate)); all_Coeff
+    all_SE <- (lapply(ctmaInitFit$studyFitList, function(extract) extract$mxobj$output$standardErrors)); all_SE
+    allSampleSizes <- unlist(lapply(ctmaInitFit$studyList, function(extract) extract$sampleSize)); allSampleSizes
+    allSampleSizes <- allSampleSizes[-length(allSampleSizes)]; allSampleSizes
+  }
 
 
-    #######################################################################################################################
-    ##################################### Analyses of Publication Bias ####################################################
-    #######################################################################################################################
+  #######################################################################################################################
+  ##################################### Analyses of Publication Bias ####################################################
+  #######################################################################################################################
 
-    #{ # Start Analysis of Publication Bias
+  {
     DRIFTCoeff <- DIFFUSIONCoeff <- T0VARCoeff <- DRIFTSE <- DIFFUSIONSE <- T0VARSE <- matrix(NA, n.studies, n.latent^2)
+    for (i in 1:n.studies) {
+      #i <- 1
+      tmp1 <- all_Coeff[[i]]; tmp1
+      DRIFTCoeff[i, ] <- tmp1[grep("toV", names(tmp1))]; DRIFTCoeff
+      tmp2  <- tmp1[grep("diff", names(tmp1))]; tmp2
+      DIFFUSIONCoeff[i, ] <- base2Full(vech2full(tmp2)); DIFFUSIONCoeff
+      tmp2  <- tmp1[grep("T0var", names(tmp1))]; tmp2
+      T0VARCoeff[i, ] <- base2Full(vech2full(tmp2)); T0VARCoeff
 
-    DRIFTCoeff <- all_Coeff[, grep("toV", colnames(all_Coeff))]; DRIFTCoeff
-    DRIFTSE <- all_SE[, grep("toV", colnames(all_SE))]; DRIFTSE
-    DIFFUSIONCoeff <- all_Coeff[, grep("diff", colnames(all_Coeff))]; DIFFUSIONCoeff
-    DIFFUSIONSE <- all_SE[, grep("diff", colnames(all_SE))]; DIFFUSIONSE
-    T0VARCoeff <- all_Coeff[, grep("T0var", colnames(all_Coeff))]; T0VARCoeff
-    T0VARSE <- all_SE[, grep("T0var", colnames(all_SE))]; T0VARSE
+      tmp1 <- all_SE[[i]]; tmp1
+      DRIFTSE[i, ] <- tmp1[grep("toV", rownames(tmp1))]; DRIFTSE
+      tmp2  <- tmp1[grep("diff", rownames(tmp1))]; tmp2
+      DIFFUSIONSE[i, ] <- vech2full(tmp2); DIFFUSIONSE
+      tmp2  <- tmp1[grep("T0var", rownames(tmp1))]; tmp2
+      T0VARSE[i, ] <- vech2full(tmp2); T0VARSE
+    }
+
+    tmp1 <- names(all_Coeff[[1]][grep("toV", names(all_Coeff[[1]]))]); tmp1
+    colnames(DRIFTCoeff) <- colnames(DRIFTSE) <- tmp1; DRIFTCoeff
+    tmp2 <- c(vech2full(names(all_Coeff[[1]][grep("diff", names(all_Coeff[[1]]))]))); tmp2
+    colnames(DIFFUSIONCoeff) <- colnames(DIFFUSIONSE) <- tmp2; DIFFUSIONCoeff
+    tmp3 <- c(vech2full(names(all_Coeff[[1]][grep("T0var", names(all_Coeff[[1]]))]))); tmp3
+    colnames(T0VARCoeff) <- colnames(T0VARSE) <- tmp3; T0VARCoeff
+
 
     DRIFTCoeffSND <- DRIFTCoeff / DRIFTSE; DRIFTCoeffSND
     DRIFTPrecision <- c(rep(1, n.latent^2))/(DRIFTSE); DRIFTPrecision
@@ -141,7 +106,6 @@ ctmaBias <- function(
     eggerDrift <- list()
     for (j in 1:(n.latent^2)) {
       eggerDrift[[j]] <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
-      eggerDrift[[j]]$message <- "No sign. evidence for publication bias."
       if (summary(eggerDrift[[j]])$coefficients[1,1] > 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
         eggerDrift[[j]]$message <- message1
       }
@@ -165,13 +129,14 @@ ctmaBias <- function(
     }
 
 
+    #######################################################################################################################
     ################################### Fixed & Random Effects Analyses ###################################################
+    #######################################################################################################################
 
     # FIXED EFFECTS ANALYSIS ###############################################################################
     DriftMeans <- colMeans(DRIFTCoeff); DriftMeans
     # Sum of within weights  and weight * effect size
     T_DriftWeights <- colSums(DRIFTPrecision^2); T_DriftWeights
-    DRIFTPrecision
     T_DriftMeans <- colSums(DRIFTCoeff * DRIFTPrecision^2); T_DriftMeans
     names(T_DriftMeans) <- names(T_DriftWeights); T_DriftMeans
     # Fixed effects results
@@ -182,12 +147,11 @@ ctmaBias <- function(
     FixedEffect_DriftLowerLimit <- FixedEffect_Drift - 1.96*FixedEffect_DriftSE; FixedEffect_DriftLowerLimit
     FixedEffect_DriftZ <- FixedEffect_Drift/FixedEffect_DriftSE; FixedEffect_DriftZ
     FixedEffect_DriftProb <- round(1-stats::pnorm(abs(FixedEffect_DriftZ),
-                                                  mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log=F), digits=digits); FixedEffect_DriftProb
+                                           mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log=F), digits=digits); FixedEffect_DriftProb
     Q_Drift <- colSums(DRIFTPrecision^2 * DRIFTCoeff^2)- (colSums(DRIFTPrecision^2 * DRIFTCoeff))^2 / colSums(DRIFTPrecision^2); Q_Drift
     H2_Drift <- Q_Drift/(n.studies-1); H2_Drift
     I2_Drift <- (H2_Drift-1)/H2_Drift*100; I2_Drift
     # Tau square
-    #T2_DriftWeights <- colSums(DRIFTPrecision^2); T2_DriftWeights
     T2_DriftWeights <- colSums(DRIFTPrecision^2^2); T2_DriftWeights # Borenstein et al., 2007, p. 98
     cDrift <- T_DriftWeights-T2_DriftWeights/T_DriftWeights; cDrift
     tau2Drift <- (Q_Drift-(n.studies-1))/cDrift; tau2Drift
@@ -211,6 +175,7 @@ ctmaBias <- function(
                                      FixedEffect_DriftZ, FixedEffect_DriftProb, tau2Drift, Q_Drift, H2_Drift,
                                      H2DriftUpperLimit, H2DriftLowerLimit, I2_Drift,
                                      I2DriftUpperLimit, I2DriftLowerLimit)
+
     # RANDOM EFFECTS ANALYSIS ###############################################################################
     # Total variance weighting
     Ttot_DriftWeights <- 0
@@ -226,7 +191,7 @@ ctmaBias <- function(
     RandomEffecttot_DriftLowerLimit <- RandomEffecttot_Drift - 1.96*RandomEffecttot_DriftSE; RandomEffecttot_DriftLowerLimit
     RandomEffecttot_DriftZ <- RandomEffecttot_Drift/RandomEffecttot_DriftSE; RandomEffecttot_DriftZ
     RandomEffecttot_DriftProb <- round(1-stats::pnorm(abs(RandomEffecttot_DriftZ),
-                                                      mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log=F), digits=digits); RandomEffecttot_DriftProb
+                                               mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log=F), digits=digits); RandomEffecttot_DriftProb
     RandomEffectDriftResults <- rbind(RandomEffecttot_Drift, RandomEffecttot_DriftVariance, RandomEffecttot_DriftSE,
                                       RandomEffecttot_DriftUpperLimit, RandomEffecttot_DriftLowerLimit,
                                       RandomEffecttot_DriftZ, RandomEffecttot_DriftProb)
@@ -237,6 +202,7 @@ ctmaBias <- function(
                                       RandomEffecttot_DriftZ, RandomEffecttot_DriftProb,
                                       RandomEffecttot_DriftUpperLimitPI, RandomEffecttot_DriftLowerLimitPI)
 
+
     ### PET, PEESE & WLS approaches to correct for bias
     PETDrift_fit <- list()
     PEESEDrift_fit <- list()
@@ -246,7 +212,6 @@ ctmaBias <- function(
 
     sampleSizes <- unlist(allSampleSizes); sampleSizes
     for (ii in 1:(n.latent^2)) {
-      #ii <- 1
       driftCoeff <- DRIFTCoeff[ , ii]; driftCoeff
       driftSE <- DRIFTSE[, ii]; driftSE
 
@@ -255,6 +220,7 @@ ctmaBias <- function(
       DV <- driftCoeff; DV
       currentWeigths <- (1/(driftSE^2)); currentWeigths
       PETDrift_fit[[ii]] <- stats::lm(DV ~ IV, weights=currentWeigths); PETDrift_fit[[ii]]
+      summary(PETDrift_fit[[ii]])
 
       # Egger's Test (alternative but algebraically identical model)
       Egger2Drift_fit[[ii]] <- t(c(summary(PETDrift_fit[[ii]])$coefficients[2,1:4]))
@@ -263,8 +229,8 @@ ctmaBias <- function(
       IV <- driftSE^2; IV
       DV <- driftCoeff
       currentWeigths <- (1/(driftSE^2)); currentWeigths
-
       PEESEDrift_fit[[ii]] <- stats::lm(DV ~ IV, weights=currentWeigths); PEESEDrift_fit[[ii]]
+      summary(PEESEDrift_fit[[ii]])
 
       # PET-PEESE
       if ( (summary(PETDrift_fit[[ii]]))$coefficients[1,4] > PETPEESEalpha) {
@@ -281,65 +247,61 @@ ctmaBias <- function(
       WLSDriftSE_fit <- summary(WLSDrift_fit[[ii]])$coefficients[2]; WLSDriftSE_fit; FixedEffect_DriftSE[[ii]] # should outperform FixedEffect_DriftSE
     }
 
+
     # Combine results
-    {
-      PETDrift_fit[[1]]$coefficients
-      PETDrift_fit[[2]]$coefficients
-      PET_Drift <-unlist(lapply(PETDrift_fit, function(extract) extract$coefficients))[seq(1, 2*n.latent^2, 2)]; PET_Drift
-      PET_SE <- c()
-      for (k in 1:(n.latent^2)) PET_SE <- c(PET_SE, summary(PETDrift_fit[[k]])$coefficients[1,2])
+    PET_Drift <-unlist(lapply(PETDrift_fit, function(extract) extract$coefficients))[seq(1, 2*n.latent^2, 2)]; PET_Drift
+    PET_SE <- c()
+    for (k in 1:(n.latent^2)) PET_SE <- c(PET_SE, summary(PETDrift_fit[[k]])$coefficients[1,2])
 
-      PEESE_Drift <-unlist(lapply(PEESEDrift_fit, function(extract) extract$coefficients))[seq(1, 2*n.latent^2, 2)]; PEESE_Drift
-      PEESE_SE <- c()
-      for (k in 1:(n.latent^2)) PEESE_SE <- c(PEESE_SE, summary(PEESEDrift_fit[[k]])$coefficients[1,2])
+    PEESE_Drift <-unlist(lapply(PEESEDrift_fit, function(extract) extract$coefficients))[seq(1, 2*n.latent^2, 2)]; PEESE_Drift
+    PEESE_SE <- c()
+    for (k in 1:(n.latent^2)) PEESE_SE <- c(PEESE_SE, summary(PEESEDrift_fit[[k]])$coefficients[1,2])
 
-      PET_PEESE_Drift <-unlist(lapply(PET_PEESEDrift_fit, function(extract) extract$coefficients))[seq(1, 2*n.latent^2, 2)]; PET_PEESE_Drift
-      PET_PEESE_SE <- c()
-      for (k in 1:(n.latent^2)) PET_PEESE_SE <- c(PET_PEESE_SE, summary(PET_PEESEDrift_fit[[k]])$coefficients[1,2])
+    PET_PEESE_Drift <-unlist(lapply(PET_PEESEDrift_fit, function(extract) extract$coefficients))[seq(1, 2*n.latent^2, 2)]; PET_PEESE_Drift
+    PET_PEESE_SE <- c()
+    for (k in 1:(n.latent^2)) PET_PEESE_SE <- c(PET_PEESE_SE, summary(PET_PEESEDrift_fit[[k]])$coefficients[1,2])
 
-      WLS_Drift <- unlist(lapply(WLSDrift_fit, function(extract) extract$coefficients)); WLS_Drift
-      WLS_SE <- c()
-      for (k in 1:(n.latent^2)) WLS_SE <- c(WLS_SE, summary(WLSDrift_fit[[k]])$coefficients[1,2])
+    WLS_Drift <- unlist(lapply(WLSDrift_fit, function(extract) extract$coefficients)); WLS_Drift
+    WLS_SE <- c()
+    for (k in 1:(n.latent^2)) WLS_SE <- c(WLS_SE, summary(WLSDrift_fit[[k]])$coefficients[1,2])
 
-      Egger2Drift_results <- matrix(unlist(Egger2Drift_fit), ncol=n.latent^2, nrow=4); Egger2Drift_results
+    Egger2Drift_results <- matrix(unlist(Egger2Drift_fit), ncol=n.latent^2, nrow=4); Egger2Drift_results
 
-      PET_PEESE_DRIFTresults <- rbind(PET_Drift, PET_SE,
-                                      PEESE_Drift, PEESE_SE,
-                                      PET_PEESE_Drift, PET_PEESE_SE,
-                                      WLS_Drift, WLS_SE,
-                                      Egger2Drift_results)
-      colnames(PET_PEESE_DRIFTresults) <- colnames(DRIFTCoeff)
-      rownames(PET_PEESE_DRIFTresults) <- c(rownames(PET_PEESE_DRIFTresults)[1:8], "Egger's b0", "SE(b0)", "T", "p")
-      PET_PEESE_DRIFTresults
+    PET_PEESE_DRIFTresults <- rbind(PET_Drift, PET_SE,
+                                    PEESE_Drift, PEESE_SE,
+                                    PET_PEESE_Drift, PET_PEESE_SE,
+                                    WLS_Drift, WLS_SE,
+                                    Egger2Drift_results)
+    colnames(PET_PEESE_DRIFTresults) <- colnames(DRIFTCoeff)
+    rownames(PET_PEESE_DRIFTresults) <- c(rownames(PET_PEESE_DRIFTresults)[1:8], "Egger's b0", "SE(b0)", "T", "p")
 
-      ### some corrections for the output
-      heterogeneity <- fixedEffectDriftResults[9:16,]; heterogeneity
-      fixedEffectDriftResults <- fixedEffectDriftResults[1:8,]; fixedEffectDriftResults
-      eggerTest <- PET_PEESE_DRIFTresults[9:12,]; eggerTest
-      PET_PEESE_DRIFTresults <- PET_PEESE_DRIFTresults[1:8,]; PET_PEESE_DRIFTresults
-    }
 
-    # } # End Analysis of Publication Bias
+    ### some corrections for the output
+    heterogeneity <- fixedEffectDriftResults[9:16,]; heterogeneity
+    fixedEffectDriftResults <- fixedEffectDriftResults[1:8,]; fixedEffectDriftResults
+    eggerTest <- PET_PEESE_DRIFTresults[9:12,]; eggerTest
+    PET_PEESE_DRIFTresults <- PET_PEESE_DRIFTresults[1:8,]; PET_PEESE_DRIFTresults
 
-    results <- list(activeDirectory=activeDirectory,
-                    plot.type=c("funnel", "forest"), model.type="bias",
-                    coresToUse=NULL, n.studies=n.studies,
-                    n.latent=n.latent,
-                    studyList=ctmaInitFit$studyList, studyFitList=NULL, # , homDRIFTallFitCI),
-                    emprawList=NULL,
-                    statisticsList=ctmaInitFit$statisticsList,
-                    modelResults=list(DRIFT=DRIFTCoeff, DIFFUSION=DIFFUSIONCoeff, T0VAR=T0VARCoeff, CINT=NULL,
-                                      DRIFTSE=DRIFTSE, DIFFUSIONSE=DIFFUSIONSE, T0VARSE=T0VARSE),
-                    parameterNames=ctmaInitFit$parameterNames,
-                    summary=list(model="Analysis of Publication Bias",
-                                 estimates=list("Fixed Effects of Drift Coefficients"=round(fixedEffectDriftResults, digits),
-                                                "Heterogeneity"=round(heterogeneity, digits),
-                                                "Random Effects of Drift Coefficients"=round(RandomEffectDriftResults, digits),
-                                                "PET-PEESE corrections"=round(PET_PEESE_DRIFTresults, digits),
-                                                "Egger's tests"=round(eggerTest, digits),
-                                                "Egger's tests Alt. Version"= FREAResults)))
-    class(results) <- "CoTiMAFit"
+  } ### END Fixed & Random Effects Analyses ###
 
-    invisible(results)
-  }
+  results <- list(activeDirectory=activeDirectory, #sourceDirectory=sourceDirectory,
+                  plot.type=c("funnel", "forest"), model.type="bias",
+                  coresToUse=NULL, n.studies=n.studies,
+                  n.latent=n.latent,
+                  studyList=ctmaInitFit$studyList, studyFitList=NULL, # , homDRIFTallFitCI),
+                  emprawList=NULL,
+                  statisticsList=ctmaInitFit$statisticsList,
+                  modelResults=list(DRIFT=DRIFTCoeff, DIFFUSION=DIFFUSIONCoeff, T0VAR=T0VARCoeff, CINT=NULL,
+                                    DRIFTSE=DRIFTSE, DIFFUSIONSE=DIFFUSIONSE, T0VARSE=T0VARSE),
+                  parameterNames=ctmaInitFit$parameterNames,
+                  summary=list(model="Analysis of Publication Bias",
+                               estimates=list("Fixed Effects of Drift Coefficients"=round(fixedEffectDriftResults, digits),
+                                              "Heterogeneity"=round(heterogeneity, digits),
+                                              "Random Effects of Drift Coefficients"=round(RandomEffectDriftResults, digits),
+                                              "PET-PEESE corrections"=round(PET_PEESE_DRIFTresults, digits),
+                                              "Egger's tests"=round(eggerTest, digits))))
+  class(results) <- "CoTiMAFit"
+
+  invisible(results)
+
 } ### END function definition

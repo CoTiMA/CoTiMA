@@ -27,6 +27,7 @@ ctmaInit(
   nopriors = TRUE,
   finishsamples = NULL,
   chains = NULL,
+  iter = NULL,
   verbose = NULL
 )
 }
@@ -37,7 +38,7 @@ ctmaInit(
 
 \item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
 
-\item{checkSingleStudyResults}{Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before the are saved.}
+\item{checkSingleStudyResults}{Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.}
 
 \item{digits}{Number of digits used for rounding (in outputs)}
 
@@ -57,7 +58,7 @@ ctmaInit(
 
 \item{coresToUse}{If neg., the value is subtracted from available cores, else value = cores to use}
 
-\item{silentOverwrite}{Override old files without asking}
+\item{silentOverwrite}{Overwrite old files without asking}
 
 \item{saveSingleStudyModelFit}{save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)}
 
@@ -74,6 +75,8 @@ ctmaInit(
 \item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
 
 \item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
+
+\item{iter}{number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation}
 
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
 }
