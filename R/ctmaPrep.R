@@ -399,14 +399,13 @@ ctmaPrep <- function(selectedStudies=NULL,
       } # end if (maxLength > 0)
     }
   }
-  #summaryTable
-  #colnames(summaryTable)
+
 
   primaryStudies$summary <- as.data.frame(summaryTable)
   primaryStudies$moderatorLabels <- moderatorLabels
   primaryStudies$moderatorValues <- moderatorValues
 
-  ### prepare Excel Workbook with several sheets
+  ### prepare Excel Workbook with several sheets ################################################################
   wb <- openxlsx::createWorkbook()
   sheet1 <- openxlsx::addWorksheet(wb, sheetName="All Primary Study Information")
   sheet2 <- openxlsx::addWorksheet(wb, sheetName="Deltas")

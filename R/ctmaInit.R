@@ -32,6 +32,7 @@
 #' @importFrom  parallel detectCores
 #' @importFrom  ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit
 #' @importFrom  utils read.table write.table
+#' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
 #'
 #' @export ctmaInit
 #'
@@ -869,6 +870,8 @@ ctmaInit <- function(
 
   } ### END fit ctsem model to each primary study
 
+
+  ##############################################################################################################
   end.time <- Sys.time()
   time.taken <- end.time - start.time
 
@@ -894,6 +897,86 @@ ctmaInit <- function(
                                 #df= c(round(allStudies_df, digits))),
                                 df= NULL )))
   class(results) <- "CoTiMAFit"
+
+  ### prepare Excel Workbook with several sheets ################################################################
+  {
+  wb <- openxlsx::createWorkbook()
+  sheet1 <- openxlsx::addWorksheet(wb, sheetName="model")
+  sheet2 <- openxlsx::addWorksheet(wb, sheetName="modelResults")
+  sheet3 <- openxlsx::addWorksheet(wb, sheetName="estimates")
+  sheet4 <- openxlsx::addWorksheet(wb, sheetName="confidenceIntervals")
+  sheet5 <- openxlsx::addWorksheet(wb, sheetName="randomEffects")
+  sheet6 <- openxlsx::addWorksheet(wb, sheetName="stats")
+  openxlsx::writeData(wb, sheet1, results$summary$model)
+
+  ### modelResults
+  # DRIFT
+  startCol <- 2; startCol
+  startRow <- 1; startRow
+  openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, matrix(driftNames, nrow=1), colNames = FALSE)
+  startCol <- 2; startCol
+  startRow <- 2; startRow
+  openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                      matrix(unlist(results$modelResults$DRIFT),
+                             nrow=n.studies, ncol=n.latent^2, byrow=TRUE))
+  startCol <- 1; startCol
+  startRow <- 2; startRow
+  openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                      matrix(unlist(primaryStudies$studyNumbers), ncol=1))
+  # DIFFUSION
+  offset <-  n.studies + 1
+  startCol <- 2; startCol
+  startRow <- 2 + offset; startRow
+  openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow,
+                      matrix(names(results$modelResults$DIFFUSION[[1]]), nrow=1), colNames = FALSE)
+  startCol <- 2; startCol
+  startRow <- 2 + offset + 1# offset; startRow
+  openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                      matrix(unlist(results$modelResults$DIFFUSION),
+                             nrow=n.studies, byrow=TRUE))
+  startCol <- 1; startCol
+  startRow <- 2 + offset + 1; startRow
+  openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                      matrix(unlist(primaryStudies$studyNumbers), ncol=1))
+  # T0Var
+    offset <-  offset + n.studies + 2
+    startCol <- 2; startCol
+    startRow <- 2 + offset; startRow
+    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow,
+                        matrix(names(results$modelResults$T0VAR[[1]]), nrow=1), colNames = FALSE)
+    startCol <- 2; startCol
+    startRow <- 2 + offset + 1# offset; startRow
+    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                        matrix(unlist(results$modelResults$T0VAR),
+                               nrow=n.studies, byrow=TRUE))
+    startCol <- 1; startCol
+    startRow <- 2 + offset + 1; startRow
+    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                        matrix(unlist(primaryStudies$studyNumbers), ncol=1))
+  ### estimates
+    startCol <- 2; startCol
+    startRow <- 1; startRow
+    openxlsx::writeData(wb, sheet3, startCol=startCol, startRow = startRow,
+                        t(colnames(results$summary$estimates)), colNames = FALSE)
+    openxlsx::writeData(wb, sheet3, startCol=startCol, startRow = startRow + 1, results$summary$estimates, colNames = FALSE)
+  ### confidence Intervals
+    startCol <- 2; startCol
+    startRow <- 1; startRow
+    openxlsx::writeData(wb, sheet4, startCol=startCol, startRow = startRow,
+                        t(colnames(results$summary$confidenceIntervals)), colNames = FALSE)
+    openxlsx::writeData(wb, sheet4, startCol=startCol, startRow = startRow + 1, results$summary$confidenceIntervals, colNames = FALSE)
+  ### random Effects
+    startCol <- 2; startCol
+    startRow <- 1; startRow
+    openxlsx::writeData(wb, sheet5, startCol=startCol, startRow = startRow, results$summary$randomEffects, colNames = FALSE)
+  ### stats
+    startCol <- 2; startCol
+    startRow <- 1; startRow
+    tmp <- cbind("-2ll = ", results$summary$minus2ll, "Number of Parameters = ", results$summary$n.parameters)
+    openxlsx::writeData(wb, sheet6, startCol=startCol, startRow = startRow, t(tmp), colNames = FALSE)
+}
+
+  results$excelSheets <- wb
 
   invisible(results)
 

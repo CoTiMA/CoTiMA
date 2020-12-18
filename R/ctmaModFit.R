@@ -31,6 +31,7 @@
 #' @importFrom parallel detectCores
 #' @importFrom ctsem ctWideToLong ctDeintervalise ctModel ctStanFit
 #' @importFrom OpenMx vech2full
+#' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
 #'
 #' @export ctmaModFit
 #'
@@ -427,7 +428,6 @@ ctmaModFit <- function(
       rownames(modDrift_Coeff)[i] <- paste0(rownames(modDrift_Coeff)[i], "_V",
                                             modDrift_Coeff[i, 2], "toV", modDrift_Coeff[i, 1])
     }
-    #modDrift_Coeff
 
     ## moderator effects
     tmp1 <- tmp2 <- c()
@@ -483,14 +483,10 @@ ctmaModFit <- function(
     modDrift_Minus2LogLikelihood  <- -2*stanctModFit$loglik; modDrift_Minus2LogLikelihood
     modDrift_estimatedParameters  <- stanctModFit$npars; modDrift_estimatedParameters
     modDrift_df <- NULL
-    #modDrift_Coeff
-    #model_Drift_Coef <- modDrift_Coeff["DRIFT" %in% rownames(modDrift_Coeff)), 3]; model_Drift_Coef
     model_Drift_Coef <- modDrift_Coeff[grep("DRIFT", rownames(modDrift_Coeff)), 3]; model_Drift_Coef
     # re-sort
-    #model_Drift_Coef <- c(matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE)); model_Drift_Coef
     names(model_Drift_Coef) <- driftNames; model_Drift_Coef
 
-    #model_Diffusion_Coef <- modDrift_Coeff[(rownames(modDrift_Coeff) == "DIFFUSIONcov"), 3]; model_Diffusion_Coef
     model_Diffusion_Coef <- modDrift_Coeff[grep("DIFFUSIONcov", rownames(modDrift_Coeff)), 3]; model_Diffusion_Coef
     model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
     names(model_Diffusion_Coef) <- driftNames; model_Diffusion_Coef
@@ -541,6 +537,101 @@ ctmaModFit <- function(
                                  clus.effects=clusTI_Coeff))
 
     class(results) <- "CoTiMAFit"
+
+
+    ### prepare Excel Workbook with several sheets ################################################################
+    {
+      wb <- openxlsx::createWorkbook()
+      sheet1 <- openxlsx::addWorksheet(wb, sheetName="model")
+      sheet2 <- openxlsx::addWorksheet(wb, sheetName="modelResults")
+      sheet3 <- openxlsx::addWorksheet(wb, sheetName="estimates")
+      sheet4 <- openxlsx::addWorksheet(wb, sheetName="mod.effects")
+      sheet5 <- openxlsx::addWorksheet(wb, sheetName="randomEffects")
+      sheet6 <- openxlsx::addWorksheet(wb, sheetName="stats")
+      sheet7 <- openxlsx::addWorksheet(wb, sheetName="clus.effects")
+      openxlsx::writeData(wb, sheet1, results$summary$model)
+
+      ### modelResults
+      # DRIFT
+      startCol <- 2; startCol
+      startRow <- 1; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, matrix(driftNames, nrow=1), colNames = FALSE)
+      startCol <- 2; startCol
+      startRow <- 2; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                          matrix(unlist(results$modelResults$DRIFT),
+                                 nrow=1, ncol=n.latent^2, byrow=TRUE))
+      startCol <- 1; startCol
+      startRow <- 2; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                          matrix("Aggregated Drift Effects", ncol=1))
+      # DIFFUSION
+      offset <-  1 + 1
+      startCol <- 2; startCol
+      startRow <- 2 + offset; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow,
+                          matrix(names(results$modelResults$DIFFUSION), nrow=1), colNames = FALSE)
+      startCol <- 2; startCol
+      startRow <- 2 + offset + 1# offset; startRow
+      results$modelResults
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                          matrix(names(results$modelResults$DIFFUSION),
+                                 nrow=1, byrow=TRUE))
+      results$modelResults$DIFFUSION
+      startCol <- 1; startCol
+      startRow <- 2 + offset + 1; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                          matrix("Diffusion Population Means (not aggregated)", nrow=1, byrow=TRUE))
+      # T0Var
+      offset <-  offset + 1 + 2
+      startCol <- 2; startCol
+      startRow <- 2 + offset; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow,
+                          matrix(names(results$modelResults$T0VAR), nrow=1), colNames = FALSE)
+      startCol <- 2; startCol
+      startRow <- 2 + offset + 1# offset; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                          matrix(unlist(results$modelResults$T0VAR), nrow=1, byrow=TRUE))
+      startCol <- 1; startCol
+      startRow <- 2 + offset + 1; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                          matrix("T0VAR Population Mean (not aggregated)", nrow=1, byrow=TRUE))
+      # Mod.Effects
+      offset <-  offset + 1 + 2
+      startCol <- 1; startCol
+      startRow <- 2 + offset ; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow,
+                          results$modelResults$MOD, colNames = TRUE, rowNames = TRUE)
+      ### estimates
+      startCol <- 2; startCol
+      startRow <- 1; startRow
+      openxlsx::writeData(wb, sheet3, startCol=startCol, startRow = startRow + 1,
+                          rownames(results$summary$estimates), colNames = FALSE)
+      openxlsx::writeData(wb, sheet3, startCol=startCol+1, startRow = startRow, results$summary$estimates,
+                          colNames = TRUE)
+      ### moderator Effects
+      startCol <- 1; startCol
+      startRow <- 1; startRow
+      results$summary$mod.effects
+      openxlsx::writeData(wb, sheet4, startCol=startCol, startRow = startRow + 1,
+                          results$summary$mod.effects, colNames = TRUE, rowNames = TRUE)
+            ### random Effects
+      startCol <- 2; startCol
+      startRow <- 1; startRow
+      openxlsx::writeData(wb, sheet5, startCol=startCol, startRow = startRow, results$summary$randomEffects, colNames = FALSE)
+      ### stats
+      startCol <- 2; startCol
+      startRow <- 1; startRow
+      tmp <- cbind("-2ll = ", results$summary$minus2ll, "Number of Parameters = ", results$summary$n.parameters)
+      openxlsx::writeData(wb, sheet6, startCol=startCol, startRow = startRow, t(tmp), colNames = FALSE)
+      ### cluster Effects
+      startCol <- 1; startCol
+      startRow <- 1; startRow
+      openxlsx::writeData(wb, sheet7, startCol=startCol, startRow = startRow + 1,
+                          results$summary$clus.effects$effects, colNames = TRUE, rowNames = TRUE)
+      }
+
+    results$excelSheets <- wb
 
     invisible(results)
 
