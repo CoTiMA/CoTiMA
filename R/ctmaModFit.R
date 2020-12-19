@@ -184,11 +184,15 @@ ctmaModFit <- function(
     if (is.na((currentModerators[length(currentModerators)])[[1]][1])) currentModerators <- currentModerators[-dim(currentModerators)[1],]; currentModerators
     if (is.null(dim(currentModerators)[1])) currentModerators <- matrix(currentModerators, ncol=1)
 
+    if (any(is.na(currentModerators)) == TRUE) {
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold("At least one of the primary studies does not have a valid value for the requested moderator.  \n"))
+      stop("Good luck for the next try!")
+    }
     if (var(currentModerators) == 0) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat(crayon::red$bold("Moderator is constant across cases.", sep="\n"))
       stop("Good luck for the next try!")
-
     }
 
     }

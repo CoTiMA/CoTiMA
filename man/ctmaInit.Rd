@@ -68,9 +68,9 @@ ctmaInit(
 
 \item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
 
-\item{optimize}{if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
+\item{optimize}{if set to FALSE, Stan's Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
 
-\item{nopriors}{if TRUE, any priors are disabled – sometimes desirable for optimization}
+\item{nopriors}{if TRUE, any priors are disabled - sometimes desirable for optimization}
 
 \item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
 
@@ -78,7 +78,7 @@ ctmaInit(
 
 \item{iter}{number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation}
 
-\item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
+\item{verbose}{integer from 0 to 2. Higher values print more information during model fit - for debugging}
 }
 \description{
 Fits a ctsem model to a list of primary studies prepared by ctmaPrep.

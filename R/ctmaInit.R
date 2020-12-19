@@ -20,12 +20,12 @@
 #' @param loadSingleStudyModelFit load the fit of single study ctsem models
 #' @param scaleTI scale TI predictors
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
-#' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
-#' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
+#' @param optimize if set to FALSE, Stan's Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
+#' @param nopriors if TRUE, any priors are disabled - sometimes desirable for optimization
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param iter number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation
-#' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
+#' @param verbose integer from 0 to 2. Higher values print more information during model fit - for debugging
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  crayon red blue
@@ -199,12 +199,12 @@ ctmaInit <- function(
     # Option 1: Applies for older versions of ctmaPrep
     tmp <- length(unlist(primaryStudies$studyNumbers)); tmp
     if  ( is.na(primaryStudies$deltas[tmp]) &
-         is.na(primaryStudies$sampleSizes[tmp]) &
-         is.na(primaryStudies$deltas[tmp]) &
-         is.null(dim(primaryStudies$pairwiseNs[tmp])) &
-         is.null(dim(primaryStudies$emcovs[tmp])) &
-         all(is.na(unlist(primaryStudies$moderators[tmp]))) &
-         is.null(primaryStudies$rawData$fileName[tmp]) ) {
+          is.na(primaryStudies$sampleSizes[tmp]) &
+          is.na(primaryStudies$deltas[tmp]) &
+          is.null(dim(primaryStudies$pairwiseNs[tmp])) &
+          is.null(dim(primaryStudies$emcovs[tmp])) &
+          all(is.na(unlist(primaryStudies$moderators[tmp]))) &
+          is.null(primaryStudies$rawData$fileName[tmp]) ) {
       n.studies <- tmp-1
       primaryStudies$studyNumbers[[tmp]] <- NULL
     } else {
@@ -212,7 +212,7 @@ ctmaInit <- function(
     }
     # Option 2: versions of ctmaPrep after 14. August 2020
     if (!(is.null(primaryStudies$n.studies))) n.studies <- primaryStudies$n.studies; n.studies
-    primaryStudies
+
     # delete empty list entries
     tmp1 <- which(names(primaryStudies) == "n.studies"); tmp1
     for (i in 1:(tmp1-1)) primaryStudies[[i]][[n.studies+1]] <- NULL
@@ -249,7 +249,6 @@ ctmaInit <- function(
       manifestNames <- paste0("V", 1:n.latent); manifestNames
       latentNames <- paste0("V", 1:n.latent); latentNames
     }
-    #manifestNames; latentNames
 
     for (i in 1:n.studies) {
       if (!(i %in% loadRawDataStudyNumbers)) {
@@ -272,9 +271,8 @@ ctmaInit <- function(
             }
           }
         }
-        #currentVarnames
 
-        # CORRECT FUNCTION NAME USED
+        # Create Pseudo Raw Data
         tmp <- suppressWarnings(ctmaPRaw(empCovMat=currentEmpcov, empN=currentSampleSize, empNMat=currentPairwiseN))
 
         empraw[[i]] <- tmp$data
@@ -477,11 +475,11 @@ ctmaInit <- function(
 
     # allow user-specified drift matrix
     driftNames <- c()
-      for (i in 1:(n.latent)) {
-        for (j in 1:(n.latent)) {
-          driftNames <- c(driftNames, paste0("V",i,"toV", j))
-        }
+    for (i in 1:(n.latent)) {
+      for (j in 1:(n.latent)) {
+        driftNames <- c(driftNames, paste0("V",i,"toV", j))
       }
+    }
     # backup full names for labelling output later
     fullDriftNames <- driftNames
     if (!(is.null(drift))) {
@@ -496,7 +494,7 @@ ctmaInit <- function(
         stop("Good luck for the next try!")
 
       } else {
-      driftNames <- t(drift)
+        driftNames <- t(drift)
       }
       driftNames
     }
@@ -743,10 +741,11 @@ ctmaInit <- function(
         studyFit[[i]] <- results
         studyFit[[i]]$resultsSummary <- summary(studyFit[[i]])
 
-        n.par.first.lag <- ((2 * n.latent) * (2 * n.latent + 1)) / 2; n.par.first.lag
-        n.par.later.lag <- ((2 * n.latent) * (2 * n.latent - 1)) / 2; n.par.later.lag
-        n.later.lags <- currentTpoints - 2; n.later.lags
-        df <- n.par.first.lag + sum(n.later.lags * n.par.later.lag) - studyFit[[i]]$resultsSummary$npars; df
+        #n.par.first.lag <- ((2 * n.latent) * (2 * n.latent + 1)) / 2; n.par.first.lag
+        #n.par.later.lag <- ((2 * n.latent) * (2 * n.latent - 1)) / 2; n.par.later.lag
+        #n.later.lags <- currentTpoints - 2; n.later.lags
+        #df <- n.par.first.lag + sum(n.later.lags * n.par.later.lag) - studyFit[[i]]$resultsSummary$npars; df
+        df <- "deprecated"
         studyFit[[i]]$resultsSummary$'df (CoTiMA)' <- df
       } # END if (!(studyList[[i]]$originalStudyNo %in% ...
 
@@ -762,49 +761,105 @@ ctmaInit <- function(
       studyFit_Minus2LogLikelihood[[i]] <- -2 * resultsSummary$loglik
       studyFit_estimatedParameters[[i]] <- resultsSummary$npars
 
+      # Subsequent if ... else ... became necessary with ctsem 3.4.1 where the namens of the rows (rownames) were moved into a column named "matrix"
       tmp <- grep("toV", rownames(resultsSummary$popmeans)); tmp
-      model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=FALSE)); model_Drift_Coef[[i]]
+      if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"]) == 0)) {
+        model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=FALSE)); model_Drift_Coef[[i]]
+      } else { # new version of ctsem
+        model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "Mean"], n.latent, byrow=FALSE)); model_Drift_Coef[[i]]
+      }
       names(model_Drift_Coef[[i]]) <- c(fullDriftNames); model_Drift_Coef[[i]]
 
-      model_Drift_SE[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Sd"], n.latent, byrow=FALSE)); model_Drift_SE[[i]]
+      if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Sd"]) == 0)) {
+        model_Drift_SE[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Sd"], n.latent, byrow=FALSE)); model_Drift_SE[[i]]
+      } else { # new version of ctsem
+        model_Drift_SE[[i]] <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "sd"], n.latent, byrow=FALSE)); model_Drift_SE[[i]]
+      }
       names(model_Drift_SE[[i]]) <- c(fullDriftNames); model_Drift_SE[[i]]
 
-      tmp1 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "2.5%"], n.latent, byrow=FALSE)); tmp1
-      tmp2 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "97.5%"], n.latent, byrow=FALSE)); tmp2
+      if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "2.5%"]) == 0 )) {
+        tmp1 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "2.5%"], n.latent, byrow=FALSE)); tmp1
+        tmp2 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "97.5%"], n.latent, byrow=FALSE)); tmp2
+      } else {
+        tmp1 <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "2.5%"], n.latent, byrow=FALSE)); tmp1
+        tmp2 <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "97.5%"], n.latent, byrow=FALSE)); tmp2
+      }
       model_Drift_CI[[i]] <- c(rbind(tmp1, tmp2)); model_Drift_CI[[i]]
       tmp3 <- c(rbind(paste0(fullDriftNames, "LL"),
                       paste0(fullDriftNames, "UL"))); tmp3
       names(model_Drift_CI[[i]]) <- tmp3; model_Drift_CI[[i]]
 
       tmp <- grep("diff", rownames(resultsSummary$popmeans)); tmp
-      model_Diffusion_Coef[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Mean"]); model_Diffusion_Coef[[i]]
-      names(model_Diffusion_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_Diffusion_Coef[[i]]
+      if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Mean"]) == 0)) {
+        model_Diffusion_Coef[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Mean"])
+        names(model_Diffusion_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]
+      } else {
+        model_Diffusion_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "Mean"])
+        names(model_Diffusion_Coef[[i]]) <- c(vech2full(rownames(resultsSummary$popmeans)[tmp]))
+      }
+      #model_Diffusion_Coef[[i]]
 
-      model_Diffusion_SE[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Sd"]); model_Diffusion_SE[[i]]
-      names(model_Diffusion_SE[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_Diffusion_SE[[i]]
+      if (!(is.null(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Sd"]))) {
+        model_Diffusion_SE[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Sd"]) #; model_Diffusion_SE[[i]]
+        names(model_Diffusion_SE[[i]]) <- rownames(resultsSummary$popmeans)[tmp]
+      } else {
+        model_Diffusion_SE[[i]] <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "sd"] #; model_Diffusion_SE[[i]]
+        names(model_Diffusion_SE[[i]]) <- c(vech2full(rownames(resultsSummary$popmeans)[tmp]))
+      }
+      #model_Diffusion_SE[[i]]
 
-      tmp1 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "2.5%"]; tmp1
-      tmp2 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "97.5%"]; tmp2
-      model_Diffusion_CI[[i]] <- c(rbind(tmp1, tmp2)); model_Diffusion_CI[[i]]
-
-      tmp3 <- c(rbind(paste0(rownames(resultsSummary$popmeans)[tmp], "LL"),
-                      paste0(rownames(resultsSummary$popmeans)[tmp], "UL"))); tmp3
-      names(model_Diffusion_CI[[i]]) <- tmp3; model_Diffusion_CI[[i]]
+      if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "2.5%"])) == 0) {
+        tmp1 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "2.5%"]; tmp1
+        tmp2 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "97.5%"]; tmp2
+        model_Diffusion_CI[[i]] <- c(rbind(tmp1, tmp2)); model_Diffusion_CI[[i]]
+        tmp3 <- c(rbind(paste0(rownames(resultsSummary$popmeans)[tmp], "LL"),
+                        paste0(rownames(resultsSummary$popmeans)[tmp], "UL"))); tmp3
+        names(model_Diffusion_CI[[i]]) <- tmp3; model_Diffusion_CI[[i]]
+      } else {
+        tmp1 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "2.5%"]; tmp1
+        tmp2 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "97.5%"]; tmp2
+        model_Diffusion_CI[[i]] <- c(rbind(tmp1, tmp2)); model_Diffusion_CI[[i]]
+        tmp3 <- c(rbind(paste0(vech2full(rownames(resultsSummary$popmeans)[tmp]), "LL"),
+                        paste0(vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
+        names(model_Diffusion_CI[[i]]) <- tmp3; model_Diffusion_CI[[i]]
+      }
+      # model_Diffusion_CI[[i]])
 
       tmp <- grep("0var", rownames(resultsSummary$popmeans)); tmp
-      model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"]); model_T0var_Coef[[i]]
-      names(model_T0var_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_T0var_Coef[[i]]
+      if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"])) == 0 ) {
+        model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"])
+        names(model_T0var_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_T0var_Coef[[i]]
+      }  else {
+        model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "Mean"])
+        names(model_T0var_Coef[[i]]) <- c(vech2full(rownames(resultsSummary$popmeans)[tmp]))
+      }
+      #model_T0var_Coef[[i]]
 
-      model_T0var_SE[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Sd"]); model_T0var_SE[[i]]
-      names(model_T0var_SE[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_T0var_SE[[i]]
+      if (!(is.null(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Sd"]))) {
+        model_T0var_SE[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Sd"]); model_T0var_SE[[i]]
+        names(model_T0var_SE[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_T0var_SE[[i]]
+      } else {
+        model_T0var_SE[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "sd"])
+        names(model_T0var_SE[[i]]) <- c(vech2full(rownames(resultsSummary$popmeans)[tmp]))
+      }
+      #model_T0var_SE[[i]]
 
-      tmp1 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "2.5%"]; tmp1
-      tmp2 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "97.5%"]; tmp2
-      model_T0var_CI[[i]] <- c(rbind(tmp1, tmp2)); model_T0var_CI[[i]]
-
-      tmp3 <- c(rbind(paste0(rownames(resultsSummary$popmeans)[tmp], "LL"),
-                      paste0(rownames(resultsSummary$popmeans)[tmp], "UL"))); tmp3
-      names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
+      if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "2.5%"]) == 0)) {
+        tmp1 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "2.5%"]; tmp1
+        tmp2 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "97.5%"]; tmp2
+        model_T0var_CI[[i]] <- c(rbind(tmp1, tmp2)); model_T0var_CI[[i]]
+        tmp3 <- c(rbind(paste0(rownames(resultsSummary$popmeans)[tmp], "LL"),
+                        paste0(rownames(resultsSummary$popmeans)[tmp], "UL"))); tmp3
+        names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
+      } else {
+        tmp1 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "2.5%"]; tmp1
+        tmp2 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "97.5%"]; tmp2
+        model_T0var_CI[[i]] <- c(rbind(tmp1, tmp2)); model_T0var_CI[[i]]
+        tmp3 <- c(rbind(paste0(vech2full(rownames(resultsSummary$popmeans)[tmp]), "LL"),
+                        paste0(vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
+        names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
+      }
+      #model_T0var_CI[[i]]
 
       if (indVarying == TRUE) model_popsd[[i]] <- resultsSummary$popsd
 
@@ -813,16 +868,13 @@ ctmaInit <- function(
     # Combine summary information and fit statistics
     allStudies_Minus2LogLikelihood <- sum(unlist(studyFit_Minus2LogLikelihood)); allStudies_Minus2LogLikelihood
     allStudies_estimatedParameters <- sum(unlist(studyFit_estimatedParameters)); allStudies_estimatedParameters
-    allStudies_df <- sum(unlist(lapply(studyFit, function(extract) extract$resultsSummary$`df (CoTiMA)`)))
-    allStudies_df <- NULL
+    allStudies_df <- "deprecated"
     allStudiesDRIFT_effects <- matrix(t(cbind(unlist(model_Drift_Coef), unlist(model_Drift_SE)) ), n.studies, 2*n.latent^2, byrow=T)
-    #tmp1 <- names(model_Drift_Coef[[1]]); tmp1
     tmp1 <- fullDriftNames
     tmp2 <- rep("SE", length(tmp1)); tmp2
     colnames(allStudiesDRIFT_effects) <- c(rbind(tmp1, tmp2))
 
     source <- lapply(primaryStudies$source, function(extract) paste(extract, collapse=", ")); source
-    #source <- source[-length(source)]
     for (l in 1:length(source)) if ( source[[l]] == "NA") source[[l]] <- "Reference not provided"
     allStudiesDRIFT_effects_ext <- cbind(unlist(source), allStudiesDRIFT_effects)
     tmp <- allStudiesDRIFT_effects_ext
@@ -900,45 +952,45 @@ ctmaInit <- function(
 
   ### prepare Excel Workbook with several sheets ################################################################
   {
-  wb <- openxlsx::createWorkbook()
-  sheet1 <- openxlsx::addWorksheet(wb, sheetName="model")
-  sheet2 <- openxlsx::addWorksheet(wb, sheetName="modelResults")
-  sheet3 <- openxlsx::addWorksheet(wb, sheetName="estimates")
-  sheet4 <- openxlsx::addWorksheet(wb, sheetName="confidenceIntervals")
-  sheet5 <- openxlsx::addWorksheet(wb, sheetName="randomEffects")
-  sheet6 <- openxlsx::addWorksheet(wb, sheetName="stats")
-  openxlsx::writeData(wb, sheet1, results$summary$model)
+    wb <- openxlsx::createWorkbook()
+    sheet1 <- openxlsx::addWorksheet(wb, sheetName="model")
+    sheet2 <- openxlsx::addWorksheet(wb, sheetName="modelResults")
+    sheet3 <- openxlsx::addWorksheet(wb, sheetName="estimates")
+    sheet4 <- openxlsx::addWorksheet(wb, sheetName="confidenceIntervals")
+    sheet5 <- openxlsx::addWorksheet(wb, sheetName="randomEffects")
+    sheet6 <- openxlsx::addWorksheet(wb, sheetName="stats")
+    openxlsx::writeData(wb, sheet1, results$summary$model)
 
-  ### modelResults
-  # DRIFT
-  startCol <- 2; startCol
-  startRow <- 1; startRow
-  openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, matrix(driftNames, nrow=1), colNames = FALSE)
-  startCol <- 2; startCol
-  startRow <- 2; startRow
-  openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
-                      matrix(unlist(results$modelResults$DRIFT),
-                             nrow=n.studies, ncol=n.latent^2, byrow=TRUE))
-  startCol <- 1; startCol
-  startRow <- 2; startRow
-  openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
-                      matrix(unlist(primaryStudies$studyNumbers), ncol=1))
-  # DIFFUSION
-  offset <-  n.studies + 1
-  startCol <- 2; startCol
-  startRow <- 2 + offset; startRow
-  openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow,
-                      matrix(names(results$modelResults$DIFFUSION[[1]]), nrow=1), colNames = FALSE)
-  startCol <- 2; startCol
-  startRow <- 2 + offset + 1# offset; startRow
-  openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
-                      matrix(unlist(results$modelResults$DIFFUSION),
-                             nrow=n.studies, byrow=TRUE))
-  startCol <- 1; startCol
-  startRow <- 2 + offset + 1; startRow
-  openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
-                      matrix(unlist(primaryStudies$studyNumbers), ncol=1))
-  # T0Var
+    ### modelResults
+    # DRIFT
+    startCol <- 2; startCol
+    startRow <- 1; startRow
+    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, matrix(driftNames, nrow=1), colNames = FALSE)
+    startCol <- 2; startCol
+    startRow <- 2; startRow
+    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                        matrix(unlist(results$modelResults$DRIFT),
+                               nrow=n.studies, ncol=n.latent^2, byrow=TRUE))
+    startCol <- 1; startCol
+    startRow <- 2; startRow
+    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                        matrix(unlist(primaryStudies$studyNumbers), ncol=1))
+    # DIFFUSION
+    offset <-  n.studies + 1
+    startCol <- 2; startCol
+    startRow <- 2 + offset; startRow
+    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow,
+                        matrix(names(results$modelResults$DIFFUSION[[1]]), nrow=1), colNames = FALSE)
+    startCol <- 2; startCol
+    startRow <- 2 + offset + 1# offset; startRow
+    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                        matrix(unlist(results$modelResults$DIFFUSION),
+                               nrow=n.studies, byrow=TRUE))
+    startCol <- 1; startCol
+    startRow <- 2 + offset + 1; startRow
+    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                        matrix(unlist(primaryStudies$studyNumbers), ncol=1))
+    # T0Var
     offset <-  offset + n.studies + 2
     startCol <- 2; startCol
     startRow <- 2 + offset; startRow
@@ -953,28 +1005,28 @@ ctmaInit <- function(
     startRow <- 2 + offset + 1; startRow
     openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
                         matrix(unlist(primaryStudies$studyNumbers), ncol=1))
-  ### estimates
+    ### estimates
     startCol <- 2; startCol
     startRow <- 1; startRow
     openxlsx::writeData(wb, sheet3, startCol=startCol, startRow = startRow,
                         t(colnames(results$summary$estimates)), colNames = FALSE)
     openxlsx::writeData(wb, sheet3, startCol=startCol, startRow = startRow + 1, results$summary$estimates, colNames = FALSE)
-  ### confidence Intervals
+    ### confidence Intervals
     startCol <- 2; startCol
     startRow <- 1; startRow
     openxlsx::writeData(wb, sheet4, startCol=startCol, startRow = startRow,
                         t(colnames(results$summary$confidenceIntervals)), colNames = FALSE)
     openxlsx::writeData(wb, sheet4, startCol=startCol, startRow = startRow + 1, results$summary$confidenceIntervals, colNames = FALSE)
-  ### random Effects
+    ### random Effects
     startCol <- 2; startCol
     startRow <- 1; startRow
     openxlsx::writeData(wb, sheet5, startCol=startCol, startRow = startRow, results$summary$randomEffects, colNames = FALSE)
-  ### stats
+    ### stats
     startCol <- 2; startCol
     startRow <- 1; startRow
     tmp <- cbind("-2ll = ", results$summary$minus2ll, "Number of Parameters = ", results$summary$n.parameters)
     openxlsx::writeData(wb, sheet6, startCol=startCol, startRow = startRow, t(tmp), colNames = FALSE)
-}
+  }
 
   results$excelSheets <- wb
 
