@@ -1,4 +1,4 @@
-#' ctmaBias
+#' ctmaBiG
 #'
 #' @description Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients.
 #'
@@ -12,14 +12,14 @@
 #' @importFrom crayon red
 #' @importFrom stats var lm pnorm
 #'
-#' @export ctmaBias
+#' @export ctmaBiG
 #'
 #' @examples
 #' \dontrun{
-#' ctmaBias(ctmaInitFit=studyList_Ex1)
+#' ctmaBiG(ctmaInitFit=studyList_Ex1)
 #' }
 #'
-ctmaBias <- function(
+ctmaBiG <- function(
   ctmaInitFit=NULL,
   activeDirectory=NULL,
   PETPEESEalpha=.10,
@@ -39,9 +39,9 @@ ctmaBias <- function(
 
   if (ctmaInitFit$model.type == "mx") {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Your attention is required."))}
-    cat(crayon::red$bold(" I found old OpenMx-fitted Init fits. Will try ctmaBiasOMX!", sep="\n"))
+    cat(crayon::red$bold(" I found old OpenMx-fitted Init fits. Will try ctmaBiGOMX!", sep="\n"))
     cat(crayon::red$bold(" ", " ", sep="\n"))
-    result <- ctmaBiasOMX(ctmaInitFit=ctmaInitFit,
+    result <- ctmaBiGOMX(ctmaInitFit=ctmaInitFit,
                           activeDirectory=activeDirectory,
                           PETPEESEalpha=PETPEESEalpha,
                           activateRPB=activateRPB,
@@ -322,7 +322,7 @@ ctmaBias <- function(
     # } # End Analysis of Publication Bias
 
     results <- list(activeDirectory=activeDirectory,
-                    plot.type=c("funnel", "forest"), model.type="bias",
+                    plot.type=c("funnel", "forest"), model.type="BiG",
                     coresToUse=NULL, n.studies=n.studies,
                     n.latent=n.latent,
                     studyList=ctmaInitFit$studyList, studyFitList=NULL, # , homDRIFTallFitCI),
@@ -331,7 +331,7 @@ ctmaBias <- function(
                     modelResults=list(DRIFT=DRIFTCoeff, DIFFUSION=DIFFUSIONCoeff, T0VAR=T0VARCoeff, CINT=NULL,
                                       DRIFTSE=DRIFTSE, DIFFUSIONSE=DIFFUSIONSE, T0VARSE=T0VARSE),
                     parameterNames=ctmaInitFit$parameterNames,
-                    summary=list(model="Analysis of Publication Bias",
+                    summary=list(model="Analysis of Publication Bias & Generalizability",
                                  estimates=list("Fixed Effects of Drift Coefficients"=round(fixedEffectDriftResults, digits),
                                                 "Heterogeneity"=round(heterogeneity, digits),
                                                 "Random Effects of Drift Coefficients"=round(RandomEffectDriftResults, digits),

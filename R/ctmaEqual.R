@@ -210,8 +210,7 @@ ctmaEqual <- function(
                                model=newDriftLabel,
                                estimates=round(equalDrift_Coeff, digits), #[]
                                minus2ll= round(equalDrift_Minus2LogLikelihood, digits),
-                               n.parameters = round(equalDrift_estimatedParameters, digits),
-                               df= NULL))
+                               n.parameters = round(equalDrift_estimatedParameters, digits)))
   class(results) <- "CoTiMAFit"
 
   # model comparison

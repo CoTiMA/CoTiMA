@@ -4,6 +4,7 @@
 CoTiMAStanctArgs<-list(test=TRUE,
                        scaleTI=FALSE, scaleMod=TRUE, scaleClus=TRUE,
                        scaleTD=FALSE, scaleLongData=FALSE, scaleTime=1/1,
+                       scaleTimeAuto=NULL,
                        savesubjectmatrices=FALSE, verbose=1,
                        datalong=NA, ctstanmodel=NA, stanmodeltext = NA,
                        iter=1000, intoverstates=TRUE,

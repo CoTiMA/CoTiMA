@@ -246,8 +246,9 @@ ctmaFit <- function(
       colnames(cluster.weights) <- c("non Members", "Cluster Member")
       rownames(cluster.sizes) <- rep("N", ncol(tmpTI))
       colnames(cluster.sizes) <- c("non Members", "Cluster Member")
-      cluster.note <- capture.output(cat("The weights should be used to multiply a cluster's TI effect and then add the product to the",
-                                         "average effect shown in $estimates  .",
+      cluster.note <- capture.output(cat("The weights represent standardized cluster dummies. They are used to multiply a cluster's TI effect ",
+                                         "and this product is then added to the average effect shown in $estimates, which overall yields",
+                                         "the effects within a cluster as shown in $cluster.specific.effect.",
                                          sep="\n"))
       currentStartNumber <- n.studies; currentStartNumber
       currentEndNumber <- currentStartNumber + clusCounter -1; currentEndNumber
@@ -350,7 +351,6 @@ ctmaFit <- function(
   # the target effects
   tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
   tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDrift); tmp2
-  #stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
   stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
 
   fitStanctModel <- ctsem::ctStanFit(
@@ -387,36 +387,60 @@ ctmaFit <- function(
   invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
 
   # Extract estimates & statistics
-  Tvalues <- invariantDriftStanctFit$parmatrices[,3]/invariantDriftStanctFit$parmatrices[,4]; Tvalues
-  invariantDrift_Coeff <- round(cbind(invariantDriftStanctFit$parmatrices, Tvalues), digits); invariantDrift_Coeff
+  # account for changes in ctsem 3.4.1
+  if ("matrix" %in% colnames(invariantDriftStanctFit$parmatrices)) ctsem341 <- TRUE else ctsem341 <- FALSE
+  tmpMean <- grep("ean", colnames(invariantDriftStanctFit$parmatrices)); tmpMean
+  tmpSd <- tmpMean+1; tmpSd
+  Tvalues <- invariantDriftStanctFit$parmatrices[,tmpMean]/invariantDriftStanctFit$parmatrices[,tmpSd]; Tvalues
+  invariantDrift_Coeff <- cbind(invariantDriftStanctFit$parmatrices, Tvalues); invariantDrift_Coeff
+  invariantDrift_Coeff[, tmpMean:(dim(invariantDrift_Coeff)[2])] <- round(invariantDrift_Coeff[, tmpMean:(dim(invariantDrift_Coeff)[2])], digits); invariantDrift_Coeff
   # re-label
-  tmp1 <- which(rownames(invariantDrift_Coeff) == "DRIFT"); tmp1
-  #driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); driftNamesTmp
-  driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); driftNamesTmp
-  #rownames(invariantDrift_Coeff)[tmp1] <- driftNames; invariantDrift_Coeff
+  if (ctsem341) {
+    tmp1 <- which(invariantDrift_Coeff[, "matrix"] == "DRIFT")
+    driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); driftNamesTmp
+    rownames(invariantDrift_Coeff) <- paste0(invariantDrift_Coeff[, c("matrix")], "_",
+                                             invariantDrift_Coeff[, c("row")], "_",
+                                             invariantDrift_Coeff[, c("col")])
+  } else {
+    tmp1 <- which(rownames(invariantDrift_Coeff) == "DRIFT")
+    driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); driftNamesTmp
+  }
   rownames(invariantDrift_Coeff)[tmp1] <- driftNamesTmp; invariantDrift_Coeff
   tmp2 <- which(rownames(invariantDrift_Coeff) %in% invariantDrift); tmp2
   tmp3 <- paste0("DRIFT ", rownames(invariantDrift_Coeff)[tmp2] , " (invariant)"); tmp3
   rownames(invariantDrift_Coeff)[tmp2] <- tmp3; invariantDrift_Coeff
   tmp4 <- tmp1[which(!(tmp1 %in% tmp2))]; tmp4 # change to "DRIFT " for later extraction
-  rownames(invariantDrift_Coeff)[tmp4] <- paste0("DRIFT ", driftNames[which(!(tmp1 %in% tmp2))]); invariantDrift_Coeff
+  #rownames(invariantDrift_Coeff)[tmp4] <- paste0("DRIFT ", driftNames[which(!(tmp1 %in% tmp2))]); invariantDrift_Coeff
+  rownames(invariantDrift_Coeff)[tmp4] <- paste0("DRIFT ", driftNamesTmp[which(!(tmp1 %in% tmp2))]); invariantDrift_Coeff
 
   invariantDrift_Minus2LogLikelihood  <- -2*invariantDriftStanctFit$loglik; invariantDrift_Minus2LogLikelihood
   invariantDrift_estimatedParameters  <- invariantDriftStanctFit$npars; invariantDrift_estimatedParameters
-  invariantDrift_df <- NULL
+  invariantDrift_df <- "deprecated"
 
-  model_Drift_Coef <- invariantDrift_Coeff[(grep("DRIFT ", rownames(invariantDrift_Coeff))), 3]; model_Drift_Coef
+  model_Drift_Coef <- invariantDrift_Coeff[(grep("DRIFT ", rownames(invariantDrift_Coeff))), tmpMean]; model_Drift_Coef
+  names(model_Drift_Coef) <- driftNamesTmp
 
-  model_Diffusion_Coef <- invariantDrift_Coeff[(rownames(invariantDrift_Coeff) == "DIFFUSIONcov"), 3]; model_Diffusion_Coef
-  model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
+  model_Diffusion_Coef <- invariantDrift_Coeff[(rownames(invariantDrift_Coeff) == "DIFFUSIONcov"), tmpMean]; model_Diffusion_Coef
+  if (length(model_Diffusion_Coef) < 1) {
+    model_Diffusion_Coef <- invariantDrift_Coeff[invariantDrift_Coeff[, "matrix"] == "DIFFUSIONcov",  tmpMean]; model_Diffusion_Coef
+  } else {
+    model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
+  }
   names(model_Diffusion_Coef) <- driftNames; model_Diffusion_Coef
 
   model_T0var_Coef <- invariantDrift_Coeff[(rownames(invariantDrift_Coeff) == "T0VAR"), 3]; model_T0var_Coef
-  model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
+  if (length(model_T0var_Coef) < 1) {
+    model_T0var_Coef <- invariantDrift_Coeff[invariantDrift_Coeff[, "matrix"] == "T0cov",  tmpMean]; model_T0var_Coef
+  } else {
+    model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
+  }
   names(model_T0var_Coef) <- driftNames; model_T0var_Coef
 
   ## cluster effects
   if (!(is.null(cluster))) {
+    cluster.specific.effect <- matrix(NA, clusCounter, n.latent^2)
+    colnames(cluster.specific.effect) <- driftNamesTmp
+    rownames(cluster.specific.effect) <- paste0("Cluster No. ", seq(1,clusCounter, 1))
     tmp1 <- c()
     for (i in (n.studies):(n.studies+clusCounter-1)) tmp1 <- c(tmp1, (grep(i, rownames(invariantDriftStanctFit$tipreds))))
     Tvalues <- invariantDriftStanctFit$tipreds[tmp1, ][,6]; Tvalues
@@ -426,9 +450,26 @@ ctmaFit <- function(
       targetNamePart <- paste0("tip_TI", n.studies+i-1); targetNamePart
       newNamePart <- paste0(targetCluster[i], "_on_"); newNamePart
       rownames(clusTI_Coeff) <- sub(targetNamePart, paste0(targetCluster[i], "_on_"), rownames(clusTI_Coeff))
+      for (j in 1:length(driftNamesTmp)) {
+        if (driftNamesTmp[j] != 0) {
+          tmp1 <- grep(driftNamesTmp[j], rownames((clusTI_Coeff))); tmp1
+          tmp2 <- grep(driftNamesTmp[j], names((model_Drift_Coef))); tmp2
+          cluster.specific.effect[i,j] <- round(model_Drift_Coef[tmp2] + clusTI_Coeff[tmp1, 1] * cluster.weights[i, 2], digits)
+        }
+      }
     }
   } else {
     clusTI_Coeff <- NULL
+  }
+
+  if (ctsem341) {
+    tmp5 <- grep("DRIFT ", rownames(invariantDrift_Coeff))
+    invariantDrift_Coeff[tmp5, "matrix"] <- rownames(invariantDrift_Coeff)[tmp5]
+    rownames(invariantDrift_Coeff) <- NULL
+    tmpRownames <- invariantDrift_Coeff[, "matrix"]; tmpRownames
+    invariantDrift_Coeff[, "matrix"] <- NULL
+    invariantDrift_Coeff <- as.matrix(invariantDrift_Coeff)
+    rownames(invariantDrift_Coeff) <- tmpRownames
   }
 
   ### Numerically compute Optimal Time lag sensu Dormann & Griffin (2015)
@@ -476,6 +517,13 @@ ctmaFit <- function(
   tmp4 <- tmp1[(tmp1 %in% c(tmp2, tmp3)) == FALSE]; tmp4
   model_Cint_Coef <- invariantDriftStanctFit$parmatrices[tmp4, 3]; model_Cint_Coef
 
+  if (!(is.null(cluster))) {
+    clus.effects=list(effects=clusTI_Coeff, weights=cluster.weights, sizes=cluster.sizes,
+                                             cluster.specific.effect=cluster.specific.effect, note=cluster.note)
+  } else {
+    clus.effects <- NULL
+  }
+
   results <- list(activeDirectory=activeDirectory,
                   time=list(start.time=start.time, end.time=end.time, time.taken=time.taken),
                   plot.type="drift",  model.type="stanct",
@@ -488,14 +536,14 @@ ctmaFit <- function(
                   CoTiMAStanctArgs=CoTiMAStanctArgs,
                   invariantDrift=invariantDrift,
                   summary=list(model=paste(invariantDrift, "unequal but invariant across samples", collapse=" "),
-                               estimates=round(invariantDrift_Coeff, digits),
+                               estimates=invariantDrift_Coeff,
                                randomEffects=invariantDriftStanctFit$popsd,
-                               minus2ll= round(invariantDrift_Minus2LogLikelihood, digits),
-                               n.parameters = round(invariantDrift_estimatedParameters, digits),
-                               df= invariantDrift_df,
+                               minus2ll= invariantDrift_Minus2LogLikelihood,
+                               n.parameters = invariantDrift_estimatedParameters,
+                               #df= invariantDrift_df,
                                opt.lag = optimalCrossLag,
                                max.effects = round(maxCrossEffect, digits),
-                               clus.effects=list(effects=clusTI_Coeff, weights=cluster.weights, sizes=cluster.sizes, note=cluster.note)))
+                               clus.effects=clus.effects))
 
   class(results) <- "CoTiMAFit"
 
@@ -563,12 +611,18 @@ ctmaFit <- function(
     openxlsx::writeData(wb, sheet3, startCol=startCol+1, startRow = startRow, results$summary$estimates,
                         colNames = TRUE)
     ### cluster Effects
-    startCol <- 2; startCol
-    startRow <- 1; startRow
-    openxlsx::writeData(wb, sheet4, startCol=startCol, startRow = startRow + 1,
-                        rownames(results$summary$clus.effects$effects), colNames = FALSE)
-    openxlsx::writeData(wb, sheet4, startCol=startCol+1, startRow = startRow, results$summary$clus.effects$effects,
-                        colNames = TRUE)
+    if (!(is.null(cluster))) {
+      startCol <- 2; startCol
+      startRow <- 1; startRow
+      tmp1 <- dim(results$summary$clus.effects$effects); tmp1
+      openxlsx::writeData(wb, sheet4, startCol=startCol, startRow = startRow + 1,
+                          rownames(results$summary$clus.effects$effects), colNames = FALSE)
+      openxlsx::writeData(wb, sheet4, startCol=startCol+1, startRow = startRow, results$summary$clus.effects$effects,
+                          colNames = TRUE)
+      openxlsx::writeData(wb, sheet4, startCol=startCol+1, startRow = startRow+tmp1[1] + 2,
+                          results$summary$clus.effects$cluster.specific.effect,
+                          colNames = TRUE, rowNames = TRUE)
+    }
     ### random Effects
     startCol <- 2; startCol
     startRow <- 1; startRow

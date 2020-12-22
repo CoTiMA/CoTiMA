@@ -419,19 +419,33 @@ ctmaModFit <- function(
 
     }
 
-    # Extract estimates & statistics
+    # Extract estimates & statistics (account for changes introduced by ctsem 3.4.1)
+    targetCol <- grep("ean", colnames(stanctModFit$parmatrices)); targetCol
     tmp1 <- which(rownames(stanctModFit$parmatrices) %in% c("T0VAR")); tmp1
+    if (length(tmp1) == 0) tmp1 <- as.numeric(rownames(stanctModFit$parmatrices[stanctModFit$parmatrices[, "matrix"] == "T0cov", ])); tmp1
     tmp2 <- which(rownames(stanctModFit$parmatrices) %in% c("DRIFT")); tmp2
+    if (length(tmp2) == 0) tmp2 <- as.numeric(rownames(stanctModFit$parmatrices[stanctModFit$parmatrices[, "matrix"] == "DRIFT", ])); tmp2
     tmp2 <- c(matrix(tmp2, n.latent, byrow=TRUE)); tmp2 # correct order
     tmp3 <- which(rownames(stanctModFit$parmatrices) %in% c("DIFFUSIONcov")); tmp3
+    if (length(tmp3) == 0) tmp3 <- as.numeric(rownames(stanctModFit$parmatrices[stanctModFit$parmatrices[, "matrix"] == "DIFFUSIONcov", ])); tmp3
     targetRows <- c(tmp1, tmp2, tmp3); targetRows
-    Tvalues <- stanctModFit$parmatrices[targetRows,3]/stanctModFit$parmatrices[targetRows, 4]; Tvalues
-    modDrift_Coeff <- round(cbind(stanctModFit$parmatrices[targetRows,], Tvalues), digits); modDrift_Coeff
+    Tvalues <- stanctModFit$parmatrices[targetRows,targetCol]/stanctModFit$parmatrices[targetRows, (targetCol+1)]; Tvalues
+    modDrift_Coeff <- cbind(stanctModFit$parmatrices[targetRows,], Tvalues); modDrift_Coeff
+    modDrift_Coeff[targetCol:(dim(modDrift_Coeff)[2])] <- round(modDrift_Coeff[targetCol:(dim(modDrift_Coeff)[2])], digits); modDrift_Coeff
+
     # relabel rownames
-    for (i in 1:dim(modDrift_Coeff)[1]) {
-      rownames(modDrift_Coeff)[i] <- paste0(rownames(modDrift_Coeff)[i], "_V",
-                                            modDrift_Coeff[i, 2], "toV", modDrift_Coeff[i, 1])
+    if ("matrix" %in% colnames(modDrift_Coeff)) {
+      rownames(modDrift_Coeff) <- paste0(modDrift_Coeff[,"matrix"], "_V", modDrift_Coeff[,"col"], "toV", modDrift_Coeff[,"row"])
+      modDrift_Coeff[, "matrix"] <- NULL
+      ctsem341 <- TRUE
+    } else{
+      for (i in 1:dim(modDrift_Coeff)[1]) {
+        rownames(modDrift_Coeff)[i] <- paste0(rownames(modDrift_Coeff)[i], "_V",
+                                              modDrift_Coeff[i, 2], "toV", modDrift_Coeff[i, 1])
+        ctsem341 <- FALSE
+      }
     }
+    #modDrift_Coeff
 
     ## moderator effects
     tmp1 <- tmp2 <- c()
@@ -459,14 +473,17 @@ ctmaModFit <- function(
             current.mod.names <- mod.names[modNameCounter]; current.mod.names
             targetNamePart <- paste0("tip_TI", n.studies+i-1); targetNamePart
             tmp1 <- grep(targetNamePart, rownames(modTI_Coeff)); tmp1
-            rownames(modTI_Coeff) <- sub(targetNamePart, paste0(counter+1, ". smallest value (categorie) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
-            #modTI_Coeff
+            rownames(modTI_Coeff) <- sub(targetNamePart, paste0(counter+1, ". smallest value (category) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
           }
           counter <- 0
           modNameCounter <- modNameCounter + 1
         }
       }
     }
+
+    # eliminate z
+    modTI_Coeff[, "z"] <- NULL; modTI_Coeff
+
 
     ## cluster effects
     if (!(is.null(cluster))) {
@@ -489,14 +506,23 @@ ctmaModFit <- function(
     modDrift_df <- NULL
     model_Drift_Coef <- modDrift_Coeff[grep("DRIFT", rownames(modDrift_Coeff)), 3]; model_Drift_Coef
     # re-sort
-    names(model_Drift_Coef) <- driftNames; model_Drift_Coef
+    if (!ctsem341) {
+      names(model_Drift_Coef) <- driftNames
+      } else {
+        names(model_Drift_Coef) <- c(matrix(driftNames, n.latent, byrow=T))
+      }
+    model_Drift_Coef
 
     model_Diffusion_Coef <- modDrift_Coeff[grep("DIFFUSIONcov", rownames(modDrift_Coeff)), 3]; model_Diffusion_Coef
-    model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
+    if (!ctsem341) model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
     names(model_Diffusion_Coef) <- driftNames; model_Diffusion_Coef
 
-    model_T0var_Coef <- modDrift_Coeff[grep("T0VAR", rownames(modDrift_Coeff)), 3]; model_T0var_Coef
-    model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
+    if (!ctsem341) {
+      model_T0var_Coef <- modDrift_Coeff[grep("T0VAR", rownames(modDrift_Coeff)), 3]
+      model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
+    } else {
+      model_T0var_Coef <- modDrift_Coeff[grep("T0cov", rownames(modDrift_Coeff)), 3]
+    }
     names(model_T0var_Coef) <- driftNames; model_Diffusion_Coef
 
     allResults <- list(estimates=modDrift_Coeff, Minus2LL=modDrift_Minus2LogLikelihood,
@@ -536,7 +562,7 @@ ctmaModFit <- function(
                                  randomEffects=stanctModFit$popsd,
                                  minus2ll= modDrift_Minus2LogLikelihood,
                                  n.parameters = modDrift_estimatedParameters,
-                                 df=modDrift_df,
+                                 #df=modDrift_df,
                                  mod.effects=modTI_Coeff,
                                  clus.effects=clusTI_Coeff))
 

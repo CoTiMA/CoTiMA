@@ -235,6 +235,16 @@ ctmaInit <- function(
       }
     }
 
+    # scale time automatically if aversge time lage > 3
+    scaleTimeAuto = 1
+    tmp1 <- mean(unlist(primaryStudies$deltas), na.rm=TRUE); tmp1
+    tmp2 <- max(unlist(primaryStudies$deltas), na.rm=TRUE); tmp2
+    if ( (tmp1 > 3) & (is.null(scaleTime)) )  {
+      scaleTimeAuto <- 1/tmp2
+      CoTiMAStanctArgs$scaleTimeAuto <- scaleTimeAuto
+    }
+    scaleTimeAuto
+
     ### create pseudo raw data for all studies or load raw data if available & specified
     empraw <- lags <- moderators <- emprawMod <- allSampleSizes <- lostN <- overallNDiff <- relativeNDiff <- list()
     emprawLong <- list()
@@ -395,6 +405,9 @@ ctmaInit <- function(
                                         manifestNames=manifestNames)
         dataTmp3 <- suppressMessages(ctsem::ctDeintervalise(dataTmp2))
         dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
+
+        #if (!(is.null(CoTiMAStanctArgs$scaleTimeAuto))) dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTimeAuto
+
         # eliminate rows where ALL latents are NA
         if (n.manifest > n.latent) {
           dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("y", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
@@ -425,7 +438,6 @@ ctmaInit <- function(
       print(tmp2)
     }
   }
-
 
   #######################################################################################################################
   ################################################### Some Statistics ###################################################
@@ -582,6 +594,7 @@ ctmaInit <- function(
 
     }
 
+    ctsemModelTemplate$pars
     # ctsem models for each primary study with the correct number of time points
     ctsemModel <- list()
     counter <- 1
@@ -593,6 +606,7 @@ ctmaInit <- function(
     }
 
   } ### END Create ctsem model template to fit all primary studies ###
+
 
   #######################################################################################################################
   ##################################### Check Specification of Primary Studies ##########################################
@@ -677,6 +691,7 @@ ctmaInit <- function(
     model_popsd <- list()
     resultsSummary <- list()
     for (i in 1:n.studies) {
+      #i <- 1
       notLoadable <- TRUE
       if ( (length(loadSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit[-1]) ) {
         tmp1 <- paste0(" LOADING SingleStudyFit ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ")
@@ -945,9 +960,7 @@ ctmaInit <- function(
                                 randomEffects=model_popsd,
                                 confidenceIntervals=allStudiesCI,
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
-                                n.parameters = round(allStudies_estimatedParameters, digits),
-                                #df= c(round(allStudies_df, digits))),
-                                df= NULL )))
+                                n.parameters = round(allStudies_estimatedParameters, digits))))
   class(results) <- "CoTiMAFit"
 
   ### prepare Excel Workbook with several sheets ################################################################

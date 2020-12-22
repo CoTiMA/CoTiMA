@@ -1,4 +1,4 @@
-#' ctmaBiasOMX
+#' ctmaBiGOMX
 #'
 #' @description Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients IF OLD OMX FIT FILES ARE DETECTED
 #'
@@ -20,7 +20,7 @@
 #'
 #' @examples
 #'
-ctmaBiasOMX <- function(
+ctmaBiGOMX <- function(
   ctmaInitFit=NULL,
   activeDirectory=NULL,
   PETPEESEalpha=.10,
@@ -285,7 +285,7 @@ ctmaBiasOMX <- function(
   } ### END Fixed & Random Effects Analyses ###
 
   results <- list(activeDirectory=activeDirectory, #sourceDirectory=sourceDirectory,
-                  plot.type=c("funnel", "forest"), model.type="bias",
+                  plot.type=c("funnel", "forest"), model.type="BiG",
                   coresToUse=NULL, n.studies=n.studies,
                   n.latent=n.latent,
                   studyList=ctmaInitFit$studyList, studyFitList=NULL, # , homDRIFTallFitCI),
@@ -294,7 +294,7 @@ ctmaBiasOMX <- function(
                   modelResults=list(DRIFT=DRIFTCoeff, DIFFUSION=DIFFUSIONCoeff, T0VAR=T0VARCoeff, CINT=NULL,
                                     DRIFTSE=DRIFTSE, DIFFUSIONSE=DIFFUSIONSE, T0VARSE=T0VARSE),
                   parameterNames=ctmaInitFit$parameterNames,
-                  summary=list(model="Analysis of Publication Bias",
+                  summary=list(model="Analysis of Publication Bias & Generalizability",
                                estimates=list("Fixed Effects of Drift Coefficients"=round(fixedEffectDriftResults, digits),
                                               "Heterogeneity"=round(heterogeneity, digits),
                                               "Random Effects of Drift Coefficients"=round(RandomEffectDriftResults, digits),

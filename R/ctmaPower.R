@@ -889,7 +889,7 @@ ctmaPower <- function(
 
   results <- list(activeDirectory=activeDirectory,
                   plot.type=c("power"), model.type="stanct", #model.type="mx",
-                  coresToUse=NULL, n.studies=1,
+                  coresToUse=coresToUse, n.studies=1,
                   n.latent=n.latent,
                   studyList=ctmaInitFit$studyList, studyFitList=allFixedModelFit,
                   emprawList=NULL,
