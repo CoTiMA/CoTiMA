@@ -300,118 +300,150 @@ ctmaPower <- function(
   datalong_all <- datalong_all[, -grep("TI", colnames(datalong_all))]
 
 
-  # all fixed model is a model with no TI predictors (identical to ctsemModel)
-  # CHD allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
-  allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
-                           DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE),
-                           LAMBDA=diag(n.latent),
-                           type='stanct',
-                           #CINT=matrix(cintNames, nrow=n.latent, ncol=1),
-                           CINT=matrix(0, nrow=n.latent, ncol=1),
-                           T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                           MANIFESTMEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                           MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent))
-
   # LOAD or Fit
   if (length(loadAllInvFit) > 0) {
     x1 <- paste0(activeDirectory, loadAllInvFit[1], ".rds"); x1
     results <- readRDS(file=x1)
   } else {
-    allFixedModelFit <- ctStanFit(
-      datalong = datalong_all,
-      ctstanmodel = allFixedModel,
-      savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
-      stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
-      iter=CoTiMAStanctArgs$iter,
-      intoverstates=CoTiMAStanctArgs$intoverstates,
-      binomial=CoTiMAStanctArgs$binomial,
-      fit=CoTiMAStanctArgs$fit,
-      intoverpop=CoTiMAStanctArgs$intoverpop,
-      stationary=CoTiMAStanctArgs$stationary,
-      plot=CoTiMAStanctArgs$plot,
-      derrind=CoTiMAStanctArgs$derrind,
-      optimize=CoTiMAStanctArgs$optimize,
-      optimcontrol=CoTiMAStanctArgs$optimcontrol,
-      nlcontrol=CoTiMAStanctArgs$nlcontrol,
-      nopriors=CoTiMAStanctArgs$nopriors,
-      chains=CoTiMAStanctArgs$chains,
-      forcerecompile=CoTiMAStanctArgs$forcerecompile,
-      savescores=CoTiMAStanctArgs$savescores,
-      gendata=CoTiMAStanctArgs$gendata,
-      control=CoTiMAStanctArgs$control,
-      verbose=CoTiMAStanctArgs$verbose,
-      warmup=CoTiMAStanctArgs$warmup,
-      cores=coresToUse)
-
+    allInvModelFit <- ctmaAllInvFit(ctmaInitFit=ctmaInitFit,
+                                    activeDirectory=activeDirectory,
+                                    activateRPB=activateRPB,
+                                    digits=digits,
+                                    coresToUse=coresToUse,
+                                    scaleTime=CoTiMAStanctArgs$scaleTime,
+                                    optimize=optimize,
+                                    nopriors=nopriors,
+                                    finishsamples=finishsamples,
+                                    iter=iter,
+                                    chains=chains,
+                                    verbose=verbose)
     cat( "\n", "Computing results summary of all invariant model.", "\n")
-    allFixedModelFitSummary <- summary(allFixedModelFit, digits=digits)
+    allInvModelFitSummary <- summary(allInvModelFit, digits=digits)
   }
 
   # SAVE
   if (length(saveAllInvFit) > 0)  {
     x1 <- paste0(saveAllInvFit[1], ".rds"); x1
     x2 <- paste0(activeDirectory); x2
-    ctmaSaveFile(activateRPB, "", allFixedModelFit, x1, x2, silentOverwrite=silentOverwrite)
+    ctmaSaveFile(activateRPB, "", allInvModelFit, x1, x2, silentOverwrite=silentOverwrite)
   }
 
-
   ### Extract estimates & statistics
+  # account for changes in ctsem 3.4.1
   {
-    tmp <- grep("toV", rownames(allFixedModelFitSummary$popmeans)); tmp
-    homAll_Drift_Coef <- c(matrix(allFixedModelFitSummary$parmatrices[rownames(allFixedModelFitSummary$parmatrices) == "DRIFT", "Mean"], n.latent, byrow=TRUE)); homAll_Drift_Coef
-    names(homAll_Drift_Coef) <- driftNames
-    homAll_Drift_SE <- c(matrix(allFixedModelFitSummary$parmatrices[rownames(allFixedModelFitSummary$parmatrices) == "DRIFT", "Sd"], n.latent, byrow=TRUE)); homAll_Drift_SE
-    names(homAll_Drift_SE) <- driftNames
-    tmp1 <- c(matrix(allFixedModelFitSummary$parmatrices[rownames(allFixedModelFitSummary$parmatrices) == "DRIFT", "2.5%"], n.latent, byrow=TRUE)); tmp1
-    tmp2 <- c(matrix(allFixedModelFitSummary$parmatrices[rownames(allFixedModelFitSummary$parmatrices) == "DRIFT", "97.5%"], n.latent, byrow=TRUE)); tmp2
+    if ("matrix" %in% colnames(allInvModelFitSummary$parmatrices)) ctsem341 <- TRUE else ctsem341 <- FALSE
+    tmpMean <- grep("ean", colnames(allInvModelFitSummary$parmatrices)); tmpMean
+    tmpSd <- tmpMean+1; tmpSd
+    Tvalues <- allInvModelFitSummary$parmatrices[,tmpMean]/allInvModelFitSummary$parmatrices[,tmpSd]; Tvalues
+    allInvDrift_Coeff <- cbind(allInvModelFitSummary$parmatrices, Tvalues); allInvDrift_Coeff
+    allInvDrift_Coeff[, tmpMean:(dim(allInvDrift_Coeff)[2])] <- round(allInvDrift_Coeff[, tmpMean:(dim(allInvDrift_Coeff)[2])], digits); allInvDrift_Coeff
+    # re-label
+    if (ctsem341) {
+      tmp1 <- which(allInvDrift_Coeff[, "matrix"] == "DRIFT")
+      driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); driftNamesTmp
+      rownames(allInvDrift_Coeff) <- paste0(allInvDrift_Coeff[, c("matrix")], "_",
+                                              allInvDrift_Coeff[, c("row")], "_",
+                                              allInvDrift_Coeff[, c("col")])
+    } else {
+      tmp1 <- which(rownames(allInvDrift_Coeff) == "DRIFT")
+      driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); driftNamesTmp
+    }
+    rownames(allInvDrift_Coeff)[tmp1] <- paste0("DRIFT ", driftNamesTmp); allInvDrift_Coeff
+
+    #tmp <- grep("toV", rownames(allInvModelFitSummary$popmeans)); tmp
+    if (ctsem341) {
+      homAll_Drift_Coef <- allInvModelFitSummary$parmatrices[allInvModelFitSummary$parmatrices[, "matrix"] == "DRIFT", tmpMean]; homAll_Drift_Coef
+      homAll_Drift_SE <- allInvModelFitSummary$parmatrices[allInvModelFitSummary$parmatrices[, "matrix"] == "DRIFT", tmpSd]; homAll_Drift_SE
+      tmp1 <- allInvModelFitSummary$parmatrices[allInvModelFitSummary$parmatrices[, "matrix"] == "DRIFT", "2.5%"]; tmp1
+      tmp2 <- allInvModelFitSummary$parmatrices[allInvModelFitSummary$parmatrices[, "matrix"] == "DRIFT", "97.5%"]; tmp2
+    } else {
+      homAll_Drift_Coef <- allInvModelFitSummary$parmatrices[rownames(allInvModelFitSummary$parmatrices) == "DRIFT", "Mean"]; homAll_Drift_Coef
+      homAll_Drift_SE <-allInvModelFitSummary$parmatrices[rownames(allInvModelFitSummary$parmatrices) == "DRIFT", "Sd"]; homAll_Drift_SE
+      tmp1 <- c(matrix(allInvModelFitSummary$parmatrices[rownames(allInvModelFitSummary$parmatrices) == "DRIFT", "2.5%"], n.latent, byrow=TRUE)); tmp1
+      tmp2 <- c(matrix(allInvModelFitSummary$parmatrices[rownames(allInvModelFitSummary$parmatrices) == "DRIFT", "97.5%"], n.latent, byrow=TRUE)); tmp2
+    }
+    names(homAll_Drift_Coef) <- driftNamesTmp; homAll_Drift_Coef
+    names(homAll_Drift_SE) <- driftNamesTmp; homAll_Drift_SE
     homAll_Drift_CI <- c(rbind(tmp1, tmp2)); homAll_Drift_CI
-    tmp3 <- c(rbind(paste0(driftNames, "LL"),
-                    paste0(driftNames, "UL"))); tmp3
+    tmp3 <- c(rbind(paste0(driftNamesTmp, "LL"),
+                    paste0(driftNamesTmp, "UL"))); tmp3
     names(homAll_Drift_CI) <- tmp3; homAll_Drift_CI
     homAll_Drift_Tvalue <- homAll_Drift_Coef/homAll_Drift_SE; homAll_Drift_Tvalue
 
-    tmp <- grep("diff", rownames(allFixedModelFitSummary$popmeans)); tmp
-    homAll_Diffusion_Coef <- (allFixedModelFitSummary$parmatrices[rownames(allFixedModelFitSummary$parmatrices) == "DIFFUSIONcov", "Mean"]); homAll_Diffusion_Coef
-    names(homAll_Diffusion_Coef) <- rownames(allFixedModelFitSummary$popmeans)[tmp]; homAll_Diffusion_Coef
-    homAll_Diffusion_SE <- (allFixedModelFitSummary$parmatrices[rownames(allFixedModelFitSummary$parmatrices) == "DIFFUSIONcov", "Sd"]); homAll_Diffusion_SE
-    names(homAll_Diffusion_SE) <- rownames(allFixedModelFitSummary$popmeans)[tmp]; homAll_Diffusion_SE
-    tmp1 <- allFixedModelFitSummary$parmatrices[rownames(allFixedModelFitSummary$parmatrices) == "DIFFUSIONcov", "2.5%"]; tmp1
-    tmp2 <- allFixedModelFitSummary$parmatrices[rownames(allFixedModelFitSummary$parmatrices) == "DIFFUSIONcov", "97.5%"]; tmp2
+
+    if (ctsem341) {
+      homAll_Diffusion_Coef <- allInvModelFitSummary$parmatrices[allInvModelFitSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", tmpMean]; homAll_Diffusion_Coef
+      homAll_Diffusion_SE <- allInvModelFitSummary$parmatrices[allInvModelFitSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", tmpSd]; homAll_Diffusion_SE
+      tmp1 <- allInvModelFitSummary$parmatrices[allInvModelFitSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "2.5%"]; tmp1
+      tmp2 <- allInvModelFitSummary$parmatrices[allInvModelFitSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "97.5%"]; tmp2
+    } else {
+      homAll_Diffusion_Coef <- allInvModelFitSummary$parmatrices[rownames(allInvModelFitSummary$parmatrices) == "DIFFUSIONcov", "Mean"]; homAll_Diffusion_Coef
+      homAll_Diffusion_SE <-allInvModelFitSummary$parmatrices[rownames(allInvModelFitSummary$parmatrices) == "DIFFUSIONcov", "Sd"]; homAll_Diffusion_SE
+      tmp1 <- c(matrix(allInvModelFitSummary$parmatrices[rownames(allInvModelFitSummary$parmatrices) == "DIFFUSIONcov", "2.5%"], n.latent, byrow=TRUE)); tmp1
+      tmp2 <- c(matrix(allInvModelFitSummary$parmatrices[rownames(allInvModelFitSummary$parmatrices) == "DIFFUSIONcov", "97.5%"], n.latent, byrow=TRUE)); tmp2
+      homAll_Diffusion_Coef <- OpenMx::vech2full(homAll_Diffusion_Coef)
+      homAll_Diffusion_SE <- OpenMx::vech2full(homAll_Diffusion_SE)
+      tmp1 <- OpenMx::vech2full(tmp1)
+      tmp2 <- OpenMx::vech2full(tmp2)
+    }
+    names(homAll_Diffusion_Coef) <- driftNamesTmp; homAll_Diffusion_Coef
+    names(homAll_Diffusion_SE) <- driftNamesTmp; homAll_Diffusion_SE
     homAll_Diffusion_CI <- c(rbind(tmp1, tmp2)); homAll_Diffusion_CI
-    tmp3 <- c(rbind(paste0(rownames(allFixedModelFitSummary$popmeans)[tmp], "LL"),
-                    paste0(rownames(allFixedModelFitSummary$popmeans)[tmp], "UL"))); tmp3
+    tmp3 <- c(rbind(paste0(driftNamesTmp, "LL"),
+                    paste0(driftNamesTmp, "UL"))); tmp3
     names(homAll_Diffusion_CI) <- tmp3; homAll_Diffusion_CI
     homAll_Diffusion_Tvalue <- homAll_Diffusion_Coef/homAll_Diffusion_SE; homAll_Diffusion_Tvalue
 
-    tmp <- grep("T0var", rownames(allFixedModelFitSummary$popmeans)); tmp
-    homAll_T0Var_Coef <- (allFixedModelFitSummary$parmatrices[rownames(allFixedModelFitSummary$parmatrices) == "T0VAR", "Mean"]); homAll_T0Var_Coef
-    names(homAll_T0Var_Coef) <- rownames(allFixedModelFitSummary$popmeans)[tmp]; homAll_T0Var_Coef
-    homAll_T0Var_SE <- (allFixedModelFitSummary$parmatrices[rownames(allFixedModelFitSummary$parmatrices) == "T0VAR", "Sd"]); homAll_T0Var_SE
-    names(homAll_T0Var_SE) <- rownames(allFixedModelFitSummary$popmeans)[tmp]; homAll_T0Var_SE
-    tmp1 <- allFixedModelFitSummary$parmatrices[rownames(allFixedModelFitSummary$parmatrices) == "T0VAR", "2.5%"]; tmp1
-    tmp2 <- allFixedModelFitSummary$parmatrices[rownames(allFixedModelFitSummary$parmatrices) == "T0VAR", "97.5%"]; tmp2
-    homAll_T0Var_CI <- c(rbind(tmp1, tmp2)); homAll_T0Var_CI
-    tmp3 <- c(rbind(paste0(rownames(allFixedModelFitSummary$popmeans)[tmp], "LL"),
-                    paste0(rownames(allFixedModelFitSummary$popmeans)[tmp], "UL"))); tmp3
-    names(homAll_T0Var_CI) <- tmp3; homAll_T0Var_CI
-    homAll_T0Var_Tvalue <- homAll_T0Var_Coef/homAll_T0Var_SE; homAll_T0Var_Tvalue
+
+    if (ctsem341) {
+      homAll_T0VAR_Coef <- allInvModelFitSummary$parmatrices[allInvModelFitSummary$parmatrices[, "matrix"] == "T0cov", tmpMean]; homAll_T0VAR_Coef
+      homAll_T0VAR_SE <- allInvModelFitSummary$parmatrices[allInvModelFitSummary$parmatrices[, "matrix"] == "T0cov", tmpSd]; homAll_T0VAR_SE
+      tmp1 <- allInvModelFitSummary$parmatrices[allInvModelFitSummary$parmatrices[, "matrix"] == "T0cov", "2.5%"]; tmp1
+      tmp2 <- allInvModelFitSummary$parmatrices[allInvModelFitSummary$parmatrices[, "matrix"] == "T0cov", "97.5%"]; tmp2
+    } else {
+      homAll_T0VAR_Coef <- allInvModelFitSummary$parmatrices[rownames(allInvModelFitSummary$parmatrices) == "T0VAR", "Mean"]; homAll_T0VAR_Coef
+      homAll_T0VAR_SE <-allInvModelFitSummary$parmatrices[rownames(allInvModelFitSummary$parmatrices) == "T0VAR", "Sd"]; homAll_T0VAR_SE
+      tmp1 <- c(matrix(allInvModelFitSummary$parmatrices[rownames(allInvModelFitSummary$parmatrices) == "T0VAR", "2.5%"], n.latent, byrow=TRUE)); tmp1
+      tmp2 <- c(matrix(allInvModelFitSummary$parmatrices[rownames(allInvModelFitSummary$parmatrices) == "T0VAR", "97.5%"], n.latent, byrow=TRUE)); tmp2
+      homAll_T0VAR_Coef <- OpenMx::vech2full(homAll_T0VAR_Coef)
+      homAll_T0VAR_SE <- OpenMx::vech2full(homAll_T0VAR_SE)
+      tmp1 <- OpenMx::vech2full(tmp1)
+      tmp2 <- OpenMx::vech2full(tmp2)
+    }
+    names(homAll_T0VAR_Coef) <- driftNamesTmp; homAll_T0VAR_Coef
+    names(homAll_T0VAR_SE) <- driftNamesTmp; homAll_T0VAR_SE
+    homAll_T0VAR_CI <- c(rbind(tmp1, tmp2)); homAll_T0VAR_CI
+    tmp3 <- c(rbind(paste0(driftNamesTmp, "LL"),
+                    paste0(driftNamesTmp, "UL"))); tmp3
+    names(homAll_Diffusion_CI) <- tmp3; homAll_Diffusion_CI
+    homAll_T0VAR_Tvalue <- homAll_T0VAR_Coef/homAll_T0VAR_SE; homAll_T0VAR_Tvalue
 
     ## Extract Model Fit
-    homAll_Minus2LogLikelihood <- 2* results$stanfit$optimfit$f; homAll_Minus2LogLikelihood
-    homAll_estimatedParameters <-length(results$stanfit$optimfit$par); homAll_estimatedParameters
+    #allInvModelFitSummary
+    homAll_Minus2LogLikelihood <- -2 * allInvModelFitSummary$loglik; homAll_Minus2LogLikelihood
+    homAll_estimatedParameters <- allInvModelFitSummary$npars; homAll_estimatedParameters
     #homAll_df <- ctmaInitFit$summary$df+(ctmaInitFit$summary$n.parameters-homAll_estimatedParameters); homAll_df
     homAll_df <- NULL
 
     homAll_effects <- matrix(t(cbind((homAll_Drift_Coef), (homAll_Drift_SE),
                                      (homAll_Drift_Tvalue))), 1, 3*length(driftNames), byrow=T); homAll_effects
+
+    #homAll_effects <- rbind(homAll_effects,
+    #                        matrix(t(cbind((c(OpenMx::vech2full(homAll_Diffusion_Coef))),
+    #                                       c(OpenMx::vech2full((homAll_Diffusion_SE))),
+    #                                       c(OpenMx::vech2full((homAll_Diffusion_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
     homAll_effects <- rbind(homAll_effects,
-                            matrix(t(cbind((c(OpenMx::vech2full(homAll_Diffusion_Coef))),
-                                           c(OpenMx::vech2full((homAll_Diffusion_SE))),
-                                           c(OpenMx::vech2full((homAll_Diffusion_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
+                            matrix(t(cbind(homAll_Diffusion_Coef, homAll_Diffusion_SE,
+                                           homAll_Diffusion_Tvalue)), 1, 3*length(driftNames), byrow=T)); homAll_effects
+
+    #homAll_effects <- rbind(homAll_effects,
+    #                        matrix(t(cbind(c(OpenMx::vech2full((homAll_T0Var_Coef))),
+    #                                       c(OpenMx::vech2full((homAll_T0Var_SE))),
+    #                                       c(OpenMx::vech2full((homAll_T0Var_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
     homAll_effects <- rbind(homAll_effects,
-                            matrix(t(cbind(c(OpenMx::vech2full((homAll_T0Var_Coef))),
-                                           c(OpenMx::vech2full((homAll_T0Var_SE))),
-                                           c(OpenMx::vech2full((homAll_T0Var_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
+                            matrix(t(cbind(homAll_T0VAR_Coef, homAll_T0VAR_SE,
+                                           homAll_T0VAR_Tvalue)), 1, 3*length(driftNames), byrow=T)); homAll_effects
+
     # Label summary table
     rownames(homAll_effects) <- c("Fixed Effects Drift", "Fixed Effects Diffusion", "Fixed Effects T0Var")
     newColNames <- c()
@@ -423,9 +455,9 @@ ctmaPower <- function(
     colnames(homAll_effects) <- newColNames; homAll_effects
   }
 
-  DRIFT <- matrix(homAll_Drift_Coef, n.latent, n.latent, byrow=TRUE); DRIFT
-  DIFFUSION <- OpenMx::vech2full(homAll_Diffusion_Coef); DIFFUSION
-  T0VAR <- OpenMx::vech2full(homAll_T0Var_Coef); T0VAR
+  DRIFT <- allInvModelFit$modelResults$DRIFT; DRIFT
+  DIFFUSION <- allInvModelFit$modelResults$DIFFUSION; DIFFUSION
+  T0VAR <- allInvModelFit$modelResults$T0VAR; T0VAR
 
   print(paste0("#################################################################################"))
   print(paste0("# Use estimates from all fixed model to compute corr-matrices for all time lags #"))
@@ -863,18 +895,10 @@ ctmaPower <- function(
     tmp <- postHocPower
     tmp[is.na(tmp)] <- 0; tmp
     targetCols <- grep("Power", columnNames); targetCols
-    #meanPower0 <- apply(tmp[, targetCols[1:2]], 2, mean, na.rm=TRUE); meanPower0
-    #meanPowerNA <- apply(postHocPower[, targetCols[1:2]], 2, mean, na.rm=TRUE); meanPowerNA
     meanPower <- apply(tmp[, targetCols[1:2]], 2, mean, na.rm=TRUE); meanPower
-    #medianPower0 <- apply(tmp[, targetCols[1:2]], 2, stats::median, na.rm=TRUE); medianPower0
-    #medianPowerNA <- apply(postHocPower[, targetCols[1:2]], 2, stats::median, na.rm=TRUE); medianPowerNA
     medianPower <- apply(tmp[, targetCols[1:2]], 2, stats::median, na.rm=TRUE); medianPower
     postHocPower <- rbind(postHocPower, c(c(NA), rep(NA, 3*(maxTpoints-1)))); postHocPower
     postHocPower <- rbind(postHocPower, c(c(NA), rep(NA, 3*(maxTpoints-1)))); postHocPower
-    #postHocPower <- rbind(postHocPower, c(c(NA), rep(NA, 3*(maxTpoints-1)))); postHocPower
-    #postHocPower <- rbind(postHocPower, c(c(NA), rep(NA, 3*(maxTpoints-1)))); postHocPower # four times is correct
-    #postHocPower[dim(postHocPower)[1]-3, targetCols[1:2]] <- round(meanPower0, digits)
-    #postHocPower[dim(postHocPower)[1]-2, targetCols[1:2]] <- round(meanPowerNA, digits)
     postHocPower[dim(postHocPower)[1]-1, targetCols[1:2]] <- round(meanPower, digits)
     postHocPower[dim(postHocPower)[1], targetCols[1:2]] <- round(medianPower, digits)
     newNames <- c(paste0("Study_No_", 1:n.studies),
@@ -884,14 +908,14 @@ ctmaPower <- function(
     names(postHocPowerList)[[j]] <- currentDriftNames[j]
   }
 
-  allFixedModelFit$resultsSummary <- allFixedModelFitSummary
-  allFixedModelFit$resultsSummary
+  allInvModelFit$resultsSummary <- allInvModelFitSummary
+  allInvModelFit$resultsSummary
 
   results <- list(activeDirectory=activeDirectory,
                   plot.type=c("power"), model.type="stanct", #model.type="mx",
                   coresToUse=coresToUse, n.studies=1,
                   n.latent=n.latent,
-                  studyList=ctmaInitFit$studyList, studyFitList=allFixedModelFit,
+                  studyList=ctmaInitFit$studyList, studyFitList=allInvModelFit,
                   emprawList=NULL,
                   statisticsList=ctmaInitFit$statisticsList,
                   modelResults=list(DRIFT=DRIFT, DIFFUSION=DIFFUSION, T0VAR=T0VAR, CINT=NULL),

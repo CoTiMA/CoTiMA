@@ -24,7 +24,8 @@ ctmaFit(
   finishsamples = NULL,
   iter = NULL,
   chains = NULL,
-  verbose = NULL
+  verbose = NULL,
+  allInvModel = FALSE
 )
 }
 \arguments{
@@ -67,6 +68,8 @@ ctmaFit(
 \item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
 
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
+
+\item{allInvModel}{estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR)}
 }
 \description{
 Fits a ctsem model with invariant drift effects across primary studies

@@ -347,8 +347,21 @@ ctmaModFit <- function(
 
       # Make model with most time points
       n.all.moderators <- length(colnames(datalong)[grep("TI", colnames(datalong))])-n.studies+1; n.all.moderators
+
+      driftNamesTmp <- driftNames
+      meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
+      if (meanLag > 6) {
+        counter <- 0
+        for (h in 1:(n.latent)) {
+          for (j in 1:(n.latent)) {
+            counter <- counter + 1
+            if (h == j) driftNamesTmp[counter] <- paste0(driftNamesTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
+          }
+        }
+      }
+
       stanctModModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
-                                DRIFT=matrix(driftNames, nrow=n.latent, ncol=n.latent, byrow=TRUE),
+                                DRIFT=matrix(driftNamesTmp, nrow=n.latent, ncol=n.latent, byrow=TRUE),
                                 LAMBDA=diag(n.latent),
                                 CINT=matrix(0, nrow=n.latent, ncol=1),
                                 T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
@@ -359,6 +372,8 @@ ctmaModFit <- function(
                                 n.TIpred = (n.studies-1+n.all.moderators),
                                 TIpredNames = paste0("TI", 1:(n.studies-1+n.all.moderators)),
                                 TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+n.all.moderators)))
+      stanctModModel$pars[, "indvarying"] <- FALSE
+
       stanctModModel$pars[stanctModModel$pars$matrix %in% 'DRIFT',paste0(stanctModModel$TIpredNames,'_effect')] <- TRUE
       stanctModModel$pars[stanctModModel$pars$matrix %in% 'T0MEANS',paste0(stanctModModel$TIpredNames,'_effect')] <- FALSE
       stanctModModel$pars[stanctModModel$pars$matrix %in% 'LAMBDA',paste0(stanctModModel$TIpredNames,'_effect')] <- FALSE

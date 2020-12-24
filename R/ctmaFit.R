@@ -22,6 +22,7 @@
 #' @param iter number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
+#' @param allInvModel estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR)
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  crayon red
@@ -74,7 +75,8 @@ ctmaFit <- function(
   finishsamples=NULL,
   iter=NULL,
   chains=NULL,
-  verbose=NULL
+  verbose=NULL,
+  allInvModel=FALSE
 )
 
 
@@ -277,114 +279,150 @@ ctmaFit <- function(
   ############################################# CoTiMA (ctsem multigroup) ###############################################
   #######################################################################################################################
 
-  tmp1 <- ctmaInitFit$studyFitList[[1]]$ctstanmodelbase$pars
-
-  if (is.null(drift)) {
-    tmp2 <- tmp1$matrix=="DRIFT"; tmp2
-    DRIFT <- tmp1[tmp2,]$param; DRIFT
-    DRIFT[is.na(DRIFT)] <- "0"; DRIFT
+  if (allInvModel) {
+    allInvModelFit <- ctmaAllInvFit(ctmaInitFit=ctmaInitFit,
+                                    activeDirectory=activeDirectory,
+                                    activateRPB=activateRPB,
+                                    digits=digits,
+                                    coresToUse=coresToUse,
+                                    scaleTime=scaleTime,
+                                    optimize=optimize,
+                                    nopriors=nopriors,
+                                    finishsamples=finishsamples,
+                                    iter=iter,
+                                    chains=chains,
+                                    verbose=verbose)
+    invariantDriftStanctFit <- summary(allInvModelFit)
   } else {
-    DRIFT <- matrix(driftNames, n.latent, n.latent, byrow = TRUE); DRIFT
-    #DRIFT <- matrix(driftNames, n.latent, n.latent); DRIFT
-  }
 
-  tmp2 <- tmp1$matrix=="LAMBDA"; tmp2
-  LAMBDA <- tmp1[tmp2,]$value; LAMBDA
-  LAMBDA <- matrix(LAMBDA, nrow= n.var, byrow=TRUE); LAMBDA
+    tmp1 <- ctmaInitFit$studyFitList[[1]]$ctstanmodelbase$pars
 
-  tmp2 <- tmp1$matrix=="MANIFESTVAR"; tmp2
-  MANIFESTVAR <- tmp1[tmp2,]$value; MANIFESTVAR
-  MANIFESTVAR <- matrix(MANIFESTVAR, nrow= n.var); MANIFESTVAR
+    if (is.null(drift)) {
+      tmp2 <- tmp1$matrix=="DRIFT"; tmp2
+      DRIFT <- tmp1[tmp2,]$param; DRIFT
+      DRIFT[is.na(DRIFT)] <- "0"; DRIFT
+    } else {
+      DRIFT <- matrix(driftNames, n.latent, n.latent, byrow = TRUE); DRIFT
+      #DRIFT <- matrix(driftNames, n.latent, n.latent); DRIFT
+    }
 
-  # Make model with max time points
-  {
-    stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
-                                  DRIFT=matrix(DRIFT, nrow=n.latent, ncol=n.latent, byrow=TRUE),
-                                  LAMBDA=LAMBDA,
-                                  CINT=matrix(0, nrow=n.latent, ncol=1),
-                                  T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                  MANIFESTMEANS = matrix(c(0), nrow = n.var, ncol = 1),
-                                  MANIFESTVAR=MANIFESTVAR,
-                                  type = 'stanct',
-                                  n.TIpred = (n.studies-1+clusCounter),
-                                  TIpredNames = paste0("TI", 1:(n.studies-1+clusCounter)),
-                                  TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter)))
+    tmp2 <- tmp1$matrix=="LAMBDA"; tmp2
+    LAMBDA <- tmp1[tmp2,]$value; LAMBDA
+    LAMBDA <- matrix(LAMBDA, nrow= n.var, byrow=TRUE); LAMBDA
 
-    if (indVarying == TRUE) {
-      print(paste0("#################################################################################"))
-      print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
-      print(paste0("#################################################################################"))
+    tmp2 <- tmp1$matrix=="MANIFESTVAR"; tmp2
+    MANIFESTVAR <- tmp1[tmp2,]$value; MANIFESTVAR
+    MANIFESTVAR <- matrix(MANIFESTVAR, nrow= n.var); MANIFESTVAR
 
-      manifestNames <- paste0("y", 1:n.manifest); manifestNames
-      latentNames <- paste0("V", 1:2); latentNames
-      if (n.manifest == n.latent) manifestNames <- latentNames
-      MANIFESTMEANS <- manifestNames; MANIFESTMEANS
 
+    # scale Drift to cover changes in ctsem 3.4.1 (this would be for ctmaFit/ctmaModFit, but for Init individual study modification is done later)
+    driftNamesTmp <- DRIFT
+    meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
+    if (meanLag > 6) {
+      counter <- 0
+      for (h in 1:(n.latent)) {
+        for (j in 1:(n.latent)) {
+          counter <- counter + 1
+          if (h == j) driftNamesTmp[counter] <- paste0(driftNamesTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
+        }
+      }
+    }
+    #driftNamesTmp
+
+
+    # Make model with max time points
+    {
       stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
-                                    DRIFT=matrix(DRIFT, nrow=n.latent, ncol=n.latent, byrow=TRUE),
+                                    DRIFT=matrix(driftNamesTmp, nrow=n.latent, ncol=n.latent, byrow=TRUE),
                                     LAMBDA=LAMBDA,
                                     CINT=matrix(0, nrow=n.latent, ncol=1),
                                     T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                    MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.manifest, ncol = 1),
+                                    MANIFESTMEANS = matrix(c(0), nrow = n.var, ncol = 1),
                                     MANIFESTVAR=MANIFESTVAR,
                                     type = 'stanct',
                                     n.TIpred = (n.studies-1+clusCounter),
                                     TIpredNames = paste0("TI", 1:(n.studies-1+clusCounter)),
                                     TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter)))
+      stanctModel$pars[, "indvarying"] <- FALSE
+
+
+      if (indVarying == TRUE) {
+        print(paste0("#################################################################################"))
+        print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
+        print(paste0("#################################################################################"))
+
+        manifestNames <- paste0("y", 1:n.manifest); manifestNames
+        latentNames <- paste0("V", 1:2); latentNames
+        if (n.manifest == n.latent) manifestNames <- latentNames
+        MANIFESTMEANS <- manifestNames; MANIFESTMEANS
+
+        stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
+                                      DRIFT=matrix(driftNamesTmp, nrow=n.latent, ncol=n.latent, byrow=TRUE),
+                                      LAMBDA=LAMBDA,
+                                      CINT=matrix(0, nrow=n.latent, ncol=1),
+                                      T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                      MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.manifest, ncol = 1),
+                                      MANIFESTVAR=MANIFESTVAR,
+                                      type = 'stanct',
+                                      n.TIpred = (n.studies-1+clusCounter),
+                                      TIpredNames = paste0("TI", 1:(n.studies-1+clusCounter)),
+                                      TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter)))
+      }
+
+      #stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+      stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
+      stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+      stanctModel$pars[stanctModel$pars$matrix %in% 'LAMBDA',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+      stanctModel$pars[stanctModel$pars$matrix %in% 'CINT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+      stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+      stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTVAR',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+      if (!(is.null(cluster))) {
+        ## stanctModel$pars[stanctModel$pars$matrix %in% 'DIFFUSION',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- FALSE
+        ##stanctModel$pars[stanctModel$pars$matrix %in% 'T0VAR',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- FALSE
+        stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- TRUE
+      }
+    }
+    #stanctModel$pars
+
+    # the target effects
+    tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
+    tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDrift); tmp2
+    stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
+
+    fitStanctModel <- ctsem::ctStanFit(
+      datalong = datalong_all,
+      ctstanmodel = stanctModel,
+      savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
+      stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
+      iter=CoTiMAStanctArgs$iter,
+      intoverstates=CoTiMAStanctArgs$intoverstates,
+      binomial=CoTiMAStanctArgs$binomial,
+      fit=CoTiMAStanctArgs$fit,
+      intoverpop=CoTiMAStanctArgs$intoverpop,
+      stationary=CoTiMAStanctArgs$stationary,
+      plot=CoTiMAStanctArgs$plot,
+      derrind=CoTiMAStanctArgs$derrind,
+      optimize=CoTiMAStanctArgs$optimize,
+      optimcontrol=CoTiMAStanctArgs$optimcontrol,
+      nlcontrol=CoTiMAStanctArgs$nlcontrol,
+      nopriors=CoTiMAStanctArgs$nopriors,
+      chains=CoTiMAStanctArgs$chains,
+      forcerecompile=CoTiMAStanctArgs$forcerecompile,
+      savescores=CoTiMAStanctArgs$savescores,
+      gendata=CoTiMAStanctArgs$gendata,
+      #control=CoTiMAStanctArgs$control,
+      verbose=CoTiMAStanctArgs$verbose,
+      warmup=CoTiMAStanctArgs$warmup,
+      cores=coresToUse)
+
+    ### resample in parcels to avoid memory crash and speed up
+    if (!(is.null(CoTiMAStanctArgs$resample))) {
+      fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel) #, CoTiMAStanctArgs=CoTiMAStanctArgs)
     }
 
-    #stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-    stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
-    stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-    stanctModel$pars[stanctModel$pars$matrix %in% 'LAMBDA',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-    stanctModel$pars[stanctModel$pars$matrix %in% 'CINT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-    stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-    stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTVAR',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-    if (!(is.null(cluster))) {
-      ## stanctModel$pars[stanctModel$pars$matrix %in% 'DIFFUSION',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- FALSE
-      ##stanctModel$pars[stanctModel$pars$matrix %in% 'T0VAR',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- FALSE
-      stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- TRUE
-    }
-  }
-  #stanctModel$pars
+    invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
+  } # end if (allInvModel)
 
-  # the target effects
-  tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
-  tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDrift); tmp2
-  stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
-
-  fitStanctModel <- ctsem::ctStanFit(
-    datalong = datalong_all,
-    ctstanmodel = stanctModel,
-    savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
-    stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
-    iter=CoTiMAStanctArgs$iter,
-    intoverstates=CoTiMAStanctArgs$intoverstates,
-    binomial=CoTiMAStanctArgs$binomial,
-    fit=CoTiMAStanctArgs$fit,
-    intoverpop=CoTiMAStanctArgs$intoverpop,
-    stationary=CoTiMAStanctArgs$stationary,
-    plot=CoTiMAStanctArgs$plot,
-    derrind=CoTiMAStanctArgs$derrind,
-    optimize=CoTiMAStanctArgs$optimize,
-    optimcontrol=CoTiMAStanctArgs$optimcontrol,
-    nlcontrol=CoTiMAStanctArgs$nlcontrol,
-    nopriors=CoTiMAStanctArgs$nopriors,
-    chains=CoTiMAStanctArgs$chains,
-    forcerecompile=CoTiMAStanctArgs$forcerecompile,
-    savescores=CoTiMAStanctArgs$savescores,
-    gendata=CoTiMAStanctArgs$gendata,
-    #control=CoTiMAStanctArgs$control,
-    verbose=CoTiMAStanctArgs$verbose,
-    warmup=CoTiMAStanctArgs$warmup,
-    cores=coresToUse)
-
-  ### resample in parcels to avoid memory crash and speed up
-  if (!(is.null(CoTiMAStanctArgs$resample))) {
-    fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel) #, CoTiMAStanctArgs=CoTiMAStanctArgs)
-  }
-
-  invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
 
   # Extract estimates & statistics
   # account for changes in ctsem 3.4.1
@@ -473,7 +511,11 @@ ctmaFit <- function(
   }
 
   ### Numerically compute Optimal Time lag sensu Dormann & Griffin (2015)
-  driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE); driftMatrix # byrow set because order is different compared to mx model
+  if (ctsem341) {
+    driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=TRUE); driftMatrix # byrow set because order is different compared to mx model
+  } else {
+    driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE); driftMatrix # byrow set because order is different compared to mx model
+  }
   #if (!(is.null(drift))) driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=TRUE); driftMatrix # hard shortcut
   OTL <- function(timeRange) {
     OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]}
