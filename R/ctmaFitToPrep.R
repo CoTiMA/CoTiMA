@@ -4,7 +4,6 @@
 #'
 #' @export ctmaFitToPrep
 #'
-#' @examples
 ctmaFitToPrep <- function(ctmaFitObject=NULL)
 {
   newStudyList <- list()

@@ -9,9 +9,6 @@ ctmaFitToPrep(ctmaFitObject = NULL)
 \arguments{
 \item{ctmaFitObject}{ctmaFitObject}
 }
-\value{
-
-}
 \description{
 ctmaFitToPrep
 }
