@@ -2,7 +2,6 @@
 #'
 #' @param ctmaFitObject  ctmaFitObject
 #'
-#' @return
 #' @export ctmaFitToPrep
 #'
 #' @examples
