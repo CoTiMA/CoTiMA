@@ -1,3 +1,11 @@
+#' ctmaFitToPrep
+#'
+#' @param ctmaFitObject  ctmaFitObject
+#'
+#' @return
+#' @export ctmaFitToPrep
+#'
+#' @examples
 ctmaFitToPrep <- function(ctmaFitObject=NULL)
 {
   newStudyList <- list()
@@ -11,5 +19,5 @@ ctmaFitToPrep <- function(ctmaFitObject=NULL)
   newStudyList$rawData <- lapply(ctmaFitObject, function(x) x$rawData)
   newStudyList$n.studies  <- length(newStudyList$rawData)
 
-  return(newStudyList)
+  invisible(newStudyList)
 }
