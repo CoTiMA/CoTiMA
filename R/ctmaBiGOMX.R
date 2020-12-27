@@ -14,11 +14,8 @@
 #' @importFrom OpenMx vec2diag diag2vec
 #' @importFrom utils capture.output
 #'
-#' @return
+#' @export ctmaBiGOMX
 #'
-#' @export
-#'
-#' @examples
 #'
 ctmaBiGOMX <- function(
   ctmaInitFit=NULL,

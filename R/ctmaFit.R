@@ -191,7 +191,12 @@ ctmaFit <- function(
     if (!(is.null(drift))) driftNames <- c(t(matrix(drift, n.latent, n.latent, byrow=TRUE)))
     driftNames
 
-    if (is.null(invariantDrift)) invariantDrift <- driftNames
+    if (length(which(invariantDrift %in% driftNames)) == n.latent^2) invariantDriftOrig <- NULL
+    if (is.null(invariantDrift)) {
+      invariantDriftOrig <- NULL
+      invariantDrift <- driftNames
+    }
+
     usedTimeRange <- seq(0, 1.5*maxDelta, 1)
 
     tmp1 <- names(ctmaInitFit$modelResults$DIFFUSION[[1]]); tmp1
@@ -201,10 +206,7 @@ ctmaFit <- function(
       diffNames <- matrix(names(ctmaInitFit$modelResults$DIFFUSION[[1]]), n.latent); diffNames
     }
 
-
   }
-  #drift
-  #driftNames
 
   if (!(is.null(cluster))) {
     if (length(cluster) != n.studies) {
@@ -356,7 +358,7 @@ ctmaFit <- function(
     {
       stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
                                     DIFFUSION=matrix(diffNamesTmp, nrow=n.latent, ncol=n.latent),
-                                    DRIFT=driftNamesTmp,
+                                    DRIFT=matrix(driftNamesTmp, nrow=n.latent, ncol=n.latent, byrow=TRUE),
                                     LAMBDA=LAMBDA,
                                     CINT=matrix(0, nrow=n.latent, ncol=1),
                                     T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
@@ -367,7 +369,7 @@ ctmaFit <- function(
                                     TIpredNames = paste0("TI", 1:(n.studies-1+clusCounter)),
                                     TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter)))
       stanctModel$pars[, "indvarying"] <- FALSE
-
+      stanctModel$pars
 
       if (indVarying == TRUE) {
         print(paste0("#################################################################################"))
@@ -380,6 +382,7 @@ ctmaFit <- function(
         MANIFESTMEANS <- manifestNames; MANIFESTMEANS
 
         stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
+                                      DIFFUSION=matrix(diffNamesTmp, nrow=n.latent, ncol=n.latent),
                                       DRIFT=matrix(driftNamesTmp, nrow=n.latent, ncol=n.latent, byrow=TRUE),
                                       LAMBDA=LAMBDA,
                                       CINT=matrix(0, nrow=n.latent, ncol=1),
@@ -549,27 +552,28 @@ ctmaFit <- function(
   }
 
   #if (!(is.null(drift))) driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=TRUE); driftMatrix # hard shortcut
-  if (is.null(invariantDrift)) {
-  OTL <- function(timeRange) {
-    OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]}
-  # loop through all cross effects
-  optimalCrossLag <- matrix(NA, n.latent, n.latent)
-  maxCrossEffect <- matrix(NA, n.latent, n.latent)
-  for (j in 1:n.latent) {
-    for (h in 1:n.latent) {
-      if (j != h) {
-        targetRow <- j
-        targetCol <- h
-        if (driftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
-          targetParameters <- sapply(usedTimeRange, OTL)
-          maxCrossEffect[j,h] <- max(abs(targetParameters))
-          optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])*1+0
-        } else {
-          optimalCrossLag[j,h] <- NA
+  if (is.null(invariantDriftOrig)) {
+    OTL <- function(timeRange) {
+      OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]}
+    # loop through all cross effects
+    optimalCrossLag <- matrix(NA, n.latent, n.latent)
+    maxCrossEffect <- matrix(NA, n.latent, n.latent)
+    for (j in 1:n.latent) {
+      for (h in 1:n.latent) {
+        if (j != h) {
+          targetRow <- j
+          targetCol <- h
+          if (driftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
+            targetParameters <- sapply(usedTimeRange, OTL)
+            maxCrossEffect[j,h] <- max(abs(targetParameters))
+            optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])*1+0
+          } else {
+            optimalCrossLag[j,h] <- NA
+          }
         }
       }
     }
-  }
+    maxCrossEffect <- round(maxCrossEffect, digits)
   } else {
     optimalCrossLag <- "Drift Matrix is only partially invariant. (Generalizable) optimal intervall cannot be computed."
     maxCrossEffect <- "Drift Matrix is only partially invariant. (Generalizable) Largest effects cannot be computed."
@@ -621,7 +625,7 @@ ctmaFit <- function(
                                n.parameters = invariantDrift_estimatedParameters,
                                #df= invariantDrift_df,
                                opt.lag = optimalCrossLag,
-                               max.effects = round(maxCrossEffect, digits),
+                               max.effects = maxCrossEffect,
                                clus.effects=clus.effects))
 
   class(results) <- "CoTiMAFit"
