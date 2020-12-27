@@ -797,6 +797,8 @@ ctmaInit <- function(
       } else { # new version of ctsem
         model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "Mean"], n.latent, byrow=FALSE)); model_Drift_Coef[[i]]
       }
+      model_Drift_Coef
+      fullDriftNames
       #fullDriftNamesTmp <- fullDriftNames
       fullDriftNamesTmp <- c(t(matrix(fullDriftNames, n.latent))); fullDriftNamesTmp
       names(model_Drift_Coef[[i]]) <- c(fullDriftNamesTmp); model_Drift_Coef[[i]]
@@ -807,7 +809,7 @@ ctmaInit <- function(
       } else { # new version of ctsem
         model_Drift_SE[[i]] <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "sd"], n.latent, byrow=FALSE)); model_Drift_SE[[i]]
       }
-      names(model_Drift_SE[[i]]) <- c(fullDriftNames); model_Drift_SE[[i]]
+      names(model_Drift_SE[[i]]) <- c(fullDriftNamesTmp); model_Drift_SE[[i]]
 
       if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "2.5%"]) == 0 )) {
         tmp1 <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "2.5%"], n.latent, byrow=FALSE)); tmp1
@@ -817,8 +819,8 @@ ctmaInit <- function(
         tmp2 <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "97.5%"], n.latent, byrow=FALSE)); tmp2
       }
       model_Drift_CI[[i]] <- c(rbind(tmp1, tmp2)); model_Drift_CI[[i]]
-      tmp3 <- c(rbind(paste0(fullDriftNames, "LL"),
-                      paste0(fullDriftNames, "UL"))); tmp3
+      tmp3 <- c(rbind(paste0(fullDriftNamesTmp, "LL"),
+                      paste0(fullDriftNamesTmp, "UL"))); tmp3
       names(model_Drift_CI[[i]]) <- tmp3; model_Drift_CI[[i]]
 
       tmp <- grep("diff", rownames(resultsSummary$popmeans)); tmp
@@ -903,7 +905,7 @@ ctmaInit <- function(
     allStudies_estimatedParameters <- sum(unlist(studyFit_estimatedParameters)); allStudies_estimatedParameters
     allStudies_df <- "deprecated"
     allStudiesDRIFT_effects <- matrix(t(cbind(unlist(model_Drift_Coef), unlist(model_Drift_SE)) ), n.studies, 2*n.latent^2, byrow=T)
-    tmp1 <- fullDriftNames
+    tmp1 <- fullDriftNamesTmp
     tmp2 <- rep("SE", length(tmp1)); tmp2
     colnames(allStudiesDRIFT_effects) <- c(rbind(tmp1, tmp2)); allStudiesDRIFT_effects
 
