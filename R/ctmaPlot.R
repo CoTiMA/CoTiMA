@@ -448,16 +448,24 @@ ctmaPlot <- function(
             counter <- 1
 
             for (i in mod.values[[g]]) {
+              #i <- -2
               ctmaFitObject[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
               ctmaFitObject[[g]]$studyList[[counter]]$delta_t <- xValueForModValue[counter+1]; xValueForModValue[counter+1]
               ### compute moderated drift matrices
               # main effects
-              tmp1 <- ctmaFitObject[[g]]$summary$estimates[,3]; tmp1
-              tmp1 <- tmp1[grep("DRIFT", names(tmp1))]; tmp1
-              tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE); tmp1 # main effect
+              tmp1 <- ctmaFitObject[[g]]$modelResults$DRIFT; tmp1
+              #tmp0 <- grep("ean", colnames(ctmaFitObject[[g]]$summary$estimates)); tmp0
+              #tmp1 <- ctmaFitObject[[g]]$summary$estimates[,tmp0]; tmp1
+              #tmp1b <- tmp1[grep("DRIFT", names(tmp1))]; tmp1b
+              #if (length(tmp1b) == 0) tmp1b <- tmp1[grep("DRIFT", rownames(tmp1))]; tmp1b
+
+              tmp1 <- matrix(tmp1, n.latent[[g]], byrow=FALSE); tmp1 # main effect
               # moderator effects (could be partial)
-              tmp2 <- ctmaFitObject[[g]]$summary$mod.effects[,1]; tmp2
-              tmp3 <- rownames(ctmaFitObject[[g]]$summary$mod.effects); tmp3
+              #tmp2 <- ctmaFitObject[[g]]$summary$mod.effects[,1]; tmp2
+              ctmaFitObject[[g]]$modelResults$MOD
+              tmp2 <- ctmaFitObject[[g]]$modelResults$MOD[,1]; tmp2
+              #tmp3 <- rownames(ctmaFitObject[[g]]$summary$mod.effects); tmp3
+              tmp3 <- rownames(ctmaFitObject[[g]]$modelResults$MOD); tmp3
               tmp4 <- c()
               for (l in 1:length(driftNames[[g]])) {
                 tmp5 <- grep(unlist(driftNames[[g]][l]), tmp3); tmp4
@@ -485,7 +493,7 @@ ctmaPlot <- function(
               }
               counter <- counter +1
             }
-
+            #DRIFTCoeff
             allDiags <- c()
             for (i in 1:length(DRIFTCoeff[[g]])) allDiags <- c(allDiags, diag(DRIFTCoeff[[g]][[i]]))
 
@@ -521,7 +529,6 @@ ctmaPlot <- function(
 
         } # end computing discrete effects across time range
       } ### END Specification of Parameters for Plotting, Statistical Power, Optimal Lags ###
-
 
       print(paste0("#################################################################################"))
       print(paste0("################################### Plotting ####################################"))
@@ -559,6 +566,7 @@ ctmaPlot <- function(
           } # END for (stepCounter in 0:noOfSteps)
         } # END for (h in 1:toPlot)
       } # END for (g in 1:n.fitted.obj)
+
 
       ##################################### PLOTTING PARAMETERS ##########################################
       {
@@ -743,7 +751,9 @@ ctmaPlot <- function(
 
             if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
             for (h in 1:toPlot) {
+              #h <- 1
               currentPlotPair <- cbind(plotPairs[[g]][h, ,1], plotPairs[[g]][h, , 1+j])
+              currentPlotPair
               plot(currentPlotPair, type=plot..type, col=plot.col, lwd=plot.lwd, lty=plot.lty,
                    xlim = c(plot.xMin, plot.xMax),
                    ylim = c(plot.yMin, plot.yMax),
@@ -785,16 +795,17 @@ ctmaPlot <- function(
           graphics::axis(side=1, at = posForXLabel, labels=xLabels, las=2)
 
           # Add labels and title
+          driftNamesTmp <- c(t(matrix(driftNames[[1]], n.latent))); driftNamesTmp
           if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
-            graphics::title(main = paste0("Moderated Cross-lagged Effects of ", driftNames[[g]][j]), sub = NULL,
+            graphics::title(main = paste0("Moderated Cross-lagged Effects of ", driftNamesTmp[j]), sub = NULL,
                             xlab=paste0("Time Interval in ", timeUnit), ylab = "Cross-lagged Beta")
           } else {
-            graphics::title(main = paste0("Cross-lagged Effects of ", driftNames[[g]][j]), sub = NULL,
+            graphics::title(main = paste0("Cross-lagged Effects of ", driftNamesTmp[j]), sub = NULL,
                             xlab=paste0("Time Interval in ", timeUnit), ylab = "Cross-lagged Beta")
           }
 
           graphics::par(new=F)
-          tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNames[[g]][j], ".png"); tmp
+          tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNamesTmp[[g]][j], ".png"); tmp
           grDevices::dev.copy(grDevices::png, tmp, width = 8, height = 8, units = 'in', res = 300)
           grDevices::dev.off()
         } # END for (j in coeffSeq)

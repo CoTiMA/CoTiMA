@@ -116,7 +116,7 @@ ctmaModFit <- function(
         ctmaModFit$statisticsList$originalStudyNumbers[i] <- NA
         ctmaModFit$statisticsList$allSampleSizes[i+1] <- NA
         ctmaModFit$statisticsList$allTpoints[i] <- NA
-        (ctmaModFit$modelResults[[1]])
+        #(ctmaModFit$modelResults[[1]])
         ctmaModFit$modelResults[[1]][[i]] <- NULL
         ctmaModFit$modelResults[[2]][[i]] <- NULL
         ctmaModFit$modelResults[[3]][[i]] <- NULL
@@ -172,6 +172,13 @@ ctmaModFit <- function(
     manifestNames <- ctmaInitFit$studyFitList[[1]]$ctstanmodel$manifestNames; manifestNames
     driftNames <- c(t(matrix(ctmaInitFit$parameterNames$DRIFT, n.latent))); driftNames
 
+    tmp1 <- names(ctmaInitFit$modelResults$DIFFUSION[[1]]); tmp1
+    if (length(tmp1) != n.latent^2) {
+      diffusionNames <- OpenMx::vech2full(tmp1); diffusionNames
+    } else {
+      diffusionNames <- matrix(names(ctmaInitFit$modelResults$DIFFUSION[[1]]), n.latent); diffusionNames
+    }
+
     if (length(moderatedDrift) < 1) moderatedDrift <- driftNames
 
     usedTimeRange <- seq(0, 1.5*maxDelta, 1)
@@ -182,7 +189,7 @@ ctmaModFit <- function(
     if (!is.null(primaryStudyList)) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE); currentModerators
     ##currentModerators <- unlist(lapply(primaryStudyList, function(extract) extract$moderators[mod.number])); currentModerators
     if (is.na((currentModerators[length(currentModerators)])[[1]][1])) currentModerators <- currentModerators[-dim(currentModerators)[1],]; currentModerators
-    if (is.null(dim(currentModerators)[1])) currentModerators <- matrix(currentModerators, ncol=1)
+    if (is.null(dim(currentModerators)[1])) currentModerators <- matrix(currentModerators, ncol=1); currentModerators
 
     if (any(is.na(currentModerators)) == TRUE) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
@@ -349,29 +356,38 @@ ctmaModFit <- function(
       n.all.moderators <- length(colnames(datalong)[grep("TI", colnames(datalong))])-n.studies+1; n.all.moderators
 
       driftNamesTmp <- driftNames
+      diffNamesTmp <- c(diffusionNames); diffNamesTmp
       meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
       if (meanLag > 6) {
         counter <- 0
         for (h in 1:(n.latent)) {
           for (j in 1:(n.latent)) {
             counter <- counter + 1
-            if (h == j) driftNamesTmp[counter] <- paste0(driftNamesTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
+            if (h == j) {
+              driftNamesTmp[counter] <- paste0(driftNamesTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
+              diffNamesTmp[counter] <- paste0(diffNamesTmp[counter], paste0("|log1p_exp(param *.1 +2)"))
+            }
           }
         }
       }
+      tmp0 <- matrix(diffNamesTmp, n.latent); tmp0
+      tmp0[upper.tri(tmp0, diag=FALSE)] <- 0; tmp0
+      diffNamesTmp <- tmp0; diffNamesTmp
+
 
       stanctModModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
-                                DRIFT=matrix(driftNamesTmp, nrow=n.latent, ncol=n.latent, byrow=TRUE),
-                                LAMBDA=diag(n.latent),
-                                CINT=matrix(0, nrow=n.latent, ncol=1),
-                                T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                MANIFESTMEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent),
-                                MANIFESTTRAITVAR = 'auto',
-                                type = 'stanct',
-                                n.TIpred = (n.studies-1+n.all.moderators),
-                                TIpredNames = paste0("TI", 1:(n.studies-1+n.all.moderators)),
-                                TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+n.all.moderators)))
+                                       DIFFUSION=matrix(diffNamesTmp, nrow=n.latent, ncol=n.latent),
+                                       DRIFT=matrix(driftNamesTmp, nrow=n.latent, ncol=n.latent, byrow=FALSE),
+                                       LAMBDA=diag(n.latent),
+                                       CINT=matrix(0, nrow=n.latent, ncol=1),
+                                       T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                       MANIFESTMEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                       MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent),
+                                       MANIFESTTRAITVAR = 'auto',
+                                       type = 'stanct',
+                                       n.TIpred = (n.studies-1+n.all.moderators),
+                                       TIpredNames = paste0("TI", 1:(n.studies-1+n.all.moderators)),
+                                       TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+n.all.moderators)))
       stanctModModel$pars[, "indvarying"] <- FALSE
 
       stanctModModel$pars[stanctModModel$pars$matrix %in% 'DRIFT',paste0(stanctModModel$TIpredNames,'_effect')] <- TRUE
@@ -389,7 +405,6 @@ ctmaModFit <- function(
       tmp2 <- which(!(stanctModModel$pars[tmp1, "param"] %in% moderatedDrift)); tmp2
       stanctModModel$pars[tmp1[tmp2], paste0(stanctModModel$TIpredNames,'_effect')] <- FALSE
 
-
       # DIFFUSION effects (not to be moderated):
       tmp1 <- which(stanctModModel$pars$matrix == "DIFFUSION"); tmp1
       stanctModModel$pars[tmp1, paste0(stanctModModel$TIpredNames[(n.studies):(n.studies+n.all.moderators-1)],'_effect')] <- FALSE
@@ -398,6 +413,7 @@ ctmaModFit <- function(
       tmp1 <- which(stanctModModel$pars$matrix == "T0VAR"); tmp1
       stanctModModel$pars[tmp1, paste0(stanctModModel$TIpredNames[(n.studies):(n.studies+n.all.moderators-1)],'_effect')] <- FALSE
 
+      #stanctModModel$pars
       #stanctModModel$pars[, 1:4]
 
       fitStanctModModel <- ctsem::ctStanFit(
@@ -425,7 +441,6 @@ ctmaModFit <- function(
         verbose=CoTiMAStanctArgs$verbose,
         cores=coresToUse)
 
-
       if (!(is.null(CoTiMAStanctArgs$resample))) {
         fitStanctModModel <- ctmaStanResample(ctmaFittedModel=fitStanctModModel) #, CoTiMAStanctArgs=CoTiMAStanctArgs)
       }
@@ -433,6 +448,7 @@ ctmaModFit <- function(
       stanctModFit <- summary(fitStanctModModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
 
     }
+
 
     # Extract estimates & statistics (account for changes introduced by ctsem 3.4.1)
     targetCol <- grep("ean", colnames(stanctModFit$parmatrices)); targetCol
@@ -460,7 +476,6 @@ ctmaModFit <- function(
         ctsem341 <- FALSE
       }
     }
-    #modDrift_Coeff
 
     ## moderator effects
     tmp1 <- tmp2 <- c()
@@ -518,19 +533,22 @@ ctmaModFit <- function(
 
     modDrift_Minus2LogLikelihood  <- -2*stanctModFit$loglik; modDrift_Minus2LogLikelihood
     modDrift_estimatedParameters  <- stanctModFit$npars; modDrift_estimatedParameters
-    modDrift_df <- NULL
+    modDrift_df <- "deprecated"
     model_Drift_Coef <- modDrift_Coeff[grep("DRIFT", rownames(modDrift_Coeff)), 3]; model_Drift_Coef
+    #names(model_Drift_Coef) <- driftNames; model_Drift_Coef
     # re-sort
-    if (!ctsem341) {
-      names(model_Drift_Coef) <- driftNames
-      } else {
-        names(model_Drift_Coef) <- c(matrix(driftNames, n.latent, byrow=T))
-      }
-    model_Drift_Coef
+    #driftNames
+    #if (!ctsem341) {
+    names(model_Drift_Coef) <- driftNames
+    #  } else {
+    #    names(model_Drift_Coef) <- c(matrix(driftNames, n.latent, byrow=T))
+    #  }
+    names(model_Drift_Coef) <- paste0("DRIFT ", names(model_Drift_Coef) ); model_Drift_Coef
 
     model_Diffusion_Coef <- modDrift_Coeff[grep("DIFFUSIONcov", rownames(modDrift_Coeff)), 3]; model_Diffusion_Coef
     if (!ctsem341) model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
     names(model_Diffusion_Coef) <- driftNames; model_Diffusion_Coef
+    names(model_Diffusion_Coef) <- paste0("diff ", names(model_Diffusion_Coef) ); model_Diffusion_Coef
 
     if (!ctsem341) {
       model_T0var_Coef <- modDrift_Coeff[grep("T0VAR", rownames(modDrift_Coeff)), 3]
@@ -539,6 +557,7 @@ ctmaModFit <- function(
       model_T0var_Coef <- modDrift_Coeff[grep("T0cov", rownames(modDrift_Coeff)), 3]
     }
     names(model_T0var_Coef) <- driftNames; model_Diffusion_Coef
+    names(model_T0var_Coef) <- paste0("T0var ", names(model_T0var_Coef) ); model_T0var_Coef
 
     allResults <- list(estimates=modDrift_Coeff, Minus2LL=modDrift_Minus2LogLikelihood,
                        n.parameters=modDrift_estimatedParameters, df=modDrift_df,

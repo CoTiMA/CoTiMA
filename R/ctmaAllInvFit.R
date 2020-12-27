@@ -16,7 +16,6 @@
 #' @param saveAllInvFit saveAllInvFit
 #' @param silentOverwrite silentOverwrite
 #'
-#' @return
 #' @export ctmaAllInvFit
 #'
 ctmaAllInvFit <- function(

@@ -153,39 +153,66 @@ ctmaEqual <- function(
 
   equalDriftStanctFit <- summary(fitStanctModel, digits=digits)
 
+  # Extract estimates & statistics
+  # account for changes in ctsem 3.4.1
+  if ("matrix" %in% colnames(equalDriftStanctFit$parmatrices)) ctsem341 <- TRUE else ctsem341 <- FALSE
+  tmpMean <- grep("ean", colnames(equalDriftStanctFit$parmatrices)); tmpMean
+  tmpSd <- tmpMean+1; tmpSd
+  Tvalues <- equalDriftStanctFit$parmatrices[,tmpMean]/equalDriftStanctFit$parmatrices[,tmpSd]; Tvalues
+  equalDrift_Coeff <- cbind(equalDriftStanctFit$parmatrices, Tvalues); equalDrift_Coeff
+  equalDrift_Coeff[, tmpMean:(dim(equalDrift_Coeff)[2])] <- round(equalDrift_Coeff[, tmpMean:(dim(equalDrift_Coeff)[2])], digits); equalDrift_Coeff
 
-  Tvalues <- equalDriftStanctFit$parmatrices[,3]/equalDriftStanctFit$parmatrices[,4]; Tvalues
-  equalDrift_Coeff <- round(cbind(equalDriftStanctFit$parmatrices, Tvalues), digits); equalDrift_Coeff
   # re-label
-  tmp1 <- which(rownames(equalDrift_Coeff) == "DRIFT"); tmp1
-  rownames(equalDrift_Coeff)[tmp1] <- "DRIFT " # space at the end for later extraction
-  tmp2 <- tmp1[equalDriftPos]; tmp2
-  tmp3 <- paste0(rownames(equalDrift_Coeff)[tmp2] , "(invariant & equal)"); tmp3
-  #tmp1 <- which(rownames(equalDrift_Coeff) %in% newDriftLabel); tmp1
-  #tmp2 <- paste0(rownames(equalDrift_Coeff)[tmp1] , " (invariant)"); tmp2
-  #rownames(equalDrift_Coeff)[tmp1] <- tmp2; equalDrift_Coeff
-  rownames(equalDrift_Coeff)[tmp2] <- tmp3; equalDrift_Coeff
+  if (ctsem341) {
+    tmp1 <- which(equalDrift_Coeff[, "matrix"] == "DRIFT")
+    driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); driftNamesTmp
+    rownames(equalDrift_Coeff) <- paste0(equalDrift_Coeff[, c("matrix")], "_",
+                                         equalDrift_Coeff[, c("row")], "_",
+                                         equalDrift_Coeff[, c("col")])
+  } else {
+    tmp1 <- which(rownames(equalDrift_Coeff) == "DRIFT")
+    driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); driftNamesTmp
+  }
+
+  driftNamesTmp[equalDriftPos] <- paste0(driftNamesTmp[equalDriftPos], " (invariant & equal)"); driftNamesTmp
+  rownames(equalDrift_Coeff)[tmp1] <- driftNamesTmp; equalDrift_Coeff
+  tmp2 <- grep("toV", rownames(equalDrift_Coeff)); tmp2
+  #tmp2 <- grep("invariant", rownames(equalDrift_Coeff)); tmp2
+  #tmp3 <- paste0("DRIFT ", rownames(equalDrift_Coeff)[tmp2] , " (invariant & equal)"); tmp3
+  #rownames(equalDrift_Coeff)[tmp2] <- tmp3; equalDrift_Coeff
+  #tmp4 <- tmp1[which(!(tmp1 %in% tmp2))]; tmp4 # change to "DRIFT " for later extraction
+  #rownames(invariantDrift_Coeff)[tmp4] <- paste0("DRIFT ", driftNames[which(!(tmp1 %in% tmp2))]); invariantDrift_Coeff
+  rownames(equalDrift_Coeff)[tmp2] <- paste0("DRIFT ", rownames(equalDrift_Coeff)[tmp2]); equalDrift_Coeff
+
+
+  #tmp1 <- which(rownames(equalDrift_Coeff) == "DRIFT"); tmp1
+  #rownames(equalDrift_Coeff)[tmp1] <- "DRIFT " # space at the end for later extraction
+  #tmp2 <- tmp1[equalDriftPos]; tmp2
+  #tmp3 <- paste0(rownames(equalDrift_Coeff)[tmp2] , "(invariant & equal)"); tmp3
+  ##tmp1 <- which(rownames(equalDrift_Coeff) %in% newDriftLabel); tmp1
+  ##tmp2 <- paste0(rownames(equalDrift_Coeff)[tmp1] , " (invariant)"); tmp2
+  ##rownames(equalDrift_Coeff)[tmp1] <- tmp2; equalDrift_Coeff
+  #rownames(equalDrift_Coeff)[tmp2] <- tmp3; equalDrift_Coeff
   #
   equalDrift_Minus2LogLikelihood  <- -2*equalDriftStanctFit$loglik; equalDrift_Minus2LogLikelihood
   equalDrift_estimatedParameters  <- equalDriftStanctFit$npars; equalDrift_estimatedParameters
-  #equalDrift_df <- ((n.latent * unlist(allTpoints)) %*% ((n.latent * unlist(allTpoints)) +1 )) / 2 -
-  #  equalDrift_estimatedParameters; equalDrift_df
-  #n.par.first.lag <- ((2 * n.latent) * (2 * n.latent + 1)) / 2; n.par.first.lag
-  #n.par.later.lag <- ((2 * n.latent) * (2 * n.latent - 1)) / 2; n.par.later.lag
-  #n.later.lags <- allTpoints - n.latent; n.later.lags
-  #equalDrift_df <- sum(n.later.lags * n.par.later.lag); equalDrift_df
-  equalDrift_df <- NULL
+  equalDrift_df <- "deprecated"
 
-  model_Drift_Coef <- equalDrift_Coeff[grep("DRIFT ", rownames(equalDrift_Coeff)), 3]; model_Drift_Coef
-  names(model_Drift_Coef) <- driftNames
+  model_Drift_Coef <- equalDrift_Coeff[grep("DRIFT ", rownames(equalDrift_Coeff)), tmpMean]; model_Drift_Coef
+  names(model_Drift_Coef) <- rownames(equalDrift_Coeff)[grep("DRIFT ", rownames(equalDrift_Coeff))]
   names(model_Drift_Coef)[equalDriftPos] <- newDriftLabel; model_Drift_Coef
+  names(model_Drift_Coef) <- gsub("DRIFT ", "", names(model_Drift_Coef)); model_Drift_Coef
 
-  model_Diffusion_Coef <- equalDrift_Coeff[(rownames(equalDrift_Coeff) == "DIFFUSIONcov"), 3]; model_Diffusion_Coef
-  model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
+  model_Diffusion_Coef <- equalDrift_Coeff[grep("DIFFUSIONcov", substr(rownames(equalDrift_Coeff), 1, 12)), tmpMean] ; model_Diffusion_Coef
+  if (!(ctsem341)) model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
   names(model_Diffusion_Coef) <- paste0("diff_", driftNames); model_Diffusion_Coef
 
-  model_T0var_Coef <- equalDrift_Coeff[(rownames(equalDrift_Coeff) == "T0VAR"), 3]; model_T0var_Coef
-  model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
+  if (ctsem341) {
+    model_T0var_Coef <- equalDrift_Coeff[grep("T0cov", substr(rownames(equalDrift_Coeff), 1, 5)), tmpMean]; model_T0var_Coef
+  } else {
+    model_T0var_Coef <- equalDrift_Coeff[grep("T0VAR", substr(rownames(equalDrift_Coeff), 1, 5)), tmpMean]; model_T0var_Coef
+    model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
+  }
   names(model_T0var_Coef) <- paste0("T0VAR_", driftNames); model_T0var_Coef
 
   end.time <- Sys.time()
@@ -208,8 +235,8 @@ ctmaEqual <- function(
                   equalDrift=newDriftLabel,
                   summary=list(#model=paste(targetNames, collapse=" equal to "),
                                model=newDriftLabel,
-                               estimates=round(equalDrift_Coeff, digits), #[]
-                               minus2ll= round(equalDrift_Minus2LogLikelihood, digits),
+                               estimates=equalDrift_Coeff,
+                               minus2ll=equalDrift_Minus2LogLikelihood,
                                n.parameters = round(equalDrift_estimatedParameters, digits)))
   class(results) <- "CoTiMAFit"
 

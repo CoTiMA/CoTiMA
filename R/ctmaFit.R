@@ -187,10 +187,24 @@ ctmaFit <- function(
     manifestNames <- ctmaInitFit$studyFitList[[1]]$ctstanmodel$manifestNames; manifestNames
     if (is.null(manifestNames)) n.manifest <- 0 else n.manifest <- length(manifestNames)
     driftNames <- ctmaInitFit$parameterNames$DRIFT; driftNames
-    if (!(is.null(drift))) driftNames <- c(t(matrix(drift, n.latent, n.latent)))
+
+    if (!(is.null(drift))) driftNames <- c(t(matrix(drift, n.latent, n.latent, byrow=TRUE)))
+    driftNames
+
     if (is.null(invariantDrift)) invariantDrift <- driftNames
     usedTimeRange <- seq(0, 1.5*maxDelta, 1)
+
+    tmp1 <- names(ctmaInitFit$modelResults$DIFFUSION[[1]]); tmp1
+    if (length(tmp1) != n.latent^2) {
+      diffNames <- OpenMx::vech2full(tmp1); diffNames
+    } else {
+      diffNames <- matrix(names(ctmaInitFit$modelResults$DIFFUSION[[1]]), n.latent); diffNames
+    }
+
+
   }
+  #drift
+  #driftNames
 
   if (!(is.null(cluster))) {
     if (length(cluster) != n.studies) {
@@ -305,6 +319,7 @@ ctmaFit <- function(
       DRIFT <- matrix(driftNames, n.latent, n.latent, byrow = TRUE); DRIFT
       #DRIFT <- matrix(driftNames, n.latent, n.latent); DRIFT
     }
+    driftNames
 
     tmp2 <- tmp1$matrix=="LAMBDA"; tmp2
     LAMBDA <- tmp1[tmp2,]$value; LAMBDA
@@ -317,23 +332,31 @@ ctmaFit <- function(
 
     # scale Drift to cover changes in ctsem 3.4.1 (this would be for ctmaFit/ctmaModFit, but for Init individual study modification is done later)
     driftNamesTmp <- DRIFT
+    diffNamesTmp  <- diffNames
     meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
     if (meanLag > 6) {
       counter <- 0
       for (h in 1:(n.latent)) {
         for (j in 1:(n.latent)) {
           counter <- counter + 1
-          if (h == j) driftNamesTmp[counter] <- paste0(driftNamesTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
+          #if (h == j) driftNamesTmp[counter] <- paste0(driftNamesTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
+          if (h == j) {
+            driftNamesTmp[counter] <- paste0(driftNamesTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
+            diffNamesTmp[counter] <- paste0(diffNamesTmp[counter], paste0("|log1p_exp(param *.1 +2)"))
+          }
         }
       }
     }
     #driftNamesTmp
-
+    tmp0 <- matrix(diffNamesTmp, n.latent); tmp0
+    tmp0[upper.tri(tmp0, diag=FALSE)] <- 0; tmp0
+    diffNamesTmp <- tmp0; diffNamesTmp
 
     # Make model with max time points
     {
       stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
-                                    DRIFT=matrix(driftNamesTmp, nrow=n.latent, ncol=n.latent, byrow=TRUE),
+                                    DIFFUSION=matrix(diffNamesTmp, nrow=n.latent, ncol=n.latent),
+                                    DRIFT=driftNamesTmp,
                                     LAMBDA=LAMBDA,
                                     CINT=matrix(0, nrow=n.latent, ncol=1),
                                     T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
@@ -423,6 +446,7 @@ ctmaFit <- function(
     invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
   } # end if (allInvModel)
 
+  #invariantDriftStanctFit$popmeans
 
   # Extract estimates & statistics
   # account for changes in ctsem 3.4.1
@@ -434,8 +458,9 @@ ctmaFit <- function(
   invariantDrift_Coeff[, tmpMean:(dim(invariantDrift_Coeff)[2])] <- round(invariantDrift_Coeff[, tmpMean:(dim(invariantDrift_Coeff)[2])], digits); invariantDrift_Coeff
   # re-label
   if (ctsem341) {
+    #driftNames
     tmp1 <- which(invariantDrift_Coeff[, "matrix"] == "DRIFT")
-    driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); driftNamesTmp
+    driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); driftNamesTmp
     rownames(invariantDrift_Coeff) <- paste0(invariantDrift_Coeff[, c("matrix")], "_",
                                              invariantDrift_Coeff[, c("row")], "_",
                                              invariantDrift_Coeff[, c("col")])
@@ -443,6 +468,9 @@ ctmaFit <- function(
     tmp1 <- which(rownames(invariantDrift_Coeff) == "DRIFT")
     driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); driftNamesTmp
   }
+  #invariantDrift
+  #rownames(invariantDrift_Coeff)[tmp1]
+  #driftNamesTmp
   rownames(invariantDrift_Coeff)[tmp1] <- driftNamesTmp; invariantDrift_Coeff
   tmp2 <- which(rownames(invariantDrift_Coeff) %in% invariantDrift); tmp2
   tmp3 <- paste0("DRIFT ", rownames(invariantDrift_Coeff)[tmp2] , " (invariant)"); tmp3
@@ -456,7 +484,10 @@ ctmaFit <- function(
   invariantDrift_df <- "deprecated"
 
   model_Drift_Coef <- invariantDrift_Coeff[(grep("DRIFT ", rownames(invariantDrift_Coeff))), tmpMean]; model_Drift_Coef
-  names(model_Drift_Coef) <- driftNamesTmp
+  tmp1 <- which(driftNamesTmp %in% invariantDrift); tmp1
+  driftNamesTmp2 <- driftNamesTmp
+  driftNamesTmp2[tmp1] <- paste0(driftNamesTmp2[tmp1], " (invariant)"); driftNamesTmp2
+  names(model_Drift_Coef) <- driftNamesTmp2
 
   model_Diffusion_Coef <- invariantDrift_Coeff[(rownames(invariantDrift_Coeff) == "DIFFUSIONcov"), tmpMean]; model_Diffusion_Coef
   if (length(model_Diffusion_Coef) < 1) {
@@ -516,7 +547,9 @@ ctmaFit <- function(
   } else {
     driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE); driftMatrix # byrow set because order is different compared to mx model
   }
+
   #if (!(is.null(drift))) driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=TRUE); driftMatrix # hard shortcut
+  if (is.null(invariantDrift)) {
   OTL <- function(timeRange) {
     OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]}
   # loop through all cross effects
@@ -536,6 +569,10 @@ ctmaFit <- function(
         }
       }
     }
+  }
+  } else {
+    optimalCrossLag <- "Drift Matrix is only partially invariant. (Generalizable) optimal intervall cannot be computed."
+    maxCrossEffect <- "Drift Matrix is only partially invariant. (Generalizable) Largest effects cannot be computed."
   }
   #} ## END  fit stanct model
 
@@ -561,7 +598,7 @@ ctmaFit <- function(
 
   if (!(is.null(cluster))) {
     clus.effects=list(effects=clusTI_Coeff, weights=cluster.weights, sizes=cluster.sizes,
-                                             cluster.specific.effect=cluster.specific.effect, note=cluster.note)
+                      cluster.specific.effect=cluster.specific.effect, note=cluster.note)
   } else {
     clus.effects <- NULL
   }
