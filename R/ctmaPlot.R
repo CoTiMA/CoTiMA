@@ -749,7 +749,7 @@ ctmaPlot <- function(
             if (is.null(ctmaFitObject[[g]]$dot.pch)) dot.plot.pch <- 16 else dot.plot.pch <- ctmaFitObject[[g]]$dot.pch; dot.plot.pch
             if (is.null(ctmaFitObject[[g]]$dot.cex)) dot.plot.cex <- 2 else dot.plot.cex <- ctmaFitObject[[g]]$dot.cex; dot.plot.cex
 
-            if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
+            #if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
             for (h in 1:toPlot) {
               #h <- 1
               currentPlotPair <- cbind(plotPairs[[g]][h, ,1], plotPairs[[g]][h, , 1+j])
@@ -795,8 +795,11 @@ ctmaPlot <- function(
           graphics::axis(side=1, at = posForXLabel, labels=xLabels, las=2)
 
           # Add labels and title
-          #driftNamesTmp <- c(t(matrix(driftNames[[1]], n.latent))); driftNamesTmp
-          driftNamesTmp <- driftNames[[1]]
+          if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
+            driftNamesTmp <- c(t(matrix(driftNames[[1]], n.latent))); driftNamesTmp
+          } else {
+            driftNamesTmp <- driftNames[[1]]
+          }
           if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
             graphics::title(main = paste0("Moderated Cross-lagged Effects of ", driftNamesTmp[j]), sub = NULL,
                             xlab=paste0("Time Interval in ", timeUnit), ylab = "Cross-lagged Beta")

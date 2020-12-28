@@ -193,6 +193,7 @@ ctmaFit <- function(
     if (!(is.null(drift))) driftNames <- c(t(matrix(drift, n.latent, n.latent, byrow=TRUE)))
     driftNames
 
+    invariantDriftOrig <- invariantDrift
     if (length(which(invariantDrift %in% driftNames)) == n.latent^2) invariantDriftOrig <- NULL
     if (is.null(invariantDrift)) {
       invariantDriftOrig <- NULL
@@ -320,7 +321,8 @@ ctmaFit <- function(
       DRIFT <- tmp1[tmp2,]$param; DRIFT
       DRIFT[is.na(DRIFT)] <- "0"; DRIFT
     } else {
-      DRIFT <- matrix(driftNames, n.latent, n.latent, byrow = TRUE); DRIFT
+      #DRIFT <- matrix(driftNames, n.latent, n.latent, byrow = TRUE); DRIFT
+      DRIFT <- driftNames; DRIFT
       #DRIFT <- matrix(driftNames, n.latent, n.latent); DRIFT
     }
 
@@ -359,7 +361,8 @@ ctmaFit <- function(
     {
       stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
                                     DIFFUSION=matrix(diffNamesTmp, nrow=n.latent, ncol=n.latent),
-                                    DRIFT=driftNamesTmp, # matrix(c(driftNamesTmp), nrow=n.latent, ncol=n.latent, byrow=TRUE),
+                                    #DRIFT=driftNamesTmp, # matrix(c(driftNamesTmp), nrow=n.latent, ncol=n.latent, byrow=TRUE),
+                                    DRIFT=matrix(c(driftNamesTmp), nrow=n.latent, ncol=n.latent, byrow=TRUE),
                                     LAMBDA=LAMBDA,
                                     CINT=matrix(0, nrow=n.latent, ncol=1),
                                     T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),

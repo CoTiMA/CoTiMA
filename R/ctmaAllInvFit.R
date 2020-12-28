@@ -15,6 +15,7 @@
 #' @param loadAllInvFit loadAllInvFit
 #' @param saveAllInvFit saveAllInvFit
 #' @param silentOverwrite silentOverwrite
+#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)
 #'
 #' @export ctmaAllInvFit
 #'
@@ -33,7 +34,8 @@ ctmaAllInvFit <- function(
   verbose=NULL,
   loadAllInvFit=c(),
   saveAllInvFit=c(),
-  silentOverwrite=FALSE
+  silentOverwrite=FALSE,
+  customPar=TRUE
 )
 {
 
@@ -86,6 +88,13 @@ ctmaAllInvFit <- function(
     if (is.null(manifestNames)) n.manifest <- 0 else n.manifest <- length(manifestNames)
     driftNames <- ctmaInitFit$parameterNames$DRIFT; driftNames
     #if (!(is.null(drift))) driftNames <- c(t(matrix(drift, n.latent, n.latent)))
+    tmp1 <- names(ctmaInitFit$modelResults$DIFFUSION[[1]]); tmp1
+    if (length(tmp1) != n.latent^2) {
+      diffNames <- OpenMx::vech2full(tmp1); diffNames
+    } else {
+      diffNames <- matrix(names(ctmaInitFit$modelResults$DIFFUSION[[1]]), n.latent); diffNames
+    }
+
   }
 
   #######################################################################################################################
@@ -133,13 +142,18 @@ ctmaAllInvFit <- function(
 
   # scale Drift to cover changes in ctsem 3.4.1 (this would be for ctmaFit/ctmaModFit, but for Init individual study modification is done later)
   driftNamesTmp <- driftNames
+  diffNamesTmp  <- diffNames
   meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
-  if (meanLag > 6) {
+  if ((meanLag > 6) & (customPar)) {
     counter <- 0
     for (h in 1:(n.latent)) {
       for (j in 1:(n.latent)) {
         counter <- counter + 1
-        if (h == j) driftNamesTmp[counter] <- paste0(driftNamesTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
+        #if (h == j) driftNamesTmp[counter] <- paste0(driftNamesTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
+        if (h == j) {
+          driftNamesTmp[counter] <- paste0(driftNamesTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
+          diffNamesTmp[counter] <- paste0(diffNamesTmp[counter], paste0("|log1p_exp(param *.1 +2)"))
+        }
       }
     }
   }
@@ -148,6 +162,7 @@ ctmaAllInvFit <- function(
   # all fixed model is a model with no TI predictors (identical to ctsemModel)
   # CHD allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
   allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
+                           DIFFUSION=matrix(diffNamesTmp, nrow=n.latent, ncol=n.latent),
                            DRIFT=matrix(driftNamesTmp, nrow=n.latent, ncol=n.latent, byrow=FALSE),
                            LAMBDA=diag(n.latent),
                            type='stanct',

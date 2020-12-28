@@ -25,7 +25,8 @@ ctmaModFit(
   finishsamples = NULL,
   iter = NULL,
   chains = NULL,
-  verbose = NULL
+  verbose = NULL,
+  customPar = TRUE
 )
 }
 \arguments{

@@ -19,7 +19,8 @@ ctmaAllInvFit(
   verbose = NULL,
   loadAllInvFit = c(),
   saveAllInvFit = c(),
-  silentOverwrite = FALSE
+  silentOverwrite = FALSE,
+  customPar = TRUE
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ ctmaAllInvFit(
 \item{saveAllInvFit}{saveAllInvFit}
 
 \item{silentOverwrite}{silentOverwrite}
+
+\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)}
 }
 \description{
 ctmaAllInvFit

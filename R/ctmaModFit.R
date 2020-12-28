@@ -68,7 +68,8 @@ ctmaModFit <- function(
   finishsamples=NULL,
   iter=NULL,
   chains=NULL,
-  verbose=NULL
+  verbose=NULL,
+  customPar=TRUE
 )
 {  # begin function definition (until end of file)
 

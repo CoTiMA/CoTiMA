@@ -25,6 +25,7 @@
 #' @param iter number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
+#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
@@ -61,7 +62,8 @@ ctmaPower <- function(
   finishsamples=NULL,
   iter=NULL,
   chains=NULL,
-  verbose=NULL
+  verbose=NULL,
+  customPar=TRUE
 )
 
 {  # begin function definition (until end of file)
@@ -316,7 +318,8 @@ ctmaPower <- function(
                                     finishsamples=finishsamples,
                                     iter=iter,
                                     chains=chains,
-                                    verbose=verbose)
+                                    verbose=verbose,
+                                    customPar=TRUE)
     cat( "\n", "Computing results summary of all invariant model.", "\n")
     allInvModelFitSummary <- summary(allInvModelFit, digits=digits)
   }
