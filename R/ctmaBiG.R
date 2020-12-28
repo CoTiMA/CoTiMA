@@ -11,6 +11,7 @@
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
 #' @importFrom stats var lm pnorm
+#' @importFrom zcurve zcurve
 #'
 #' @export ctmaBiG
 #'
@@ -42,10 +43,10 @@ ctmaBiG <- function(
     cat(crayon::red$bold(" I found old OpenMx-fitted Init fits. Will try ctmaBiGOMX!", sep="\n"))
     cat(crayon::red$bold(" ", " ", sep="\n"))
     result <- ctmaBiGOMX(ctmaInitFit=ctmaInitFit,
-                          activeDirectory=activeDirectory,
-                          PETPEESEalpha=PETPEESEalpha,
-                          activateRPB=activateRPB,
-                          digits=digits)
+                         activeDirectory=activeDirectory,
+                         PETPEESEalpha=PETPEESEalpha,
+                         activateRPB=activateRPB,
+                         digits=digits)
 
     class(results) <- "CoTiMAFit"
 
@@ -73,6 +74,7 @@ ctmaBiG <- function(
                                names(ctmaInitFit$modelResults$DIFFUSION[[1]]),
                                names(ctmaInitFit$modelResults$T0VAR[[1]])); all_Coeff
       all_Coeff
+
 
       # compute SE
       all_SE <- matrix(NA, ncol=dim(all_Coeff)[2], nrow=dim(all_Coeff)[1]); all_SE
@@ -281,7 +283,32 @@ ctmaBiG <- function(
       WLSDriftSE_fit <- summary(WLSDrift_fit[[ii]])$coefficients[2]; WLSDriftSE_fit; FixedEffect_DriftSE[[ii]] # should outperform FixedEffect_DriftSE
     }
 
-    # Combine results
+
+    ############################################## zcurve Analysis ###################################################
+    zFit <- list()
+    for (i in 1: dim(DRIFTCoeffSND)[2]) {
+      tmp1 <- abs(DRIFTCoeffSND[, i]); tmp1
+      zFit[[i]] <- summary(zcurve::zcurve(z=tmp1))
+    }
+    names(zFit) <- paste0("Z-Curve 2.0 analysis of ", colnames(DRIFTCoeffSND)); zFit
+    ## format results
+    #z.CurveResults <- matrix(NA, ncol=length(zFit), nrow=19)
+    #for (h in 1:length(zFit)) {
+    #  stopRow = 0
+    #  for (j in 2:length(zFit[[i]])) {
+    #    startRow  <- stopRow + 1; startRow
+    #    stopRow <- startRow + length(unlist((zFit[[h]][j]))) - 1; stopRow
+    #    unlist((zFit[[h]][j]))
+    #    if (j == 2) z.CurveResults[startRow:stopRow, h] <- round(c((matrix(unlist((zFit[[h]][j])), ncol=2, byrow=TRUE))), digits)
+    #    if (j != 2) z.CurveResults[startRow:stopRow, h] <- unlist((zFit[[h]][j]))
+    #  }
+    #}
+    #rownamesPart <- c("ERR", "ERR lower CI", "ERR upper CI", "EDR", "EDR lower CI", "EDR upper CI" )
+    #rownamesPart <- c(rownamesPart, names(unlist((zFit[[1]][3]))), names(unlist((zFit[[1]][4]))), names(unlist((zFit[[1]][5]))) )
+    #rownames(z.CurveResults) <- rownamesPart
+
+
+    ############################################## Combine Results ###################################################
     {
       PETDrift_fit[[1]]$coefficients
       PETDrift_fit[[2]]$coefficients
@@ -337,7 +364,8 @@ ctmaBiG <- function(
                                                 "Random Effects of Drift Coefficients"=round(RandomEffectDriftResults, digits),
                                                 "PET-PEESE corrections"=round(PET_PEESE_DRIFTresults, digits),
                                                 "Egger's tests"=round(eggerTest, digits),
-                                                "Egger's tests Alt. Version"= FREAResults)))
+                                                "Egger's tests Alt. Version"= FREAResults,
+                                                "Z-Curve 2.0 Results:"=zFit)))
     class(results) <- "CoTiMAFit"
 
     invisible(results)

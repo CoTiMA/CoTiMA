@@ -13,6 +13,7 @@
 #' @importFrom stats lm pnorm
 #' @importFrom OpenMx vec2diag diag2vec
 #' @importFrom utils capture.output
+#' @importFrom zcurve zcurve
 #'
 #' @export ctmaBiGOMX
 #'
@@ -28,12 +29,12 @@ ctmaBiGOMX <- function(
 {  # begin function definition (until end of file)
 
   { ### CHECKS
-  # check if fit object is specified
-  if (is.null(ctmaInitFit)){
-    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("A fitted CoTiMA (\"ctmaInitFit\") object has to be supplied to analyse something. \n"))
-    stop("Good luck for the next try!")
-  }
+    # check if fit object is specified
+    if (is.null(ctmaInitFit)){
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      cat(crayon::red$bold("A fitted CoTiMA (\"ctmaInitFit\") object has to be supplied to analyse something. \n"))
+      stop("Good luck for the next try!")
+    }
 
   }
 
@@ -144,7 +145,7 @@ ctmaBiGOMX <- function(
     FixedEffect_DriftLowerLimit <- FixedEffect_Drift - 1.96*FixedEffect_DriftSE; FixedEffect_DriftLowerLimit
     FixedEffect_DriftZ <- FixedEffect_Drift/FixedEffect_DriftSE; FixedEffect_DriftZ
     FixedEffect_DriftProb <- round(1-stats::pnorm(abs(FixedEffect_DriftZ),
-                                           mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log=F), digits=digits); FixedEffect_DriftProb
+                                                  mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log=F), digits=digits); FixedEffect_DriftProb
     Q_Drift <- colSums(DRIFTPrecision^2 * DRIFTCoeff^2)- (colSums(DRIFTPrecision^2 * DRIFTCoeff))^2 / colSums(DRIFTPrecision^2); Q_Drift
     H2_Drift <- Q_Drift/(n.studies-1); H2_Drift
     I2_Drift <- (H2_Drift-1)/H2_Drift*100; I2_Drift
@@ -188,7 +189,7 @@ ctmaBiGOMX <- function(
     RandomEffecttot_DriftLowerLimit <- RandomEffecttot_Drift - 1.96*RandomEffecttot_DriftSE; RandomEffecttot_DriftLowerLimit
     RandomEffecttot_DriftZ <- RandomEffecttot_Drift/RandomEffecttot_DriftSE; RandomEffecttot_DriftZ
     RandomEffecttot_DriftProb <- round(1-stats::pnorm(abs(RandomEffecttot_DriftZ),
-                                               mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log=F), digits=digits); RandomEffecttot_DriftProb
+                                                      mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log=F), digits=digits); RandomEffecttot_DriftProb
     RandomEffectDriftResults <- rbind(RandomEffecttot_Drift, RandomEffecttot_DriftVariance, RandomEffecttot_DriftSE,
                                       RandomEffecttot_DriftUpperLimit, RandomEffecttot_DriftLowerLimit,
                                       RandomEffecttot_DriftZ, RandomEffecttot_DriftProb)
@@ -244,6 +245,29 @@ ctmaBiGOMX <- function(
       WLSDriftSE_fit <- summary(WLSDrift_fit[[ii]])$coefficients[2]; WLSDriftSE_fit; FixedEffect_DriftSE[[ii]] # should outperform FixedEffect_DriftSE
     }
 
+    ############################################## zcurve Analysis ###################################################
+    zFit <- list()
+    for (i in 1: dim(DRIFTCoeffSND)[2]) {
+      tmp1 <- abs(DRIFTCoeffSND[, i]); tmp1
+      zFit[[i]] <- summary(zcurve::zcurve(z=tmp1))
+    }
+    names(zFit) <- paste0("Z-Curve 2.0 analysis of ", colnames(DRIFTCoeffSND)); zFit
+    ## format results
+    #z.CurveResults <- matrix(NA, ncol=length(zFit), nrow=19)
+    #for (h in 1:length(zFit)) {
+    #  stopRow = 0
+    #  for (j in 2:length(zFit[[i]])) {
+    #    startRow  <- stopRow + 1; startRow
+    #    stopRow <- startRow + length(unlist((zFit[[h]][j]))) - 1; stopRow
+    #    unlist((zFit[[h]][j]))
+    #    if (j == 2) z.CurveResults[startRow:stopRow, h] <- round(c((matrix(unlist((zFit[[h]][j])), ncol=2, byrow=TRUE))), digits)
+    #    if (j != 2) z.CurveResults[startRow:stopRow, h] <- unlist((zFit[[h]][j]))
+    #  }
+    #}
+    #rownamesPart <- c("ERR", "ERR lower CI", "ERR upper CI", "EDR", "EDR lower CI", "EDR upper CI" )
+    #rownamesPart <- c(rownamesPart, names(unlist((zFit[[1]][3]))), names(unlist((zFit[[1]][4]))), names(unlist((zFit[[1]][5]))) )
+    #rownames(z.CurveResults) <- rownamesPart
+
 
     # Combine results
     PET_Drift <-unlist(lapply(PETDrift_fit, function(extract) extract$coefficients))[seq(1, 2*n.latent^2, 2)]; PET_Drift
@@ -296,7 +320,9 @@ ctmaBiGOMX <- function(
                                               "Heterogeneity"=round(heterogeneity, digits),
                                               "Random Effects of Drift Coefficients"=round(RandomEffectDriftResults, digits),
                                               "PET-PEESE corrections"=round(PET_PEESE_DRIFTresults, digits),
-                                              "Egger's tests"=round(eggerTest, digits))))
+                                              "Egger's tests"=round(eggerTest, digits),
+                                              "Z-Curve 2.0 Results:"=zFit)))
+
   class(results) <- "CoTiMAFit"
 
   invisible(results)

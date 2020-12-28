@@ -311,7 +311,7 @@ ctmaFit <- function(
     invariantDriftStanctFit <- summary(allInvModelFit)
   } else {
 
-    tmp1 <- ctmaInitFit$studyFitList[[1]]$ctstanmodelbase$pars
+    tmp1 <- ctmaInitFit$studyFitList[[1]]$ctstanmodelbase$pars; tmp1
 
     if (is.null(drift)) {
       tmp2 <- tmp1$matrix=="DRIFT"; tmp2
@@ -321,7 +321,6 @@ ctmaFit <- function(
       DRIFT <- matrix(driftNames, n.latent, n.latent, byrow = TRUE); DRIFT
       #DRIFT <- matrix(driftNames, n.latent, n.latent); DRIFT
     }
-    driftNames
 
     tmp2 <- tmp1$matrix=="LAMBDA"; tmp2
     LAMBDA <- tmp1[tmp2,]$value; LAMBDA
@@ -333,7 +332,7 @@ ctmaFit <- function(
 
 
     # scale Drift to cover changes in ctsem 3.4.1 (this would be for ctmaFit/ctmaModFit, but for Init individual study modification is done later)
-    driftNamesTmp <- DRIFT
+    driftNamesTmp <- DRIFT; driftNamesTmp
     diffNamesTmp  <- diffNames
     meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
     if (meanLag > 6) {
@@ -349,7 +348,7 @@ ctmaFit <- function(
         }
       }
     }
-    #driftNamesTmp
+
     tmp0 <- matrix(diffNamesTmp, n.latent); tmp0
     tmp0[upper.tri(tmp0, diag=FALSE)] <- 0; tmp0
     diffNamesTmp <- tmp0; diffNamesTmp
@@ -358,7 +357,7 @@ ctmaFit <- function(
     {
       stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
                                     DIFFUSION=matrix(diffNamesTmp, nrow=n.latent, ncol=n.latent),
-                                    DRIFT=matrix(driftNamesTmp, nrow=n.latent, ncol=n.latent, byrow=TRUE),
+                                    DRIFT=driftNamesTmp, # matrix(c(driftNamesTmp), nrow=n.latent, ncol=n.latent, byrow=TRUE),
                                     LAMBDA=LAMBDA,
                                     CINT=matrix(0, nrow=n.latent, ncol=1),
                                     T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
