@@ -28,7 +28,8 @@ ctmaInit(
   finishsamples = NULL,
   chains = NULL,
   iter = NULL,
-  verbose = NULL
+  verbose = NULL,
+  customPar = TRUE
 )
 }
 \arguments{
@@ -79,6 +80,8 @@ ctmaInit(
 \item{iter}{number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation}
 
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit - for debugging}
+
+\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)}
 }
 \description{
 Fits a ctsem model to a list of primary studies prepared by ctmaPrep.

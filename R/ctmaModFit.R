@@ -25,6 +25,7 @@
 #' @param iter number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
+#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
@@ -358,7 +359,7 @@ ctmaModFit <- function(
       driftNamesTmp <- driftNames
       diffNamesTmp <- c(diffusionNames); diffNamesTmp
       meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
-      if (meanLag > 6) {
+      if ((meanLag > 6) & (customPar)) {
         counter <- 0
         for (h in 1:(n.latent)) {
           for (j in 1:(n.latent)) {
@@ -415,6 +416,12 @@ ctmaModFit <- function(
 
       #stanctModModel$pars
       #stanctModModel$pars[, 1:4]
+
+      if (!(optimize) & !(nopriors)) {
+        customPar <- FALSE
+        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+        cat(crayon::red("NUTS sampler was selected, which does require appropriate scaling of time. See the end of the summary output","\n"))
+      }
 
       fitStanctModModel <- ctsem::ctStanFit(
         datalong = datalong,
@@ -572,6 +579,16 @@ ctmaModFit <- function(
     et <- paste0("Computation ended at: ", end.time); et
     tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
 
+    tmp1 <- mean(allDeltas, na.rm=TRUE); tmp1
+    message <- c()
+    if (tmp1 > 3) {
+      tmp2 <- paste0("Mean time interval was ", tmp1, "."); tmp2
+      tmp3 <- paste0("timeScale=1/", tmp1); tmp3
+      tmp4 <- paste0("It is recommended to fit the model again using the argument ", tmp3, "."); tmp4
+      message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using", tmp3, "in all subsequent models.", collapse="\n"); message
+    }
+
+
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
 
     tmp1 <- grep("CINT", rownames(stanctModFit$parmatrices)); tmp1
@@ -598,7 +615,8 @@ ctmaModFit <- function(
                                  n.parameters = modDrift_estimatedParameters,
                                  #df=modDrift_df,
                                  mod.effects=modTI_Coeff,
-                                 clus.effects=clusTI_Coeff))
+                                 clus.effects=clusTI_Coeff,
+                                 message=message))
 
     class(results) <- "CoTiMAFit"
 

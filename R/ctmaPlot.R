@@ -713,7 +713,7 @@ ctmaPlot <- function(
         nlatent <- n.latent[[1]]; n.latent
         coeffSeq <- seq(1, nlatent^2, 1)[!(seq(1, nlatent^2, 1) %in% seq(1, nlatent^2, (nlatent+1)))]; coeffSeq
         for (j in coeffSeq) {
-          #j <- 2
+          #j <- 3
           counter <- counter + 1
           for (g in 1:n.fitted.obj) {
             #g <- 1
@@ -795,7 +795,8 @@ ctmaPlot <- function(
           graphics::axis(side=1, at = posForXLabel, labels=xLabels, las=2)
 
           # Add labels and title
-          driftNamesTmp <- c(t(matrix(driftNames[[1]], n.latent))); driftNamesTmp
+          #driftNamesTmp <- c(t(matrix(driftNames[[1]], n.latent))); driftNamesTmp
+          driftNamesTmp <- driftNames[[1]]
           if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
             graphics::title(main = paste0("Moderated Cross-lagged Effects of ", driftNamesTmp[j]), sub = NULL,
                             xlab=paste0("Time Interval in ", timeUnit), ylab = "Cross-lagged Beta")

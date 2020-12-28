@@ -26,6 +26,7 @@
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param iter number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit - for debugging
+#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  crayon red blue
@@ -72,7 +73,8 @@ ctmaInit <- function(
   finishsamples=NULL,
   chains=NULL,
   iter=NULL,
-  verbose=NULL
+  verbose=NULL,
+  customPar=TRUE
 )
 
 {  # begin function definition (until end of file)
@@ -680,6 +682,13 @@ ctmaInit <- function(
         print(paste0("################### Fitting SingleStudyModel ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ######################"))
         print(paste0("#################################################################################"))
 
+        if (!(optimize) & !(nopriors)) {
+          customPar <- FALSE
+          if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+          cat(crayon::red("NUTS sampler was selected, which does require appropriate scaling of time. See the end of the summary output","\n"))
+        }
+
+
         # select correct template
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
         #modelToSelect <- which(unique(allTpoints) == currentTpoints); modelToSelect
@@ -689,7 +698,7 @@ ctmaInit <- function(
         driftNamesTmp <- driftNames
         diffNamesTmp <- diffNames
         longestLag <- max((lapply(studyList, function(extract) extract$delta_t))[[i]]); longestLag
-        if (longestLag > 6) {
+        if ((longestLag > 6)  & (customPar)) {
           counter <- 0
           for (h in 1:(n.latent)) {
             for (j in 1:(n.latent)) {

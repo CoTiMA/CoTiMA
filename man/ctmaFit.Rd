@@ -25,7 +25,8 @@ ctmaFit(
   iter = NULL,
   chains = NULL,
   verbose = NULL,
-  allInvModel = FALSE
+  allInvModel = FALSE,
+  customPar = TRUE
 )
 }
 \arguments{
@@ -70,6 +71,8 @@ ctmaFit(
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
 
 \item{allInvModel}{estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR)}
+
+\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)}
 }
 \description{
 Fits a ctsem model with invariant drift effects across primary studies
