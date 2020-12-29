@@ -418,10 +418,11 @@ ctmaModFit <- function(
       #stanctModModel$pars
       #stanctModModel$pars[, 1:4]
 
-      if (!(optimize) & !(nopriors)) {
+      #if (!(optimize) & !(nopriors)) {
+      if (!(optimize)) {
         customPar <- FALSE
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-        cat(crayon::red("NUTS sampler was selected, which does require appropriate scaling of time. See the end of the summary output","\n"))
+        cat(crayon::red("Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output","\n"))
       }
 
       fitStanctModModel <- ctsem::ctStanFit(
@@ -584,7 +585,7 @@ ctmaModFit <- function(
     message <- c()
     if (tmp1 > 3) {
       tmp2 <- paste0("Mean time interval was ", tmp1, "."); tmp2
-      tmp3 <- paste0("timeScale=1/", tmp1); tmp3
+      tmp3 <- paste0("scaleTimee=1/", tmp1); tmp3
       tmp4 <- paste0("It is recommended to fit the model again using the argument ", tmp3, "."); tmp4
       message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using", tmp3, "in all subsequent models.", collapse="\n"); message
     }

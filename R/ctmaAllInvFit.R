@@ -158,6 +158,9 @@ ctmaAllInvFit <- function(
     }
   }
 
+  tmp0 <- matrix(diffNamesTmp, n.latent); tmp0
+  tmp0[upper.tri(tmp0, diag=FALSE)] <- 0; tmp0
+  diffNamesTmp <- tmp0; diffNamesTmp
 
   # all fixed model is a model with no TI predictors (identical to ctsemModel)
   # CHD allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only

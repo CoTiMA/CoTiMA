@@ -682,12 +682,12 @@ ctmaInit <- function(
         print(paste0("################### Fitting SingleStudyModel ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ######################"))
         print(paste0("#################################################################################"))
 
-        if (!(optimize) & !(nopriors)) {
+        #if (!(optimize) & !(nopriors)) {
+        if (!(optimize)) {
           customPar <- FALSE
           if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-          cat(crayon::red("NUTS sampler was selected, which does require appropriate scaling of time. See the end of the summary output","\n"))
+          cat(crayon::red("Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output","\n"))
         }
-
 
         # select correct template
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
