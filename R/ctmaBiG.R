@@ -73,8 +73,6 @@ ctmaBiG <- function(
       colnames(all_Coeff) <- c(names(ctmaInitFit$modelResults$DRIFT[[1]]),
                                names(ctmaInitFit$modelResults$DIFFUSION[[1]]),
                                names(ctmaInitFit$modelResults$T0VAR[[1]])); all_Coeff
-      all_Coeff
-
 
       # compute SE
       all_SE <- matrix(NA, ncol=dim(all_Coeff)[2], nrow=dim(all_Coeff)[1]); all_SE
@@ -83,7 +81,6 @@ ctmaBiG <- function(
       toSelect <- which(lower.tri(tmp1, diag=TRUE)); toSelect
       for (i in 1:n.studies) {
         ("transformedpars" %in% names(ctmaInitFit$studyFitList[[i]]$stanfit))
-        #i <- 1
         if ("transformedpars" %in% names(ctmaInitFit$studyFitList[[i]]$stanfit)) {
           tmp1 <- cbind(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DRIFT[, , 1],
                         ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DRIFT[, , 2])
@@ -123,6 +120,11 @@ ctmaBiG <- function(
     #######################################################################################################################
 
     #{ # Start Analysis of Publication Bias
+
+    print(paste0("#################################################################################"))
+    print(paste0("################################# Egger's test ##################################"))
+    print(paste0("#################################################################################"))
+
     DRIFTCoeff <- DIFFUSIONCoeff <- T0VARCoeff <- DRIFTSE <- DIFFUSIONSE <- T0VARSE <- matrix(NA, n.studies, n.latent^2)
 
     DRIFTCoeff <- all_Coeff[, grep("toV", colnames(all_Coeff))]; DRIFTCoeff
@@ -169,6 +171,10 @@ ctmaBiG <- function(
 
     ################################### Fixed & Random Effects Analyses ###################################################
 
+    print(paste0("#################################################################################"))
+    print(paste0("########## Fixed effect analysis of each drift coefficient separately  ##########"))
+    print(paste0("#################################################################################"))
+
     # FIXED EFFECTS ANALYSIS ###############################################################################
     DriftMeans <- colMeans(DRIFTCoeff); DriftMeans
     # Sum of within weights  and weight * effect size
@@ -213,7 +219,13 @@ ctmaBiG <- function(
                                      FixedEffect_DriftZ, FixedEffect_DriftProb, tau2Drift, Q_Drift, H2_Drift,
                                      H2DriftUpperLimit, H2DriftLowerLimit, I2_Drift,
                                      I2DriftUpperLimit, I2DriftLowerLimit)
+
     # RANDOM EFFECTS ANALYSIS ###############################################################################
+
+    print(paste0("#################################################################################"))
+    print(paste0("########## Random effect analysis of each drift coefficient separately  #########"))
+    print(paste0("#################################################################################"))
+
     # Total variance weighting
     Ttot_DriftWeights <- 0
     Ttot_DriftMeans <- 0
@@ -240,6 +252,12 @@ ctmaBiG <- function(
                                       RandomEffecttot_DriftUpperLimitPI, RandomEffecttot_DriftLowerLimitPI)
 
     ### PET, PEESE & WLS approaches to correct for bias
+
+
+    print(paste0("#################################################################################"))
+    print(paste0("################ PET, PEESE & WLS approaches to correct for bias  ###############"))
+    print(paste0("#################################################################################"))
+
     PETDrift_fit <- list()
     PEESEDrift_fit <- list()
     WLSDrift_fit <- list()
@@ -285,6 +303,11 @@ ctmaBiG <- function(
 
 
     ############################################## zcurve Analysis ###################################################
+
+    print(paste0("#################################################################################"))
+    print(paste0("############################## Z-curve 2.0 analysis #############################"))
+    print(paste0("#################################################################################"))
+
     zFit <- list()
     for (i in 1: dim(DRIFTCoeffSND)[2]) {
       tmp1 <- abs(DRIFTCoeffSND[, i]); tmp1
