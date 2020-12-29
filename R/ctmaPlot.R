@@ -454,17 +454,9 @@ ctmaPlot <- function(
               ### compute moderated drift matrices
               # main effects
               tmp1 <- ctmaFitObject[[g]]$modelResults$DRIFT; tmp1
-              #tmp0 <- grep("ean", colnames(ctmaFitObject[[g]]$summary$estimates)); tmp0
-              #tmp1 <- ctmaFitObject[[g]]$summary$estimates[,tmp0]; tmp1
-              #tmp1b <- tmp1[grep("DRIFT", names(tmp1))]; tmp1b
-              #if (length(tmp1b) == 0) tmp1b <- tmp1[grep("DRIFT", rownames(tmp1))]; tmp1b
-
-              tmp1 <- matrix(tmp1, n.latent[[g]], byrow=FALSE); tmp1 # main effect
+              tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE); tmp1 # main effect
               # moderator effects (could be partial)
-              #tmp2 <- ctmaFitObject[[g]]$summary$mod.effects[,1]; tmp2
-              ctmaFitObject[[g]]$modelResults$MOD
               tmp2 <- ctmaFitObject[[g]]$modelResults$MOD[,1]; tmp2
-              #tmp3 <- rownames(ctmaFitObject[[g]]$summary$mod.effects); tmp3
               tmp3 <- rownames(ctmaFitObject[[g]]$modelResults$MOD); tmp3
               tmp4 <- c()
               for (l in 1:length(driftNames[[g]])) {
