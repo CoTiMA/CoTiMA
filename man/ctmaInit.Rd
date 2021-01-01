@@ -15,6 +15,7 @@ ctmaInit(
   lambda = NULL,
   manifestVars = NULL,
   drift = NULL,
+  equalDrift = NULL,
   indVarying = FALSE,
   saveRawData = list(),
   coresToUse = c(1),
@@ -52,6 +53,8 @@ ctmaInit(
 \item{manifestVars}{Define the error variances of the manifests with a single time point using R-type matrix with nrow=n.manifest & ncol=n.manifest.}
 
 \item{drift}{Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)}
+
+\item{equalDrift}{Not yet enabled}
 
 \item{indVarying}{Control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
 

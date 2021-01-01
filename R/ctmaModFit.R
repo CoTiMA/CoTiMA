@@ -342,6 +342,7 @@ ctmaModFit <- function(
       if (mod.type == "cont") tmp1 <- n.moderators
       if (mod.type == "cat") tmp1 <- catCounter
       if (!(is.null(cluster))) tmp1 <- tmp1 + clusCounter
+
       dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1+tmp1),
                                manifestNames=manifestNames)
 
@@ -578,16 +579,12 @@ ctmaModFit <- function(
     modDrift_Minus2LogLikelihood  <- -2*stanctModFit$loglik; modDrift_Minus2LogLikelihood
     modDrift_estimatedParameters  <- stanctModFit$npars; modDrift_estimatedParameters
     modDrift_df <- "deprecated"
+    modDrift_Coeff
     model_Drift_Coef <- modDrift_Coeff[grep("DRIFT", rownames(modDrift_Coeff)), 3]; model_Drift_Coef
-    #names(model_Drift_Coef) <- driftNames; model_Drift_Coef
-    # re-sort
-    #driftNames
-    #if (!ctsem341) {
-    #names(model_Drift_Coef) <- driftNames
-    #  } else {
-    names(model_Drift_Coef) <- c(matrix(driftNames, n.latent))
-    #  }
-    names(model_Drift_Coef) <- paste0("DRIFT ", names(model_Drift_Coef) ); model_Drift_Coef
+    ## NEW
+    namesModel_Drift_Coef <- rownames(modDrift_Coeff[grep("DRIFT", rownames(modDrift_Coeff)), ]); namesModel_Drift_Coef
+    namesModel_Drift_Coef <- gsub("DRIFT_", "", namesModel_Drift_Coef); namesModel_Drift_Coef
+    names(model_Drift_Coef) <- namesModel_Drift_Coef; model_Drift_Coef
 
     model_Diffusion_Coef <- modDrift_Coeff[grep("DIFFUSIONcov", rownames(modDrift_Coeff)), 3]; model_Diffusion_Coef
     if (!ctsem341) model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef

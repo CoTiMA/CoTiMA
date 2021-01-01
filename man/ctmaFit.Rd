@@ -11,8 +11,14 @@ ctmaFit(
   activeDirectory = NULL,
   activateRPB = FALSE,
   digits = 4,
-  invariantDrift = NULL,
   drift = NULL,
+  invariantDrift = NULL,
+  moderatedDrift = NULL,
+  equalDrift = NULL,
+  mod.number = NULL,
+  mod.type = "cont",
+  mod.names = NULL,
+  n.manifest = 0,
   indVarying = FALSE,
   coresToUse = c(1),
   scaleTI = NULL,
@@ -42,9 +48,21 @@ ctmaFit(
 
 \item{digits}{Number of digits used for rounding (in outputs)}
 
+\item{drift}{Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)}
+
 \item{invariantDrift}{drift Labels for drift effects that are set invariant across primary studies (default = all drift effects).}
 
-\item{drift}{Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)}
+\item{moderatedDrift}{drift Labels for drift effects that are moderated (default = all drift effects) (PRELIMINARY TEST)}
+
+\item{equalDrift}{Not enabled}
+
+\item{mod.number}{which in the vector of moderator values to use (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)}
+
+\item{mod.type}{"cont" or "cat" (mixing them in a single model not yet possible)}
+
+\item{mod.names}{vector of names for moderators used in output}
+
+\item{n.manifest}{Number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).}
 
 \item{indVarying}{Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heteregeneity)}
 
