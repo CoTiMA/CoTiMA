@@ -191,7 +191,6 @@ ctmaFit <- function(
   start.time <- Sys.time(); start.time
 
   {
-    #ctmaInitFit$
     n.latent <- length(ctmaInitFit$modelResults$DRIFT[[1]])^.5; n.latent
     if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
     n.studies <- unlist(ctmaInitFit$n.studies); n.studies
@@ -201,8 +200,8 @@ ctmaFit <- function(
     maxDelta <- max(allDeltas, na.rm=TRUE); maxDelta
     usedTimeRange <- seq(0, 1.5*maxDelta, 1)
     lambda <- ctmaInitFit$statisticsList$lambda; lambda
-
   }
+
 
   if (!(is.null(cluster))) {
     if (length(cluster) != n.studies) {
@@ -581,7 +580,6 @@ ctmaFit <- function(
   Tvalues <- invariantDriftStanctFit$parmatrices[,tmpMean]/invariantDriftStanctFit$parmatrices[,tmpSd]; Tvalues
   invariantDrift_Coeff <- cbind(invariantDriftStanctFit$parmatrices, Tvalues); invariantDrift_Coeff
   invariantDrift_Coeff[, tmpMean:(dim(invariantDrift_Coeff)[2])] <- round(invariantDrift_Coeff[, tmpMean:(dim(invariantDrift_Coeff)[2])], digits); invariantDrift_Coeff
-  #invariantDrift_Coeff
 
   #driftNamesTmp <- driftFullNames
   # (create & ) re-label rownames
@@ -595,8 +593,6 @@ ctmaFit <- function(
     tmp1 <- which(rownames(invariantDrift_Coeff) == "DRIFT")
     #driftFullNames <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); driftFullNames
   }
-  #invariantDrift_Coeff[tmp1,c("row", "col")]
-  #rownames(invariantDrift_Coeff)[tmp1] <- driftFullNames; invariantDrift_Coeff
   rownames(invariantDrift_Coeff)[tmp1] <- driftFullNames; invariantDrift_Coeff
   tmp2 <- which(rownames(invariantDrift_Coeff) %in% invariantDriftNames); tmp2
   tmp3 <- paste0("DRIFT ", rownames(invariantDrift_Coeff)[tmp2] , " (invariant)"); tmp3
@@ -672,22 +668,27 @@ ctmaFit <- function(
   ## cluster effects
   if (!(is.null(cluster))) {
     cluster.specific.effect <- matrix(NA, clusCounter, n.latent^2)
-    colnames(cluster.specific.effect) <- driftFullNames
-    rownames(cluster.specific.effect) <- paste0("Cluster No. ", seq(1,clusCounter, 1))
+    #colnames(cluster.specific.effect) <- driftFullNames
+    colnames(cluster.specific.effect) <- driftNames; cluster.specific.effect
+    rownames(cluster.specific.effect) <- paste0("Cluster No. ", seq(1,clusCounter, 1)); cluster.specific.effect
     tmp1 <- c()
     for (i in (n.studies):(n.studies+clusCounter-1)) tmp1 <- c(tmp1, (grep(i, rownames(invariantDriftStanctFit$tipreds))))
     Tvalues <- invariantDriftStanctFit$tipreds[tmp1, ][,6]; Tvalues
     clusTI_Coeff <- round(cbind(invariantDriftStanctFit$tipreds[tmp1, ], Tvalues), digits); clusTI_Coeff
     # re-label
     for (i in 1:clusCounter) {
+      #i <- 1
       targetNamePart <- paste0("tip_TI", n.studies+i-1); targetNamePart
       newNamePart <- paste0(targetCluster[i], "_on_"); newNamePart
       rownames(clusTI_Coeff) <- sub(targetNamePart, paste0(targetCluster[i], "_on_"), rownames(clusTI_Coeff))
       for (j in 1:length(driftNames)) {
         if (driftNames[j] != 0) {
-          tmp1 <- grep(driftNames[j], rownames((clusTI_Coeff))); tmp1
-          tmp2 <- grep(driftNames[j], names((model_Drift_Coef))); tmp2
+          tmp0 <- driftNames[j]; tmp0
+          tmp0 <- gsub(" \\(invariant\\)", "", tmp0); tmp0
+          tmp1 <- grep(tmp0, rownames((clusTI_Coeff))); tmp1
+          tmp2 <- grep(tmp0, names((model_Drift_Coef))); tmp2
           cluster.specific.effect[i,j] <- round(model_Drift_Coef[tmp2] + clusTI_Coeff[tmp1, 1] * cluster.weights[i, 2], digits)
+          #cluster.specific.effect
         }
       }
     }
