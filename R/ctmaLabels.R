@@ -9,6 +9,7 @@
 #' @param moderatedDrift moderatedDrift
 #' @param equalDrift equalDrift
 #'
+#' @export ctmaLabels
 #'
 ctmaLabels <- function(
   n.latent=NULL,
@@ -72,9 +73,11 @@ ctmaLabels <- function(
   tmp1 <- which(driftNames %in% invariantDriftNames); tmp1
   driftNames[tmp1] <- paste0(driftNames[tmp1], " (invariant)"); driftNames
 
+  equalDriftParams <- equalDriftNames <- equalDrift; equalDriftParams
+  tmp1 <- which(driftNames %in% equalDriftNames); tmp1
+  driftNames[tmp1] <- paste0(driftNames[tmp1], " (equal)"); driftNames
   #driftParams <- c(t(matrix(driftParams, n.latent))); driftParams
   #driftNames <- c(t(matrix(driftNames, n.latent))); driftNames
-
 
   tmp0 <- matrix(diffParams, n.latent); tmp0
   tmp0[upper.tri(tmp0, diag=FALSE)] <- 0; tmp0
@@ -135,6 +138,8 @@ ctmaLabels <- function(
                  diffParams=diffParams,
                  invariantDriftNames=invariantDriftNames,
                  invariantDriftParams=invariantDriftParams,
+                 equalDriftNames=equalDriftNames,
+                 equalDriftParams=equalDriftParams,
                  lambdaParams=LAMBDA,
                  T0VARParams=T0VAR,
                  manifestMeansParams=MANIFESTMEANS,
