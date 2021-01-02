@@ -73,6 +73,9 @@ ctmaLabels <- function(
   tmp1 <- which(driftNames %in% invariantDriftNames); tmp1
   driftNames[tmp1] <- paste0(driftNames[tmp1], " (invariant)"); driftNames
 
+  moderatedDriftNames <- moderatedDrift
+  if(moderatedDriftNames == "all") moderatedDriftNames <- driftNames
+
   equalDriftParams <- equalDriftNames <- equalDrift; equalDriftParams
   tmp1 <- which(driftNames %in% equalDriftNames); tmp1
   driftNames[tmp1] <- paste0(driftNames[tmp1], " (equal)"); driftNames
@@ -138,6 +141,7 @@ ctmaLabels <- function(
                  diffParams=diffParams,
                  invariantDriftNames=invariantDriftNames,
                  invariantDriftParams=invariantDriftParams,
+                 moderatedDriftNames=moderatedDriftNames,
                  equalDriftNames=equalDriftNames,
                  equalDriftParams=equalDriftParams,
                  lambdaParams=LAMBDA,

@@ -2,7 +2,7 @@
 #'
 #' @name CoTiMAStanctArgs
 CoTiMAStanctArgs<-list(test=TRUE,
-                       scaleTI=FALSE, scaleMod=TRUE, scaleClus=TRUE,
+                       scaleTI=FALSE, scaleMod=FALSE, scaleClus=TRUE,
                        scaleTD=FALSE, scaleLongData=FALSE, scaleTime=1/1,
                        scaleTimeAuto=NULL,
                        savesubjectmatrices=FALSE, verbose=1,

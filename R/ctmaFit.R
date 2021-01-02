@@ -238,7 +238,6 @@ ctmaFit <- function(
     }
   }
 
-
   #######################################################################################################################
   ################################################# data preparation ####################################################
   #######################################################################################################################
@@ -305,7 +304,8 @@ ctmaFit <- function(
     dataTmp <- dataTmp[ ,-targetCols]
 
     # make TI out of moderators
-    modTIstartNum <- n.studies+1; modTIstartNum
+    #modTIstartNum <- n.studies+1; modTIstartNum
+    modTIstartNum <- n.studies; modTIstartNum
     if (n.moderators > 0) {
       # make TI predictors as replacements for each moderator
       if (mod.type=="cont") {
@@ -453,6 +453,9 @@ ctmaFit <- function(
                                     verbose=verbose)
     invariantDriftStanctFit <- summary(allInvModelFit)
   } else {
+
+    if (is.null(moderatedDrift) & (!(is.null(mod.number)))) moderatedDrift <- "all" # will be changed by ctmaLabels
+
     namesAndParams <- ctmaLabels(
       n.latent=n.latent,
       n.manifest=n.manifest,
@@ -470,6 +473,7 @@ ctmaFit <- function(
     diffFullNames <- namesAndParams$diffFullNames; diffFullNames
     invariantDriftNames <- namesAndParams$invariantDriftNames; invariantDriftNames
     invariantDriftParams <- namesAndParams$invariantDriftParams; invariantDriftParams
+    moderatedDriftNames <- namesAndParams$moderatedDriftNames; moderatedDriftNames
     equalDriftNames <- namesAndParams$equalDriftNames; equalDriftNames
     equalDriftParams <- namesAndParams$equalDriftParams; equalDriftParams
     lambdaParams <- namesAndParams$lambdaParams; lambdaParams
@@ -539,6 +543,7 @@ ctmaFit <- function(
         stanctModel$pars[, "indvarying"] <- FALSE
       }
     }
+    #stanctModel$pars
 
     # general setting for params
     stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
@@ -547,32 +552,37 @@ ctmaFit <- function(
     stanctModel$pars[stanctModel$pars$matrix %in% 'CINT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTVAR',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+    #n.studies+n.all.moderators+clusCounter-1
+    #stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[(n.studies+n.all.moderators):(n.studies+n.all.moderators+clusCounter-1)],'_effect')]
     if (!(is.null(cluster))) {
-      stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[n.studies:(n.studies+clusCounter-1)],'_effect')] <- TRUE
+      stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[(n.studies++n.all.moderators):(n.studies+n.all.moderators+clusCounter-1)],'_effect')] <- TRUE
     }
+    stanctModel$pars
 
+    if (n.moderators > 0) {
+      tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
+      #tmp2 <- which(!(stanctModel$pars[tmp1, "param"] %in% moderatedDrift)); tmp2
+      tmp2 <- which((stanctModel$pars[tmp1, "param"] %in% moderatedDriftNames)); tmp2
+      #targetCols <- (n.studies-1+clusCounter+1):(n.studies-1+clusCounter+n.moderators); targetCols
+      #targetCols <- (n.studies-1+clusCounter+1):(n.studies-1+clusCounter+n.all.moderators); targetCols
+      targetCols <- (n.studies):(n.studies-1+n.all.moderators); targetCols
+      #stanctModel$pars[ , paste0(stanctModel$TIpredNames[targetCols],'_effect')]
+      stanctModel$pars[ , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- FALSE
+      stanctModel$pars[tmp1[tmp2] , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
+    }
 
     # the target effects
     tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
     tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftNames); tmp2
     stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
-
-    if (n.moderators > 0) {
-      tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
-      #tmp2 <- which(!(stanctModel$pars[tmp1, "param"] %in% moderatedDrift)); tmp2
-      tmp2 <- which((stanctModel$pars[tmp1, "param"] %in% moderatedDrift)); tmp2
-      #targetCols <- (n.studies-1+clusCounter+1):(n.studies-1+clusCounter+n.moderators); targetCols
-      targetCols <- (n.studies-1+clusCounter+1):(n.studies-1+clusCounter+n.all.moderators); targetCols
-      stanctModel$pars[ , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- FALSE
-      stanctModel$pars[tmp1[tmp2] , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
-    }
+    stanctModel$pars
 
     if (!(optimize)) {
       customPar <- FALSE
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
       cat(crayon::red("Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output","\n"))
     }
-    #stanctModel$pars
+    stanctModel$pars
 
     fitStanctModel <- ctsem::ctStanFit(
       datalong = datalong_all,
@@ -646,9 +656,9 @@ ctmaFit <- function(
     tmp4 <- tmp1[which(!(tmp1 %in% tmp2))]; tmp4 # change to "DRIFT " for later extraction
     rownames(invariantDrift_Coeff)[tmp4] <- paste0("DRIFT ", driftFullNames[which(!(tmp1 %in% tmp2))]); invariantDrift_Coeff
   }
+  invariantDrift_Coeff
 
   # extract fit
-
   invariantDrift_Minus2LogLikelihood  <- -2*invariantDriftStanctFit$loglik; invariantDrift_Minus2LogLikelihood
   invariantDrift_estimatedParameters  <- invariantDriftStanctFit$npars; invariantDrift_estimatedParameters
   invariantDrift_df <- "deprecated"
@@ -676,6 +686,7 @@ ctmaFit <- function(
     }
     names(model_T0var_Coef) <- driftFullNames; model_T0var_Coef
   }
+
 
   ## moderator effects
   modTIendNum <- 0
@@ -729,7 +740,6 @@ ctmaFit <- function(
     tmp <- grep("DRIFT ", rownames(invariantDrift_Coeff)); tmp
     colnames(cluster.specific.effect) <- rownames(invariantDrift_Coeff)[tmp]; cluster.specific.effect
     rownames(cluster.specific.effect) <- paste0("Cluster No. ", seq(1,clusCounter, 1)); cluster.specific.effect
-
     tmp1 <- c()
     #for (i in (n.studies):(n.studies+modTIendNum+clusCounter-1)) tmp1 <- c(tmp1, (grep(i, rownames(invariantDriftStanctFit$tipreds))))
     for (i in (modTIendNum+1):(modTIendNum+1+clusCounter-1)) tmp1 <- c(tmp1, (grep(paste0("TI", i), rownames(invariantDriftStanctFit$tipreds))))
@@ -755,6 +765,7 @@ ctmaFit <- function(
   } else {
     clusTI_Coeff <- NULL
   }
+  #clusTI_Coeff
 
   if (ctsem341) invariantDrift_Coeff[, "matrix"] <- NULL
 
