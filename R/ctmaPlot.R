@@ -70,7 +70,7 @@ ctmaPlot <- function(
     # check #2 if object can be plotted
     if ("none" %in% ctmaFitObject[[1]]$plot.type)  {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat("This is nothing CoTiMA-related that I can plot . \n")
+      cat("This is nothing CoTiMA-related that I can plot. \n")
       stop("Good luck for the next try!")
     }
 
@@ -136,6 +136,7 @@ ctmaPlot <- function(
     mod.values.backup <- mod.values; mod.values.backup
     mod.values <- list()
 
+    # detect possible categorical moderator values
     for (i in 1:n.fitted.obj) {
       if (!(is.null(ctmaFitObject[[i]]$mod.type))) {
         if (ctmaFitObject[[i]]$mod.type == "cat") {

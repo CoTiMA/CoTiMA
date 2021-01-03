@@ -41,6 +41,7 @@ ctmaLabels <- function(
       if (i != j) diffNames <- c(diffNames, paste0("diff_eta", j, "_eta", i)) else diffNames <- c(diffNames, paste0("diff_eta", j))
     }
   }
+
   #driftNames <- c(t(matrix(driftNames, n.latent))); driftNames
   driftParams <- driftNames; driftParams
   diffParams <- diffNames; diffParams
@@ -67,14 +68,22 @@ ctmaLabels <- function(
       cat(crayon::red$bold(" ", " ", sep="\n"))
       stop("Good luck for the next try!")
     }
+    driftNames <- drift # replace
   }
 
+  if (is.null(invariantDrift)) invariantDrift <- driftNames
   invariantDriftParams <- invariantDriftNames <- invariantDrift; invariantDriftParams
   tmp1 <- which(driftNames %in% invariantDriftNames); tmp1
   driftNames[tmp1] <- paste0(driftNames[tmp1], " (invariant)"); driftNames
 
-  moderatedDriftNames <- moderatedDrift
-  if(moderatedDriftNames == "all") moderatedDriftNames <- driftNames
+  if (!(is.null(moderatedDrift))) {
+    moderatedDriftNames <- moderatedDrift
+    if (length(moderatedDriftNames) < 2)  {
+      if (moderatedDriftNames == "all") moderatedDriftNames <- driftFullNames
+    }
+  } else {
+    moderatedDriftNames <- NULL
+  }
 
   equalDriftParams <- equalDriftNames <- equalDrift; equalDriftParams
   tmp1 <- which(driftNames %in% equalDriftNames); tmp1

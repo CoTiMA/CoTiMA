@@ -489,7 +489,7 @@ ctmaInit <- function(
       lambda=lambda,
       drift=drift,
       invariantDrift=invariantDrift,
-      moderatedDrift=moderatedDrift,
+      moderatedDrift=NULL,
       equalDrift=equalDrift
     )
     driftNames <- namesAndParams$driftNames; driftNames
