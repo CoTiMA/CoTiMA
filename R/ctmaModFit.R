@@ -613,13 +613,17 @@ ctmaModFit <- function(
     et <- paste0("Computation ended at: ", end.time); et
     tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
 
-    tmp1 <- mean(allDeltas, na.rm=TRUE); tmp1
+    meanDeltas <- mean(ctmaInitFit$statisticsList$allDeltas, na.rm=TRUE); meanDeltas
+    largeDelta <- which(ctmaInitFit$statisticsList$allDeltas >= meanDeltas); largeDelta
+    tmp1 <- table(ctmaInitFit$statisticsList$allDeltas[largeDelta]); tmp1
+    tmp2 <- which(tmp1 == (max(tmp1))); tmp2
+    suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
     message <- c()
-    if (tmp1 > 3) {
-      tmp2 <- paste0("Mean time interval was ", tmp1, "."); tmp2
-      tmp3 <- paste0("scaleTimee=1/", tmp1); tmp3
+    if (meanDeltas > 3) {
+      tmp2 <- paste0("Mean time interval was ", meanDeltas, "."); tmp2
+      tmp3 <- paste0("scaleTime=1/", suggestedScaleTime); tmp3
       tmp4 <- paste0("It is recommended to fit the model again using the argument ", tmp3, "."); tmp4
-      message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using", tmp3, "in all subsequent models.", collapse="\n"); message
+      message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using, e.g.,", tmp3, "in all subsequent models.", collapse="\n"); message
     }
 
 

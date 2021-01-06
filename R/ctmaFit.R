@@ -521,10 +521,18 @@ ctmaFit <- function(
         print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
         print(paste0("#################################################################################"))
 
-        manifestNames <- paste0("y", 1:n.manifest); manifestNames
-        latentNames <- paste0("V", 1:2); latentNames
-        if (n.manifest == n.latent) manifestNames <- latentNames
-        MANIFESTMEANS <- manifestNames; MANIFESTMEANS
+        #manifestNames <- paste0("y", 1:n.manifest); manifestNames
+        #latentNames <- paste0("V", 1:2); latentNames
+        #if (n.manifest == n.latent) manifestNames <- latentNames
+        manifestmeansParams <- manifestNames; manifestmeansParams
+        #if (n.manifest == 0) n.manifestTmp <- n.latent else n.manifestTmp <- n.manifest
+        manifestVarParams <- c()
+        for (u in 1:n.var) {
+          for (v in 1:n.var) {
+            if ( v < u) manifestVarParams <- c(manifestVarParams, "0") else manifestVarParams <- c(manifestVarParams, paste0("var_", v, "_", u))
+          }
+        }
+        manifestVarParams
 
         stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
                                       DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
@@ -532,12 +540,14 @@ ctmaFit <- function(
                                       LAMBDA=lambdaParams,
                                       CINT=matrix(0, nrow=n.latent, ncol=1),
                                       T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                      MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.manifest, ncol = 1),
+                                      MANIFESTMEANS = matrix(manifestmeansParams, nrow = n.var, ncol = 1),
                                       MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var),
                                       type = 'stanct',
                                       n.TIpred = n.TIpred,
-                                      TIpredNames = paste0("TI", 1:(n.studies-1+clusCounter)),
-                                      TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter)))
+                                      TIpredNames = paste0("TI", 1:n.TIpred),
+                                      #TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter+n.all.moderators))
+                                      TIPREDEFFECT = matrix(0, n.latent, n.TIpred))
+
       } else {
         stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
                                       DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
@@ -549,8 +559,10 @@ ctmaFit <- function(
                                       MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var),
                                       type = 'stanct',
                                       n.TIpred = n.TIpred,
-                                      TIpredNames = paste0("TI", 1:(n.studies-1+clusCounter+n.all.moderators)),
-                                      TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter+n.all.moderators)))
+                                      #TIpredNames = paste0("TI", 1:(n.studies-1+clusCounter+n.all.moderators)),
+                                      TIpredNames = paste0("TI", 1:n.TIpred),
+                                      #TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter+n.all.moderators
+                                      TIPREDEFFECT = matrix(0, n.latent, n.TIpred))
         stanctModel$pars[, "indvarying"] <- FALSE
       }
     }
@@ -725,7 +737,7 @@ ctmaFit <- function(
           #i <- 1
           counter <- counter + 1
           #targetNamePart <- paste0("tip_TI", n.studies+i-1); targetNamePart
-          targetNamePart <- paste0("tip_", modTIs[i]); targetNamePart
+          targetNamePart <- paste0("tip_", modTIs[counter]); targetNamePart
           rownames(modTI_Coeff) <- sub(targetNamePart, paste0(mod.names[counter], "_on_"), rownames(modTI_Coeff))
         }
       }

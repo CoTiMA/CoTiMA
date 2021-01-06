@@ -95,7 +95,9 @@ ctmaEqual <- function(
 
   # copy previous model
   prevStanctModel <- ctmaInvariantFit$studyFitList[[1]]$ctstanmodelbase
+  if (is.null(prevStanctModel)) prevStanctModel <- ctmaInvariantFit$studyFitList$ctstanmodelbase
   prevStanctModelFit <- summary(ctmaInvariantFit$studyFitList[[1]])
+  if (!("npars" %in% names(prevStanctModelFit))) prevStanctModelFit <- summary(ctmaInvariantFit$studyFitList)
 
   # identify Drift coefficents that were fixed (across all TI, which is just a check)
   tmpRow <- which(prevStanctModel$pars$matrix == "DRIFT"); tmpRow
@@ -112,6 +114,7 @@ ctmaEqual <- function(
   stanctModel$pars[targetDriftRow, "param"] <- newDriftLabel
 
   prevEst <- ctmaInvariantFit$studyFitList[[1]]$stanfit$rawest; prevEst
+  if (is.null(prevEst)) prevEst <- ctmaInvariantFit$studyFitList$stanfit$rawest
   # correct for having appropriate inits
   tmp1 <- which(tmpRow %in% targetDriftRow); tmp1
   newInits <- mean(prevEst[tmp1]); newInits
@@ -119,7 +122,6 @@ ctmaEqual <- function(
   prevEst <- prevEst[-tmp1[-1]]; prevEst
 
   prevData <- ctmaInvariantFit$data
-
 
   fitStanctModel <- ctsem::ctStanFit(
     inits=prevEst,
