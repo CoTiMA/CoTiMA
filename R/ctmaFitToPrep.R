@@ -6,6 +6,11 @@
 #'
 ctmaFitToPrep <- function(ctmaFitObject=NULL)
 {
+  if (is.null(ctmaFitObject$originalStudyNo)) {
+    if (!is.null(ctmaFitObject$studyList)) {
+      ctmaFitObject <- ctmaFitObject$studyList
+    }
+  }
   newStudyList <- list()
   newStudyList$studyNumbers <- lapply(ctmaFitObject , function(x) x$originalStudyNo)
   newStudyList$empcovs <- lapply(ctmaFitObject, function(x) x$empcov)
