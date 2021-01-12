@@ -16,7 +16,7 @@
 #' @param mod.names vector of names for moderators used in output
 #' @param n.manifest Number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
 #' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
-#' @param indVarying Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heteregeneity)
+#' @param indVarying Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)
 #' @param scaleTI scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances
 #' @param scaleClus scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster
 #' @param scaleMod scale moderator variables - TRUE (default) highly recommended
@@ -449,6 +449,34 @@ ctmaFit <- function(
   ############################################# CoTiMA (ctsem multigroup) ###############################################
   #######################################################################################################################
 
+  # define Names (labels in compiled output) and Params (= labels for ctsem models)
+  namesAndParams <- ctmaLabels(
+    n.latent=n.latent,
+    n.manifest=n.manifest,
+    lambda=lambda,
+    drift=drift,
+    invariantDrift=invariantDrift,
+    moderatedDrift=moderatedDrift,
+    equalDrift=equalDrift
+  )
+  driftNames <- namesAndParams$driftNames; driftNames
+  driftFullNames <- namesAndParams$driftFullNames; driftFullNames
+  driftParams <- namesAndParams$driftParams; driftParams
+  diffNames <- namesAndParams$diffNames; diffNames
+  diffParams <- namesAndParams$diffParams; diffParams
+  diffFullNames <- namesAndParams$diffFullNames; diffFullNames
+  invariantDriftNames <- namesAndParams$invariantDriftNames; invariantDriftNames
+  invariantDriftParams <- namesAndParams$invariantDriftParams; invariantDriftParams
+  moderatedDriftNames <- namesAndParams$moderatedDriftNames; moderatedDriftNames
+  equalDriftNames <- namesAndParams$equalDriftNames; equalDriftNames
+  equalDriftParams <- namesAndParams$equalDriftParams; equalDriftParams
+  lambdaParams <- namesAndParams$lambdaParams; lambdaParams
+  T0VARParams <- namesAndParams$T0VARParams; T0VARParams
+  manifestmeansParams <- namesAndParams$manifestMeansParams; manifestmeansParams
+  manifestVarParams <- namesAndParams$manifestVarParams; manifestVarParams
+
+  if (is.null(invariantDriftNames)) invariantDriftNames <- driftNames
+
   if (allInvModel) {
     allInvModelFit <- ctmaAllInvFit(ctmaInitFit=ctmaInitFit,
                                     activeDirectory=activeDirectory,
@@ -461,38 +489,15 @@ ctmaFit <- function(
                                     finishsamples=finishsamples,
                                     iter=iter,
                                     chains=chains,
-                                    verbose=verbose)
-    invariantDriftStanctFit <- summary(allInvModelFit)
+                                    verbose=verbose,
+                                    indVarying = indVarying,
+                                    customPar = customPar)
+    fitStanctModel <- allInvModelFit$studyFitList[[1]]
+    invariantDriftStanctFit <- summary(fitStanctModel)
   } else {
 
     if (is.null(moderatedDrift) & (!(is.null(mod.number)))) moderatedDrift <- "all" # will be changed by ctmaLabels
 
-    namesAndParams <- ctmaLabels(
-      n.latent=n.latent,
-      n.manifest=n.manifest,
-      lambda=lambda,
-      drift=drift,
-      invariantDrift=invariantDrift,
-      moderatedDrift=moderatedDrift,
-      equalDrift=equalDrift
-    )
-    driftNames <- namesAndParams$driftNames; driftNames
-    driftFullNames <- namesAndParams$driftFullNames; driftFullNames
-    driftParams <- namesAndParams$driftParams; driftParams
-    diffNames <- namesAndParams$diffNames; diffNames
-    diffParams <- namesAndParams$diffParams; diffParams
-    diffFullNames <- namesAndParams$diffFullNames; diffFullNames
-    invariantDriftNames <- namesAndParams$invariantDriftNames; invariantDriftNames
-    invariantDriftParams <- namesAndParams$invariantDriftParams; invariantDriftParams
-    moderatedDriftNames <- namesAndParams$moderatedDriftNames; moderatedDriftNames
-    equalDriftNames <- namesAndParams$equalDriftNames; equalDriftNames
-    equalDriftParams <- namesAndParams$equalDriftParams; equalDriftParams
-    lambdaParams <- namesAndParams$lambdaParams; lambdaParams
-    T0VARParams <- namesAndParams$T0VARParams; T0VARParams
-    manifestmeansParams <- namesAndParams$manifestMeansParams; manifestmeansParams
-    manifestVarParams <- namesAndParams$manifestVarParams; manifestVarParams
-
-    if (is.null(invariantDriftNames)) invariantDriftNames <- driftNames
 
     n.TIpred <- (n.studies-1+n.all.moderators+clusCounter); n.TIpred
     # scale Drift to cover changes in ctsem 3.4.1 (this would be for ctmaFit/ctmaModFit, but for Init individual study modification is done later)
@@ -512,11 +517,9 @@ ctmaFit <- function(
       }
     }
 
-
-
     # Make model with max time points
     {
-      if (indVarying == TRUE) {
+      if ((allInvModel == FALSE) & (indVarying == TRUE)) {
         print(paste0("#################################################################################"))
         print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
         print(paste0("#################################################################################"))
@@ -637,11 +640,9 @@ ctmaFit <- function(
     if (!(is.null(CoTiMAStanctArgs$resample))) {
       fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel) #, CoTiMAStanctArgs=CoTiMAStanctArgs)
     }
-
-    invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
+        invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
   } # end if else (allInvModel)
 
-  invariantDriftStanctFit
   # Extract estimates & statistics
   # account for changes in ctsem 3.4.1
   if ("matrix" %in% colnames(invariantDriftStanctFit$parmatrices)) ctsem341 <- TRUE else ctsem341 <- FALSE
@@ -677,6 +678,23 @@ ctmaFit <- function(
 
     tmp4 <- tmp1[which(!(tmp1 %in% tmp2))]; tmp4 # change to "DRIFT " for later extraction
     rownames(invariantDrift_Coeff)[tmp4] <- paste0("DRIFT ", driftFullNames[which(!(tmp1 %in% tmp2))]); invariantDrift_Coeff
+
+    if (allInvModel == TRUE) {
+      tmp5 <- (grep("DIFFUSIONcov", rownames(invariantDrift_Coeff))); tmp5
+      tmp6 <- (grep("asymDIFFUSIONcov", rownames(invariantDrift_Coeff))); tmp6
+      targetRows <- tmp5[which(!(tmp5 %in% tmp6))]; targetRows
+      rownames(invariantDrift_Coeff)[targetRows] <- paste0(rownames(invariantDrift_Coeff)[targetRows], " (invariant)")
+
+      targetRows <- (grep("T0cov", rownames(invariantDrift_Coeff))); targetRows
+      rownames(invariantDrift_Coeff)[targetRows] <- paste0(rownames(invariantDrift_Coeff)[targetRows], " (invariant)")
+
+      targetRows <- (grep("T0MEANS", rownames(invariantDrift_Coeff))); targetRows
+      rownames(invariantDrift_Coeff)[targetRows] <- paste0(rownames(invariantDrift_Coeff)[targetRows], " (invariant)")
+
+      targetRows <- (grep("MANIFESTMEANS", rownames(invariantDrift_Coeff))); targetRows
+      rownames(invariantDrift_Coeff)[targetRows] <- paste0(rownames(invariantDrift_Coeff)[targetRows], " (invariant)")
+    }
+
   }
   #invariantDrift_Coeff
 

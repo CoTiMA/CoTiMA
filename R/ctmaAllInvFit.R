@@ -5,6 +5,8 @@
 #' @param activateRPB activateRPB
 #' @param digits digits
 #' @param coresToUse coresToUse
+#' @param n.manifest Number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
+#' @param indVarying Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)
 #' @param scaleTime scaleTime
 #' @param optimize optimize
 #' @param nopriors nopriors
@@ -25,6 +27,8 @@ ctmaAllInvFit <- function(
   activateRPB=FALSE,
   digits=4,
   coresToUse=c(1),
+  n.manifest=0,
+  indVarying=FALSE,
   scaleTime=NULL,
   optimize=TRUE,
   nopriors=TRUE,
@@ -83,25 +87,23 @@ ctmaAllInvFit <- function(
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
     maxTpoints <- max(allTpoints); maxTpoints
     allDeltas <- ctmaInitFit$statisticsList$allDeltas; allDeltas
-    maxDelta <- max(allDeltas, na.rm=TRUE); maxDelta
-    manifestNames <- ctmaInitFit$studyFitList[[1]]$ctstanmodel$manifestNames; manifestNames
-    if (is.null(manifestNames)) n.manifest <- 0 else n.manifest <- length(manifestNames)
-    driftNames <- ctmaInitFit$parameterNames$DRIFT; driftNames
-    #if (!(is.null(drift))) driftNames <- c(t(matrix(drift, n.latent, n.latent)))
-    tmp1 <- names(ctmaInitFit$modelResults$DIFFUSION[[1]]); tmp1
-    if (length(tmp1) != n.latent^2) {
-      diffNames <- OpenMx::vech2full(tmp1); diffNames
-    } else {
-      diffNames <- matrix(names(ctmaInitFit$modelResults$DIFFUSION[[1]]), n.latent); diffNames
-    }
-
+    lambda <- ctmaInitFit$statisticsList$lambda; lambda
   }
 
   #######################################################################################################################
   ################################################# data preparation ####################################################
   #######################################################################################################################
   {
-    # combine pseudo raw data for mx model
+    # manifests & latent names
+    if (n.manifest > n.latent) {
+      manifestNames <- paste0("y", 1:n.manifest); manifestNames
+      latentNames <- paste0("V", 1:n.latent); latentNames
+    } else {
+      manifestNames <- paste0("V", 1:n.latent); manifestNames
+      latentNames <- paste0("V", 1:n.latent); latentNames
+    }
+
+    # combine pseudo raw data
     tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit)
     datawide_all <- tmp$alldata
     groups <- tmp$groups
@@ -133,49 +135,79 @@ ctmaAllInvFit <- function(
                                     manifestNames=manifestNames)
     dataTmp3 <- suppressMessages(ctsem::ctDeintervalise(dataTmp2))
     dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
+
     # eliminate rows where ALL latents are NA
     if (n.manifest > n.latent) namePart <- "y" else namePart <- "V"
     dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0(namePart, 1:n.var)], 1, function(x) sum(is.na(x)) != n.var ), ]
     datalong_all <- dataTmp3
+
   }
+
   datalong_all <- as.data.frame(datalong_all)
 
-  # scale Drift to cover changes in ctsem 3.4.1 (this would be for ctmaFit/ctmaModFit, but for Init individual study modification is done later)
-  driftNamesTmp <- driftNames
-  diffNamesTmp  <- diffNames
+  # get names and params
+  namesAndParams <- ctmaLabels(
+    n.latent=n.latent,
+    n.manifest=n.manifest,
+    lambda=lambda,
+    drift=drift)
+  driftNames <- namesAndParams$driftNames; driftNames
+  driftFullNames <- namesAndParams$driftFullNames; driftFullNames
+  driftParams <- namesAndParams$driftParams; driftParams
+  diffNames <- namesAndParams$diffNames; diffNames
+  diffParams <- namesAndParams$diffParams; diffParams
+  diffFullNames <- namesAndParams$diffFullNames; diffFullNames
+  lambdaParams <- namesAndParams$lambdaParams; lambdaParams
+  T0VARParams <- namesAndParams$T0VARParams; T0VARParams
+  #manifestmeansParams <- namesAndParams$manifestMeansParams; manifestmeansParams
+  #manifestVarParams <- namesAndParams$manifestVarParams; manifestVarParams
+
+
+  driftParamsTmp <- driftParams; driftParamsTmp
+  diffParamsTmp  <- diffParams
   meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
   if ((meanLag > 6) & (customPar)) {
     counter <- 0
     for (h in 1:(n.latent)) {
       for (j in 1:(n.latent)) {
         counter <- counter + 1
-        #if (h == j) driftNamesTmp[counter] <- paste0(driftNamesTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
         if (h == j) {
-          driftNamesTmp[counter] <- paste0(driftNamesTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
-          diffNamesTmp[counter] <- paste0(diffNamesTmp[counter], paste0("|log1p_exp(param *.1 +2)"))
+          driftParamsTmp[counter] <- paste0(driftParamsTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
+          diffParamsTmp[counter] <- paste0(diffParamsTmp[counter], paste0("|log1p_exp(param *.1 +2)"))
         }
       }
     }
   }
 
-  tmp0 <- matrix(diffNamesTmp, n.latent); tmp0
-  tmp0[upper.tri(tmp0, diag=FALSE)] <- 0; tmp0
-  diffNamesTmp <- tmp0; diffNamesTmp
+  #tmp0 <- matrix(diffNamesTmp, n.latent); tmp0
+  #tmp0[upper.tri(tmp0, diag=FALSE)] <- 0; tmp0
+  #diffNamesTmp <- tmp0; diffNamesTmp
+
+  if (indVarying == TRUE) {
+    T0MEANS <- "auto"
+    MANIFESTMEANS <- "auto"
+    #MANIFESTVAR <- "auto"
+    MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent)
+  } else {
+    T0MEANS <- matrix(c(0), nrow = n.latent, ncol = 1)
+    MANIFESTMEANS <- matrix(c(0), nrow = n.latent, ncol = 1)
+    MANIFESTVAR <- matrix(0, nrow=n.latent, ncol=n.latent)
+  }
+
 
   # all fixed model is a model with no TI predictors (identical to ctsemModel)
   # CHD allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
-  allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
-                           DIFFUSION=matrix(diffNamesTmp, nrow=n.latent, ncol=n.latent),
-                           DRIFT=matrix(driftNamesTmp, nrow=n.latent, ncol=n.latent, byrow=FALSE),
-                           LAMBDA=diag(n.latent),
+  allFixedModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
+                           DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
+                           DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
+                           LAMBDA=lambdaParams,
                            type='stanct',
-                           #CINT=matrix(cintNames, nrow=n.latent, ncol=1),
                            CINT=matrix(0, nrow=n.latent, ncol=1),
-                           T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                           MANIFESTMEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                           MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent))
+                           T0MEANS=T0MEANS,
+                           MANIFESTMEANS=MANIFESTMEANS,
+                           MANIFESTVAR=MANIFESTVAR)
 
-  allFixedModel$pars[, "indvarying"] <- FALSE
+  if (indVarying == FALSE) allFixedModel$pars[, "indvarying"] <- FALSE
 
 
   # LOAD or Fit
@@ -183,7 +215,7 @@ ctmaAllInvFit <- function(
     x1 <- paste0(activeDirectory, loadAllInvFit[1], ".rds"); x1
     results <- readRDS(file=x1)
   } else {
-    allFixedModelFit <- ctStanFit(
+    allFixedModelFit <- suppressMessages(ctsem::ctStanFit(
       datalong = datalong_all,
       ctstanmodel = allFixedModel,
       savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
@@ -207,7 +239,7 @@ ctmaAllInvFit <- function(
       control=CoTiMAStanctArgs$control,
       verbose=CoTiMAStanctArgs$verbose,
       warmup=CoTiMAStanctArgs$warmup,
-      cores=coresToUse)
+      cores=coresToUse))
 
     cat( "\n", "Computing results summary of all invariant model.", "\n")
     allFixedModelFitSummary <- summary(allFixedModelFit, digits=digits)
@@ -312,27 +344,17 @@ ctmaAllInvFit <- function(
     homAll_T0VAR_Tvalue <- homAll_T0VAR_Coef/homAll_T0VAR_SE; homAll_T0VAR_Tvalue
 
     ## Extract Model Fit
-    #allFixedModelFitSummary
     homAll_Minus2LogLikelihood <- -2 * allFixedModelFitSummary$loglik; homAll_Minus2LogLikelihood
     homAll_estimatedParameters <- allFixedModelFitSummary$npars; homAll_estimatedParameters
-    #homAll_df <- ctmaInitFit$summary$df+(ctmaInitFit$summary$n.parameters-homAll_estimatedParameters); homAll_df
     homAll_df <- NULL
 
     homAll_effects <- matrix(t(cbind((homAll_Drift_Coef), (homAll_Drift_SE),
                                      (homAll_Drift_Tvalue))), 1, 3*length(driftNames), byrow=T); homAll_effects
 
-    #homAll_effects <- rbind(homAll_effects,
-    #                        matrix(t(cbind((c(OpenMx::vech2full(homAll_Diffusion_Coef))),
-    #                                       c(OpenMx::vech2full((homAll_Diffusion_SE))),
-    #                                       c(OpenMx::vech2full((homAll_Diffusion_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
     homAll_effects <- rbind(homAll_effects,
                             matrix(t(cbind(homAll_Diffusion_Coef, homAll_Diffusion_SE,
                                            homAll_Diffusion_Tvalue)), 1, 3*length(driftNames), byrow=T)); homAll_effects
 
-    #homAll_effects <- rbind(homAll_effects,
-    #                        matrix(t(cbind(c(OpenMx::vech2full((homAll_T0Var_Coef))),
-    #                                       c(OpenMx::vech2full((homAll_T0Var_SE))),
-    #                                       c(OpenMx::vech2full((homAll_T0Var_Tvalue))) )), 1, 3*length(driftNames), byrow=T)); homAll_effects
     homAll_effects <- rbind(homAll_effects,
                             matrix(t(cbind(homAll_T0VAR_Coef, homAll_T0VAR_SE,
                                            homAll_T0VAR_Tvalue)), 1, 3*length(driftNames), byrow=T)); homAll_effects

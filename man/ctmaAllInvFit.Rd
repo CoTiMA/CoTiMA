@@ -10,6 +10,8 @@ ctmaAllInvFit(
   activateRPB = FALSE,
   digits = 4,
   coresToUse = c(1),
+  n.manifest = 0,
+  indVarying = FALSE,
   scaleTime = NULL,
   optimize = TRUE,
   nopriors = TRUE,
@@ -33,6 +35,10 @@ ctmaAllInvFit(
 \item{digits}{digits}
 
 \item{coresToUse}{coresToUse}
+
+\item{n.manifest}{Number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).}
+
+\item{indVarying}{Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)}
 
 \item{scaleTime}{scaleTime}
 

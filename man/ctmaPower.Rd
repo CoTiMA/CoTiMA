@@ -14,6 +14,7 @@ ctmaPower(
   useMBESS = FALSE,
   coresToUse = 1,
   digits = 4,
+  indVarying = FALSE,
   activateRPB = FALSE,
   silentOverwrite = FALSE,
   loadAllInvFit = c(),
@@ -49,6 +50,8 @@ ctmaPower(
 \item{coresToUse}{vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))}
 
 \item{digits}{Number of digits used for rounding (in outputs)}
+
+\item{indVarying}{Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)}
 
 \item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
 

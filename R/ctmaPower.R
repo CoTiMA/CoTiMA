@@ -10,6 +10,7 @@
 #' @param timeRange vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))
 #' @param useMBESS use MBESS package to calculate statistical power (slower)
 #' @param coresToUse vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))
+#' @param indVarying Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)
 #' @param activateRPB set to TRUE to receive push messages with CoTiMA notifications on your phone
 #' @param silentOverwrite Overwrite old files without asking
 #' @param digits Number of digits used for rounding (in outputs)
@@ -49,6 +50,7 @@ ctmaPower <- function(
   useMBESS=FALSE,
   coresToUse=1,
   digits=4,
+  indVarying=FALSE,
   activateRPB=FALSE,
   silentOverwrite=FALSE,
   loadAllInvFit=c(),
@@ -312,6 +314,7 @@ ctmaPower <- function(
                                     activateRPB=activateRPB,
                                     digits=digits,
                                     coresToUse=coresToUse,
+                                    indVarying=indVarying,
                                     scaleTime=CoTiMAStanctArgs$scaleTime,
                                     optimize=optimize,
                                     nopriors=nopriors,
@@ -935,4 +938,3 @@ ctmaPower <- function(
   invisible(results)
 
 } ### END function definition
-
