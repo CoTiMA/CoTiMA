@@ -482,6 +482,7 @@ ctmaFit <- function(
                                     activeDirectory=activeDirectory,
                                     activateRPB=activateRPB,
                                     digits=digits,
+                                    drift=drift,
                                     coresToUse=coresToUse,
                                     scaleTime=scaleTime,
                                     optimize=optimize,

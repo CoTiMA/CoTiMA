@@ -5,6 +5,7 @@
 #' @param activateRPB activateRPB
 #' @param digits digits
 #' @param coresToUse coresToUse
+#' @param drift Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)
 #' @param n.manifest Number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
 #' @param indVarying Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)
 #' @param scaleTime scaleTime
@@ -26,6 +27,7 @@ ctmaAllInvFit <- function(
   activeDirectory=NULL,
   activateRPB=FALSE,
   digits=4,
+  drift=drift,
   coresToUse=c(1),
   n.manifest=0,
   indVarying=FALSE,

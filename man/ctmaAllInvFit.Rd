@@ -9,6 +9,7 @@ ctmaAllInvFit(
   activeDirectory = NULL,
   activateRPB = FALSE,
   digits = 4,
+  drift = drift,
   coresToUse = c(1),
   n.manifest = 0,
   indVarying = FALSE,
@@ -33,6 +34,8 @@ ctmaAllInvFit(
 \item{activateRPB}{activateRPB}
 
 \item{digits}{digits}
+
+\item{drift}{Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)}
 
 \item{coresToUse}{coresToUse}
 
