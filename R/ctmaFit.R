@@ -14,7 +14,6 @@
 #' @param mod.number which in the vector of moderator values to use (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
 #' @param mod.type "cont" or "cat" (mixing them in a single model not yet possible)
 #' @param mod.names vector of names for moderators used in output
-#' @param n.manifest Number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
 #' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
 #' @param indVarying Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)
 #' @param scaleTI scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances
@@ -76,7 +75,7 @@ ctmaFit <- function(
   mod.number=NULL,
   mod.type="cont",
   mod.names=NULL,
-  n.manifest=0,
+  #n.manifest=0,
   indVarying=FALSE,
   coresToUse=c(1),
   scaleTI=NULL,
@@ -195,7 +194,12 @@ ctmaFit <- function(
   start.time <- Sys.time(); start.time
 
   {
-    n.latent <- length(ctmaInitFit$modelResults$DRIFT[[1]])^.5; n.latent
+    if (is.null(ctmaInitFit$n.latent)) {
+      n.latent <- length(ctmaInitFit$modelResults$DRIFT[[1]])^.5; n.latent
+    } else {
+      n.latent <- ctmaInitFit$n.latent
+    }
+    if (!(is.null(ctmaInitFit$n.manifest))) n.manifest <- ctmaInitFit$n.manifest
     if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
     n.studies <- unlist(ctmaInitFit$n.studies); n.studies
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints

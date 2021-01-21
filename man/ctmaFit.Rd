@@ -18,7 +18,6 @@ ctmaFit(
   mod.number = NULL,
   mod.type = "cont",
   mod.names = NULL,
-  n.manifest = 0,
   indVarying = FALSE,
   coresToUse = c(1),
   scaleTI = NULL,
@@ -61,8 +60,6 @@ ctmaFit(
 \item{mod.type}{"cont" or "cat" (mixing them in a single model not yet possible)}
 
 \item{mod.names}{vector of names for moderators used in output}
-
-\item{n.manifest}{Number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).}
 
 \item{indVarying}{Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)}
 
