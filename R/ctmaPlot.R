@@ -268,6 +268,15 @@ ctmaPlot <- function(
       yMax <- 300 # 300 # arbitrarily set
       xMax <- 300 # 200 # arbitrarily set
 
+      # try
+      yMin <- 0
+      xMin <- 0
+      if (is.null(ctmaFitObject[[k]]$xMin)) plot.xMin <- xMin else plot.xMin <- ctmaFitObject[[k]]$xMin; plot.xMin
+      if (is.null(ctmaFitObject[[k]]$xMax)) plot.xMax <- xMax else plot.xMax <- ctmaFitObject[[k]]$xMax; plot.xMax
+      if (is.null(ctmaFitObject[[k]]$yMin)) plot.yMin <- yMin else plot.yMin <- ctmaFitObject[[k]]$yMin; plot.yMin
+      if (is.null(ctmaFitObject[[k]]$yMax)) plot.yMax <- yMax else plot.yMax <- ctmaFitObject[[k]]$yMax; plot.yMax
+
+
       # adaptations based on figures size ('base' objects contained transformed coefficients and are used for plotting)
       {
         heigthPerStudy <- yMax/(n.studies+1); heigthPerStudy
@@ -303,7 +312,7 @@ ctmaPlot <- function(
       for (i in 1:(n.latent^2)) {
         #i <- 3
         # set frame by plotting invisible object
-        plot(c(0,0), type="l", col="white", lwd=1.5, xlim = c(0, xMax), ylim = c(0, 300),
+        plot(c(0,0), type="l", col="white", lwd=1.5, xlim = c(plot.xMin, plot.xMax), ylim = c(plot.yMin, plot.yMax),
              xaxt='n', yaxt='n', ann=FALSE)
         graphics::par(new=F)
         for (j in 1:n.studies) {
@@ -359,7 +368,8 @@ ctmaPlot <- function(
         graphics::axis(side=2, at = atSeq, labels=labelsSeq, las=1)
         graphics::axis(side=2, at = atSeq, labels=labelsSeq, las=1)
         # x-axis (effect size)
-        atSeq <- seq(0, xMax, by = 10); atSeq
+        #atSeq <- seq(0, xMax, by = 10); atSeq
+        atSeq <- seq(plot.xMin, plot.xMax, by = 10); atSeq
         if (colnames(DRIFTCoeff[[k]])[i] %in% autoNames) {
           currentMin <- min(autoDRIFTCoeffLow); currentMin
           currentMax <- max(autoDRIFTCoeffUp); currentMax
