@@ -637,7 +637,7 @@ ctmaPlot <- function(
             } else {
               plot.lty <- ctmaFitObject[[g]]$lty; plot.lty
             }
-            if (is.null(ctmaFitObject[[g]]$xMin)) plot.xMin <- c else plot.xMin <- ctmaFitObject[[g]]$xMin; plot.xMin
+            if (is.null(ctmaFitObject[[g]]$xMin)) plot.xMin <- xMin else plot.xMin <- ctmaFitObject[[g]]$xMin; plot.xMin
             if (is.null(ctmaFitObject[[g]]$xMax)) plot.xMax <- xMax else plot.xMax <- ctmaFitObject[[g]]$xMax; plot.xMax
             if (is.null(ctmaFitObject[[g]]$yMin)) plot.yMin <- yMinAuto else plot.yMin <- ctmaFitObject[[g]]$yMin; plot.yMin
             if (is.null(ctmaFitObject[[g]]$yMax)) plot.yMax <- yMaxAuto else plot.yMax <- ctmaFitObject[[g]]$yMax; plot.yMax
