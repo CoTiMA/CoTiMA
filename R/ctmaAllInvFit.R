@@ -151,9 +151,10 @@ ctmaAllInvFit <- function(
   namesAndParams <- ctmaLabels(
     n.latent=n.latent,
     n.manifest=n.manifest,
-    lambda=lambda,
-    drift=drift)
+    lambda=lambda)#,
+    #drift=drift)
   driftNames <- namesAndParams$driftNames; driftNames
+  driftNames <- gsub(" \\(invariant\\)" , "", driftNames); driftNames
   driftFullNames <- namesAndParams$driftFullNames; driftFullNames
   driftParams <- namesAndParams$driftParams; driftParams
   diffNames <- namesAndParams$diffNames; diffNames
