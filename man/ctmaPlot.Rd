@@ -15,7 +15,6 @@ ctmaPlot(
   timeRange = c(),
   yLimitsForEffects = c(),
   mod.values = -2:2,
-  mod.num = 1,
   aggregateLabel = "",
   xLabels = NULL,
   ...
@@ -41,8 +40,6 @@ ctmaPlot(
 \item{yLimitsForEffects}{range for y-axis}
 
 \item{mod.values}{moderator values that should be used for plots}
-
-\item{mod.num}{which of possible multiple moderator effects should be plotted}
 
 \item{aggregateLabel}{label to indicat aggregated discrete time effects}
 
