@@ -903,7 +903,7 @@ ctmaInit <- function(
   if (maxDeltas > 6) {
     tmp2 <- paste0("Maximum time interval was ", maxDeltas, "."); tmp2
     tmp3 <- paste0("timeScale=1/", suggestedScaleTime); tmp3
-    tmp4 <- paste0("It is recommended to fit the model again using the argument ", tmp3, "."); tmp4
+    tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, " and customPar=FALSE. "); tmp4
     message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using, e.g.,", tmp3, "in all subsequent models.", collapse="\n"); message
   }
 
