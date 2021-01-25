@@ -322,7 +322,7 @@ ctmaPower <- function(
                                     iter=iter,
                                     chains=chains,
                                     verbose=verbose,
-                                    customPar=TRUE)
+                                    customPar=customPar)
     cat( "\n", "Computing results summary of all invariant model.", "\n")
     allInvModelFitSummary <- summary(allInvModelFit, digits=digits)
   }
