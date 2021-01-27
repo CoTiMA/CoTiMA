@@ -12,7 +12,8 @@ LazyData: true
 Depends:
     OpenMx (>= 2.18.1),
     ctsem (>= 3.3.11),
-    lavaan (>= 0.6)
+    lavaan (>= 0.6),
+    foreach (>= 1.5.1)
 Imports: 
     MASS (>= 7.3.51.4),
     MBESS (>= 4.6.0),

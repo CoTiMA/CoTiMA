@@ -9,7 +9,8 @@ ctmaBiG(
   activeDirectory = NULL,
   PETPEESEalpha = 0.1,
   activateRPB = FALSE,
-  digits = 4
+  digits = 4,
+  zcurve = FALSE
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ ctmaBiG(
 \item{activateRPB}{if TRUE, messages (warning, finishs) could be send to smart phone (default = FALSE)}
 
 \item{digits}{rounding (default = 4)}
+
+\item{zcurve}{performs z-curve analysis. Could fail if too few studies (e.g. around 10) are supplied}
 }
 \description{
 Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients.

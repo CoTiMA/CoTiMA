@@ -7,6 +7,7 @@
 #' @param PETPEESEalpha   # probability level (condition) below which to switch from PET to PEESE (Stanley, 2017, SPPS,p. 582, below Eq. 2; (default p = .10)
 #' @param activateRPB if TRUE, messages (warning, finishs) could be send to smart phone (default = FALSE)
 #' @param digits rounding (default = 4)
+#' @param zcurve performs z-curve analysis. Could fail if too few studies (e.g. around 10) are supplied
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
@@ -25,7 +26,8 @@ ctmaBiG <- function(
   activeDirectory=NULL,
   PETPEESEalpha=.10,
   activateRPB=FALSE,
-  digits=4
+  digits=4,
+  zcurve=FALSE
 )
 
 
@@ -66,60 +68,63 @@ ctmaBiG <- function(
       n.latent <- ctmaInitFit$n.latent; n.latent
       if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
       n.studies <- ctmaInitFit$n.studies; n.studies
-      tmp1 <- matrix(unlist(ctmaInitFit$modelResults$DRIFT), ncol=n.latent^2, byrow=TRUE); tmp1
-      tmp2 <- matrix(unlist(ctmaInitFit$modelResults$DIFFUSION), ncol=(n.latent * (n.latent+1) / 2), byrow=TRUE); tmp2
-      tmp3 <- matrix(unlist(ctmaInitFit$modelResults$T0VAR), ncol=(n.latent * (n.latent+1) / 2), byrow=TRUE); tmp3
-      all_Coeff <- cbind(tmp1, tmp2, tmp3); all_Coeff
-      colnames(all_Coeff) <- c(names(ctmaInitFit$modelResults$DRIFT[[1]]),
-                               names(ctmaInitFit$modelResults$DIFFUSION[[1]]),
-                               names(ctmaInitFit$modelResults$T0VAR[[1]])); all_Coeff
+      names1 <- names(ctmaInitFit$modelResults$DRIFT[[1]]); names1
+      names2 <- names(ctmaInitFit$modelResults$DIFFUSION[[1]]); names2
+      names3 <- names(ctmaInitFit$modelResults$T0VAR[[1]]); names3
 
-      # compute SE
-      all_SE <- matrix(NA, ncol=dim(all_Coeff)[2], nrow=dim(all_Coeff)[1]); all_SE
-      # identify lower.tri elements
-      tmp1 <- matrix(99, ncol=n.latent, nrow=n.latent); tmp1
-      toSelect <- which(lower.tri(tmp1, diag=TRUE)); toSelect
+      if (length(names1) != length(names2)) { # old vs. new ctsem version
+        names2 <- c(vech2full(names2))
+        names3 <- c(vech2full(names3))
+      }
+
+      all_Coeff <- matrix(NA, ncol=(3*(n.latent^2)), nrow=n.studies); all_Coeff
+      all_SE <- matrix(NA, ncol=(3*(n.latent^2)), nrow=n.studies); all_SE
+
+      if ("pop_T0cov" %in% names(ctmaInitFit$studyFitList[[1]]$stanfit$transformedpars)) ctsem341 <- TRUE else ctsem341 <- FALSE
       for (i in 1:n.studies) {
-        ("transformedpars" %in% names(ctmaInitFit$studyFitList[[i]]$stanfit))
-        if ("transformedpars" %in% names(ctmaInitFit$studyFitList[[i]]$stanfit)) {
+        if ("transformedpars" %in% names(ctmaInitFit$studyFitList[[i]]$stanfit)) {        # if maximum likelihood was used
           tmp1 <- cbind(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DRIFT[, , 1],
                         ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DRIFT[, , 2])
-          tmp1 <- tmp1[, c(1,3,2,4)]; tmp1
-          tmp2 <- cbind(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DIFFUSION[, , 1],
-                        ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DIFFUSION[, , 2])
-          tmp2 <- tmp2[, toSelect]
-          tmp3 <- cbind(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0VAR[, , 1],
-                        ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0VAR[, , 2])
-          tmp3 <- tmp3[, toSelect]
+          if (ctsem341 == FALSE) tmp1 <- tmp1[, c(1,3,2,4)]
+          tmp2 <- cbind(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DIFFUSIONcov[, , 1],
+                        ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DIFFUSIONcov[, , 2])
+          if (ctsem341 == TRUE) {
+          tmp3 <- cbind(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0cov[, , 1],
+                        ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0cov[, , 2])
+          } else {
+            tmp3 <- cbind(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0VAR[, , 1],
+                          ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0VAR[, , 2])
+          }
           tmp4 <- cbind(tmp1, tmp2, tmp3); tmp4
-          tmp4 <- apply(tmp4, 2, stats::var)^.5
-          all_SE[i,] <- t(as.matrix(tmp4))
+          all_Coeff[i,] <- apply(tmp4, 2, mean); all_Coeff[i,]
+          all_SE[i,] <- apply(tmp4, 2, stats::sd); all_SE[i,]
         } else if ("ll" %in% names(ctmaInitFit$studyFitList[[i]]$stanfit)) { # if NUTS sampler was used
+          tmp1 <- matrix(99, ncol=n.latent, nrow=n.latent); tmp1
+          toSelect <- which(lower.tri(tmp1, diag=TRUE)); toSelect
           stanSummary <- summary(ctmaInitFit$studyFitList[[i]]$stanfit)
           stanSummary <- stanSummary$summary
           tmp <- grep("pop_DRIFT", rownames(stanSummary)); tmp
           tmp1 <- stanSummary[tmp, 3]; tmp1
           tmp <- grep("pop_DIFFUSIONcov", rownames(stanSummary)); tmp
           tmp2 <- stanSummary[tmp, 3][toSelect]; tmp2
-          tmp <- grep("pop_T0VAR", rownames(stanSummary)); tmp
+          if (ctsem341 == FALSE) {
+            tmp <- grep("pop_T0VAR", rownames(stanSummary))
+          } else {
+            tmp <- grep("pop_T0cov", rownames(stanSummary))
+          }
           tmp3 <- stanSummary[tmp, 3][toSelect]; tmp3
           tmp4 <- c(tmp1, tmp2, tmp3); tmp4
           all_SE[i,] <- t(as.matrix(tmp4))
         }
       }
-
-      colnames(all_SE) <- c(names(ctmaInitFit$modelResults$DRIFT[[1]]),
-                            names(ctmaInitFit$modelResults$DIFFUSION[[1]]),
-                            names(ctmaInitFit$modelResults$T0VAR[[1]]))
+      colnames(all_SE) <- colnames(all_Coeff) <- c(names1, names2, names3)
       allSampleSizes <- ctmaInitFit$statisticsList$allSampleSizes; allSampleSizes
     } # end extracting
-
 
     #######################################################################################################################
     ##################################### Analyses of Publication Bias ####################################################
     #######################################################################################################################
 
-    #{ # Start Analysis of Publication Bias
 
     print(paste0("#################################################################################"))
     print(paste0("################################# Egger's test ##################################"))
@@ -179,7 +184,7 @@ ctmaBiG <- function(
     DriftMeans <- colMeans(DRIFTCoeff); DriftMeans
     # Sum of within weights  and weight * effect size
     T_DriftWeights <- colSums(DRIFTPrecision^2); T_DriftWeights
-    DRIFTPrecision
+    #DRIFTPrecision
     T_DriftMeans <- colSums(DRIFTCoeff * DRIFTPrecision^2); T_DriftMeans
     names(T_DriftMeans) <- names(T_DriftWeights); T_DriftMeans
     # Fixed effects results
@@ -251,8 +256,8 @@ ctmaBiG <- function(
                                       RandomEffecttot_DriftZ, RandomEffecttot_DriftProb,
                                       RandomEffecttot_DriftUpperLimitPI, RandomEffecttot_DriftLowerLimitPI)
 
+    RandomEffectDriftResults
     ### PET, PEESE & WLS approaches to correct for bias
-
 
     print(paste0("#################################################################################"))
     print(paste0("################ PET, PEESE & WLS approaches to correct for bias  ###############"))
@@ -303,32 +308,34 @@ ctmaBiG <- function(
 
 
     ############################################## zcurve Analysis ###################################################
+    zFit <- "Set zcurve=TRUE for z-curve analysis results"
+    if (zcurve == TRUE) {
+      print(paste0("#################################################################################"))
+      print(paste0("############################## Z-curve 2.0 analysis #############################"))
+      print(paste0("#################################################################################"))
 
-    print(paste0("#################################################################################"))
-    print(paste0("############################## Z-curve 2.0 analysis #############################"))
-    print(paste0("#################################################################################"))
-
-    zFit <- list()
-    for (i in 1: dim(DRIFTCoeffSND)[2]) {
-      tmp1 <- abs(DRIFTCoeffSND[, i]); tmp1
-      zFit[[i]] <- summary(zcurve::zcurve(z=tmp1))
+      zFit <- list()
+      for (i in 1: dim(DRIFTCoeffSND)[2]) {
+        tmp1 <- abs(DRIFTCoeffSND[, i]); tmp1
+        zFit[[i]] <- summary(zcurve::zcurve(z=tmp1))
+      }
+      names(zFit) <- paste0("Z-Curve 2.0 analysis of ", colnames(DRIFTCoeffSND)); zFit
+      ## format results
+      #z.CurveResults <- matrix(NA, ncol=length(zFit), nrow=19)
+      #for (h in 1:length(zFit)) {
+      #  stopRow = 0
+      #  for (j in 2:length(zFit[[i]])) {
+      #    startRow  <- stopRow + 1; startRow
+      #    stopRow <- startRow + length(unlist((zFit[[h]][j]))) - 1; stopRow
+      #    unlist((zFit[[h]][j]))
+      #    if (j == 2) z.CurveResults[startRow:stopRow, h] <- round(c((matrix(unlist((zFit[[h]][j])), ncol=2, byrow=TRUE))), digits)
+      #    if (j != 2) z.CurveResults[startRow:stopRow, h] <- unlist((zFit[[h]][j]))
+      #  }
+      #}
+      #rownamesPart <- c("ERR", "ERR lower CI", "ERR upper CI", "EDR", "EDR lower CI", "EDR upper CI" )
+      #rownamesPart <- c(rownamesPart, names(unlist((zFit[[1]][3]))), names(unlist((zFit[[1]][4]))), names(unlist((zFit[[1]][5]))) )
+      #rownames(z.CurveResults) <- rownamesPart
     }
-    names(zFit) <- paste0("Z-Curve 2.0 analysis of ", colnames(DRIFTCoeffSND)); zFit
-    ## format results
-    #z.CurveResults <- matrix(NA, ncol=length(zFit), nrow=19)
-    #for (h in 1:length(zFit)) {
-    #  stopRow = 0
-    #  for (j in 2:length(zFit[[i]])) {
-    #    startRow  <- stopRow + 1; startRow
-    #    stopRow <- startRow + length(unlist((zFit[[h]][j]))) - 1; stopRow
-    #    unlist((zFit[[h]][j]))
-    #    if (j == 2) z.CurveResults[startRow:stopRow, h] <- round(c((matrix(unlist((zFit[[h]][j])), ncol=2, byrow=TRUE))), digits)
-    #    if (j != 2) z.CurveResults[startRow:stopRow, h] <- unlist((zFit[[h]][j]))
-    #  }
-    #}
-    #rownamesPart <- c("ERR", "ERR lower CI", "ERR upper CI", "EDR", "EDR lower CI", "EDR upper CI" )
-    #rownamesPart <- c(rownamesPart, names(unlist((zFit[[1]][3]))), names(unlist((zFit[[1]][4]))), names(unlist((zFit[[1]][5]))) )
-    #rownames(z.CurveResults) <- rownamesPart
 
 
     ############################################## Combine Results ###################################################
