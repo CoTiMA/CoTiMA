@@ -30,7 +30,8 @@ ctmaInit(
   chains = NULL,
   iter = NULL,
   verbose = NULL,
-  customPar = TRUE
+  customPar = TRUE,
+  doPar = 1
 )
 }
 \arguments{
@@ -85,6 +86,8 @@ ctmaInit(
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit - for debugging}
 
 \item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)}
+
+\item{doPar}{parallel and multiple fitting if single studies}
 }
 \description{
 Fits a ctsem model to a list of primary studies prepared by ctmaPrep.

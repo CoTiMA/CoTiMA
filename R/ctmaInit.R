@@ -28,6 +28,7 @@
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit - for debugging
 #' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)
 #' @param equalDrift Not yet enabled
+#' @param doPar parallel and multiple fitting if single studies
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  crayon red blue
