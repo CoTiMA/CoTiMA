@@ -35,6 +35,8 @@
 #' @importFrom  ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit
 #' @importFrom  utils read.table write.table
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
+#' @importFrom doParallel registerDoParallel
+#' @importFrom foreach %dopar%
 #'
 #' @export ctmaInit
 #'
@@ -76,10 +78,16 @@ ctmaInit <- function(
   chains=NULL,
   iter=NULL,
   verbose=NULL,
-  customPar=TRUE
+  customPar=TRUE,
+  doPar=1
 )
 
 {  # begin function definition (until end of file)
+
+  if (doPar > 1) {
+  doParallel::registerDoParallel(detectCores()-1)
+  '%dopar%' <- foreach::'%dopar%'
+  }
 
   start.time <- Sys.time()
   options(scipen = 999) # turn scientific notation off.
@@ -683,31 +691,69 @@ ctmaInit <- function(
         }
 
         # FIT STANCT MODEL
-        results <- suppressMessages(ctsem::ctStanFit(
-          datalong = emprawLong[[i]],
-          ctstanmodel = currentModel,
-          savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
-          stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
-          iter=CoTiMAStanctArgs$iter,
-          intoverstates=CoTiMAStanctArgs$intoverstates,
-          binomial=CoTiMAStanctArgs$binomial,
-          fit=CoTiMAStanctArgs$fit,
-          intoverpop=CoTiMAStanctArgs$intoverpop,
-          stationary=CoTiMAStanctArgs$stationary,
-          plot=CoTiMAStanctArgs$plot,
-          derrind=CoTiMAStanctArgs$derrind,
-          optimize=CoTiMAStanctArgs$optimize,
-          optimcontrol=CoTiMAStanctArgs$optimcontrol,
-          nlcontrol=CoTiMAStanctArgs$nlcontrol,
-          nopriors=CoTiMAStanctArgs$nopriors,
-          chains=CoTiMAStanctArgs$chains,
-          forcerecompile=CoTiMAStanctArgs$forcerecompile,
-          savescores=CoTiMAStanctArgs$savescores,
-          gendata=CoTiMAStanctArgs$gendata,
-          control=CoTiMAStanctArgs$control,
-          verbose=verbose,
-          warmup=CoTiMAStanctArgs$warmup,
-          cores=coresToUse) )
+        if (doPar < 2) {
+          results <- suppressMessages(ctsem::ctStanFit(
+            datalong = emprawLong[[i]],
+            ctstanmodel = currentModel,
+            savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
+            stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
+            iter=CoTiMAStanctArgs$iter,
+            intoverstates=CoTiMAStanctArgs$intoverstates,
+            binomial=CoTiMAStanctArgs$binomial,
+            fit=CoTiMAStanctArgs$fit,
+            intoverpop=CoTiMAStanctArgs$intoverpop,
+            stationary=CoTiMAStanctArgs$stationary,
+            plot=CoTiMAStanctArgs$plot,
+            derrind=CoTiMAStanctArgs$derrind,
+            optimize=CoTiMAStanctArgs$optimize,
+            optimcontrol=CoTiMAStanctArgs$optimcontrol,
+            nlcontrol=CoTiMAStanctArgs$nlcontrol,
+            nopriors=CoTiMAStanctArgs$nopriors,
+            chains=CoTiMAStanctArgs$chains,
+            forcerecompile=CoTiMAStanctArgs$forcerecompile,
+            savescores=CoTiMAStanctArgs$savescores,
+            gendata=CoTiMAStanctArgs$gendata,
+            control=CoTiMAStanctArgs$control,
+            verbose=verbose,
+            warmup=CoTiMAStanctArgs$warmup,
+            cores=coresToUse) )
+        } else {
+          # parallel re-fitting of problem study
+          cat(crayon::red$bold("Parallel fit attepts requested. Screen remains silent for a while.", sep="\n"))
+          cat(crayon::red$bold(" ", " ", sep="\n"))
+
+          allfits <- foreach::foreach(p=1:doPar) %dopar% {
+            fits <- suppressMessages(ctsem::ctStanFit(
+              datalong = emprawLong[[i]],
+              ctstanmodel = currentModel,
+              savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
+              stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
+              iter=CoTiMAStanctArgs$iter,
+              intoverstates=CoTiMAStanctArgs$intoverstates,
+              binomial=CoTiMAStanctArgs$binomial,
+              fit=CoTiMAStanctArgs$fit,
+              intoverpop=CoTiMAStanctArgs$intoverpop,
+              stationary=CoTiMAStanctArgs$stationary,
+              plot=CoTiMAStanctArgs$plot,
+              derrind=CoTiMAStanctArgs$derrind,
+              optimize=CoTiMAStanctArgs$optimize,
+              optimcontrol=CoTiMAStanctArgs$optimcontrol,
+              nlcontrol=CoTiMAStanctArgs$nlcontrol,
+              nopriors=CoTiMAStanctArgs$nopriors,
+              chains=CoTiMAStanctArgs$chains,
+              forcerecompile=CoTiMAStanctArgs$forcerecompile,
+              savescores=CoTiMAStanctArgs$savescores,
+              gendata=CoTiMAStanctArgs$gendata,
+              control=CoTiMAStanctArgs$control,
+              verbose=verbose,
+              warmup=CoTiMAStanctArgs$warmup,
+              cores=1) )
+            return(fits)
+          }
+          all_minus2ll <- unlist(lapply(allfits, function(x) x$stanfit$optimfit$value)); all_minus2ll
+          bestFit <- which(abs(all_minus2ll) == min(abs(all_minus2ll)))[1]; bestFit
+          results <- allfits[[bestFit]]
+        }
 
         studyFit[[i]] <- results
         studyFit[[i]]$resultsSummary <- summary(studyFit[[i]])
@@ -832,10 +878,10 @@ ctmaInit <- function(
     allStudies_Minus2LogLikelihood <- sum(unlist(studyFit_Minus2LogLikelihood)); allStudies_Minus2LogLikelihood
     allStudies_estimatedParameters <- sum(unlist(studyFit_estimatedParameters)); allStudies_estimatedParameters
     allStudies_df <- "deprecated"
-    model_Drift_Coef
-    model_Drift_SE
+    #model_Drift_Coef
+    #model_Drift_SE
     allStudiesDRIFT_effects <- matrix(t(cbind(unlist(model_Drift_Coef), unlist(model_Drift_SE)) ), n.studies, 2*n.latent^2, byrow=T)
-    allStudiesDRIFT_effects
+    #allStudiesDRIFT_effects
     tmp1 <- driftFullNames; tmp1
     tmp2 <- rep("SE", length(tmp1)); tmp2
     colnames(allStudiesDRIFT_effects) <- c(rbind(tmp1, tmp2)); allStudiesDRIFT_effects
