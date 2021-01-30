@@ -810,7 +810,8 @@ ctmaPlot <- function(
           }
 
           graphics::par(new=F)
-          tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNamesTmp[[g]][j], ".png"); tmp
+          #tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNamesTmp[[g]][j], ".png"); tmp
+          tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNamesTmp[j], ".png"); tmp
           grDevices::dev.copy(grDevices::png, tmp, width = 8, height = 8, units = 'in', res = 300)
           grDevices::dev.off()
         } # END for (j in coeffSeq)
