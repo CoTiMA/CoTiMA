@@ -85,7 +85,8 @@ ctmaBiG <- function(
         if ("transformedpars" %in% names(ctmaInitFit$studyFitList[[i]]$stanfit)) {        # if maximum likelihood was used
           tmp1 <- cbind(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DRIFT[, , 1],
                         ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DRIFT[, , 2])
-          if (ctsem341 == FALSE) tmp1 <- tmp1[, c(1,3,2,4)]
+          #if (ctsem341 == TRUE) tmp1 <- tmp1[, c(1,3,2,4)]
+          tmp1 <- tmp1[, c(1,3,2,4)]
           tmp2 <- cbind(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DIFFUSIONcov[, , 1],
                         ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DIFFUSIONcov[, , 2])
           if (ctsem341 == TRUE) {
@@ -131,6 +132,8 @@ ctmaBiG <- function(
     print(paste0("#################################################################################"))
 
     DRIFTCoeff <- DIFFUSIONCoeff <- T0VARCoeff <- DRIFTSE <- DIFFUSIONSE <- T0VARSE <- matrix(NA, n.studies, n.latent^2)
+
+    #all_Coeff
 
     DRIFTCoeff <- all_Coeff[, grep("toV", colnames(all_Coeff))]; DRIFTCoeff
     DRIFTSE <- all_SE[, grep("toV", colnames(all_SE))]; DRIFTSE
