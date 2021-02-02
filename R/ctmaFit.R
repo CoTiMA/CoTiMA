@@ -454,6 +454,8 @@ ctmaFit <- function(
   #######################################################################################################################
 
   # define Names (labels in compiled output) and Params (= labels for ctsem models)
+  if (is.null(moderatedDrift) & (!(is.null(mod.number)))) moderatedDrift <- "all" # will be changed by ctmaLabels
+
   namesAndParams <- ctmaLabels(
     n.latent=n.latent,
     n.manifest=n.manifest,
@@ -500,9 +502,6 @@ ctmaFit <- function(
     fitStanctModel <- allInvModelFit$studyFitList[[1]]
     invariantDriftStanctFit <- summary(fitStanctModel)
   } else {
-
-    if (is.null(moderatedDrift) & (!(is.null(mod.number)))) moderatedDrift <- "all" # will be changed by ctmaLabels
-
 
     n.TIpred <- (n.studies-1+n.all.moderators+clusCounter); n.TIpred
     # scale Drift to cover changes in ctsem 3.4.1 (this would be for ctmaFit/ctmaModFit, but for Init individual study modification is done later)
@@ -588,7 +587,6 @@ ctmaFit <- function(
     if (!(is.null(cluster))) {
       stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[(n.studies++n.all.moderators):(n.studies+n.all.moderators+clusCounter-1)],'_effect')] <- TRUE
     }
-    stanctModel$pars
 
     if (n.moderators > 0) {
       tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
@@ -601,6 +599,8 @@ ctmaFit <- function(
       stanctModel$pars[ , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- FALSE
       stanctModel$pars[tmp1[tmp2] , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
     }
+    stanctModel$pars
+
 
     # the target effects
     tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1

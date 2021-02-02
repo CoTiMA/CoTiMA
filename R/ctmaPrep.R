@@ -446,17 +446,21 @@ ctmaPrep <- function(selectedStudies=NULL,
   if (!(is.null(primaryStudies$moderatorValues))) {
     maxCategories <- max(unlist(lapply(moderatorValues, function(extract) length(extract)))); maxCategories
     tmp5 <- grep("Moderator", colnames(tmp8)); tmp5
-    tmp6 <- rep("", (min(tmp5)-1)); tmp6
+    tmp6 <- rep("", (min(tmp5)-1)); tmp6   # empty leading columns
     tmp7 <- c()
     for (j in 1: maxCategories){
       for (i in 1:length(moderatorValues)){
         tmp7 <- cbind(tmp7, paste0(moderatorValues[[i]][j]))
       }
     }
-    tmp7 <- matrix(tmp7, ncol=length(tmp5), byrow=TRUE); tmp7
+    tmp7 <- matrix(tmp7, ncol=length(tmp5), byrow=TRUE); tmp7  # matrix with labels
     tmp6b <- tmp6; tmp6b
-    for (i in 1:(dim(tmp7)[1]-1)) tmp6b <- rbind(tmp6b, tmp6); tmp6b
-    tmp7 <- cbind(tmp6b, tmp7); tmp7
+    if ((dim(tmp7)[1]-1) > 1) {
+      for (i in 1:(dim(tmp7)[1]-1)) tmp6b <- rbind(tmp6b, tmp6); tmp6b
+      tmp7 <- cbind(tmp6b, tmp7); tmp7
+    } else {
+      tmp7 <- matrix(c(tmp6b,tmp7), nrow=1)
+    }
     tmp7[which(tmp7 =="NA")] <- ""
     colnames(tmp7) <- colnames(tmp8)
     rownames(tmp7) <- NULL
