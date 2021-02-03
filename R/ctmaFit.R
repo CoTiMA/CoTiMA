@@ -29,6 +29,7 @@
 #' @param allInvModel estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR)
 #' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)
 #' @param equalDrift Not enabled
+#' @param inits vector of start values
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  crayon red
@@ -89,7 +90,8 @@ ctmaFit <- function(
   chains=NULL,
   verbose=NULL,
   allInvModel=FALSE,
-  customPar=TRUE
+  customPar=TRUE,
+  inits=NULL
 )
 
 
@@ -639,7 +641,8 @@ ctmaFit <- function(
       #control=CoTiMAStanctArgs$control,
       verbose=CoTiMAStanctArgs$verbose,
       warmup=CoTiMAStanctArgs$warmup,
-      cores=coresToUse)
+      cores=coresToUse,
+      inits=inits)
 
     ### resample in parcels to avoid memory crash and speed up
     if (!(is.null(CoTiMAStanctArgs$resample))) {
