@@ -31,5 +31,7 @@ Imports:
     grDevices (>= 4.0.3),
     RPushbullet (>= 0.3.3),
     openxlsx (>= 4.2.2),
-    zcurve (>= 1.0.7)
+    zcurve (>= 1.0.7),
+    scholar (>= 0.2.0),
+    stringi (>= 1.0.7)
 RoxygenNote: 7.1.1

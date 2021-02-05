@@ -1,5 +1,7 @@
 #' ctmaLabels
 #'
+#' @description used for consistent labeling of names and parameters
+#'
 #' @param n.latent n.latent
 #' @param n.manifest n.manifest
 #' @param lambda lambda
@@ -9,8 +11,6 @@
 #' @param moderatedDrift moderatedDrift
 #' @param equalDrift equalDrift
 #'
-#' @export ctmaLabels
-#'
 ctmaLabels <- function(
   n.latent=NULL,
   n.manifest=0,
@@ -19,17 +19,8 @@ ctmaLabels <- function(
   drift=NULL,
   invariantDrift=NULL,
   moderatedDrift=NULL,
-  equalDrift=NULL
-) {
-
-  #n.latent=2
-  #n.manifest=0
-  #lambda=NULL
-  #manifestVar=NULL
-  #drift=c("V1toV1", "V1toV2", "V2toV2")
-  #invariantDrift=NULL
-  #moderatedDrift=NULL
-  #equalDrift=NULL
+  equalDrift=NULL)
+  {
 
   n.var <- max(c(n.manifest, n.latent)); n.var
 
@@ -103,7 +94,7 @@ ctmaLabels <- function(
     LAMBDA=diag(n.latent)
   }
 
-    # error variances
+  # error variances
   if(!(is.null(manifestVar))) manifestVarParams <- manifestVar else manifestVarParams <- 0
 
   # T0 variance
@@ -144,19 +135,19 @@ ctmaLabels <- function(
 
   results <- list(driftNames=driftNames,
                   driftFullNames=driftFullNames,
-                 driftParams=driftParams,
-                 diffNames=diffNames,
-                 diffFullNames=diffFullNames,
-                 diffParams=diffParams,
-                 invariantDriftNames=invariantDriftNames,
-                 invariantDriftParams=invariantDriftParams,
-                 moderatedDriftNames=moderatedDriftNames,
-                 equalDriftNames=equalDriftNames,
-                 equalDriftParams=equalDriftParams,
-                 lambdaParams=LAMBDA,
-                 T0VARParams=T0VAR,
-                 manifestMeansParams=MANIFESTMEANS,
-                 manifestVarParams=manifestVarParams)
+                  driftParams=driftParams,
+                  diffNames=diffNames,
+                  diffFullNames=diffFullNames,
+                  diffParams=diffParams,
+                  invariantDriftNames=invariantDriftNames,
+                  invariantDriftParams=invariantDriftParams,
+                  moderatedDriftNames=moderatedDriftNames,
+                  equalDriftNames=equalDriftNames,
+                  equalDriftParams=equalDriftParams,
+                  lambdaParams=LAMBDA,
+                  T0VARParams=T0VAR,
+                  manifestMeansParams=MANIFESTMEANS,
+                  manifestVarParams=manifestVarParams)
 
   invisible(results)
 }
