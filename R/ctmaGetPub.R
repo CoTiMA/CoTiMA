@@ -43,12 +43,16 @@ ctmaGetPub <- function(authorList=NULL,
     cat(crayon::red$bold("No google scholar IDs (i.e., https) were provided. Not much to do. Processing continues anyway.   \n"))
   }
 
-  cat(crayon::red$bold("                                             BE CAREFUL                                           \n"))
-  cat(crayon::red$bold("Google Scholar might lock you out for a day or so if you make too many analyses in short time.    \n"))
-  cat(crayon::red$bold("                                             BE CAREFUL                                           \n"))
+  cat(crayon::red$bold("                       BE CAREFUL                                   \n"))
+  cat(crayon::red$bold("Google Scholar might lock you out for a day or so if you retrieve \n"))
+  cat(crayon::red$bold("a particular author's information too frequently in short time.\n"))
+  cat(crayon::red$bold("                       BE CAREFUL                                   \n"))
 
   counter <- 0
   for (i in 1:length(authorList)) {
+
+    cat(paste0("Retrieving publication information of author no. ", i, " in the list provided."), "\n")
+
     researchers[[i]] <- (unlist(stringi::stri_split_fixed(authorList[[i]][1], "; "))); researchers[[i]]   # user provided name
     researcherID[i] <- unlist(stringi::stri_split_fixed(authorList[[i]][2], "user="))[2]; researcherID[i] # gs ID
     if (!(is.na(researcherID[i]))) {
