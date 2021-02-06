@@ -124,14 +124,25 @@ ctmaGetPub <- function(authorList=NULL,
       years[[i]] <-pubFreqs[[i]] <- cumPubFreqs[[i]]  <- citeFreqs[[i]] <- cumCiteFreqs[[i]] <- NA
     }
   }
-  names(years) <- names(pubFreqs) <- names(cumPubFreqs)  <- names(citeFreqs) <- names(cumCiteFreqs)  <- researchers
+
+  # if last authors do not have gs profile
+  if (length(years) < length(authors) ) {
+    years[[length(authors)]] <- pubFreqs[[length(authors)]]  <- cumPubFreqs[[length(authors)]] <- NA
+    citeFreqs[[length(authors)]]  <- cumCiteFreqs[[length(authors)]] <- NA
+  }
+
+  authors <- unlist(lapply(authorList, function(x) x[[1]])); authors
+
+  #names(years) <- names(pubFreqs) <- names(cumPubFreqs)  <- names(citeFreqs) <- names(cumCiteFreqs)  <- researchers
+  names(years) <- names(pubFreqs) <- names(cumPubFreqs)  <- names(citeFreqs) <- names(cumCiteFreqs)  <- authors
   pubAnalysis <- list('inconsisten Names'=nameInconsitencies,
                       'Range of Publications Activities'=years,
                       'Publication Frequencies'=pubFreqs,
                       'Cum. Publication Frequencies'=cumPubFreqs,
                       'Citation Frequencies'=citeFreqs,
                       'Cum. Citation Frequencies'=cumCiteFreqs,
-                      'All Publication Info'=pubs)
+                      'All Publication Info'=pubs,
+                      'Authors'= authors)
 
   invisible(pubAnalysis)
 }
