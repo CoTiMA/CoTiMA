@@ -402,6 +402,9 @@ ctmaPrep <- function(selectedStudies=NULL,
   }
 
   primaryStudies$summary <- as.data.frame(summaryTable)
+
+  moderatorLabelsBackup <- moderatorLabels
+  moderatorValuesBackup <- moderatorValues
   if (is.null(moderatorLabels)) moderatorLabels <- NA
   if (is.null(moderatorValues)) moderatorValues <- NA
   primaryStudies$moderatorLabels <- moderatorLabels
@@ -439,21 +442,21 @@ ctmaPrep <- function(selectedStudies=NULL,
   tmp3 <- grep("Moderator", colnames(primaryStudies$summary)); tmp3
   tmp8 <- primaryStudies$summary[c(tmp1, tmp2, tmp3)]; tmp8
   openxlsx::writeData(wb, sheet5, tmp8)
-  if (!(is.null(primaryStudies$moderatorLabels))) {
+  if (!(is.null(moderatorLabelsBackup))) {
     tmp5 <- grep("Moderator", colnames(tmp8)); tmp5
     tmp6 <- rep("", (min(tmp5)-1)); tmp6
-    tmp7 <- c(tmp6, moderatorLabels); tmp7
+    tmp7 <- c(tmp6, moderatorLabelsBackup); tmp7
     tmp8 <- rbind(tmp8, tmp7); tmp8
     openxlsx::writeData(wb, sheet5, tmp8)
   }
-  if (!(is.null(primaryStudies$moderatorValues))) {
-    maxCategories <- max(unlist(lapply(moderatorValues, function(extract) length(extract)))); maxCategories
+  if (!(is.null(moderatorValuesBackup))) {
+    maxCategories <- max(unlist(lapply(moderatorValuesBackup, function(extract) length(extract)))); maxCategories
     tmp5 <- grep("Moderator", colnames(tmp8)); tmp5
     tmp6 <- rep("", (min(tmp5)-1)); tmp6   # empty leading columns
     tmp7 <- c()
     for (j in 1: maxCategories){
-      for (i in 1:length(moderatorValues)){
-        tmp7 <- cbind(tmp7, paste0(moderatorValues[[i]][j]))
+      for (i in 1:length(moderatorValuesBackup)){
+        tmp7 <- cbind(tmp7, paste0(moderatorValuesBackup[[i]][j]))
       }
     }
     tmp7 <- matrix(tmp7, ncol=length(tmp5), byrow=TRUE); tmp7  # matrix with labels

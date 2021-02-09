@@ -161,7 +161,7 @@ ctmaPub <- function(getPubObj=NULL, primaryStudyList=NULL,
         NEPPrecency_log <- log(NEPPrecency[i]+1); NEPPrecency_log
         toAssign <- c(NEPP[i], NEPPrecency[i], NEPP_log, NEPPrecency_log); toAssign
         names(toAssign) <- c("NEPP", "NEPPrecency", "NEPP_log", "NEPPrecency_log")
-        if (!(is.na(unlist(primaryStudyList$moderator[counter])[1]))) { # if other moderators are already present
+        if (!(is.na(unlist(primaryStudyList$moderators[counter])[1]))) { # if other moderators are already present
           primaryStudyList$moderators[[counter]] <- c(unlist(primaryStudyList$moderators[[counter]]), toAssign)
         } else {
           primaryStudyList$moderators[[counter]] <- toAssign
@@ -205,7 +205,8 @@ ctmaPub <- function(getPubObj=NULL, primaryStudyList=NULL,
     tmp3 <- primaryStudyList[[i]]; tmp3
     if ( length(tmp3) > length(tmp2) )  tmp3 <- tmp3[-length(tmp3)]; tmp3  # some lists do not have NA at the end
     for (j in 1:length(tmp2)) {
-      if (!(is.na(NEPP[j]))) { assign(tmp2[j],tmp3[[j]], inherits=TRUE) }
+      if (!(is.na(NEPP[j]))) { assign(tmp2[j],tmp3[[j]], inherits=TRUE) } # inherits paste variables to the global environment (required for ctmaPrep)
+      #if (!(is.na(NEPP[j]))) { assign(tmp2[j],tmp3[[j]], inherits=FALSE) } # inherits paste variables to the global environment (required for ctmaPrep)
     }
   }
 
