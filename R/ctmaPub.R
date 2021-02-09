@@ -205,7 +205,7 @@ ctmaPub <- function(getPubObj=NULL, primaryStudyList=NULL,
     tmp3 <- primaryStudyList[[i]]; tmp3
     if ( length(tmp3) > length(tmp2) )  tmp3 <- tmp3[-length(tmp3)]; tmp3  # some lists do not have NA at the end
     for (j in 1:length(tmp2)) {
-      if (!(is.na(NEPP[j]))) { assign(tmp2[j],tmp3[[j]]) }
+      if (!(is.na(NEPP[j]))) { assign(tmp2[j],tmp3[[j]], inherits=TRUE) }
     }
   }
 
