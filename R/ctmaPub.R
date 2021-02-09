@@ -162,9 +162,12 @@ ctmaPub <- function(getPubObj=NULL, primaryStudyList=NULL,
         toAssign <- c(NEPP[i], NEPPrecency[i], NEPP_log, NEPPrecency_log); toAssign
         names(toAssign) <- c("NEPP", "NEPPrecency", "NEPP_log", "NEPPrecency_log")
         if (!(is.na(unlist(primaryStudyList$moderators[counter])[1]))) { # if other moderators are already present
+          tmp1 <- names(primaryStudyList$moderators[[counter]])
           primaryStudyList$moderators[[counter]] <- c(unlist(primaryStudyList$moderators[[counter]]), toAssign)
+          names(primaryStudyList$moderators[[counter]]) <- c(tmp1, "NEPP", "NEPPrecency", "NEPP_log", "NEPPrecency_log")
         } else {
           primaryStudyList$moderators[[counter]] <- toAssign
+          names(primaryStudyList$moderators[[counter]]) <- c("NEPP", "NEPPrecency", "NEPP_log", "NEPPrecency_log")
         }
       } else {
         NAcounter <- c(NAcounter, counter)
