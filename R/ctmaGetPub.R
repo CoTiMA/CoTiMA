@@ -2,12 +2,10 @@
 #'
 #' @description Retrieves publication and citation information from google scholar
 #'
-#' @param activateRPB if TRUE, messages (warning, stops) could be send to smart phone (default = FALSE)
 #' @param authorList list of authors and googe scholar addresses
 #' @param yearsToExclude the years to be excluded (default = current year)
 #' @param flush if TRUE, the cache will be cleared and the data reloaded from Google.
 #'
-#' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
 #' @importFrom stringi stri_split_fixed
 #' @importFrom scholar get_profile get_publications
@@ -16,25 +14,24 @@
 #'
 #' @examples
 #'
-#' results <- ctmaGetPub(list( c("Wilmar B.; Schaufeli",
+#' results <- ctmaGetPub(authorList = list( c("Wilmar B.; Schaufeli",
 #'      "https://scholar.google.de/citations?hl=en&user=w1tHcj4AAAAJ"),
-#'                             c("Maureen; Dollard",
-#'      "user=J6oH3rgAAAAJ") ) )
+#'      c("Maureen; Dollard",
+#'      "user=J6oH3rgAAAAJ") ))
 #'
 ctmaGetPub <- function(authorList=NULL,
-                       activateRPB=FALSE,
                        flush=FALSE, # if TRUE, the cache will be cleared and data is reloaded from Google
-                       yearsToExclude=as.integer(format(Sys.Date(), "%Y")) # exclude current year (default)
-)
+                       yearsToExclude=NULL) # exclude current year (default)
+
 {
   researchers <- years <- pubs <- pubFreqs <- cumPubFreqs <- citeFreqs <- cumCiteFreqs <- list()
   nameInconsitencies <- list()
   researcherID <- c()
 
-  if ( is.null(yearsToExclude) | is.na(yearsToExclude) ) yearsToExclude <- 0
+  if (is.null(yearsToExclude)) yearsToExclude <- 0
+  if (is.na(yearsToExclude)) yearsToExclude <- 0
 
   if (length(authorList) == 0) {
-    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
     cat(crayon::red$bold("At least one author name is required (e.g., list(\"Christian; Dormann\", NA))  \n"))
     stop("Good luck for the next try!")
   }
@@ -46,7 +43,6 @@ ctmaGetPub <- function(authorList=NULL,
   cat(crayon::red$bold("                       BE CAREFUL                                   \n"))
   cat(crayon::red$bold("Google Scholar might lock you out for a day or so if you retrieve \n"))
   cat(crayon::red$bold("a particular author's information too frequently in short time.\n"))
-  cat(crayon::red$bold("                       BE CAREFUL                                   \n"))
 
   counter <- 0
   for (i in 1:length(authorList)) {
@@ -57,7 +53,7 @@ ctmaGetPub <- function(authorList=NULL,
     researcherID[i] <- unlist(stringi::stri_split_fixed(authorList[[i]][2], "user="))[2]; researcherID[i] # gs ID
     if (!(is.na(researcherID[i]))) {
       # use package scholar
-      tmp1 <- unlist(stringi::stri_split_fixed(scholar::get_profile(researcherID[i])$name, " ")); tmp1 # get names (last = surname) from gs
+      tmp1 <- suppressWarnings(unlist(stringi::stri_split_fixed(scholar::get_profile(researcherID[i])$name, " "))); tmp1 # get names (last = surname) from gs
       tmp2 <- grep(tolower(tmp1[length(tmp1)]), tolower(researchers[[i]][2])); tmp2  # check if gs name = user provided name
       if (length(tmp2) < 1) {
         counter <- counter +1; counter
@@ -77,7 +73,7 @@ ctmaGetPub <- function(authorList=NULL,
       # range of years
       years[[i]] <- sort(unique(unlist(pubFreqs[[i]]))); years[[i]]  # unqiue years
       yearsTmp <- years[[i]]; yearsTmp
-      years[[i]] <- min(years[[i]]):max(years[[i]]) # full range of publication years
+      years[[i]] <- min(years[[i]]):max(years[[i]]); years[[i]] # full range of publication years
       # publication frequencies
       pubFreqs[[i]] <- table(pubFreqs[[i]]); pubFreqs[[i]]            # vector of pub freqs without years where no. pubs = 0 (corrected in next para)
       minPubYear <- as.numeric(names(pubFreqs[[i]])[1]); minPubYear
@@ -87,7 +83,7 @@ ctmaGetPub <- function(authorList=NULL,
       tmp6[names(tmp6) %in% names(pubFreqs[[i]])] <- pubFreqs[[i]]; tmp6 # replace 0 by pub freqs
       pubFreqs[[i]] <- tmp6
       # citations
-      pubs[[i]]$year
+      #pubs[[i]]$year
       citeFreqs[[i]] <- pubs[[i]]$cites; citeFreqs[[i]]       # citations sort from current to first
       names(citeFreqs[[i]]) <- pubs[[i]]$year; citeFreqs[[i]] # assigne names (years)
       citeFreqs[[i]] <- citeFreqs[[i]][(!(is.na(names(citeFreqs[[i]]))))]; citeFreqs[[i]] # drop entries without year
@@ -126,15 +122,15 @@ ctmaGetPub <- function(authorList=NULL,
   }
 
   # if last authors do not have gs profile
+  authors <- unlist(lapply(authorList, function(x) x[[1]])); authors
   if (length(years) < length(authors) ) {
     years[[length(authors)]] <- pubFreqs[[length(authors)]]  <- cumPubFreqs[[length(authors)]] <- NA
     citeFreqs[[length(authors)]]  <- cumCiteFreqs[[length(authors)]] <- NA
   }
 
-  authors <- unlist(lapply(authorList, function(x) x[[1]])); authors
-
   #names(years) <- names(pubFreqs) <- names(cumPubFreqs)  <- names(citeFreqs) <- names(cumCiteFreqs)  <- researchers
   names(years) <- names(pubFreqs) <- names(cumPubFreqs)  <- names(citeFreqs) <- names(cumCiteFreqs)  <- authors
+
   pubAnalysis <- list('inconsisten Names'=nameInconsitencies,
                       'Range of Publications Activities'=years,
                       'Publication Frequencies'=pubFreqs,
@@ -142,7 +138,8 @@ ctmaGetPub <- function(authorList=NULL,
                       'Citation Frequencies'=citeFreqs,
                       'Cum. Citation Frequencies'=cumCiteFreqs,
                       'All Publication Info'=pubs,
-                      'Authors'= authors)
+                      'Authors'= authors,
+                      'AuthorList'=authorList)
 
   invisible(pubAnalysis)
 }

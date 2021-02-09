@@ -286,6 +286,7 @@ ctmaPrep <- function(selectedStudies=NULL,
 
   summaryTable <- matrix(NA, nrow=n.studies, ncol=0); summaryTable
   for (i in 1:length(studyListCategories)) {
+    #i <- 1
     #(any(!(is.na(primaryStudies2[[i]]))))
     if (any(!(is.na(primaryStudies2[[i]])))) {
       # check max length of list elements across studies
@@ -400,10 +401,12 @@ ctmaPrep <- function(selectedStudies=NULL,
     }
   }
 
-
   primaryStudies$summary <- as.data.frame(summaryTable)
+  if (is.null(moderatorLabels)) moderatorLabels <- NA
+  if (is.null(moderatorValues)) moderatorValues <- NA
   primaryStudies$moderatorLabels <- moderatorLabels
   primaryStudies$moderatorValues <- moderatorValues
+
 
   ### prepare Excel Workbook with several sheets ################################################################
   wb <- openxlsx::createWorkbook()

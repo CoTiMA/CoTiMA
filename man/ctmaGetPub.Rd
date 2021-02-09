@@ -4,17 +4,10 @@
 \alias{ctmaGetPub}
 \title{ctmaGetPub}
 \usage{
-ctmaGetPub(
-  authorList = NULL,
-  activateRPB = FALSE,
-  flush = FALSE,
-  yearsToExclude = as.integer(format(Sys.Date(), "\%Y"))
-)
+ctmaGetPub(authorList = NULL, flush = FALSE, yearsToExclude = NULL)
 }
 \arguments{
 \item{authorList}{list of authors and googe scholar addresses}
-
-\item{activateRPB}{if TRUE, messages (warning, stops) could be send to smart phone (default = FALSE)}
 
 \item{flush}{if TRUE, the cache will be cleared and the data reloaded from Google.}
 
@@ -25,9 +18,9 @@ Retrieves publication and citation information from google scholar
 }
 \examples{
 
-results <- ctmaGetPub(list( c("Wilmar B.; Schaufeli",
+results <- ctmaGetPub(authorList = list( c("Wilmar B.; Schaufeli",
      "https://scholar.google.de/citations?hl=en&user=w1tHcj4AAAAJ"),
-                            c("Maureen; Dollard",
-     "user=J6oH3rgAAAAJ") ) )
+     c("Maureen; Dollard",
+     "user=J6oH3rgAAAAJ") ))
 
 }
