@@ -3,7 +3,7 @@
 \docType{data}
 \name{CoTiMAstudyList1}
 \alias{CoTiMAstudyList1}
-\title{Object created with ctmaPrep}
+\title{Object created with ctmaPrep coprising 3 studies}
 \format{
 An object of class \code{CoTiMAFit} of length 27.
 }
@@ -11,7 +11,7 @@ An object of class \code{CoTiMAFit} of length 27.
 CoTiMAstudyList1
 }
 \description{
-Object created with ctmaPrep
+Object created with ctmaPrep coprising 3 studies
 }
 \author{
 C. Dormann & M. Homburg \email{CoTiMA@uni-mainz.org}

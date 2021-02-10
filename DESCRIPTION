@@ -15,7 +15,8 @@ Depends:
     OpenMx (>= 2.18.1),
     ctsem (>= 3.3.11),
     lavaan (>= 0.6),
-    foreach (>= 1.5.1)
+    foreach (>= 1.5.1),
+    R (>= 3.5.0)
 Imports: 
     MASS (>= 7.3.51.4),
     MBESS (>= 4.6.0),
