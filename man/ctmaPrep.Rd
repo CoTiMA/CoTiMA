@@ -35,11 +35,11 @@ Combines information of primary studies into a list object and returns this list
              Primary study information is expected to be assigned to 'numbered' objects. Some of these objects are pre-defined (e.g., 'empcov', 'ageM'). Most of the pre-defined objects could be empty, or they could be dropped by entering their names in the excludedElements-object (e.g., excludedElements = c('ageM')), but dropping them is not really necessary. Additional elements could also be added, which could be useful to put together all information about primary studies at the convenience of the researcher.
 }
 \note{
-The following example shows information a researcher has about two studies, which have the numbers '2' and '4'.
-All information about these studies are stored in objects ending with '2' and '4', respectively.
-In most instances, one relevant piece of information is the empirical correlation (or covariance) matrix reported in this study,
-which is stored in the objects 'empcov2' and 'empcov4'. Note that full and symmetric matrices are required for ctmaPrep.
-Usually, sample sizes ('sampleSize2', 'sampleSize4') and time lags ('delta_t2', 'delta_t4'), are required, too
+The following example shows information a researcher has about three studies, which have the numbers '2', '4' and '17'.
+All information about these studies are stored in objects ending with '2', '4', and '17', respectively. In most instances, one
+relevant piece of information is the empirical correlation (or covariance) matrix reported in this study, which is stored in the
+objects 'empcov2', 'empcov4', and 'empcov17'. Note that full and symmetric matrices are required for ctmaPrep. Usually, sample
+sizes ('sampleSize2', 'sampleSize4', & 'sampleSize17') and time lags ('delta_t2', 'delta_t4', & 'delta_t17'), are required, too
 }
 \examples{
 # First Study
@@ -71,38 +71,43 @@ addedByResearcher4 <- "another comment"
 source17 <- c()
 delta_t17 <- c(12)
 sampleSize17 <- 440
-empcov17 <- matrix(c( 1.00,  0.60,  0.36,  0.62,  0.47,  0.18,
-                      0.60,  1.00,  0.55,  0.43,  0.52,  0.27,
-                      0.36,  0.55,  1.00,  0.26,  0.37,  0.51,
-                      0.62,  0.43,  0.26,  1.00,  0.63,  0.30,
-                      0.47,  0.52,  0.37,  0.63,  1.00,  0.55,
-                      0.18,  0.27,  0.51,  0.30,  0.55,  1.00,
-                     nrow=6, ncol=6))
+empcov17 <- matrix(
+  c( 1.00, -0.60, -0.36,  0.20,  0.62, -0.47, -0.18,  0.20,
+    -0.60,  1.00,  0.55, -0.38, -0.43,  0.52,  0.27, -0.21,
+    -0.36,  0.55,  1.00, -0.47, -0.26,  0.37,  0.51, -0.28,
+     0.20, -0.38, -0.47,  1.00,  0.15, -0.28, -0.35,  0.56,
+     0.62, -0.43, -0.26,  0.15,  1.00, -0.63, -0.30,  0.27,
+    -0.47,  0.52,  0.37, -0.28, -0.63,  1.00,  0.55, -0.37,
+    -0.18,  0.27,  0.51, -0.35, -0.30,  0.55,  1.00, -0.51,
+     0.20, -0.21, -0.28,  0.56,  0.27, -0.37, -0.51,  1.00),
+ nrow=8, ncol=8)
 moderator17 <- c(3, 2)
-targetVariables17 <- c("Workload_1", "Exhaustion_1", "Cynicism_1",
-                       "Workload_2", "Exhaustion_2", "Cynicism_2")
-recodeVariables17 <- c(1, 4)
+rownames(empcov17) <- colnames(empcov17) <-
+  c("Workload_1", "Exhaustion_1", "Cynicism_1", "Values_1",
+    "Workload_2", "Exhaustion_2", "Cynicism_2", "Values_2")
+targetVariables17 <-
+  c("Workload_1", "Exhaustion_1", "Cynicism_1",
+    "Workload_2", "Exhaustion_2", "Cynicism_2")
+recodeVariables17 <- c("Workload_1", "Workload_2")
 combineVariables17 <- list("Workload_1", c("Exhaustion_1", "Cynicism_1"),
                            "Workload_2", c("Exhaustion_2", "Cynicism_2"))
 combineVariablesNames17 <- c("Demands_1",  "Burnout_1",
                              "Demands_2",  "Burnout_2")
 missingVariables17 <- c();
-\dontrun{
-results <- ctmaEmpCov(targetVariables=targetVariables17,
-                      recodeVariables=recodeVariables17,
-                      combineVariables=combineVariables17,
-                      combineVariablesNames=combineVariablesNames17,
-                      missingVariables=missingVariables17,
-                      nlatents=2, sampleSize=sampleSize17, Tpoints=2, empcov=empcov17)
-empcov17 <- results$r
-}
+results17 <- ctmaEmpCov(targetVariables = targetVariables17,
+                      recodeVariables = recodeVariables17,
+                      combineVariables = combineVariables17,
+                      combineVariablesNames = combineVariablesNames17,
+                      missingVariables = missingVariables17,
+                      nlatents = 2, sampleSize = sampleSize17,
+                      Tpoints = 2, empcov = empcov17)
+empcov17 <- results17$r
 
 # Add Labels and Values for Moderators (just for optional excel tables)
 moderatorLabels <- c("Social Support", "Control")
 moderatorValues <- list("continuous", c("1 = very low", "2 = low",
                        "3 = medium", "4 = high", "5 = very high"))
 
-\dontrun{
 studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4, 17),
                           excludedElements = "ageM",
                           addElements = "addedByResearcher",
@@ -110,6 +115,5 @@ studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4, 17),
                           moderatorValues=moderatorValues)
 library(openxlsx)
 openXL(studyList_Ex1$excelSheets)
-}
 
 }

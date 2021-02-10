@@ -30,7 +30,7 @@ ctmaEmpCov(
 
 \item{nlatents}{number of (latent) variables - actually it is the number of all variables}
 
-\item{Tpoints}{Number of time points.}
+\item{Tpoints}{number of time points.}
 
 \item{sampleSize}{sample size}
 
@@ -40,4 +40,41 @@ ctmaEmpCov(
 }
 \description{
 changes a full covariance matrix: select target variables, recode them, combine them (add), and
+}
+\examples{
+source17 <- c()
+delta_t17 <- c(12)
+sampleSize17 <- 440
+empcov17 <- matrix(
+  c( 1.00, -0.60, -0.36,  0.20,  0.62, -0.47, -0.18,  0.20,
+    -0.60,  1.00,  0.55, -0.38, -0.43,  0.52,  0.27, -0.21,
+    -0.36,  0.55,  1.00, -0.47, -0.26,  0.37,  0.51, -0.28,
+     0.20, -0.38, -0.47,  1.00,  0.15, -0.28, -0.35,  0.56,
+     0.62, -0.43, -0.26,  0.15,  1.00, -0.63, -0.30,  0.27,
+    -0.47,  0.52,  0.37, -0.28, -0.63,  1.00,  0.55, -0.37,
+    -0.18,  0.27,  0.51, -0.35, -0.30,  0.55,  1.00, -0.51,
+     0.20, -0.21, -0.28,  0.56,  0.27, -0.37, -0.51,  1.00),
+ nrow=8, ncol=8)
+moderator17 <- c(3, 2)
+rownames(empcov17) <- colnames(empcov17) <-
+  c("Workload_1", "Exhaustion_1", "Cynicism_1", "Values_1",
+    "Workload_2", "Exhaustion_2", "Cynicism_2", "Values_2")
+targetVariables17 <-
+  c("Workload_1", "Exhaustion_1", "Cynicism_1",
+    "Workload_2", "Exhaustion_2", "Cynicism_2")
+recodeVariables17 <- c("Workload_1", "Workload_2")
+combineVariables17 <- list("Workload_1", c("Exhaustion_1", "Cynicism_1"),
+                           "Workload_2", c("Exhaustion_2", "Cynicism_2"))
+combineVariablesNames17 <- c("Demands_1",  "Burnout_1",
+                             "Demands_2",  "Burnout_2")
+missingVariables17 <- c();
+results17 <- ctmaEmpCov(targetVariables = targetVariables17,
+                        recodeVariables = recodeVariables17,
+                        combineVariables = combineVariables17,
+                        combineVariablesNames = combineVariablesNames17,
+                        missingVariables = missingVariables17,
+                        nlatents = 2, sampleSize = sampleSize17,
+                        Tpoints = 2, empcov = empcov17)
+empcov17 <- results17$r
+
 }
