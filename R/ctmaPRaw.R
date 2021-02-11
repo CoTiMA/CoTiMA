@@ -8,6 +8,8 @@
 #' @param empVarVector vector of variances for all variables, usually 1
 #' @param activateRPB "set to TRUE to receive push messages with CoTiMA notifications on your phone"
 #'
+#' @return
+#'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
 #' @importFrom stats rnorm
