@@ -407,8 +407,8 @@ ctmaPrep <- function(selectedStudies=NULL,
 
   primaryStudies$summary <- as.data.frame(summaryTable)
 
-  moderatorLabelsBackup <- moderatorLabels
-  moderatorValuesBackup <- moderatorValues
+  moderatorLabelsBackup <- moderatorLabels; moderatorLabelsBackup
+  moderatorValuesBackup <- moderatorValues; moderatorValuesBackup
   if (is.null(moderatorLabels)) moderatorLabels <- NA
   if (is.null(moderatorValues)) moderatorValues <- NA
   primaryStudies$moderatorLabels <- moderatorLabels
@@ -465,7 +465,8 @@ ctmaPrep <- function(selectedStudies=NULL,
     }
     tmp7 <- matrix(tmp7, ncol=length(tmp5), byrow=TRUE); tmp7  # matrix with labels
     tmp6b <- tmp6; tmp6b
-    if ((dim(tmp7)[1]-1) > 1) {
+    #if ((dim(tmp7)[1]-1) > 1) {
+    if ((dim(tmp7)[1]-1) > 0) {
       for (i in 1:(dim(tmp7)[1]-1)) tmp6b <- rbind(tmp6b, tmp6); tmp6b
       tmp7 <- cbind(tmp6b, tmp7); tmp7
     } else {
