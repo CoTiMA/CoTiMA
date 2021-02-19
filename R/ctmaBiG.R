@@ -73,8 +73,8 @@ ctmaBiG <- function(
       names3 <- names(ctmaInitFit$modelResults$T0VAR[[1]]); names3
 
       if (length(names1) != length(names2)) { # old vs. new ctsem version
-        names2 <- c(vech2full(names2))
-        names3 <- c(vech2full(names3))
+        names2 <- c(OpenMx::vech2full(names2))
+        names3 <- c(OpenMx::vech2full(names3))
       }
 
       all_Coeff <- matrix(NA, ncol=(3*(n.latent^2)), nrow=n.studies); all_Coeff

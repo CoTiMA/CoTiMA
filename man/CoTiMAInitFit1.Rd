@@ -3,7 +3,7 @@
 \docType{data}
 \name{CoTiMAInitFit1}
 \alias{CoTiMAInitFit1}
-\title{Object created with ctmaInit of 3 primary studies}
+\title{ctmaInit-object with of 3 primary studies}
 \format{
 An object of class \code{CoTiMAFit} of length 18.
 }
@@ -11,7 +11,7 @@ An object of class \code{CoTiMAFit} of length 18.
 CoTiMAInitFit1
 }
 \description{
-Object created with ctmaInit of 3 primary studies
+ctmaInit-object with of 3 primary studies
 }
 \author{
 C. Dormann & M. Homburg \email{CoTiMA@uni-mainz.org}

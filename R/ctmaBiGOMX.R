@@ -73,23 +73,23 @@ ctmaBiGOMX <- function(
       tmp1 <- all_Coeff[[i]]; tmp1
       DRIFTCoeff[i, ] <- tmp1[grep("toV", names(tmp1))]; DRIFTCoeff
       tmp2  <- tmp1[grep("diff", names(tmp1))]; tmp2
-      DIFFUSIONCoeff[i, ] <- base2Full(vech2full(tmp2)); DIFFUSIONCoeff
+      DIFFUSIONCoeff[i, ] <- base2Full(OpenMx::vech2full(tmp2)); DIFFUSIONCoeff
       tmp2  <- tmp1[grep("T0var", names(tmp1))]; tmp2
-      T0VARCoeff[i, ] <- base2Full(vech2full(tmp2)); T0VARCoeff
+      T0VARCoeff[i, ] <- base2Full(OpenMx::vech2full(tmp2)); T0VARCoeff
 
       tmp1 <- all_SE[[i]]; tmp1
       DRIFTSE[i, ] <- tmp1[grep("toV", rownames(tmp1))]; DRIFTSE
       tmp2  <- tmp1[grep("diff", rownames(tmp1))]; tmp2
-      DIFFUSIONSE[i, ] <- vech2full(tmp2); DIFFUSIONSE
+      DIFFUSIONSE[i, ] <- OpenMx::vech2full(tmp2); DIFFUSIONSE
       tmp2  <- tmp1[grep("T0var", rownames(tmp1))]; tmp2
-      T0VARSE[i, ] <- vech2full(tmp2); T0VARSE
+      T0VARSE[i, ] <- OpenMx::vech2full(tmp2); T0VARSE
     }
 
     tmp1 <- names(all_Coeff[[1]][grep("toV", names(all_Coeff[[1]]))]); tmp1
     colnames(DRIFTCoeff) <- colnames(DRIFTSE) <- tmp1; DRIFTCoeff
-    tmp2 <- c(vech2full(names(all_Coeff[[1]][grep("diff", names(all_Coeff[[1]]))]))); tmp2
+    tmp2 <- c(OpenMx::vech2full(names(all_Coeff[[1]][grep("diff", names(all_Coeff[[1]]))]))); tmp2
     colnames(DIFFUSIONCoeff) <- colnames(DIFFUSIONSE) <- tmp2; DIFFUSIONCoeff
-    tmp3 <- c(vech2full(names(all_Coeff[[1]][grep("T0var", names(all_Coeff[[1]]))]))); tmp3
+    tmp3 <- c(OpenMx::vech2full(names(all_Coeff[[1]][grep("T0var", names(all_Coeff[[1]]))]))); tmp3
     colnames(T0VARCoeff) <- colnames(T0VARSE) <- tmp3; T0VARCoeff
 
 

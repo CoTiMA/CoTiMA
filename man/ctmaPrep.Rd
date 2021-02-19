@@ -23,7 +23,7 @@ value indicating the mean age of participants in a primary study), 'malePercent'
 
 \item{digits}{Rounding used for summary function}
 
-\item{moderatorLabels}{vector of names}
+\item{moderatorLabels}{character vector of names}
 
 \item{moderatorValues}{list of character vectors}
 }
@@ -39,7 +39,7 @@ The following example shows information a researcher has about three studies, wh
 All information about these studies are stored in objects ending with '2', '4', and '17', respectively. In most instances, one
 relevant piece of information is the empirical correlation (or covariance) matrix reported in this study, which is stored in the
 objects 'empcov2', 'empcov4', and 'empcov17'. Note that full and symmetric matrices are required for ctmaPrep. Usually, sample
-sizes ('sampleSize2', 'sampleSize4', & 'sampleSize17') and time lags ('delta_t2', 'delta_t4', & 'delta_t17'), are required, too
+sizes ('sampleSize2', 'sampleSize4', & 'sampleSize17') and time lags ('delta_t2', 'delta_t4', & 'delta_t17'), are required, too.
 }
 \examples{
 # First Study
@@ -64,7 +64,7 @@ empcov4 <- matrix(c(1.00, 0.44, 0.74, 0.36, 0.71, 0.32,
                     0.71, 0.38, 0.83, 0.41, 1.00, 0.44,
                     0.32, 0.65, 0.35, 0.71, 0.44, 1.00),
                     nrow=6, ncol=6)
-moderator4 <- c(3, 1) #
+moderator4 <- c(3, 1)
 addedByResearcher4 <- "another comment"
 
 # Third Study
@@ -93,7 +93,8 @@ combineVariables17 <- list("Workload_1", c("Exhaustion_1", "Cynicism_1"),
                            "Workload_2", c("Exhaustion_2", "Cynicism_2"))
 combineVariablesNames17 <- c("Demands_1",  "Burnout_1",
                              "Demands_2",  "Burnout_2")
-missingVariables17 <- c();
+missingVariables17 <- c()
+addedByResearcher17 <- c()
 results17 <- ctmaEmpCov(targetVariables = targetVariables17,
                       recodeVariables = recodeVariables17,
                       combineVariables = combineVariables17,
@@ -113,7 +114,5 @@ studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4, 17),
                           addElements = "addedByResearcher",
                           moderatorLabels=moderatorLabels,
                           moderatorValues=moderatorValues)
-library(openxlsx)
-openXL(studyList_Ex1$excelSheets)
 
 }

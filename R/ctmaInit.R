@@ -810,7 +810,7 @@ ctmaInit <- function(
         names(model_Diffusion_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]
       } else {
         model_Diffusion_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "Mean"])
-        names(model_Diffusion_Coef[[i]]) <- c(vech2full(rownames(resultsSummary$popmeans)[tmp]))
+        names(model_Diffusion_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
       }
 
       if (!(is.null(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Sd"]))) {
@@ -818,7 +818,7 @@ ctmaInit <- function(
         names(model_Diffusion_SE[[i]]) <- rownames(resultsSummary$popmeans)[tmp]
       } else {
         model_Diffusion_SE[[i]] <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "sd"] #; model_Diffusion_SE[[i]]
-        names(model_Diffusion_SE[[i]]) <- c(vech2full(rownames(resultsSummary$popmeans)[tmp]))
+        names(model_Diffusion_SE[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
       }
 
       if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "2.5%"])) == 0) {
@@ -832,8 +832,8 @@ ctmaInit <- function(
         tmp1 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "2.5%"]; tmp1
         tmp2 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "97.5%"]; tmp2
         model_Diffusion_CI[[i]] <- c(rbind(tmp1, tmp2)); model_Diffusion_CI[[i]]
-        tmp3 <- c(rbind(paste0(vech2full(rownames(resultsSummary$popmeans)[tmp]), "LL"),
-                        paste0(vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
+        tmp3 <- c(rbind(paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "LL"),
+                        paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
         names(model_Diffusion_CI[[i]]) <- tmp3; model_Diffusion_CI[[i]]
       }
 
@@ -843,7 +843,7 @@ ctmaInit <- function(
         names(model_T0var_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_T0var_Coef[[i]]
       }  else {
         model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "Mean"])
-        names(model_T0var_Coef[[i]]) <- c(vech2full(rownames(resultsSummary$popmeans)[tmp]))
+        names(model_T0var_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
       }
 
       if (!(is.null(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Sd"]))) {
@@ -851,7 +851,7 @@ ctmaInit <- function(
         names(model_T0var_SE[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_T0var_SE[[i]]
       } else {
         model_T0var_SE[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "sd"])
-        names(model_T0var_SE[[i]]) <- c(vech2full(rownames(resultsSummary$popmeans)[tmp]))
+        names(model_T0var_SE[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
       }
 
       if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "2.5%"]) == 0)) {
@@ -865,8 +865,8 @@ ctmaInit <- function(
         tmp1 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "2.5%"]; tmp1
         tmp2 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "97.5%"]; tmp2
         model_T0var_CI[[i]] <- c(rbind(tmp1, tmp2)); model_T0var_CI[[i]]
-        tmp3 <- c(rbind(paste0(vech2full(rownames(resultsSummary$popmeans)[tmp]), "LL"),
-                        paste0(vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
+        tmp3 <- c(rbind(paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "LL"),
+                        paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
         names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
       }
 

@@ -3,7 +3,7 @@
 \docType{data}
 \name{CoTiMAFullFit1}
 \alias{CoTiMAFullFit1}
-\title{Object created with ctmaFit using CoTiMAInitFit1 as argument}
+\title{ctmaFit-object with a 'full' CoTiMA of 3 studies}
 \format{
 An object of class \code{CoTiMAFit} of length 20.
 }
@@ -11,7 +11,7 @@ An object of class \code{CoTiMAFit} of length 20.
 CoTiMAFullFit1
 }
 \description{
-Object created with ctmaFit using CoTiMAInitFit1 as argument
+ctmaFit-object with a 'full' CoTiMA of 3 studies
 }
 \author{
 C. Dormann & M. Homburg \email{CoTiMA@uni-mainz.org}

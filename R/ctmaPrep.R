@@ -8,7 +8,7 @@
 #'                          value indicating the mean age of participants in a primary study), 'malePercent' (intended as value indicating the percentage of male participants in a primary study), 'occupation' (intended as vector of character strings representing the occupations of participants in a primary study), 'country' (intended as single character string representing the country in which a primary study was conducted), 'alphas' (intended as vector of Cronbach's alphas of the variables of a primary study; not yet functional), and 'targetVariables' (intended as vector of character strings representing information about the variables used).'
 #' @param addElements User-added objects that are handled as the weakly predefined objects. The major purpose is to collect information a researcher regards as important.
 #' @param digits Rounding used for summary function
-#' @param moderatorLabels vector of names
+#' @param moderatorLabels character vector of names
 #' @param moderatorValues list of character vectors
 #'
 #' @importFrom crayon red
@@ -21,7 +21,7 @@
 #' All information about these studies are stored in objects ending with '2', '4', and '17', respectively. In most instances, one
 #' relevant piece of information is the empirical correlation (or covariance) matrix reported in this study, which is stored in the
 #' objects 'empcov2', 'empcov4', and 'empcov17'. Note that full and symmetric matrices are required for ctmaPrep. Usually, sample
-#' sizes ('sampleSize2', 'sampleSize4', & 'sampleSize17') and time lags ('delta_t2', 'delta_t4', & 'delta_t17'), are required, too
+#' sizes ('sampleSize2', 'sampleSize4', & 'sampleSize17') and time lags ('delta_t2', 'delta_t4', & 'delta_t17'), are required, too.
 #'
 #' @examples
 #' # First Study
@@ -35,7 +35,7 @@
 #'                    nrow = 4, ncol = 4)
 #' moderator2 <- c(2, 2)
 #' addedByResearcher2 <- "something you want to add"
-#' #
+#'
 #' # Second Study
 #' delta_t4 <- c(12, 6)
 #' sampleSize4 <- 261
@@ -48,7 +48,7 @@
 #'                     nrow=6, ncol=6)
 #' moderator4 <- c(3, 1)
 #' addedByResearcher4 <- "another comment"
-#' #
+#'
 #' # Third Study
 #' source17 <- c()
 #' delta_t17 <- c(12)
@@ -85,20 +85,18 @@
 #'                       nlatents = 2, sampleSize = sampleSize17,
 #'                       Tpoints = 2, empcov = empcov17)
 #' empcov17 <- results17$r
-#' #
+#'
 #' # Add Labels and Values for Moderators (just for optional excel tables)
 #' moderatorLabels <- c("Social Support", "Control")
 #' moderatorValues <- list("continuous", c("1 = very low", "2 = low",
 #'                        "3 = medium", "4 = high", "5 = very high"))
-#' #
+#'
 #' studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4, 17),
 #'                           excludedElements = "ageM",
 #'                           addElements = "addedByResearcher",
 #'                           moderatorLabels=moderatorLabels,
 #'                           moderatorValues=moderatorValues)
-#' #library(openxlsx)
-#' openXL(studyList_Ex1$excelSheets)
-#' #
+#'
 ctmaPrep <- function(selectedStudies=NULL,
                      excludedElements=NULL,
                      addElements=NULL,
@@ -106,6 +104,8 @@ ctmaPrep <- function(selectedStudies=NULL,
                      moderatorLabels=NULL,
                      moderatorValues=NULL
 ) {
+
+  ctma <- globalenv()
 
   if (is.null(selectedStudies)) {
     cat(crayon::red$bold("Number of primary studies to combine in the list was not specified!", sep="\n"))
@@ -407,7 +407,6 @@ ctmaPrep <- function(selectedStudies=NULL,
   }
 
   primaryStudies$summary <- as.data.frame(summaryTable)
-  #assign(xxx, as.data.frame(summaryTable), inherits=TRUE, envir = .GlobalEnv)
 
   moderatorLabelsBackup <- moderatorLabels; moderatorLabelsBackup
   moderatorValuesBackup <- moderatorValues; moderatorValuesBackup
@@ -500,5 +499,6 @@ ctmaPrep <- function(selectedStudies=NULL,
 
   class(primaryStudies) <-  "CoTiMAFit"
 
+  rm(ctma)
   return(primaryStudies)
 }
