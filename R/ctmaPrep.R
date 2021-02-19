@@ -142,7 +142,6 @@ ctmaPrep <- function(selectedStudies=NULL,
     alphas[[i]] <- NA
     targetVariables[[i]] <- NA
     recodeVariables[[i]] <- NA
-    #combineVariables[[i]] <- NA
     combineVariables[[i]] <- list()
     combineVariablesNames[[i]] <- NA
     missingVariables[[i]] <- NA
@@ -151,42 +150,40 @@ ctmaPrep <- function(selectedStudies=NULL,
   }
 
   for (i in 1:length(selectedStudies)) { # 'length' ensures consecutive numbering
-    if (exists(paste0("delta_t", selectedStudies[i]))) deltas[[i]] <- get(paste0("delta_t", selectedStudies[i]))
-    if (exists(paste0("empcov", selectedStudies[i]))) empcovs[[i]] <- get(paste0("empcov", selectedStudies[i]))
-    if (exists(paste0("pairwiseN", selectedStudies[i]))) pairwiseNs[[i]] <- get(paste0("pairwiseN", selectedStudies[i]))
-    if (exists(paste0("moderator", selectedStudies[i]))) moderators[[i]] <- get(paste0("moderator", selectedStudies[i]))
-    if (exists(paste0("startValues", selectedStudies[i]))) startValues[[i]] <- get(paste0("startValues", selectedStudies[i]))
-    if (exists(paste0("studyNumber", selectedStudies[i]))) studyNumbers[[i]] <- get(paste0("studyNumber", selectedStudies[i]))
-    if (exists(paste0("sampleSize", selectedStudies[i]))) sampleSizes[[i]] <- get(paste0("sampleSize", selectedStudies[i]))
-    if (exists(paste0("empMeans", selectedStudies[i]))) empMeans[[i]] <- get(paste0("empMeans", selectedStudies[i]))
-    if (exists(paste0("empVars", selectedStudies[i]))) empVars[[i]] <- get(paste0("empVars", selectedStudies[i]))
-    if (exists(paste0("source", selectedStudies[i]))) source[[i]] <- get(paste0("source", selectedStudies[i]))
-    if (exists(paste0("ageM", selectedStudies[i]))) ageM[[i]] <- get(paste0("ageM", selectedStudies[i]))
-    if (exists(paste0("malePercent", selectedStudies[i]))) malePercent[[i]] <- get(paste0("malePercent", selectedStudies[i]))
-    if (exists(paste0("occupation", selectedStudies[i]))) occupation[[i]] <- get(paste0("occupation", selectedStudies[i]))
-    if (exists(paste0("country", selectedStudies[i]))) country[[i]] <- get(paste0("country", selectedStudies[i]))
-    if (exists(paste0("alphas", selectedStudies[i]))) alphas[[i]] <- get(paste0("alphas", selectedStudies[i]))
-    #if (exists(paste0("targetVariables", selectedStudies[i]))) targetVariables[[i]] <- get(paste0("targetVariables", selectedStudies[i]))
-    #if (exists(paste0("recodeVariables", selectedStudies[i]))) recodeVariables[[i]] <- get(paste0("recodeVariables", selectedStudies[i]))
-    #if (exists(paste0("combineVariables", selectedStudies[i]))) combineVariables[[i]] <- get(paste0("combineVariables", selectedStudies[i]))
-    #if (exists(paste0("combineVariablesNames", selectedStudies[i]))) combineVariablesNames[[i]] <- get(paste0("combineVariablesNames", selectedStudies[i]))
+    if (exists(paste0("delta_t", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) deltas[[i]] <- get(paste0("delta_t", selectedStudies[i]))
+    if (exists(paste0("empcov", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) empcovs[[i]] <- get(paste0("empcov", selectedStudies[i]))
+    if (exists(paste0("pairwiseN", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) pairwiseNs[[i]] <- get(paste0("pairwiseN", selectedStudies[i]))
+    if (exists(paste0("moderator", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) moderators[[i]] <- get(paste0("moderator", selectedStudies[i]))
+    if (exists(paste0("startValues", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) startValues[[i]] <- get(paste0("startValues", selectedStudies[i]))
+    if (exists(paste0("studyNumber", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) studyNumbers[[i]] <- get(paste0("studyNumber", selectedStudies[i]))
+    if (exists(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) sampleSizes[[i]] <- get(paste0("sampleSize", selectedStudies[i]))
+    if (exists(paste0("empMeans", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) empMeans[[i]] <- get(paste0("empMeans", selectedStudies[i]))
+    if (exists(paste0("empVars", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) empVars[[i]] <- get(paste0("empVars", selectedStudies[i]))
+    if (exists(paste0("source", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) source[[i]] <- get(paste0("source", selectedStudies[i]))
+    if (exists(paste0("ageM", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) ageM[[i]] <- get(paste0("ageM", selectedStudies[i]))
+    if (exists(paste0("malePercent", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) malePercent[[i]] <- get(paste0("malePercent", selectedStudies[i]))
+    if (exists(paste0("occupation", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) occupation[[i]] <- get(paste0("occupation", selectedStudies[i]))
+    if (exists(paste0("country", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) country[[i]] <- get(paste0("country", selectedStudies[i]))
+    if (exists(paste0("alphas", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) alphas[[i]] <- get(paste0("alphas", selectedStudies[i]))
 
-    if (exists(paste0("targetVariables", selectedStudies[i]))) {
-      tmp1 <- get(paste0("targetVariables", selectedStudies[i])); tmp1
-      if (!(is.null(tmp1))) targetVariables[[i]] <- get(paste0("targetVariables", selectedStudies[i])) else targetVariables[[i]] <- NA
+    if (exists(paste0("targetVariables", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
+      tmp1 <- get(paste0("targetVariables", selectedStudies[i]), envir =parent.frame(), inherits=FALSE); tmp1
+      if (!(is.null(tmp1))) targetVariables[[i]] <- get(paste0("targetVariables", selectedStudies[i]),
+                                                        envir =parent.frame(), inherits=FALSE) else targetVariables[[i]] <- NA
     } else {
       targetVariables[[i]] <- NA
     }
 
-    if (exists(paste0("recodeVariables", selectedStudies[i]))) {
-      tmp1 <- get(paste0("recodeVariables", selectedStudies[i])); tmp1
-      if (!(is.null(tmp1))) recodeVariables[[i]] <- get(paste0("recodeVariables", selectedStudies[i])) else recodeVariables[[i]] <- NA
+    if (exists(paste0("recodeVariables", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
+      tmp1 <- get(paste0("recodeVariables", selectedStudies[i]), envir =parent.frame(), inherits=FALSE); tmp1
+      if (!(is.null(tmp1))) recodeVariables[[i]] <- get(paste0("recodeVariables", selectedStudies[i]),
+                                                        envir =parent.frame(), inherits=FALSE) else recodeVariables[[i]] <- NA
     } else {
       recodeVariables[[i]] <- NA
     }
 
-    if (exists(paste0("combineVariables", selectedStudies[i]))) {
-      tmp1 <- get(paste0("combineVariables", selectedStudies[i])); tmp1
+    if (exists(paste0("combineVariables", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
+      tmp1 <- get(paste0("combineVariables", selectedStudies[i]), envir =parent.frame(), inherits=FALSE); tmp1
       if (length(tmp1) > 0) {
         tmp2 <- c()
         for (l in 1:length(tmp1)) {
@@ -204,22 +201,24 @@ ctmaPrep <- function(selectedStudies=NULL,
       combineVariables[[i]] <- NA
     }
 
-    if (exists(paste0("combineVariablesNames", selectedStudies[i]))) {
+    if (exists(paste0("combineVariablesNames", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
       tmp1 <- get(paste0("combineVariablesNames", selectedStudies[i])); tmp1
-      if (!(is.null(tmp1))) combineVariablesNames[[i]] <- get(paste0("combineVariablesNames", selectedStudies[i])) else combineVariablesNames[[i]] <- NA
+      if (!(is.null(tmp1))) combineVariablesNames[[i]] <- get(paste0("combineVariablesNames", selectedStudies[i]),
+                                                              envir =parent.frame(), inherits=FALSE) else combineVariablesNames[[i]] <- NA
     } else {
       combineVariablesNames[[i]] <- NA
     }
 
-    if (exists(paste0("missingVariables", selectedStudies[i]))) {
-      tmp1 <- get(paste0("missingVariables", selectedStudies[i])); tmp1
-      if (!(is.null(tmp1))) missingVariables[[i]] <- get(paste0("missingVariables", selectedStudies[i])) else missingVariables[[i]] <- NA
+    if (exists(paste0("missingVariables", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
+      tmp1 <- get(paste0("missingVariables", selectedStudies[i]), envir =parent.frame(), inherits=FALSE); tmp1
+      if (!(is.null(tmp1))) missingVariables[[i]] <- get(paste0("missingVariables", selectedStudies[i]),
+                                                         envir =parent.frame(), inherits=FALSE) else missingVariables[[i]] <- NA
     } else {
       missingVariables[[i]] <- NA
     }
 
-    if (exists(paste0("rawData", selectedStudies[i]))) {
-      rawData[[i]] <- get(paste0("rawData", selectedStudies[i]))
+    if (exists(paste0("rawData", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
+      rawData[[i]] <- get(paste0("rawData", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)
       rawData[[i]]$studyNumbers <- selectedStudies[i]
     }
     if ( (is.na(sampleSizes[[i]]) & (is.null(dim(pairwiseNs[[i]]))) & (is.null(rawData[[i]])) ) ) {
@@ -230,7 +229,9 @@ ctmaPrep <- function(selectedStudies=NULL,
 
     if (!(is.null(addElements))) {
       for (j in 1:length(addElements)) {
-        if (exists(paste0(addElements[j], selectedStudies[i]))) addElementsList[[j]][[i]] <- get(paste0(addElements[[j]], selectedStudies[i]))
+        if (exists(paste0(addElements[j], selectedStudies[i]),
+                   envir =parent.frame(), inherits=FALSE)) addElementsList[[j]][[i]] <- get(paste0(addElements[[j]], selectedStudies[i]),
+                                                                                            envir =parent.frame(), inherits=FALSE)
       }
     }
   }
