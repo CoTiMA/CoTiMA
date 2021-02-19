@@ -91,7 +91,9 @@ ctmaInit <- function(
   }
 
   start.time <- Sys.time()
-  options(scipen = 999) # turn scientific notation off.
+
+  original.options <- options("scipen"); original.options
+  options(scipen = 999); options("scipen") # turn scientific notation off.
 
 
   #######################################################################################################################
@@ -1055,6 +1057,9 @@ ctmaInit <- function(
   }
 
   results$excelSheets <- wb
+
+  options(scipen = original.options)  # scientific notation as user's original
+  options
 
   invisible(results)
 
