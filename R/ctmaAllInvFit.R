@@ -1,5 +1,7 @@
 #' ctmaAllInvFit
 #'
+#' #' @description Fit a CoTiMA model with all params (drift, T0var, diffusion) invariant across primary studies
+#'
 #' @param ctmaInitFit ctmaInitFit
 #' @param activeDirectory activeDirectory
 #' @param activateRPB activateRPB
@@ -20,7 +22,6 @@
 #' @param silentOverwrite silentOverwrite
 #' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)
 #'
-#' @export ctmaAllInvFit
 #'
 ctmaAllInvFit <- function(
   ctmaInitFit=NULL,

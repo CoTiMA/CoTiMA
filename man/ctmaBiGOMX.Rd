@@ -24,5 +24,5 @@ ctmaBiGOMX(
 \item{digits}{rounding (default = 4)}
 }
 \description{
-Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients IF OLD OMX FIT FILES ARE DETECTED
+Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients if OLD OpenMx fit files are supplied
 }

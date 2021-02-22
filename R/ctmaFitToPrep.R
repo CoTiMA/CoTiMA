@@ -1,6 +1,11 @@
 #' ctmaFitToPrep
 #'
+#'@description Extracts information from fitted CoTiMA object to (re-)crearte list of primary studies originally created with ctmaPrep
+#'
 #' @param ctmaFitObject  ctmaFitObject
+#'
+#' @examples
+#' newStudyList <- ctmaFitToPrep(CoTiMAInitFit_3)
 #'
 #' @export ctmaFitToPrep
 #'
@@ -21,6 +26,10 @@ ctmaFitToPrep <- function(ctmaFitObject=NULL)
   newStudyList$pairwiseNs <- lapply(ctmaFitObject, function(x) x$pairwiseN)
   newStudyList$rawData <- lapply(ctmaFitObject, function(x) x$rawData)
   newStudyList$n.studies  <- length(newStudyList$rawData)
+  newStudyList$summary <- newStudyList
+
+  class(newStudyList) <-  "CoTiMAFit"
 
   invisible(newStudyList)
 }
+

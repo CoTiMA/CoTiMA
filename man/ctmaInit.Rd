@@ -93,15 +93,14 @@ ctmaInit(
 Fits a ctsem model to a list of primary studies prepared by ctmaPrep.
 }
 \examples{
-# Fit a ctsem model to all primary studies summarized in
-# studyList_Ex1 and save fitted models
-\dontrun{
-CoTiMAInitFit_Ex1 <- ctmaInit(
-primaryStudies=studyList_Ex1,
-n.latent=2,
-saveSingleStudyModelFit=c(2, 4, 17))
-
-summary(CoTiMAInitFit_Ex1)
+# Fit a ctsem model to all three primary studies summarized in
+# CoTiMAstudyList_3 and save the three fitted models
+\donttest{
+CoTiMAInitFit_3 <- ctmaInit(primaryStudies=CoTiMAstudyList_3,
+                            n.latent=2,
+                            checkSingleStudyResults=FALSE,
+                            activeDirectory="/Users/cdormann/tmp/")
+summary(CoTiMAInitFit_3)
 }
 
 }

@@ -17,8 +17,22 @@
 #' @export ctmaBiG
 #'
 #' @examples
-#' \dontrun{
-#' ctmaBiG(ctmaInitFit=studyList_Ex1)
+#' \donttest{
+#' # perform analyses of publication bias and generalizability
+#' CoTiMAInitFit_D_BO$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+#' CoTiMABiG_D_BO <- ctmaBiG(ctmaInitFit=CoTiMAInitFit_D_BO, zcurve=FALSE)
+#' }
+#'
+#' @examples
+#' \donttest{
+#' # display results
+#' summary(CoTiMABiG_D_BO)
+#'  }
+#'
+#' @examples
+#' \donttest{
+#' # get funnel & forest plots
+#' plot(CoTiMABiG_D_BO)
 #' }
 #'
 ctmaBiG <- function(
@@ -198,7 +212,7 @@ ctmaBiG <- function(
     FixedEffect_DriftLowerLimit <- FixedEffect_Drift - 1.96*FixedEffect_DriftSE; FixedEffect_DriftLowerLimit
     FixedEffect_DriftZ <- FixedEffect_Drift/FixedEffect_DriftSE; FixedEffect_DriftZ
     FixedEffect_DriftProb <- round(1-stats::pnorm(abs(FixedEffect_DriftZ),
-                                                  mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log=F), digits=digits); FixedEffect_DriftProb
+                                                  mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log.p=F), digits=digits); FixedEffect_DriftProb
     Q_Drift <- colSums(DRIFTPrecision^2 * DRIFTCoeff^2)- (colSums(DRIFTPrecision^2 * DRIFTCoeff))^2 / colSums(DRIFTPrecision^2); Q_Drift
     H2_Drift <- Q_Drift/(n.studies-1); H2_Drift
     I2_Drift <- (H2_Drift-1)/H2_Drift*100; I2_Drift

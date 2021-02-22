@@ -12,3 +12,9 @@ ctmaFitList(...)
 \description{
 Combines CoTiMAFit objects into a list with class CoTiMAFit to inform generic functions what to do
 }
+\examples{
+plot(ctmaFitList(CoTiMAInitFit_3, CoTiMAFullFit_3),
+     timeUnit="Months",
+     timeRange=c(1, 144, 1) )
+
+}

@@ -43,76 +43,51 @@ sizes ('sampleSize2', 'sampleSize4', & 'sampleSize17') and time lags ('delta_t2'
 }
 \examples{
 # First Study
-source2 <- c("Dollard", "& Bakker", "2010")
+empcov2 <- matrix(c(1.00, 0.45, 0.57, 0.18,
+                    0.45, 1.00, 0.31, 0.66,
+                    0.57, 0.31, 1.00, 0.40,
+                    0.18, 0.66, 0.40, 1.00), nrow=4, ncol=4)
 delta_t2 <- 12
-sampleSize2 <- 209
-empcov2 <- matrix(c(1.00, 0.55, 0.69, 0.37,
-                    0.55, 1.00, 0.43, 0.55,
-                    0.69, 0.43, 1.00, 0.58,
-                    0.37, 0.55, 0.58, 1.00),
-                   nrow = 4, ncol = 4)
-moderator2 <- c(2, 2)
+sampleSize2 <- 148
+moderator2 <- c(1, 0.72)
+source2 <- c("Houkes, I,", "Janssen, P, P, M,", "de Jonge, J",
+              "& Bakker, A, B", "Study1", "2003")
 addedByResearcher2 <- "something you want to add"
 
 # Second Study
-delta_t4 <- c(12, 6)
-sampleSize4 <- 261
-empcov4 <- matrix(c(1.00, 0.44, 0.74, 0.36, 0.71, 0.32,
-                    0.44, 1.00, 0.35, 0.66, 0.38, 0.65,
-                    0.74, 0.35, 1.00, 0.43, 0.83, 0.35,
-                    0.36, 0.66, 0.43, 1.00, 0.41, 0.71,
-                    0.71, 0.38, 0.83, 0.41, 1.00, 0.44,
-                    0.32, 0.65, 0.35, 0.71, 0.44, 1.00),
-                    nrow=6, ncol=6)
-moderator4 <- c(3, 1)
-addedByResearcher4 <- "another comment"
+empcov3 <- matrix(c(1.00, 0.43, 0.71, 0.37,
+                    0.43, 1.00, 0.34, 0.69,
+                    0.71, 0.34, 1.00, 0.50,
+                    0.37, 0.69, 0.50, 1.00), nrow=4, ncol=4)
+delta_t3 <- 12
+sampleSize3 <- 88
+moderator3 <- c(1, 0.72)
+source3 <- c("Houkes, I,", "Janssen, P, P, M,", "de Jonge, J",
+              "& Bakker, A, B", "Study2", "2003")
+addedByResearcher3 <- ""
 
 # Third Study
-source17 <- c()
-delta_t17 <- c(12)
-sampleSize17 <- 440
-empcov17 <- matrix(
-  c( 1.00, -0.60, -0.36,  0.20,  0.62, -0.47, -0.18,  0.20,
-    -0.60,  1.00,  0.55, -0.38, -0.43,  0.52,  0.27, -0.21,
-    -0.36,  0.55,  1.00, -0.47, -0.26,  0.37,  0.51, -0.28,
-     0.20, -0.38, -0.47,  1.00,  0.15, -0.28, -0.35,  0.56,
-     0.62, -0.43, -0.26,  0.15,  1.00, -0.63, -0.30,  0.27,
-    -0.47,  0.52,  0.37, -0.28, -0.63,  1.00,  0.55, -0.37,
-    -0.18,  0.27,  0.51, -0.35, -0.30,  0.55,  1.00, -0.51,
-     0.20, -0.21, -0.28,  0.56,  0.27, -0.37, -0.51,  1.00),
- nrow=8, ncol=8)
-moderator17 <- c(3, 2)
-rownames(empcov17) <- colnames(empcov17) <-
-  c("Workload_1", "Exhaustion_1", "Cynicism_1", "Values_1",
-    "Workload_2", "Exhaustion_2", "Cynicism_2", "Values_2")
-targetVariables17 <-
-  c("Workload_1", "Exhaustion_1", "Cynicism_1",
-    "Workload_2", "Exhaustion_2", "Cynicism_2")
-recodeVariables17 <- c("Workload_1", "Workload_2")
-combineVariables17 <- list("Workload_1", c("Exhaustion_1", "Cynicism_1"),
-                           "Workload_2", c("Exhaustion_2", "Cynicism_2"))
-combineVariablesNames17 <- c("Demands_1",  "Burnout_1",
-                             "Demands_2",  "Burnout_2")
-missingVariables17 <- c()
-addedByResearcher17 <- c()
-results17 <- ctmaEmpCov(targetVariables = targetVariables17,
-                      recodeVariables = recodeVariables17,
-                      combineVariables = combineVariables17,
-                      combineVariablesNames = combineVariablesNames17,
-                      missingVariables = missingVariables17,
-                      nlatents = 2, sampleSize = sampleSize17,
-                      Tpoints = 2, empcov = empcov17)
-empcov17 <- results17$r
+empcov313 <- matrix(c(1.00, 0.38, 0.54, 0.34, 0.60, 0.28,
+                      0.38, 1.00, 0.34, 0.68, 0.28, 0.68,
+                      0.54, 0.34, 1.00, 0.47, 0.66, 0.39,
+                      0.34, 0.68, 0.47, 1.00, 0.38, 0.72,
+                      0.60, 0.28, 0.66, 0.38, 1.00, 0.38,
+                      0.28, 0.68, 0.39, 0.72, 0.38, 1.00), nrow=6, ncol=6)
+delta_t313 <- c(1.5, 1.5)
+sampleSize313 <- 335
+moderator313 <- c(0.8,	2.47)
+source313 <- c("Demerouti", "Bakker", "& Bulters", "2004")
+addedByResearcher313 <- "check correlation matrix"
 
 # Add Labels and Values for Moderators (just for optional excel tables)
-moderatorLabels <- c("Social Support", "Control")
+moderatorLabels <- c("Control", "Social Support")
 moderatorValues <- list("continuous", c("1 = very low", "2 = low",
                        "3 = medium", "4 = high", "5 = very high"))
 
-studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4, 17),
-                          excludedElements = "ageM",
-                          addElements = "addedByResearcher",
-                          moderatorLabels=moderatorLabels,
-                          moderatorValues=moderatorValues)
+CoTiMAstudyList_3 <- ctmaPrep(selectedStudies = c(2, 3, 313),
+                              excludedElements = "ageM",
+                              addElements = "addedByResearcher",
+                              moderatorLabels=moderatorLabels,
+                              moderatorValues=moderatorValues)
 
 }

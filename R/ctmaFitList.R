@@ -4,6 +4,11 @@
 #'
 #' @param ... any number of CoTiMAFit objects
 #'
+#' @examples
+#' plot(ctmaFitList(CoTiMAInitFit_3, CoTiMAFullFit_3),
+#'      timeUnit="Months",
+#'      timeRange=c(1, 144, 1) )
+#'
 #' @export ctmaFitList
 #'
 ctmaFitList <- function(...) {

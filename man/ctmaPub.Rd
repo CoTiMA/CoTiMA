@@ -12,7 +12,7 @@ ctmaPub(
   targetYear = NULL,
   indFUN = "sum",
   colFUN = "mean",
-  addAsMod = TRUE
+  addAsMod = FALSE
 )
 }
 \arguments{
@@ -30,8 +30,16 @@ ctmaPub(
 
 \item{colFUN}{function (default = mean) how publications all authors of collective (team) are summarized}
 
-\item{addAsMod}{add to existing moderator objects (or create them) in primaryStudyList, which is part of the returned object}
+\item{addAsMod}{currently disabled. Add to existing moderator objects (or create them) in primaryStudyList, which is part of the returned object}
 }
 \description{
 Compute publication and citation scores for studies based on the (team of) authors' publication scores .
+}
+\examples{
+\donttest{
+pubResults_6 <- ctmaPub(getPubObj=pubList_8,
+                        primaryStudyList=CoTiMAstudyList_6)
+summary(pubResults_6)
+}
+
 }

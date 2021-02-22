@@ -9,16 +9,22 @@
 #' @param recency years before targetYear that are considered for recency analysis
 #' @param indFUN function (default = sum) how publications of each author within a collective (team) are summarized
 #' @param colFUN function (default = mean) how publications all authors of collective (team) are summarized
-#' @param addAsMod add to existing moderator objects (or create them) in primaryStudyList, which is part of the returned object
+#' @param addAsMod currently disabled. Add to existing moderator objects (or create them) in primaryStudyList, which is part of the returned object
 #'
 #' @importFrom crayon red
 #'
-#' @export ctmaPub
+#' @examples
+#' \donttest{
+#' pubResults_6 <- ctmaPub(getPubObj=pubList_8,
+#'                         primaryStudyList=CoTiMAstudyList_6)
+#' summary(pubResults_6)
+#' }
 #'
+#' @export ctmaPub
 #'
 ctmaPub <- function(getPubObj=NULL, primaryStudyList=NULL,
                     yearsToExclude=0, recency=5, targetYear=NULL,
-                    indFUN="sum", colFUN="mean", addAsMod=TRUE) {
+                    indFUN="sum", colFUN="mean", addAsMod=FALSE) {
 
   if ( (!(indFUN %in% c("mean", "sum", "max", "min", "var"))) |
        (!(colFUN %in% c("mean", "sum", "max", "min", "var"))) ) {
@@ -181,69 +187,80 @@ ctmaPub <- function(getPubObj=NULL, primaryStudyList=NULL,
     }
   }
 
-  # make new list without studies for which NEPP is NA
-  objectNames <- c("delta_t", "sampleSize", "pairwiseN", "empcov", "moderator",
+  useThis <- 0 # currently disabled because ctmaPrep only reads from the global environment
+  if (useThis == 1) {
+    # make new list without studies for which NEPP is NA
+    objectNames <- c("delta_t", "sampleSize", "pairwiseN", "empcov", "moderator",
                      "studyNumber", "rawData", "empMeans", "empVars", "source",
                      "ageM",
                      #"ageSD",
                      "malePercent", "occupation", "country",  "alphas",
                      "targetVariables", "recodeVariables", "combineVariables", "combineVariablesNames",
                      "missingVariables"); objectNames
-  namesInStudyList <- c("deltas", "sampleSizes", "pairwiseNs", "empcovs", "moderators",
-                        #"startValues",
-                        "studyNumbers", "rawData", "empMeans", "empVars", "source",
-                        "ageM", "malePercent", "occupation", "country", "alphas",
-                        "targetVariables", "recodeVariables", "combineVariables", "combineVariablesNames",
-                        "missingVariables")
-  # assign values to pre-defined object names
-  counter <- 0
-  for (i in namesInStudyList) {
-    counter <- counter + 1; counter
-    #i <- namesInStudyList[counter]; i
-    # object names
-    tmp1 <- rep(objectNames[counter], length(primaryStudyList[[i]])); tmp1
-    tmp2 <- paste0(tmp1, primaryStudyList$studyNumbers); tmp2
-    tmp2 <- tmp2[-length(tmp2)]; tmp2
-    # values
-    tmp3 <- primaryStudyList[[i]]; tmp3
-    if ( length(tmp3) > length(tmp2) )  tmp3 <- tmp3[-length(tmp3)]; tmp3  # some lists do not have NA at the end
-    for (j in 1:length(tmp2)) {
-      if (!(is.na(NEPP[j]))) { assign(tmp2[j],tmp3[[j]], inherits=TRUE) } # inherits paste variables to the global environment (required for ctmaPrep)
-      #if (!(is.na(NEPP[j]))) { assign(tmp2[j],tmp3[[j]], inherits=FALSE) } # inherits paste variables to the global environment (required for ctmaPrep)
+    namesInStudyList <- c("deltas", "sampleSizes", "pairwiseNs", "empcovs", "moderators",
+                          #"startValues",
+                          "studyNumbers", "rawData", "empMeans", "empVars", "source",
+                          "ageM", "malePercent", "occupation", "country", "alphas",
+                          "targetVariables", "recodeVariables", "combineVariables", "combineVariablesNames",
+                          "missingVariables")
+    # assign values to pre-defined object names
+    counter <- 0
+    for (i in namesInStudyList) {
+      counter <- counter + 1; counter
+      #i <- namesInStudyList[counter]; i
+      # object names
+      tmp1 <- rep(objectNames[counter], length(primaryStudyList[[i]])); tmp1
+      tmp2 <- paste0(tmp1, primaryStudyList$studyNumbers); tmp2
+      tmp2 <- tmp2[-length(tmp2)]; tmp2
+      # values
+      tmp3 <- primaryStudyList[[i]]; tmp3
+      if ( length(tmp3) > length(tmp2) )  tmp3 <- tmp3[-length(tmp3)]; tmp3  # some lists do not have NA at the end
+      for (j in 1:length(tmp2)) {
+        if (!(is.na(NEPP[j]))) { assign(tmp2[j],tmp3[[j]], inherits=TRUE) } # inherits paste variables to the global environment (required for ctmaPrep)
+        #if (!(is.na(NEPP[j]))) { assign(tmp2[j],tmp3[[j]], inherits=FALSE) } # inherits paste variables to the global environment (required for ctmaPrep)
+      }
     }
-  }
 
-  # make new (reduced) study list
-  tmp1 <- which(!(is.na(NEPP))); tmp1
-  studiesToSelect <- unlist(primaryStudyList$studyNumbers)[tmp1]; studiesToSelect
+    # make new (reduced) study list
+    tmp1 <- which(!(is.na(NEPP))); tmp1
+    studiesToSelect <- unlist(primaryStudyList$studyNumbers)[tmp1]; studiesToSelect
 
-  if (exists("primaryStudyList$moderatorLabels")) {
-    moderatorLabels <- c(primaryStudyList$moderatorLabels, "NEPP", "NEPPrecency", "NEPP_log", "NEPPrecency_log")
+    if (exists("primaryStudyList$moderatorLabels")) {
+      moderatorLabels <- c(primaryStudyList$moderatorLabels, "NEPP", "NEPPrecency", "NEPP_log", "NEPPrecency_log")
+    } else {
+      moderatorLabels <- c("NEPP", "NEPPrecency", "NEPP_log", "NEPPrecency_log")
+    }
+    if (exists("primaryStudyList$moderatorValues")) {
+      moderatorValues <- c(primaryStudyList$moderatorValues, rep("countinuous", 4))
+    } else {
+      moderatorValues <- rep("countinuous", 4)
+    }
+    newStudyList <- ctmaPrep(selectedStudies=studiesToSelect,
+                             moderatorLabels=moderatorLabels,
+                             moderatorValues=moderatorValues)
+    results <- list('NEPP'=NEPP,
+                    'NEPPrecency'=NEPPrecency,
+                    "Meaning of NEPP"=NEPPLabel,
+                    "Meaning of NEPPrecency"=NEPPRecencyLabel,
+                    "primaryStudyList(full)"=primaryStudyList,
+                    "primaryStudyList(without NEPP=NA)"=newStudyList,
+                    summary=list('NEPP'=NEPP,
+                                 'NEPPrecency'=NEPPrecency,
+                                 "Meaning of NEPP"=NEPPLabel,
+                                 "Meaning of NEPPrecency"=NEPPRecencyLabel))
   } else {
-    moderatorLabels <- c("NEPP", "NEPPrecency", "NEPP_log", "NEPPrecency_log")
-  }
-  if (exists("primaryStudyList$moderatorValues")) {
-    moderatorValues <- c(primaryStudyList$moderatorValues, rep("countinuous", 4))
-  } else {
-    moderatorValues <- rep("countinuous", 4)
+    results <- list('NEPP'=NEPP,
+                    'NEPPrecency'=NEPPrecency,
+                    "Meaning of NEPP"=NEPPLabel,
+                    "Meaning of NEPPrecency"=NEPPRecencyLabel,
+                    "primaryStudyList(full)"=primaryStudyList,
+                    summary=list('NEPP'=NEPP,
+                                 'NEPPrecency'=NEPPrecency,
+                                 "Meaning of NEPP"=NEPPLabel,
+                                 "Meaning of NEPPrecency"=NEPPRecencyLabel))
   }
 
-  newStudyList <- ctmaPrep(selectedStudies=studiesToSelect,
-                           moderatorLabels=moderatorLabels,
-                           moderatorValues=moderatorValues)
-  #selectedStudies=studiesToSelect
-  #moderatorLabels=moderatorLabels
-  #moderatorValues=moderatorValues
-  #excludedElements=NULL
-  #addElements=NULL
-  #digits=4
-
-  results <- list('NEPP'=NEPP,
-                  'NEPPrecency'=NEPPrecency,
-                  "Meaning of NEPP"=NEPPLabel,
-                  "Meaning of NEPPrecency"=NEPPRecencyLabel,
-                  "primaryStudyList(full)"=primaryStudyList,
-                  "primaryStudyList(without NEPP=NA)"=newStudyList)
+  class(results) <- "CoTiMAFit"
 
   invisible(results)
 }

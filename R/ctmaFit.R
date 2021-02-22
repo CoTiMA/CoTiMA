@@ -42,24 +42,31 @@
 #'
 #' @examples
 #' # Example 1. Fit a CoTiMA to all primary studies previously fitted one by one
-#' # with the fits assigned to CoTiMAInitFit_Ex1
-#' \dontrun{
-#' CoTiMAFullFit_Ex1 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_Ex1)
-#'
-#' saveRDS(CoTiMAFullFit_Ex1, file=paste0(activeDirectory, "CoTiMAFullFit_Ex1.rds"))
-#' summary(CoTiMAFullFit_Ex1)
+#' # with the fits assigned to CoTiMAInitFit_6
+#' \donttest{
+#' CoTiMAFullFit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6)
+#' summary(CoTiMAFullFit_6)
 #' }
 #'
 #' @examples
 #' # Example 2. Fit a CoTiMA with only 2 cross effects invariant (not the auto
 #' # effects) to all primary studies previously fitted one by one with the fits assigned
-#' # to CoTiMAInitFit_Ex1
-#' \dontrun{
-#' CoTiMA12lFit_Ex2 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_Ex1,
-#' invariantDrift=c("V1toV2", "V2toV1"))
+#' # to CoTiMAInitFit_6
+#' \donttest{
+#' CoTiMAInitFit_6$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+#' CoTiMAFullInv23Fit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6,
+#'                         invariantDrift=c("V1toV2", "V2toV1"))
+#' summary(CoTiMAFullInv23Fit_6)
+#' }
 #'
-#' saveRDS(CoTiMA12Fit_Ex2, file=paste0(activeDirectory, "CoTiMA12Fit_Ex2.rds"))
-#' summary(CoTiMA12lFit_Ex2)
+#' @examples
+#' # Example 3. Fit a moderated CoTiMA
+#' \donttest{
+#' CoTiMAInitFit_6$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+#' CoTiMAMod1onFullFit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6,
+#'                                  mod.number=1, mod.type="cont",
+#'                                  mod.names=c("Control"))
+#' summary(CoTiMAMod1onFullFit_6)
 #' }
 #'
 ctmaFit <- function(

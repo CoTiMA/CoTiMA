@@ -1,6 +1,6 @@
 #' ctmaBiGOMX
 #'
-#' @description Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients IF OLD OMX FIT FILES ARE DETECTED
+#' @description Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients if OLD OpenMx fit files are supplied
 #'
 #' @param ctmaInitFit fit object created with ctmaInti containing the fitted ctsem model of each primary study
 #' @param activeDirectory the directory where to save results (if not specified, it is taken from ctmaInitFit)
@@ -14,8 +14,6 @@
 #' @importFrom OpenMx vec2diag diag2vec
 #' @importFrom utils capture.output
 #' @importFrom zcurve zcurve
-#'
-#' @export ctmaBiGOMX
 #'
 #'
 ctmaBiGOMX <- function(

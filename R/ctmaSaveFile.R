@@ -12,8 +12,6 @@
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
 #'
-#' @export ctmaSaveFile
-#'
 ctmaSaveFile <- function(activateRPB,
                            activeDirectory=activeDirectory,
                            SaveObject,

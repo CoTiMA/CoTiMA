@@ -9,7 +9,10 @@ ctmaOptimzeInit(
   activeDirectory = NULL,
   problemStudy = NULL,
   reFits = NULL,
-  n.latent = NULL
+  n.latent = NULL,
+  coresToUse = c(1),
+  activateRPB = FALSE,
+  checkSingleStudyResults = FALSE
 )
 }
 \arguments{
@@ -22,7 +25,29 @@ ctmaOptimzeInit(
 \item{reFits}{reFits}
 
 \item{n.latent}{n.latent}
+
+\item{coresToUse}{If neg., the value is subtracted from available cores, else value = cores to use}
+
+\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
+
+\item{checkSingleStudyResults}{Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.}
 }
 \description{
-ctmaOptimzeInit
+Initial fitting a primary study reFit times to capitalize on chance for obtaining hard to find optimal fit.
+}
+\note{
+All but one of multiple cores are used on unix-type machines for parallel fitting
+
+During fitting, not output is generated. Be patient.
+}
+\examples{
+\donttest{
+optimFit313 <- ctmaOptimzeInit(oldStudyList=CoTiMAstudyList_3,
+                               activeDirectory="/Users/cdormann/tmp/",
+                               problemStudy=which(CoTiMAstudyList_3$studyNumbers == 313),
+                               reFits=10,
+                               n.latent=2)
+summary(optimFit313)
+}
+
 }

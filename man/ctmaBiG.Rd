@@ -30,8 +30,20 @@ ctmaBiG(
 Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients.
 }
 \examples{
-\dontrun{
-ctmaBiG(ctmaInitFit=studyList_Ex1)
+\donttest{
+# perform analyses of publication bias and generalizability
+CoTiMAInitFit_D_BO$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+CoTiMABiG_D_BO <- ctmaBiG(ctmaInitFit=CoTiMAInitFit_D_BO, zcurve=FALSE)
+}
+
+\donttest{
+# display results
+summary(CoTiMABiG_D_BO)
+ }
+
+\donttest{
+# get funnel & forest plots
+plot(CoTiMABiG_D_BO)
 }
 
 }

@@ -17,3 +17,7 @@ ctmaCorRel(empcov = NULL, alphas = NULL)
 \description{
 Disattenuates correlation matrix using vector of reliabilities
 }
+\examples{
+empcov313new <- ctmaCorRel(empcov=empcov313, alphas=alphas313)
+
+}

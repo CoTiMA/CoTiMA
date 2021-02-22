@@ -10,5 +10,9 @@ ctmaFitToPrep(ctmaFitObject = NULL)
 \item{ctmaFitObject}{ctmaFitObject}
 }
 \description{
-ctmaFitToPrep
+Extracts information from fitted CoTiMA object to (re-)crearte list of primary studies originally created with ctmaPrep
+}
+\examples{
+newStudyList <- ctmaFitToPrep(CoTiMAInitFit_3)
+
 }

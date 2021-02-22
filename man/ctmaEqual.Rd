@@ -27,10 +27,12 @@ ctmaEqual(
 Test if the two or more invariant drift parameters in the CoTiMAFit object supplied are equal
 }
 \examples{
-# Fit a CoTiMA to all primary studies previously fitted one
-# by one with the fits assigned to CoTiMAInitFit_Ex1
-\dontrun{
-CoTiMAEqualFit_Ex1 <- ctmaEqual(ctmaInvariantFit=CoTiMA12Fit_Ex1)
+# Fit a CoTiMA with a set of parameters set equal that were set
+# invariant in a previous model (of which the fit object is
+# supplied in argument ctmaInvariantFit)
+\donttest{
+CoTiMAFullInv23Fit_6$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+CoTiMAFullInvEq23Fit_6 <- ctmaEqual(ctmaInvariantFit=CoTiMAFullInv23Fit_6)
 }
 
 }

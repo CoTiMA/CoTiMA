@@ -86,3 +86,13 @@ ctmaPower(
 \description{
 Fits a full invariant model to a list of primary studies and performs analyses of expected power and required sample sizes
 }
+\examples{
+\donttest{
+CoTiMAInitFit_D_BO$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+CoTiMAPower_D_BO <- ctmaPower(ctmaInitFit=CoTiMAInitFit_D_BO,
+                              statisticalPower = c(.50, .80, .95),
+                              finishsamples = 10000)
+summary(CoTiMAPower_D_BO)
+}
+
+}

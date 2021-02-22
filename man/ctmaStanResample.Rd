@@ -7,11 +7,11 @@
 ctmaStanResample(ctmaFittedModel = NULL, nsamples = 25, overallSamples = 500)
 }
 \arguments{
-\item{ctmaFittedModel}{a model fitted ith CoTiMA R package, usually with few 'finishsamples' to prevent memory exhaustion}
+\item{ctmaFittedModel}{a CoTiMA fit object, usually with few 'finishsamples' to prevent memory exhaustion}
 
-\item{nsamples}{sample size per rund}
+\item{nsamples}{sample size per run}
 
-\item{overallSamples}{overall samples isze to be achieved}
+\item{overallSamples}{overall samples size to be achieved}
 }
 \description{
 Re-sample from a fitted stanct model to achieve desired number of finishsamples (could be useful to prevent exhausted memory)

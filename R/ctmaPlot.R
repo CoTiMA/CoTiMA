@@ -23,6 +23,20 @@
 #' @importFrom OpenMx expm
 #' @importFrom stats quantile
 #'
+#' @examples
+#' \donttest{
+#' CoTiMAFullFit_3$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+#' plot(ctmaFitList(CoTiMAInitFit_3, CoTiMAFullFit_3),
+#'      timeUnit="Months", timeRange=c(1, 144, 1),
+#'      plotAutoEffects=FALSE)
+#' }
+#'
+#' @examples
+#' \donttest{
+#' CoTiMABiG_D_BO$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+#' plot(CoTiMABiG_D_BO)
+#' }
+#'
 #' @export ctmaPlot
 #'
 ctmaPlot <- function(
@@ -41,6 +55,8 @@ ctmaPlot <- function(
   ...
 )
 {  # begin function definition (until end of file)
+
+  par.original <- par("new"); par.original
 
   { # some checks
 
@@ -903,5 +919,7 @@ ctmaPlot <- function(
     }
 
   } ### END Plotting ###
+
+  par(new=par.original)
 
 } ### END function definition

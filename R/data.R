@@ -15,6 +15,30 @@
 "A313"
 
 
+#' addedByResearcher2 example vector
+#' @name addedByResearcher2
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"addedByResearcher2"
+
+
+#' addedByResearcher3 example vector
+#' @name addedByResearcher3
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"addedByResearcher3"
+
+
+#' addedByResearcher313 example vector
+#' @name addedByResearcher313
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"addedByResearcher313"
+
+
 #' ageM2 example vector
 #' @name ageM2
 #' @docType data
@@ -119,6 +143,14 @@
 "alphas128"
 
 
+#' alphas313 example vector
+#' @name alphas313
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"alphas313"
+
+
 #' burnout2 example vector
 #' @name burnout2
 #' @docType data
@@ -200,11 +232,11 @@
 
 
 #' ctmaFit-object with a 'full' CoTiMA of 3 studies
-#' @name CoTiMAFullFit1
+#' @name CoTiMAFullFit_3
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"CoTiMAFullFit1"
+"CoTiMAFullFit_3"
 
 
 #' 1st fitted ctmaFit-object in a series of 2 to test equality of 2 cross effects
@@ -248,11 +280,11 @@
 
 
 #' ctmaInit-object with of 3 primary studies
-#' @name CoTiMAInitFit1
+#' @name CoTiMAInitFit_3
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"CoTiMAInitFit1"
+"CoTiMAInitFit_3"
 
 
 #' ctmaFit-object with a categorical moderator of the full drift matrix
@@ -287,6 +319,14 @@
 "CoTiMAPower_D_BO"
 
 
+#' ctmaPrep-object created with 3 primary studies
+#' @name CoTiMAstudyList_3
+#' @docType data
+#' @author C. Guthier, C. Dormann & J. Cortina  \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"CoTiMAstudyList_3"
+
+
 #' ctmaPrep-object created with 6 primary studies
 #' @name CoTiMAstudyList_6
 #' @docType data
@@ -296,11 +336,11 @@
 
 
 #' ctmaPrep-object created with 6 primary studies
-#' @name CoTiMAstudyList1
+#' @name CoTiMAstudyList_3
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"CoTiMAstudyList1"
+"CoTiMAstudyList_3"
 
 
 #' country2 example vector
@@ -599,6 +639,22 @@
 "moderator313"
 
 
+#' moderatorLabels example vector
+#' @name moderatorLabels
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"moderatorLabels"
+
+
+#' moderatorValues example vector
+#' @name moderatorValues
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"moderatorValues"
+
+
 #' occupation2 example vector
 #' @name occupation2
 #' @docType data
@@ -647,12 +703,36 @@
 "occupation313"
 
 
+#' optimFit313 example vector
+#' @name optimFit313
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"optimFit313"
+
+
 #' pairwiseN128 example vector
 #' @name pairwiseN128
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
 "pairwiseN128"
+
+
+#' pubList_8 example list
+#' @name pubList_8
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"pubList_8"
+
+
+#' pubResults_6 example list
+#' @name pubResults_6
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"pubResults_6"
 
 
 #' rawData128 example list

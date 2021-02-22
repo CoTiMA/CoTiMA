@@ -38,6 +38,14 @@
 #' @importFrom MBESS ss.power.reg.coef
 #' @importFrom rootSolve uniroot.all
 #'
+#' @examples \donttest{
+#' CoTiMAInitFit_D_BO$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+#' CoTiMAPower_D_BO <- ctmaPower(ctmaInitFit=CoTiMAInitFit_D_BO,
+#'                               statisticalPower = c(.50, .80, .95),
+#'                               finishsamples = 10000)
+#' summary(CoTiMAPower_D_BO)
+#' }
+#'
 #' @export ctmaPower
 #'
 ctmaPower <- function(

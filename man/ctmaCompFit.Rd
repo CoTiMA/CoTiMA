@@ -12,5 +12,11 @@ ctmaCompFit(model1 = NULL, model2 = NULL)
 \item{model2}{Model 2}
 }
 \description{
-Performs -2ll different tests of 2 Models (CoTiMAFit objects))
+Performs -2ll different tests of 2 Models (CoTiMAFit objects)
+}
+\examples{
+minus2llDiffTest <- ctmaCompFit(CoTiMAFullInv23Fit_6,
+                                CoTiMAFullInvEq23Fit_6)
+summary(minus2llDiffTest)
+
 }

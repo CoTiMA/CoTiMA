@@ -12,5 +12,5 @@
 \item{...}{further arguments to be passed through to summary()}
 }
 \description{
-defins summary for CoTiMAFit objects
+defines summary for CoTiMAFit objects
 }

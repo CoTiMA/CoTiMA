@@ -16,11 +16,22 @@ ctmaGetPub(authorList = NULL, flush = FALSE, yearsToExclude = NULL)
 \description{
 Retrieves publication and citation information from google scholar
 }
+\note{
+Set flush=TRUE only if retrieving is necessary (e.g., first retrieval on a day)
+}
 \examples{
-
-results <- ctmaGetPub(authorList = list( c("Wilmar B.; Schaufeli",
-     "https://scholar.google.de/citations?hl=en&user=w1tHcj4AAAAJ"),
-     c("Maureen; Dollard",
-     "user=J6oH3rgAAAAJ") ))
+\donttest{
+pubList_8 <- ctmaGetPub(authorList = list( c("J; de Jonge",
+              "https://scholar.google.de/citations?hl=de&user=0q27IckAAAAJ"),
+              c("Arnold B.; Bakker", "user=FTl3bwUAAAAJ"),
+              c("Evangelia; Demerouti", "user=9mj5LvMAAAAJ"),
+              c("Joachim; Stoeber", "user=T9xdVusAAAAJ"),
+              c("Claude; Fernet", "user=KwzjP4sAAAAJ"),
+              c("Frederic; Guay", "user=99vnhX4AAAAJ"),
+              c("Caroline; Senecal", "user=64ArFWQAAAAJ"),
+              c("Stéphanie; Austin", "user=PPyTI7EAAAAJ")),
+              flush=FALSE)
+summary(pubList_8)
+}
 
 }

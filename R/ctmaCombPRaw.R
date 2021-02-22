@@ -5,8 +5,6 @@
 #' @param listOfStudyFits "Listobject of Studyfits"
 #' @param moderatorValues "Moderators
 #'
-#' @export ctmaCombPRaw
-#'
 ctmaCombPRaw <- function(listOfStudyFits=NULL, moderatorValues=NULL) {
 
   allSampleSizes <- maxLatents <- allTpoints <- c()

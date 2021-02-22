@@ -30,5 +30,5 @@ ctmaPRaw(
 \item{activateRPB}{"set to TRUE to receive push messages with CoTiMA notifications on your phone"}
 }
 \description{
-ctmaPRaw
+Converts empirical correlation matrices to pseudo raw data (i.e. random data, that perfectly reproduce the correlations)
 }

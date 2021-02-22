@@ -1,11 +1,16 @@
 #' ctmaCompFit
 #'
-#' @description Performs -2ll different tests of 2 Models (CoTiMAFit objects))
+#' @description Performs -2ll different tests of 2 Models (CoTiMAFit objects)
 #'
 #' @param model1 Model 1
 #' @param model2 Model 2
 #'
 #' @importFrom stats pchisq
+#'
+#' @examples
+#' minus2llDiffTest <- ctmaCompFit(CoTiMAFullInv23Fit_6,
+#'                                 CoTiMAFullInvEq23Fit_6)
+#' summary(minus2llDiffTest)
 #'
 #' @export ctmaCompFit
 #'

@@ -1,5 +1,7 @@
 #' ctmaPRaw
 #'
+#' @description Converts empirical correlation matrices to pseudo raw data (i.e. random data, that perfectly reproduce the correlations)
+#'
 #' @param empCovMat empirical primary study covariance matrix
 #' @param empNMat matrix of (possibly pairwise) N
 #' @param empN N (in case of listwise N)
@@ -14,7 +16,6 @@
 #' @importFrom MASS mvrnorm
 #' @importFrom psych corr.test
 #'
-#' @export ctmaPRaw
 #'
 ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumber=NULL,
                           empMeanVector=NULL, empVarVector=NULL, activateRPB=FALSE)
