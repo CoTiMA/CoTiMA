@@ -7,7 +7,7 @@
 #'
 #' @method summary CoTiMAFit
 #'
-#' @export
+#' @export summary.CoTiMAFit
 #'
 summary.CoTiMAFit <- function(object, ...) {
   return(print(object$summary))
