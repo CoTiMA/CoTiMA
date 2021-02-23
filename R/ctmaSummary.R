@@ -1,4 +1,4 @@
-#' #summary.CoTiMAFit
+#' summary.CoTiMAFit
 #'
 #' @description defines summary for CoTiMAFit objects
 #'
