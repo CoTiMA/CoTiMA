@@ -7,9 +7,13 @@
 #'
 #' @method summary CoTiMAFit
 #'
-#' @export summary.CoTiMAFit
+#' @export
 #'
 summary.CoTiMAFit <- function(object, ...) {
-  return(print(object$summary))
+
+  if(!'CoTiMAFit' %in% class(object)) stop('Not a CoTiMAFit object!')
+
+  #return(print(object$summary))
+  return((object$summary))
 }
 
