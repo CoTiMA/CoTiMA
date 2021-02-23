@@ -1,4 +1,4 @@
-#' summary.CoTiMAFit
+#' #summary.CoTiMAFit
 #'
 #' @description defines summary for CoTiMAFit objects
 #'
@@ -13,7 +13,6 @@ summary.CoTiMAFit <- function(object, ...) {
 
   if(!'CoTiMAFit' %in% class(object)) stop('Not a CoTiMAFit object!')
 
-  #return(print(object$summary))
-  return((object$summary))
+  return(print(object$summary))
 }
 
