@@ -48,7 +48,7 @@
 #' CoTiMAInitFit_3 <- ctmaInit(primaryStudies=CoTiMAstudyList_3,
 #'                             n.latent=2,
 #'                             checkSingleStudyResults=FALSE,
-#'                             activeDirectory="/Users/cdormann/tmp/")
+#'                             activeDirectory="/Users/cdormann/tmp/") # adapt!
 #' summary(CoTiMAInitFit_3)
 #' }
 #'

@@ -24,7 +24,8 @@
 #' @importFrom stats quantile
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
+#' # cannot run without proper activeDirectory specified. Adapt!
 #' CoTiMAFullFit_3$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
 #' plot(ctmaFitList(CoTiMAInitFit_3, CoTiMAFullFit_3),
 #'      timeUnit="Months", timeRange=c(1, 144, 1),
@@ -32,7 +33,8 @@
 #' }
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
+#' # cannot run without proper activeDirectory specified. Adapt!
 #' CoTiMABiG_D_BO$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
 #' plot(CoTiMABiG_D_BO)
 #' }

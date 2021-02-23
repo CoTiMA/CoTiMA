@@ -43,6 +43,7 @@ summary(CoTiMABiG_D_BO)
 
 \donttest{
 # get funnel & forest plots
+CoTiMABiG_D_BO$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
 plot(CoTiMABiG_D_BO)
 }
 
