@@ -1,6 +1,9 @@
 #' ctmaBiG
 #'
-#' @description Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients.
+#' @description Analysis of publication bias and generalizability. The function takes a CoTiMA fit object (created with ctmaInit)
+#' and estimates fixed and random effects of single drift coefficients, heterogeneity  (Q, I square, H square, tau square),
+#' PET-PEESE corrections, Egger's tests, and z-curve analysis yielding expected  replication and detection rates (ERR, EDR).
+#'
 #'
 #' @param ctmaInitFit fit object created with ctmaInti containing the fitted ctsem model of each primary study
 #' @param activeDirectory the directory where to save results (if not specified, it is taken from ctmaInitFit)
@@ -35,6 +38,16 @@
 #' CoTiMABiG_D_BO$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
 #' plot(CoTiMABiG_D_BO)
 #' }
+#' @return ctmaBiG returns a list containing the arguments supplied, the results of analyses of publication bias and generalizability,
+#' model type, and the type of plot that could be performed with the returned object. The arguments in the returned object are activeDirectory,
+#' and coresToUse. Further arguments, which are just copied from the init-fit object supplied, are, n.studies, n.latent, studyList,
+#' statisticsList, modelResults (all parameter estimates and their standard error), and parameter names. All new results are returned
+#' as the list element "summary", which is printed if the summary function is applied to the returned object. The summary list element
+#' comprises a title (model='Analysis of Publication Bias & Generalizability') and "estimates", which is another list comprising
+#' "Fixed Effects of Drift Coefficients", "Heterogeneity", "Random Effects of Drift Coefficients", "PET-PEESE corrections",
+#' "Egger's tests" (constant of the WLS regression of drift coefficients on their standard errors (SE) with 1/SE^2 as weights),
+#' "Egger's tests Alt. Version" (constant of the OLS regression of the standard normal deviates of the drift coefficients on their
+#' precision), and "Z-Curve 2.0 Results". Plot type is plot.type=c("funnel", "forest") and model.type="BiG".
 #'
 ctmaBiG <- function(
   ctmaInitFit=NULL,
@@ -293,7 +306,7 @@ ctmaBiG <- function(
       driftCoeff <- DRIFTCoeff[ , ii]; driftCoeff
       driftSE <- DRIFTSE[, ii]; driftSE
 
-      # PET
+      # PET; Egger's test = constant of the weigthed least squares regression of drift coefficients on their standard errors (SE) with 1/SE^2 as weights
       IV <- driftSE; IV
       DV <- driftCoeff; DV
       currentWeigths <- (1/(driftSE^2)); currentWeigths
