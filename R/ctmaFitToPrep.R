@@ -9,6 +9,8 @@
 #'
 #' @export ctmaFitToPrep
 #'
+#' @return list that could be used for fitting new CoTiMA models with ctmaInit or ctmaFit.
+#'
 ctmaFitToPrep <- function(ctmaFitObject=NULL)
 {
   if (is.null(ctmaFitObject$originalStudyNo)) {

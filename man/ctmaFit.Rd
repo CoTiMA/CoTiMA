@@ -92,26 +92,50 @@ ctmaFit(
 
 \item{inits}{vector of start values}
 }
+\value{
+ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,
+model type, and the type of plot that could be performed with the returned object. The arguments in the returned object are activeDirectory,
+coresToUse, moderator names (mod.names), and moderator type (mod.type). Further arguments, which are just copied from the init-fit object
+supplied, are, n.latent, studyList, parameterNames, and statisticsList. The fitted model is found in studyFitList, which is a large list
+with many elements (e.g., the ctsem model specified by CoTiMA, the rstan model created by ctsem, the fitted rstan model etc.). Further
+results returned are n.studies = 1 (required for proper plotting), data (created pseudo raw data), and a list with modelResults (i.e.,
+DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef, MOD=modTI_Coeff,  and
+CLUS=clusTI_Coeff). Possible invariance constraints are included in invariantDrift. The number of moderators simultaneously analyzed are
+included in ' n.moderators. The most important new results are returned as the list element "summary", which is printed if the summary
+function is applied to the returned object. The summary list element comprises "estimates" (the aggregated effects), possible
+randomEffects (not yet fully working),  the minus2ll value and its n.parameters, the opt.lag sensu Dormann & Griffin (2015) and the
+max.effects that occur at the opt.lag, clus.effects and mod.effects, and possible warning messages (message). Plot type is
+plot.type=c("drift") and model.type="stanct" ("omx" was deprecated).
+}
 \description{
 Fits a ctsem model with invariant drift effects across primary studies, possible multiple moderators (but all of them of the
 the same type, either "cont§ or "cat"), and possible cluster (e.g., countries where primary studies were conducted).
 }
 \examples{
+\donttest{
 # Example 1. Fit a CoTiMA to all primary studies previously fitted one by one
 # with the fits assigned to CoTiMAInitFit_6
-\donttest{
 CoTiMAFullFit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6)
 summary(CoTiMAFullFit_6)
 }
 
-# Example 2. Fit a CoTiMA with only 2 cross effects invariant (not the auto
-# effects) to all primary studies previously fitted one by one with the fits assigned
-# to CoTiMAInitFit_6
 \donttest{
+# Example 2. Fit a CoTiMA with only 2 cross effects invariant (not the auto
+# effects) to all primary studies previously fitted one by one with the fits
+# assigned to CoTiMAInitFit_6
 CoTiMAInitFit_6$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
 CoTiMAFullInv23Fit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6,
                         invariantDrift=c("V1toV2", "V2toV1"))
 summary(CoTiMAFullInv23Fit_6)
+}
+
+\donttest{
+# Example 3. Fit a moderated CoTiMA
+CoTiMAInitFit_6$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+CoTiMAMod1onFullFit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6,
+                                 mod.number=1, mod.type="cont",
+                                 mod.names=c("Control"))
+summary(CoTiMAMod1onFullFit_6)
 }
 
 }

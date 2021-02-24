@@ -9,12 +9,19 @@ ctmaFitList(...)
 \arguments{
 \item{...}{any number of CoTiMAFit objects}
 }
+\value{
+a list that combines all objects supplied and is assigned the class "CoTiMAFit"
+}
 \description{
 Combines CoTiMAFit objects into a list with class CoTiMAFit to inform generic functions what to do
 }
 \examples{
+\dontrun{
+CoTiMAInitFit_3$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+CoTiMAFullFit_3$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
 plot(ctmaFitList(CoTiMAInitFit_3, CoTiMAFullFit_3),
      timeUnit="Months",
      timeRange=c(1, 144, 1) )
+     }
 
 }

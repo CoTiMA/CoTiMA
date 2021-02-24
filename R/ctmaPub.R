@@ -22,6 +22,12 @@
 #'
 #' @export ctmaPub
 #'
+#' @return returns NEPP (= the \*number\* of studies published by the authors of the primary studies supplied UNTIL the year when the
+#' primary study was published), NEPPRecency (like NEPP, but limited to the number of years befor the publication as specified with the
+#' recency argument), "Meaning of NEPP" and "Meaning of NEPPRecency" which explain what \*number\* exactly means (e.g., could be the mean
+#' of the sum of each author's publication, or the sum of the maximum publications per year of the authors), and "primaryStudyList(full)",
+#' which just returns the primaryStudyList supplied).
+#'
 ctmaPub <- function(getPubObj=NULL, primaryStudyList=NULL,
                     yearsToExclude=0, recency=5, targetYear=NULL,
                     indFUN="sum", colFUN="mean", addAsMod=FALSE) {

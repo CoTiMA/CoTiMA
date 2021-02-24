@@ -13,8 +13,11 @@ ctmaGetPub(authorList = NULL, flush = FALSE, yearsToExclude = NULL)
 
 \item{yearsToExclude}{the years to be excluded (default = current year)}
 }
+\value{
+list with (cumulative) frequencies and (cumulative) citations in google scholar
+}
 \description{
-Retrieves publication and citation information from google scholar
+Retrieves publication and citation information from google scholar based on the supplied author names and their google ID (user)
 }
 \note{
 Set flush=TRUE only if retrieving is necessary (e.g., first retrieval on a day)

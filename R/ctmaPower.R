@@ -1,6 +1,6 @@
 #' ctmaPower
 #'
-#' @description Fits a full invariant model to a list of primary studies and performs analyses of expected power and required sample sizes
+#' @description Fits a full invariant model to a list of primary studies and performs analyses of expected (post hoc) power and required sample sizes.
 #'
 #' @param ctmaInitFit object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by ctmaInit)
 #' @param activeDirectory defines another active directory than the one used in ctmaInit
@@ -47,6 +47,20 @@
 #' }
 #'
 #' @export ctmaPower
+#'
+#' @return ctmaPower returns a list containing some arguments supplied, a fitted model with all (!) parameters invariant across primary
+#' studies, different elements summarizing the main results, model type, and the type of plot that could be performed with the returned object.
+#' The arguments in the returned object are activeDirectory, coresToUse, n.latent, n.manifest, and primaryStudyList. A further result
+#' returned is n.studies = 1 (required for proper plotting). Further arguments, which are just copied from the init-fit object supplied, are,
+#' n.latent, studyList, and the statisticsList. The fitted model is found in studyFitList, which is a large list with many elements (e.g., the
+#' ctsem model specified by CoTiMA, the rstan model created by ctsem, the fitted rstan model etc.). Further results returned are  a list with
+#' modelResults (i.e., DRIFT=DRIFT, DIFFUSION=DIFFUSION, T0VAR=T0VAR, CINT=NULL) and the paramter names internally used. The summary list,
+#' which is printed if the summary function is applied to the returned object, contains "estimates", which is itself a list comprising
+#' "Estimates of Model with all Effects Invariant", "Requested Statistical Power" (which just returns the argument statisticalPower),
+#' "Power (post hoc) for Drift Effects",  "Required Sample Sizes" "Effect Sizes (based on discrete-time calcs; used for power calcs.)", and
+#' "Range of significant effects" (across which intervals effects were significant). Plot type is plot.type=c("power") and model.type="stanct"
+#' ("omx" was deprecated).
+
 #'
 ctmaPower <- function(
   ctmaInitFit=NULL,

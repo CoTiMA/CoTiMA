@@ -47,6 +47,11 @@ ctmaPlot(
 
 \item{...}{arguments passed through to plot()}
 }
+\value{
+depending on the CoTiMA fit object supplied, generates funnel plots, forest plots, discrete time plots of
+autoregressive and cross-lagged effects, plots of required samples sizes across a range of discrete time intervals
+to achieve desired levels of statistical power, and post hoc power of primary studies. Plots are saved to disk.
+}
 \description{
 Forest plot, funnel plots, plots of discrete time cross-lagged and autoregressive effect, and plots of required sample sizes
 }

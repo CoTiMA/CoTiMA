@@ -5,11 +5,17 @@
 #' @param ... any number of CoTiMAFit objects
 #'
 #' @examples
+#' \dontrun{
+#' CoTiMAInitFit_3$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+#' CoTiMAFullFit_3$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
 #' plot(ctmaFitList(CoTiMAInitFit_3, CoTiMAFullFit_3),
 #'      timeUnit="Months",
 #'      timeRange=c(1, 144, 1) )
+#'      }
 #'
 #' @export ctmaFitList
+#'
+#' @return a list that combines all objects supplied and is assigned the class "CoTiMAFit"
 #'
 ctmaFitList <- function(...) {
   x <- list(...)

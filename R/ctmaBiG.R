@@ -38,7 +38,7 @@
 #' CoTiMABiG_D_BO$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
 #' plot(CoTiMABiG_D_BO)
 #' }
-#' @return ctmaBiG returns a list containing the arguments supplied, the results of analyses of publication bias and generalizability,
+#' @return ctmaBiG returns a list containing some arguments supplied, the results of analyses of publication bias and generalizability,
 #' model type, and the type of plot that could be performed with the returned object. The arguments in the returned object are activeDirectory,
 #' and coresToUse. Further arguments, which are just copied from the init-fit object supplied, are, n.studies, n.latent, studyList,
 #' statisticsList, modelResults (all parameter estimates and their standard error), and parameter names. All new results are returned

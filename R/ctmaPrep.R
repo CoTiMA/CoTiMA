@@ -15,6 +15,7 @@
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
 #'
 #' @return List of primary studies and parameters for the following CoTiMA (plus StudyInformation which could be saved to Excel)
+#'
 #' @export ctmaPrep
 #'
 #' @note The following example shows information a researcher has about three studies, which have the numbers '2', '4' and '17'.

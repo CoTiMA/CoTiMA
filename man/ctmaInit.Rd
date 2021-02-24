@@ -89,8 +89,22 @@ ctmaInit(
 
 \item{doPar}{parallel and multiple fitting if single studies}
 }
+\value{
+ctmaFit returns a list containing some arguments supplied, the fitted models, different elements summarizing the main results,
+model type, and the type of plot that could be performed with the returned object. The arguments in the returned object are activeDirectory,
+coresToUse, n.latent, n.manifest, and primaryStudyList. The study count is returned as n.studies, the created matrix of loadings of
+manifest on latent factors is returned as lambda, and a re-organized list of primary studies with some information ommited is returned as
+studyList. The fitted models for each primary study are found in studyFitList, which is a large list with many elements (e.g., the ctsem
+model specified by CoTiMA, the rstan model created by ctsem, the fitted rstan model etc.). Further results returned are emprawList
+(containing the pseudo raw data created), statisticsList (comprising baisc stats such as average sample size, no. of measurement points,
+etc.), a list with modelResults (i.e., DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef,
+CINT=model_Cint_Coef), and the paramter names internally used. The summary list,  which is printed if the summary function is applied to the
+returned object, comprises "estimates" (the aggregated effects), possible randomEffects (not yet fully working),  confidenceIntervals, the
+minus2ll value and its n.parameters, and possible warning messages (message). Plot type is plot.type=c("drift") and model.type="stanct"
+("omx" was deprecated).
+}
 \description{
-Fits a ctsem model to a list of primary studies prepared by ctmaPrep.
+Fits ctsem models to each primary study in the supplied list of primary studies prepared by ctmaPrep.
 }
 \examples{
 # Fit a ctsem model to all three primary studies summarized in

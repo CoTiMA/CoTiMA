@@ -41,6 +41,10 @@
 #'
 #' @export ctmaPlot
 #'
+#' @return depending on the CoTiMA fit object supplied, generates funnel plots, forest plots, discrete time plots of
+#' autoregressive and cross-lagged effects, plots of required samples sizes across a range of discrete time intervals
+#' to achieve desired levels of statistical power, and post hoc power of primary studies. Plots are saved to disk.
+#'
 ctmaPlot <- function(
   ctmaFitObject=NULL,
   activeDirectory=NULL,
@@ -253,7 +257,7 @@ ctmaPlot <- function(
 
 
   #######################################################################################################################
-  ################################################### FORREST plots #####################################################
+  #################################################### forest plots #####################################################
   #######################################################################################################################
   for (k in 1:n.fitted.obj) {
     if ("forest" %in% plot.type[[k]]) {

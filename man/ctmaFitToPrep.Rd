@@ -9,6 +9,9 @@ ctmaFitToPrep(ctmaFitObject = NULL)
 \arguments{
 \item{ctmaFitObject}{ctmaFitObject}
 }
+\value{
+list that could be used for fitting new CoTiMA models with ctmaInit or ctmaFit.
+}
 \description{
 Extracts information from fitted CoTiMA object to (re-)crearte list of primary studies originally created with ctmaPrep
 }

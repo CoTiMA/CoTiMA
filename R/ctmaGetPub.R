@@ -1,6 +1,6 @@
 #' ctmaGetPub
 #'
-#' @description Retrieves publication and citation information from google scholar
+#' @description Retrieves publication and citation information from google scholar based on the supplied author names and their google ID (user)
 #'
 #' @param authorList list of authors and googe scholar addresses
 #' @param yearsToExclude the years to be excluded (default = current year)
@@ -28,6 +28,8 @@
 #'               flush=FALSE)
 #' summary(pubList_8)
 #' }
+#'
+#' @return list with (cumulative) frequencies and (cumulative) citations in google scholar
 #'
 ctmaGetPub <- function(authorList=NULL,
                        flush=FALSE, # if TRUE, the cache will be cleared and data is reloaded from Google
