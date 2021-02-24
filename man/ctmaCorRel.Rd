@@ -13,9 +13,11 @@ ctmaCorRel(empcov = NULL, alphas = NULL)
 }
 \value{
 "Empirical correlation matrix corrected for unreliability"
+
+A corrected correlation matrix (corEmpcov). Corrections leading to r > 1.0 are set to 1.0.
 }
 \description{
-Disattenuates correlation matrix using vector of reliabilities
+Disattenuates the entries in a correlation matrix using a vector of reliabilities.
 }
 \examples{
 empcov313new <- ctmaCorRel(empcov=empcov313, alphas=alphas313)

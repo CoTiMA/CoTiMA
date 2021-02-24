@@ -14,17 +14,17 @@ ctmaBiG(
 )
 }
 \arguments{
-\item{ctmaInitFit}{fit object created with ctmaInti containing the fitted ctsem model of each primary study}
+\item{ctmaInitFit}{fit object created with ctmaInit containing the fitted ctsem model of each primary study}
 
 \item{activeDirectory}{the directory where to save results (if not specified, it is taken from ctmaInitFit)}
 
-\item{PETPEESEalpha}{# probability level (condition) below which to switch from PET to PEESE (Stanley, 2017, SPPS,p. 582, below Eq. 2; (default p = .10)}
+\item{PETPEESEalpha}{probability level (condition) below which to switch from PET to PEESE (cf. Stanley, 2017, p. 582, below Eq. 2; default p = .10)}
 
-\item{activateRPB}{if TRUE, messages (warning, finishs) could be send to smart phone (default = FALSE)}
+\item{activateRPB}{if TRUE, messages (warning, finished) could be send to smart phone (default = FALSE)}
 
 \item{digits}{rounding (default = 4)}
 
-\item{zcurve}{performs z-curve analysis. Could fail if too few studies (e.g. around 10) are supplied}
+\item{zcurve}{performs z-curve analysis. Could fail if too few studies (e.g. around 10) are supplied. default=FALSE}
 }
 \value{
 ctmaBiG returns a list containing the arguments supplied, the results of analyses of publication bias and generalizability,

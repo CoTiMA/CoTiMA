@@ -93,7 +93,8 @@ ctmaFit(
 \item{inits}{vector of start values}
 }
 \description{
-Fits a ctsem model with invariant drift effects across primary studies
+Fits a ctsem model with invariant drift effects across primary studies, possible multiple moderators (but all of them of the
+the same type, either "cont§ or "cat"), and possible cluster (e.g., countries where primary studies were conducted).
 }
 \examples{
 # Example 1. Fit a CoTiMA to all primary studies previously fitted one by one
@@ -111,15 +112,6 @@ CoTiMAInitFit_6$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
 CoTiMAFullInv23Fit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6,
                         invariantDrift=c("V1toV2", "V2toV1"))
 summary(CoTiMAFullInv23Fit_6)
-}
-
-# Example 3. Fit a moderated CoTiMA
-\donttest{
-CoTiMAInitFit_6$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
-CoTiMAMod1onFullFit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6,
-                                 mod.number=1, mod.type="cont",
-                                 mod.names=c("Control"))
-summary(CoTiMAMod1onFullFit_6)
 }
 
 }

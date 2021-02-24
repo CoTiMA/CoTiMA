@@ -5,12 +5,12 @@
 #' PET-PEESE corrections, Egger's tests, and z-curve analysis yielding expected  replication and detection rates (ERR, EDR).
 #'
 #'
-#' @param ctmaInitFit fit object created with ctmaInti containing the fitted ctsem model of each primary study
+#' @param ctmaInitFit fit object created with ctmaInit containing the fitted ctsem model of each primary study
 #' @param activeDirectory the directory where to save results (if not specified, it is taken from ctmaInitFit)
-#' @param PETPEESEalpha   # probability level (condition) below which to switch from PET to PEESE (Stanley, 2017, SPPS,p. 582, below Eq. 2; (default p = .10)
-#' @param activateRPB if TRUE, messages (warning, finishs) could be send to smart phone (default = FALSE)
+#' @param PETPEESEalpha probability level (condition) below which to switch from PET to PEESE (cf. Stanley, 2017, p. 582, below Eq. 2; default p = .10)
+#' @param activateRPB if TRUE, messages (warning, finished) could be send to smart phone (default = FALSE)
 #' @param digits rounding (default = 4)
-#' @param zcurve performs z-curve analysis. Could fail if too few studies (e.g. around 10) are supplied
+#' @param zcurve performs z-curve analysis. Could fail if too few studies (e.g. around 10) are supplied. default=FALSE
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red

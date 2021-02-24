@@ -1,6 +1,7 @@
 #' ctmaFit
 #'
-#' @description Fits a ctsem model with invariant drift effects across primary studies
+#' @description Fits a ctsem model with invariant drift effects across primary studies, possible multiple moderators (but all of them of the
+#' the same type, either "cont§ or "cat"), and possible cluster (e.g., countries where primary studies were conducted).
 #'
 #' @param ctmaInitFit object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by ctmaInit)
 #' @param primaryStudyList  could be a list of primary studies compiled with ctmaPrep that defines the subset of studies in ctmaInitFit that should actually be used
@@ -68,6 +69,20 @@
 #'                                  mod.names=c("Control"))
 #' summary(CoTiMAMod1onFullFit_6)
 #' }
+#'
+#' #' @return ctmaFit returns a list containing the arguments supplied, the fitted model, different elements summarizing the main results,
+#' model type, and the type of plot that could be performed with the returned object. The arguments in the returned object are activeDirectory,
+#' coresToUse, moderator names (mod.names), and moderator type (mod.type). Further arguments, which are just copied from the init-fit object
+#' supplied, are, n.latent, studyList, parameterNames, and statisticsList. The fitted model is found in studyFitList, which is a large list
+#' with many elements (e.g., the ctsem model specified by CoTiMA, the rstand model created by ctsem, the fitted rstan model etc.). Further
+#' results returned are n.studies = 1 (required for proper plotting), data (created pseudo raw data), and a list with modelResults (i.e.,
+#' DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef, MOD=modTI_Coeff,  and
+#' CLUS=clusTI_Coeff), Possible invariance constraints are included in invariantDrift. The number of moderators simultaneously analyzed are
+#' included in ' n.moderators. The most important new results are returned as the list element "summary", which is printed if the summary
+#' function is applied to the returned object. The summary list element comprises "estimates" (the aggregated effects), possible
+#' randomEffects (not yet fully working),  the minus2ll value and its n.parameters, the opt.lag sensu Dormann & Griffin (2015) and the
+#' max.effects that occur at the opt.lag, clus.effects and mod.effects, and possible warning messages (message). Plot type is
+#' plot.type=c("drift") and model.type="stanct" ("omx" was deprecated).
 #'
 ctmaFit <- function(
   ctmaInitFit=NULL,
@@ -905,15 +920,19 @@ ctmaFit <- function(
   }
 
   results <- list(activeDirectory=activeDirectory,
-                  time=list(start.time=start.time, end.time=end.time, time.taken=time.taken),
                   plot.type="drift",  model.type="stanct",
-                  coresToUse=coresToUse, n.studies=1,
+                  coresToUse=coresToUse,
+                  n.studies=1,
                   n.latent=n.latent,
-                  n.moderators=length(mod.number), mod.names=mod.names, mod.type=mod.type,
-                  studyList=ctmaInitFit$studyList, studyFitList=fitStanctModel,
-                  data=datalong_all, statisticsList=ctmaInitFit$statisticsList,
+                  n.moderators=length(mod.number),
+                  mod.names=mod.names,
+                  mod.type=mod.type,
+                  studyList=ctmaInitFit$studyList,
+                  studyFitList=fitStanctModel,
+                  data=datalong_all,
+                  statisticsList=ctmaInitFit$statisticsList,
                   modelResults=list(DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef,
-                                    CINT=model_Cint_Coef, MOD=modTI_Coeff),
+                                    CINT=model_Cint_Coef, MOD=modTI_Coeff, CLUS=clusTI_Coeff),
                   parameterNames=ctmaInitFit$parameterNames,
                   CoTiMAStanctArgs=CoTiMAStanctArgs,
                   invariantDrift=invariantDrift,
@@ -927,7 +946,9 @@ ctmaFit <- function(
                                max.effects = maxCrossEffect,
                                clus.effects=clus.effects,
                                mod.effects=modTI_Coeff,
-                               message=message))
+                               message=message)
+                  # excel workboo is added later
+                  )
 
   class(results) <- "CoTiMAFit"
 

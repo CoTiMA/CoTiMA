@@ -1,6 +1,9 @@
 #' ctmaEqual
 #'
-#' @description Test if the two or more invariant drift parameters in the CoTiMAFit object supplied are equal
+#' @description test if the two or more invariant drift parameters in the CoTiMAFit object supplied are equal. The supplied CoTiMA fit-object
+#' (ctmaInvariantFit) has to be fitted to a model where at least two parameters were set invariant across primary studies (e.g., 2 cross
+#' effects). All parameters that are set invariant in the supplied model are then constrained to be equal by ctmaEqual (no user action
+#' required), the model is fitted, and a log-liklihood ratio test is performed informing about the probability that equality applies.
 #'
 #' @param ctmaInvariantFit  object to which a CoTiMA fit has been assigned to (i.e., what has been returned by ctmaFit). In most cases probably a model in which only (two) effects were specified with invariantDrift.
 #' @param activeDirectory defines another active directory than the one used in ctmaInvariantFit
@@ -24,6 +27,9 @@
 #' CoTiMAFullInv23Fit_6$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
 #' CoTiMAFullInvEq23Fit_6 <- ctmaEqual(ctmaInvariantFit=CoTiMAFullInv23Fit_6)
 #' }
+#'
+#' @return returns a model where two or more parameteres were set equal across primary studies and a log-liklihood difference test
+#' informing about the probablity that the equality assumption is correct.
 #'
 ctmaEqual <- function(
   ctmaInvariantFit=NULL,

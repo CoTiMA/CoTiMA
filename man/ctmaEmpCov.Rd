@@ -38,8 +38,14 @@ ctmaEmpCov(
 
 \item{empcov}{empirical correlation matrix}
 }
+\value{
+returns a list with two elements. The first element (results$r) contains the adapted correlation matrix, and
+the second element (results$pairwiseNNew) an adapted version of a matrix of pairwise N if pariwiseN was provided for
+the original correlation matrix supplied.
+}
 \description{
-changes a full covariance matrix: select target variables, recode them, combine them (add), and
+changes a full covariance matrix by selecting target variables, recoding them, combining them (compute the
+mean of two or more variables), and by adding rows/columns with NA if focal variables are not available.
 }
 \examples{
 source17 <- c()

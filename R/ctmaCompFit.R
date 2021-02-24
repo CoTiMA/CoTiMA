@@ -1,6 +1,8 @@
 #' ctmaCompFit
 #'
-#' @description Performs -2ll different tests of 2 Models (CoTiMAFit objects)
+#' @description Performs log-liklihood ratio tests to compare the fit of 2 models (CoTiMAFit objects), i.e., the difference
+#' between the two -2 times LLs between the first model and the more constrained second model. The nested sturcture of the
+#' two models is assumed to be given and not checked.
 #'
 #' @param model1 Model 1
 #' @param model2 Model 2
@@ -13,6 +15,9 @@
 #' summary(minus2llDiffTest)
 #'
 #' @export ctmaCompFit
+#'
+#' @return Returns the the difference between the two -2 times LLs (Diff_Minus2LL), the associated difference in degrees of
+#' freedom (Diff_df (= Diff_n.params)), and the probability (prob).
 #'
 #'
 ctmaCompFit <- function(model1=NULL, model2=NULL) {

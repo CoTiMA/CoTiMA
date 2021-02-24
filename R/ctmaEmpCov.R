@@ -1,7 +1,7 @@
 #' ctmaEmpCov
 #'
-#' @description changes a full covariance matrix: select target variables, recode them, combine them (add), and
-#    add rows/columns with NA if focal concepts are not available.
+#' @description changes a full covariance matrix by selecting target variables, recoding them, combining them (compute the
+#' mean of two or more variables), and by adding rows/columns with NA if focal variables are not available.
 #'
 #' @param targetVariables (col-/row-) number or names of the target variables
 #' @param recodeVariables (col-/row-) number or names of the target variables require inverse coding
@@ -55,6 +55,10 @@
 #'                         nlatents = 2, sampleSize = sampleSize17,
 #'                         Tpoints = 2, empcov = empcov17)
 #' empcov17 <- results17$r
+#'
+#' @return returns a list with two elements. The first element (results$r) contains the adapted correlation matrix, and
+#' the second element (results$pairwiseNNew) an adapted version of a matrix of pairwise N if pariwiseN was provided for
+#' the original correlation matrix supplied.
 #'
 
 ctmaEmpCov <- function(targetVariables=NULL, recodeVariables=c(), combineVariables=c(),

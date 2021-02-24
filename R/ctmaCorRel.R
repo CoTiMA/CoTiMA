@@ -1,6 +1,6 @@
 #' ctmaCorRel
 #'
-#' @description Disattenuates correlation matrix using vector of reliabilities
+#' @description Disattenuates the entries in a correlation matrix using a vector of reliabilities.
 #'
 #' @param empcov Empirical correlation matrix
 #' @param alphas Vector reliabilities
@@ -12,6 +12,7 @@
 #'
 #' @export ctmaCorRel
 #'
+#' @return A corrected correlation matrix (corEmpcov). Corrections leading to r > 1.0 are set to 1.0.
 #'
 ctmaCorRel <- function(empcov=NULL, alphas=NULL) {
   if (length(alphas) != dim(empcov)[1]) {
