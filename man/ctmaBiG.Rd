@@ -44,20 +44,18 @@ and estimates fixed and random effects of single drift coefficients, heterogenei
 PET-PEESE corrections, Egger's tests, and z-curve analysis yielding expected  replication and detection rates (ERR, EDR).
 }
 \examples{
-\donttest{
+\dontrun{
 # perform analyses of publication bias and generalizability
-CoTiMAInitFit_D_BO$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+CoTiMAInitFit_D_BO$activeDirectory <- "/Users/tmp/" # adapt!
 CoTiMABiG_D_BO <- ctmaBiG(ctmaInitFit=CoTiMAInitFit_D_BO, zcurve=FALSE)
 }
 
-\donttest{
 # display results
 summary(CoTiMABiG_D_BO)
- }
 
-\donttest{
+\dontrun{
 # get funnel & forest plots
-CoTiMABiG_D_BO$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+CoTiMABiG_D_BO$activeDirectory <- "/Users/tmp/" # adapt!
 plot(CoTiMABiG_D_BO)
 }
 }

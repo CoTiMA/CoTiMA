@@ -101,8 +101,8 @@ which is printed if the summary function is applied to the returned object, cont
 Fits a full invariant model to a list of primary studies and performs analyses of expected (post hoc) power and required sample sizes.
 }
 \examples{
-\donttest{
-CoTiMAInitFit_D_BO$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+\dontrun{
+CoTiMAInitFit_D_BO$activeDirectory <- "/Users/tmp/" # adapt!
 CoTiMAPower_D_BO <- ctmaPower(ctmaInitFit=CoTiMAInitFit_D_BO,
                               statisticalPower = c(.50, .80, .95),
                               finishsamples = 10000)

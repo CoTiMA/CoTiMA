@@ -37,8 +37,8 @@ required), the model is fitted, and a log-liklihood ratio test is performed info
 # Fit a CoTiMA with a set of parameters set equal that were set
 # invariant in a previous model (of which the fit object is
 # supplied in argument ctmaInvariantFit)
-\donttest{
-CoTiMAFullInv23Fit_6$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+\dontrun{
+CoTiMAFullInv23Fit_6$activeDirectory <- "/Users/tmp/" # adapt!
 CoTiMAFullInvEq23Fit_6 <- ctmaEqual(ctmaInvariantFit=CoTiMAFullInv23Fit_6)
 }
 

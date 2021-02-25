@@ -58,7 +58,7 @@ Forest plot, funnel plots, plots of discrete time cross-lagged and autoregressiv
 \examples{
 \dontrun{
 # cannot run without proper activeDirectory specified. Adapt!
-CoTiMAFullFit_3$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+CoTiMAFullFit_3$activeDirectory <- "/Users/tmp/" # adapt!
 plot(ctmaFitList(CoTiMAInitFit_3, CoTiMAFullFit_3),
      timeUnit="Months", timeRange=c(1, 144, 1),
      plotAutoEffects=FALSE)
@@ -66,7 +66,7 @@ plot(ctmaFitList(CoTiMAInitFit_3, CoTiMAFullFit_3),
 
 \dontrun{
 # cannot run without proper activeDirectory specified. Adapt!
-CoTiMABiG_D_BO$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+CoTiMABiG_D_BO$activeDirectory <- "/Users/tmp/" # adapt!
 plot(CoTiMABiG_D_BO)
 }
 
