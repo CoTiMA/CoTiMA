@@ -71,9 +71,9 @@ ctmaGetPub <- function(authorList=NULL,
       if (length(tmp2) < 1) {
         counter <- counter +1; counter
         nameInconsitencies[[counter]] <- paste0(
-          cat("Researcher's surname provided does not match surname extracted from google scholar.", "\n"),
-          cat("You provided the name", researchers[[i]][2], "with google scholar ID =", researcherID[i],
-              " but I found the following name:", tmp1[length(tmp1)], ".",  "\n")
+          "Researcher's surname provided does not match surname extracted from google scholar.", "\n
+          You provided the name", researchers[[i]][2], "with google scholar ID =", researcherID[i],
+              " but I found the following name:", tmp1[length(tmp1)], ".",  "\n"
         )
       }
       # load author record
