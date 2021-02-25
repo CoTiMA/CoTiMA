@@ -63,6 +63,8 @@ ctmaPlot <- function(
 {  # begin function definition (until end of file)
 
   par.original <- par("new"); par.original
+  on.exit(par(new=par.original))
+
 
   { # some checks
 
@@ -925,7 +927,5 @@ ctmaPlot <- function(
     }
 
   } ### END Plotting ###
-
-  par(new=par.original)
 
 } ### END function definition
