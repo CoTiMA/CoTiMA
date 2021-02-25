@@ -51,8 +51,8 @@ ctmaAllInvFit <- function(
   # check if fit object is specified
   if (is.null(ctmaInitFit)){
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("A fitted CoTiMA object has to be supplied to plot something. \n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nA fitted CoTiMA object has to be supplied to plot something. \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   { # fitting params
@@ -75,7 +75,8 @@ ctmaAllInvFit <- function(
   if (coresToUse >= parallel::detectCores()) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
     coresToUse <- parallel::detectCores() - 1
-    cat(crayon::red("No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.","\n"))
+    Msg <- "No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.\n"
+    message(Msg)
   }
 
 
@@ -246,7 +247,8 @@ ctmaAllInvFit <- function(
       warmup=CoTiMAStanctArgs$warmup,
       cores=coresToUse))
 
-    cat( "\n", "Computing results summary of all invariant model.", "\n")
+    Msg <- "\nComputing results summary of all invariant model.\n"
+    message(Msg)
     allFixedModelFitSummary <- summary(allFixedModelFit, digits=digits)
   }
 

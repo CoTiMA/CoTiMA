@@ -11,7 +11,6 @@
 #' @param activateRPB "set to TRUE to receive push messages with CoTiMA notifications on your phone"
 #'
 #' @importFrom RPushbullet pbPost
-#' @importFrom crayon red
 #' @importFrom stats rnorm
 #' @importFrom MASS mvrnorm
 #' @importFrom psych corr.test
@@ -23,34 +22,34 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
 
   if (is.null(empCovMat)) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("No empirical covariance matrix provided for pseudo raw data generation!", sep="\n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nNo empirical covariance matrix provided for pseudo raw data generation! \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   if (!(isSymmetric(empCovMat))) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("The empirical covariance matrix provided is not symmetric!", sep="\n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nThe empirical covariance matrix provided is not symmetric! \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   if (!(is.null(empNMat))) {
     if (!(isSymmetric(empNMat))) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(crayon::red$bold("The pairwise N matrix provided is not symmetrix!", sep="\n"))
-      stop("Good luck for the next try!")
+      ErrorMsg <- "\nThe pairwise N matrix provided is not symmetrix! \nGood luck for the next try!"
+      stop(ErrorMsg)
     }
   }
 
   if ( (is.null(empNMat) & is.null(empN)) ) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("EITHER a matrix with pairwise N OR an overall N has to be provided pseudo raw data generation!", sep="\n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nEITHER a matrix with pairwise N OR an overall N has to be provided pseudo raw data generation! \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   if ( (!(is.null(empMeanVector))) & (length(empMeanVector) != (dim(empCovMat)[1]) )  ){
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("The number of means provided does not match the number of variables in the empirical covariance matrix", sep="\n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nThe number of means provided does not match the number of variables in the empirical covariance matrix! \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   rowNACounter <- colNACounter <- c()
@@ -60,10 +59,8 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
   }
   if (any(rowNACounter != colNACounter)) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("Currently missing correlations can only be handled if a variable is entirely missing. ", sep="\n"))
-    cat(crayon::red$bold("The NA-pattern provided implies this is not the case. ", sep="\n"))
-    cat(crayon::red$bold("Consider setting all correlations involving a critical variable to NA. ", sep="\n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nCurrently missing correlations can only be handled if a variable is entirely missing. \nThe NA-pattern provided implies this is not the case. \nConsider setting all correlations involving a critical variable to NA. \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   # Define objects

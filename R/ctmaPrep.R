@@ -84,8 +84,8 @@ ctmaPrep <- function(selectedStudies=NULL,
   ctma <- globalenv()
 
   if (is.null(selectedStudies)) {
-    cat(crayon::red$bold("Number of primary studies to combine in the list was not specified!", sep="\n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "Number of primary studies to combine in the list was not specified! \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   deltas <- sampleSizes <- empcovs <- moderators <- startValues <- studyNumbers <- pairwiseNs <- rawData <- empMeans <- empVars <- source <- list()
@@ -199,8 +199,8 @@ ctmaPrep <- function(selectedStudies=NULL,
     }
     if ( (is.na(sampleSizes[[i]]) & (is.null(dim(pairwiseNs[[i]]))) & (is.null(rawData[[i]])) ) ) {
       cat(crayon::red$bold("Neither sample size nor matrix of pairwise N nor rawData was provided for primary study ", i, sep=""))
-      cat(" ", sep="\n")
-      stop("Good luck for the next try!")
+      ErrorMsg <- "Good luck for the next try!"
+      stop(ErrorMsg)
     }
 
     if (!(is.null(addElements))) {

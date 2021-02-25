@@ -60,7 +60,8 @@ ctmaOptimzeInit <- function(oldStudyList=NULL,
     if (coresToUse >= parallel::detectCores()) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
       coresToUse <- parallel::detectCores() - 1
-      cat(crayon::red("No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.","\n"))
+      Msg <- "No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash. \n"
+      message(Msg)
     }
   }
 
@@ -73,8 +74,8 @@ ctmaOptimzeInit <- function(oldStudyList=NULL,
   ########################################################################################################################
 
   '%dopar%' <- foreach::'%dopar%'
-
-  if (is.null(oldStudyList) | is.null(problemStudy) | is.null(reFits) | is.null(activeDirectory) | is.null(n.latent)  ) stop("arguments are missing")
+  ErrorMsg <- "arguments are missing"
+  if (is.null(oldStudyList) | is.null(problemStudy) | is.null(reFits) | is.null(activeDirectory) | is.null(n.latent)  ) stop(ErrorMsg)
 
   # create new study list with a single problem study only
   newStudyList <- list()

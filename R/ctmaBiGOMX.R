@@ -30,8 +30,8 @@ ctmaBiGOMX <- function(
     # check if fit object is specified
     if (is.null(ctmaInitFit)){
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(crayon::red$bold("A fitted CoTiMA (\"ctmaInitFit\") object has to be supplied to analyse something. \n"))
-      stop("Good luck for the next try!")
+      ErrorMsg <- "\nA fitted CoTiMA (\"ctmaInitFit\") object has to be supplied to analyse something. \nGood luck for the next try!"
+      stop(ErrorMsg)
     }
 
   }

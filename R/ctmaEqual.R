@@ -12,7 +12,6 @@
 #' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
 #'
 #' @importFrom  RPushbullet pbPost
-#' @importFrom  crayon red
 #' @importFrom  parallel detectCores
 #' @importFrom  ctsem ctStanFit
 #' @importFrom  OpenMx vech2full
@@ -47,21 +46,21 @@ ctmaEqual <- function(
   # check if mutipleDriftFit object is supplied
   if (! ((ctmaInvariantFit$model.type == "mx") || (ctmaInvariantFit$model.type == "stanct")) ) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("A fitted CoTiMA object with more than a single invariant drift effect (fit of ctmaFit) has to be supplied compare the effects. \n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nA fitted CoTiMA object with more than a single invariant drift effect (fit of ctmaFit) has to be supplied compare the effects. \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   # check if fit object is specified
   if (is.null(ctmaInvariantFit)){
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("A fitted CoTiMA object with more than a single invariant drift effect (fit of ctmaFit) has to be supplied compare the effects. \n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nA fitted CoTiMA object with more than a single invariant drift effect (fit of ctmaFit) has to be supplied compare the effects. \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   if ( length(grep("invariant", names(ctmaInvariantFit$modelResults$DRIFT))) < 2) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("A fitted CoTiMA object was supplied, but is has to have more than a single invariant drift effect to compare the effects. \n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nA fitted CoTiMA object was supplied, but is has to have more than a single invariant drift effect to compare the effects. \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
 
@@ -76,7 +75,8 @@ ctmaEqual <- function(
   if (coresToUse >= parallel::detectCores()) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
     coresToUse <- parallel::detectCores() - 1
-    cat(crayon::red("No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.","\n"))
+    Msg <- "No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash."
+    message(Msg)
   }
 
 

@@ -113,9 +113,8 @@ ctmaInit <- function(
   ########################################### Check Model Specification #################################################
   #######################################################################################################################
   {
-    print(paste0("#################################################################################"))
-    print(paste0("########################## Check Model Specification ############################"))
-    print(paste0("#################################################################################"))
+    Msg <- "################################################################################# \n########################## Check Model Specification ############################ \n#################################################################################"
+    message(Msg)
 
     if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMAStanctArgs$verbose}
 
@@ -134,14 +133,12 @@ ctmaInit <- function(
         char <- readline(" ")
       }
       if (char == 'q' | char == 'Q') {
-        stop("Good luck for the next try!")
+        ErrorMsg <- "\nGood luck for the next try!"
+        stop(ErrorMsg)
       } else {
         if (!(is.numeric(tryCatch(get(paste("sampleSize", 1, sep = "")), error = function(e) e)))) {
-          cat(crayon::red$bold("Getting primary study information from the global environment failed", sep="\n"))
-          cat(crayon::red$bold(" ", " ", sep="\n"))
-          cat(crayon::blue("To test, I searched for sampleSize1 and could not find it!", "\n"))
-          cat(crayon::red$bold(" ", " ", sep="\n"))
-          stop("Good luck for the next try!")
+          ErrorMsg <- "\nGetting primary study information from the global environment failed \nTo test, I searched for sampleSize1 and could not find it! \nGood luck for the next try!"
+          stop(ErrorMsg)
         } else {
           cat(crayon::blue("Please type the number of primary studies to read from global environment. Press ENTER afterwards ", "\n"))
           char <- as.numeric(readline(""))
@@ -157,15 +154,15 @@ ctmaInit <- function(
 
     if (is.null(n.latent)) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(crayon::red$bold("Number of variables (n.latent) not specified!", sep="\n"))
-      stop("Good luck for the next try!")
+      ErrorMsg <- "\nNumber of variables (n.latent) not specified! \nGood luck for the next try!"
+      stop(ErrorMsg)
     }
 
 
     if (is.null(activeDirectory)) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(crayon::red$bold("No active directory has been specified!", sep="\n"))
-      stop("Good luck for the next try!")
+      ErrorMsg <- "\nNo active directory has been specified! \nGood luck for the next try!"
+      stop(ErrorMsg)
     }
 
     if  (length(coresToUse) > 0) {
@@ -175,19 +172,20 @@ ctmaInit <- function(
     if (coresToUse >= parallel::detectCores()) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
       coresToUse <- parallel::detectCores() - 1
-      cat(crayon::red("No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.","\n"))
+      Msg <- "No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.\n"
+      message(Msg)
     }
 
     if (n.manifest > n.latent ) {
       if (is.null(lambda)) {
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-        cat(crayon::red("Manifest variables specified, but not matrix of loadings (lambda) specified, which is required.","\n"))
-        stop("Good luck for the next try!")
+        ErrorMsg <- "\nManifest variables specified, but not matrix of loadings (lambda) specified, which is required. \nGood luck for the next try!"
+        stop(ErrorMsg)
       } else {
         if ( (dim(lambda)[1] != n.manifest) | (dim(lambda)[2] != n.latent) ) {
           if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-          cat(crayon::red("Dimensions of loadings matrix (lambda) do not match n.latent and n.manifest.","\n"))
-          stop("Good luck for the next try!")
+          ErrorMsg <- "\nDimensions of loadings matrix (lambda) do not match n.latent and n.manifest. \nGood luck for the next try!"
+          stop(ErrorMsg)
         }
       }
     }
@@ -219,9 +217,8 @@ ctmaInit <- function(
   ##################### Read user provided data and create list with all study information ##############################
   #######################################################################################################################
   {
-    print(paste0("#################################################################################"))
-    print(paste0("###### Read user provided data and create list with all study information #######"))
-    print(paste0("#################################################################################"))
+    Msg <- "################################################################################# \n###### Read user provided data and create list with all study information ####### \n#################################################################################"
+    message(Msg)
 
     studyList <- list()
     minInterval <- .0001 # replace missing values for time lags (cannot be NA because it is a definition variable)
@@ -264,8 +261,8 @@ ctmaInit <- function(
       # check matrix symmetry if matrix is provided
       if (!(primaryStudies$studyNumbers[i] %in% loadRawDataStudyNumbers)) {
         if (isSymmetric(primaryStudies$empcovs[[i]]) == FALSE) {
-          cat(crayon::red$bold("The correlation matrix of study no.", i, "is not symmetric. Check and re-start!", "\n"))
-          stop("Good luck for the next try!")
+          ErrorMsg <- paste0("\nThe correlation matrix of study no.", i, " is not symmetric. Check and re-start! \nGood luck for the next try!")
+          stop(ErrorMsg)
         }
       }
     }
@@ -449,15 +446,11 @@ ctmaInit <- function(
     tmp1 <- unlist(lapply(empraw, function(extract) dim(extract)[1])); tmp1
     tmp2 <- unlist(primaryStudies$sampleSizes); tmp2
     if (!(any(is.na(tmp2)))) {   # check if mismatch is because >= 1 study used pairwise N
-      cat(crayon::red$bold(" ", " ", sep="\n"))
-      cat(crayon::red$bold(" There is a possible mismatch between sample sizes specified in the primary study list
-    (created with the PREP R-file) and the cases pwovided in raw data files.", sep="\n"))
-      cat(crayon::red$bold(" ", " ", sep="\n"))
-      cat(crayon::red$bold("N based on raw data:   ", sep="\n"))
-      print(tmp1)
-      cat(crayon::red$bold(" ", " ", sep="\n"))
-      cat(crayon::red$bold("N as specified in list:", sep="\n"))
-      print(tmp2)
+      Msg <- paste0("There is a possible mismatch between sample sizes specified in the primary study list
+    (created with the PREP R-file) and the cases pwovided in raw data files.\nN based on raw data: \n", tmp1)
+      message(Msg)
+      Msg <- paste0("\nN as specified in list: \n", tmp2)
+      message(Msg)
     }
   }
 
@@ -465,9 +458,8 @@ ctmaInit <- function(
   ################################################### Some Statistics ###################################################
   #######################################################################################################################
   {
-    print(paste0("#################################################################################"))
-    print(paste0("################# Compute Summary Statistics of Primary Studies #################"))
-    print(paste0("#################################################################################"))
+    Msg <- "################################################################################# \n################# Compute Summary Statistics of Primary Studies ################# \n#################################################################################"
+    message(Msg)
 
     ### some stats
     # Sample size
@@ -503,9 +495,8 @@ ctmaInit <- function(
   ############################# Create ctsem model template to fit all primary studies ##################################
   #######################################################################################################################
   {
-    print(paste0("#################################################################################"))
-    print(paste0("############# Set ctsem Model Parameters to fit all Primary Studies #############"))
-    print(paste0("#################################################################################"))
+    Msg <- "################################################################################# \n############# Set ctsem Model Parameters to fit all Primary Studies ############# \n#################################################################################"
+    message(Msg)
 
     namesAndParams <- ctmaLabels(
       n.latent=n.latent,
@@ -537,9 +528,8 @@ ctmaInit <- function(
   ##################################### Check Specification of Primary Studies ##########################################
   #######################################################################################################################
   {
-    print(paste0("#################################################################################"))
-    print(paste0("#################### Check Specification of Primary Studies #####################"))
-    print(paste0("#################################################################################"))
+    Msg <- "################################################################################# \n#################### Check Specification of Primary Studies ##################### \n#################################################################################"
+    message(Msg)
 
     if (length(saveSingleStudyModelFit) == 1){
       if ((activateRPB==TRUE) &  (silentOverwrite==FALSE)) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
@@ -564,7 +554,8 @@ ctmaInit <- function(
           chars
           saveSingleStudyModelFit <- c(saveSingleStudyModelFit, chars)
         } else if (char == 'q' | char == 'Q'){
-          stop("Good luck for the next try!")
+          ErrorMsg <- "Good luck for the next try!"
+          stop(ErrorMsg)
         }
       } else {
         saveSingleStudyModelFit <- c(saveSingleStudyModelFit, unlist(primaryStudies$studyNumber))
@@ -593,7 +584,8 @@ ctmaInit <- function(
           chars <- unlist(strsplit(chars, ","))
           loadSingleStudyModelFit <- c(loadSingleStudyModelFit, chars)
         } else if (char == 'q' | char == 'Q') {
-          stop("Good luck for the next try!")
+          ErrorMsg <- "Good luck for the next try!"
+          stop(ErrorMsg)
         }
       } else {
         loadSingleStudyModelFit <- c(loadSingleStudyModelFit, unlist(primaryStudies$studyNumber))
@@ -625,9 +617,8 @@ ctmaInit <- function(
         tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
         tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
         tmp6 <- paste0(tmp4, tmp1, tmp5); tmp6
-        print(paste0("#################################################################################"))
-        print(tmp6)
-        print(paste0("#################################################################################"))
+        Msg <- paste0("################################################################################# \n" , tmp6 ,"\n#################################################################################")
+        message(Msg)
         x1 <- paste0(activeDirectory, loadSingleStudyModelFit[1], " singleStudyFits/",loadSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
         file.exists(x1)
         if (file.exists(x1)) {
@@ -643,14 +634,14 @@ ctmaInit <- function(
       if (!(studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit[-1]) ) tmpLogic <- 1
       if (tmpLogic == 1) {
 
-        print(paste0("#################################################################################"))
-        print(paste0("################### Fitting SingleStudyModel ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ######################"))
-        print(paste0("#################################################################################"))
+        Msg <- paste0("################################################################################# \n################### Fitting SingleStudyModel ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ###################### \n#################################################################################")
+        message(Msg)
 
         if (!(optimize)) {
           customPar <- FALSE
           if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-          cat(crayon::red("Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output","\n"))
+          Msg <- "Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output \n"
+          message(Msg)
         }
 
         # select correct template
@@ -687,10 +678,8 @@ ctmaInit <- function(
         currentModel$pars[, "indvarying"] <- FALSE
 
         if (indVarying == TRUE) {
-          print(paste0("#################################################################################"))
-          print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
-          print(paste0("#################################################################################"))
-
+          Msg <- "################################################################################# \n######## Just a note: Individually varying intercepts model requested.  ######### \n#################################################################################"
+          message(Msg)
           MANIFESTMEANS <- paste0("mean_", manifestNames); MANIFESTMEANS # if provided, indVarying is the default
 
           currentModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
@@ -735,8 +724,8 @@ ctmaInit <- function(
             cores=coresToUse) )
         } else {
           # parallel re-fitting of problem study
-          cat(crayon::red$bold("Parallel fit attepts requested. Screen remains silent for a while.", sep="\n"))
-          cat(crayon::red$bold(" ", " ", sep="\n"))
+          Msg <- "Parallel fit attepts requested. Screen remains silent for a while.\n"
+          message(Msg)
 
           allfits <- foreach::foreach(p=1:doPar) %dopar% {
             fits <- suppressMessages(ctsem::ctStanFit(
@@ -937,14 +926,8 @@ ctmaInit <- function(
 
     if (n.studies < 2) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(crayon::blue("Only a single primary study was handed over to ctmaInitFit. No further (meta-) analyses can be conducted."))
-      cat(" ", sep="\n")
-      cat(crayon::blue("I guess this stop is intended! You could ignore further warning messages such as \"sqrt(n-2): NaNs produced\""))
-      cat(" ", sep="\n")
-      cat(" ", sep="\n")
-      cat(" ", sep="\n")
-      #stop("No further errors!")
-      cat(" ", sep="\n")
+      Msg <- "Only a single primary study was handed over to ctmaInitFit. No further (meta-) analyses can be conducted. \nI guess this stop is intended! You could ignore further warning messages such as sqrt(n-2): NaNs produced"
+      message(Msg)
     }
 
   } ### END fit ctsem model to each primary study

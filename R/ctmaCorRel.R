@@ -16,13 +16,12 @@
 #'
 ctmaCorRel <- function(empcov=NULL, alphas=NULL) {
   if (length(alphas) != dim(empcov)[1]) {
-    cat(crayon::red$bold("Number of alphas provided does not equal number of variables in correlation matrix.", sep="\n"))
-    cat(crayon::red$bold(" ", " ", sep="\n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nNumber of alphas provided does not equal number of variables in correlation matrix. \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
   if (any(is.na(alphas))) {
-    cat(crayon::red$bold("One or more alpha was NA. I will treat this at 1.0 (no disattenuation for these varaibles).", sep="\n"))
-    cat(crayon::red$bold(" ", " ", sep="\n"))
+    Msg <- "One or more alpha was NA. I will treat this at 1.0 (no disattenuation for these varaibles). \n"
+    message(Msg)
   }
   alphasMat <- matrix((1/(alphas^.5 %x% alphas^.5)), length(alphas))
   corEmpcov <- empcov * alphasMat

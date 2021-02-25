@@ -53,11 +53,8 @@ ctmaLabels <- function(
     tmp1 <- which(c(driftParams) %in% driftNames); tmp1
     tmp2 <- which(c(driftParams) == "0"); tmp2
     if ( (length(tmp1)+length(tmp2)) != length(driftParams) ) {
-      cat(crayon::red$bold("Drift names provided by user do not match requirements.", sep="\n"))
-      cat(crayon::red$bold(" ", " ", sep="\n"))
-      cat(crayon::blue("They should be of the type V1toV2 or just 0.", "\n"))
-      cat(crayon::red$bold(" ", " ", sep="\n"))
-      stop("Good luck for the next try!")
+    ErrorMsg <- "\nDrift names provided by user do not match requirements.\nThey should be of the type V1toV2 or just 0. \nGood luck for the next try!"
+    stop(ErrorMsg)
     }
     driftNames <- drift # replace
   }

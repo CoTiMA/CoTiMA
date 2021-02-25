@@ -67,14 +67,12 @@ ctmaEmpCov <- function(targetVariables=NULL, recodeVariables=c(), combineVariabl
 
   # check
   if (is.null(sampleSize) & is.null(pairwiseN) ) {
-    cat(crayon::red$bold("Sample size (sampleSize) or pairwise N (pairwiseN) has to be provided!", sep="\n"))
-    cat(crayon::red$bold(" ", " ", sep="\n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nSample size (sampleSize) or pairwise N (pairwiseN) has to be provided! \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
   if (is.null(empcov)) {
-    cat(crayon::red$bold("Empirical correlation matrix has to be provided!", sep="\n"))
-    cat(crayon::red$bold(" ", " ", sep="\n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nEmpirical correlation matrix has to be provided! \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   # correct and then replace pairwise N (not required for data generation; only to provide corrected pairwise N after variables are combined)

@@ -71,16 +71,16 @@ ctmaPlot <- function(
     # check if fit object is specified
     if (is.null(ctmaFitObject)){
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat("A fitted ctma object has to be supplied to plot something. \n")
-      stop("Good luck for the next try!")
+      ErrorMsg <- "A fitted ctma object has to be supplied to plot something. \nGood luck for the next try!"
+      stop(ErrorMsg)
     }
 
     # check #1 if object can be plotted
     if (class(ctmaFitObject) == "list") testObject <- ctmaFitObject[[1]] else testObject <- ctmaFitObject
     if (class(testObject) != "CoTiMAFit")  {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat("This is nothing CoTiMA-related that I can plot . \n")
-      stop("Good luck for the next try!")
+      ErrorMsg <- "This is nothing CoTiMA-related that I can plot. \nGood luck for the next try!"
+      stop(ErrorMsg)
     }
 
     # some re-arrangements to cover all possibilities from a single object (list) to a list of list of objects (lists)
@@ -92,8 +92,8 @@ ctmaPlot <- function(
     # check #2 if object can be plotted
     if ("none" %in% ctmaFitObject[[1]]$plot.type)  {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat("This is nothing CoTiMA-related that I can plot. \n")
-      stop("Good luck for the next try!")
+      ErrorMsg <- "This is nothing CoTiMA-related that I can plot. \nGood luck for the next try!"
+      stop(ErrorMsg)
     }
 
     n.fitted.obj <- length(ctmaFitObject); n.fitted.obj # has to be done twice
@@ -121,26 +121,22 @@ ctmaPlot <- function(
     # check if fit object can be plotted
     if (length(unlist(plot.type))==0) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat("The fitted CoTiMA object provided cannot be plotted. \n")
-      stop("Good luck for the next try!")
+      ErrorMsg <- "The fitted CoTiMA object provided cannot be plotted. \nGood luck for the next try!"
+      stop(ErrorMsg)
     }
 
     if (length(unique(unlist(plot.type))) > 1) {
       if (any(!(unique(unlist(plot.type)) %in% c("funnel", "forest")))) {
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-        cat("All fitted CoTiMA object to plot have to be of the same plot.type. \n")
-        cat("The following ploty.type arguments were found: \n")
-        cat(unique(unlist(plot.type)), "\n")
-        stop("Good luck for the next try!")
+        ErrorMsg <- paste0("All fitted CoTiMA object to plot have to be of the same plot.type. \nThe following ploty.type arguments were found: \n", unique(unlist(plot.type)), "\nGood luck for the next try!")
+        stop(ErrorMsg)
       }
     }
 
     if (length(unique(unlist(activeDirectory))) > 1) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat("More than a single active directors was sepcified, which does not work. \n")
-      cat("The following activeDirectory arguments were found: \n")
-      cat(unique(activeDirectory), "\n")
-      stop("Good luck for the next try!")
+      ErrorMsg <- paste0("More than a single active directors was sepcified, which does not work. \nThe following activeDirectory arguments were found: \n", unique(activeDirectory), "\nGood luck for the next try!")
+      stop(ErrorMsg)
     }
   } # end some checks
 
@@ -434,9 +430,8 @@ ctmaPlot <- function(
       # can only plot (overlay) multiple fitted objects if n.latent is identical
       if (length(unique(unlist(n.latent))) > 1) {
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-        cat(crayon::red$bold("A fitted CoTiMA object has to be supplied to plot something. \n"))
-        cat(crayon::red$bold("A fitted CoTiMA object has to be supplied to plot something. \n"))
-        stop("Good luck for the next try!")
+        ErrorMsg <- "A fitted CoTiMA object has to be supplied to plot something. \nA fitted CoTiMA object has to be supplied to plot something. \nGood luck for the next try!"
+        stop(ErrorMsg)
       }
 
       #######################################################################################################################
@@ -524,13 +519,8 @@ ctmaPlot <- function(
 
             if (!(all(allDiags < 0))) {
               if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-              cat(crayon::red$bold("Some of the moderated drift matrices have values > 0 in their diagonals. \n"))
-              cat(crayon::red$bold("This is likely if the model used to create \"ctmaFitObject\" was not identified! \n"))
-              cat(crayon::red$bold("You may want to try smaller moderator values (e.g., \"mod.values=c(-.5, 0., .5)\")! \n"))
-              cat(crayon::red$bold("Some of the moderated drift matrices have values > 0 in their diagonals. \n"))
-              cat(crayon::red$bold("This is likely if the model used to create \"ctmaFitObject\" was not identified! \n"))
-              cat(crayon::red$bold("You may want to try smaller moderator values (e.g., \"mod.values=c(-.5, 0., .5)\")! \n"))
-              stop("Good luck for the next try!")
+              ErrorMsg <- "Some of the moderated drift matrices have values > 0 in their diagonals. \nThis is likely if the model used to create \"ctmaFitObject\" was not identified! \nYou may want to try smaller moderator values (e.g., \"mod.values=c(-.5, 0., .5)\")! \nSome of the moderated drift matrices have values > 0 in their diagonals. \nThis is likely if the model used to create \"ctmaFitObject\" was not identified! \nYou may want to try smaller moderator values (e.g., \"mod.values=c(-.5, 0., .5)\")! \nGood luck for the next try!"
+              stop(ErrorMsg)
             }
           } ########################## end dealing with possible moderator values #############################################
 
@@ -555,9 +545,8 @@ ctmaPlot <- function(
         } # end computing discrete effects across time range
       } ### END Specification of Parameters for Plotting, Statistical Power, Optimal Lags ###
 
-      print(paste0("#################################################################################"))
-      print(paste0("################################### Plotting ####################################"))
-      print(paste0("#################################################################################"))
+      Msg <- "################################################################################# \n################################### Plotting #################################### \n#################################################################################"
+      message(Msg)
 
       ##################################### SELECT DRIFT MATRICES ########################################
 

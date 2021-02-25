@@ -108,8 +108,8 @@ ctmaPower <- function(
     # check if fit object is specified
     if (is.null(ctmaInitFit)){
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(crayon::red$bold("A fitted CoTiMA object (\"ctmaInitFit\") has to be supplied to analyse something. \n"))
-      stop("Good luck for the next try!")
+      ErrorMsg <- "\nA fitted CoTiMA object (\"ctmaInitFit\") has to be supplied to analyse something. \nGood luck for the next try!"
+      stop(ErrorMsg)
     }
 
     if (length(statisticalPower) < 1) {
@@ -123,16 +123,16 @@ ctmaPower <- function(
         cat((crayon::blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
         char <- readline(" ")
       }
-      if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
+      ErrorMsg <- "Good luck for the next try!"
+      if (char == 'q' | char == 'Q') stop(ErrorMsg)
       statisticalPower <- c(.90, .80)
     }
     if (length(statisticalPower) > 0) {
       for (i in 1:length(statisticalPower)) {
         if (statisticalPower[i] < 0 | statisticalPower[i] > 1){
           if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-          cat(crayon::red$bold("Parameter for statistical poweranalysis outside the allowed interval!\n"))
-          cat(crayon::red("Values have to be between 0 and 1\n"))
-          stop("Good luck for the next try!")
+          ErrorMsg <-"\nParameter for statistical poweranalysis outside the allowed interval! \nValues have to be between 0 and 1 \nGood luck for the next try!"
+          stop(ErrorMsg)
         }
       }
     }
@@ -151,7 +151,8 @@ ctmaPower <- function(
     if (coresToUse >= parallel::detectCores()) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
       coresToUse <- parallel::detectCores() - 1
-      cat(crayon::red("No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.","\n"))
+      Msg <- "No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash. \n"
+      message(Msg)
     }
   }
 
@@ -237,7 +238,8 @@ ctmaPower <- function(
         cat((crayon::blue("Please press 'q' to quit and change prefix or 'c' to continue without changes. Press ENTER afterwards.", "\n")))
         char <- readline(" ")
       }
-      if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
+      ErrorMsg <- "Good luck for the next try!"
+      if (char == 'q' | char == 'Q') stop(ErrorMsg)
     }
     if (is.null(failSafeN)) {
       failSafeN <- round(mean(allSampleSizes+.5),0)
@@ -315,13 +317,11 @@ ctmaPower <- function(
   ##################################### Analyses of Statistical Power ###################################################
   #######################################################################################################################
 
-  print(paste0("#################################################################################"))
-  print(paste0("########################## Statistical Power Analysis ###########################"))
-  print(paste0("#################################################################################"))
+  Msg <- "################################################################################# \n########################## Statistical Power Analysis ########################### \n#################################################################################"
+  message(Msg)
 
-  print(paste0("#################################################################################"))
-  print(paste0("######## Fitting all fixed CoTiMA - ALL parameters equal across groups ##########"))
-  print(paste0("#################################################################################"))
+  Msg <- "################################################################################# \n######## Fitting all fixed CoTiMA - ALL parameters equal across groups ########## \n#################################################################################"
+  message(Msg)
 
   datalong_all <- datalong_all[, -grep("TI", colnames(datalong_all))]
 
@@ -345,7 +345,8 @@ ctmaPower <- function(
                                     chains=chains,
                                     verbose=verbose,
                                     customPar=customPar)
-    cat( "\n", "Computing results summary of all invariant model.", "\n")
+    Msg <- "\nComputing results summary of all invariant model. \n"
+    message(Msg)
     allInvModelFitSummary <- summary(allInvModelFit, digits=digits)
   }
 
@@ -487,11 +488,8 @@ ctmaPower <- function(
   DIFFUSION <- allInvModelFit$modelResults$DIFFUSION; DIFFUSION
   T0VAR <- allInvModelFit$modelResults$T0VAR; T0VAR
 
-  print(paste0("#################################################################################"))
-  print(paste0("# Use estimates from all fixed model to compute corr-matrices for all time lags #"))
-  print(paste0("#################################################################################"))
-  print(paste0("################# Set up required discrete time lavaan models ###################"))
-  print(paste0("#################################################################################"))
+  Msg <- "################################################################################# \n# Use estimates from all fixed model to compute corr-matrices for all time lags # \n################################################################################ \n################# Set up required discrete time lavaan models ################### \n#################################################################################"
+  message(Msg)
   {
     # full lavaan model setup
     {
@@ -555,9 +553,8 @@ ctmaPower <- function(
     }
   }
 
-  print(paste0("#################################################################################"))
-  print(paste0("###### Now computing implied correlation matrices for different time lags #######"))
-  print(paste0("#################################################################################"))
+  Msg <- "################################################################################# \n###### Now computing implied correlation matrices for different time lags ####### \n#################################################################################"
+  message(Msg)
   {
     # functions to compute dt-coefficients
     discreteDriftFunction <- function(driftMatrix, timeScale, number) {
@@ -625,9 +622,8 @@ ctmaPower <- function(
     }
   }
 
-  print(paste0("#################################################################################"))
-  print(paste0("# Compute min and max discrete time intervals for which effects are significant #"))
-  print(paste0("#################################################################################"))
+  Msg <- "################################################################################# \n# Compute min and max discrete time intervals for which effects are significant # \n#################################################################################"
+  message(Msg)
   {
     targetNames <- colnames(pValues)[-1]; targetNames
 
@@ -668,9 +664,8 @@ ctmaPower <- function(
     }
   }
 
-  print(paste0("#################################################################################"))
-  print(paste0("########### Compute required sample sizes to achieve requested power ############"))
-  print(paste0("#################################################################################"))
+  Msg <- "################################################################################# \n########### Compute required sample sizes to achieve requested power ############ \n#################################################################################"
+  message(Msg)
 
   # Fast function to calculate required sample sizes later (as optional replacement for ss.power.reg.coef)
   nestedProbFunT <- function (fvalue, alpha=.05, power=.80, p=2, x) (1-
@@ -785,9 +780,8 @@ ctmaPower <- function(
         } # end j1!=j2 condition
       } # end j2 loop
     } # end j1 loop
-    print(paste0("#################################################################################"))
-    print(paste0("###################### Power calculation for ", statisticalPower[h], " completed ######################"))
-    print(paste0("#################################################################################"))
+    Msg <- paste0("################################################################################# \n###################### Power calculation for ", statisticalPower[h], " completed ###################### \n#################################################################################")
+    message(Msg)
   } # end h loop (length(statisticalPower))
 
   # shortcut: eliminate effects that were fixed to zero

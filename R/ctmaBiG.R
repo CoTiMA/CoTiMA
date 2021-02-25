@@ -13,7 +13,6 @@
 #' @param zcurve performs z-curve analysis. Could fail if too few studies (e.g. around 10) are supplied. default=FALSE
 #'
 #' @importFrom RPushbullet pbPost
-#' @importFrom crayon red
 #' @importFrom stats var lm pnorm
 #' @importFrom zcurve zcurve
 #'
@@ -62,14 +61,14 @@ ctmaBiG <- function(
   ### check if fit object is specified
   if (is.null(ctmaInitFit)){
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("A fitted CoTiMA (\"ctmaInitFit\") object has to be supplied to analyse something. \n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nA fitted CoTiMA (\"ctmaInitFit\") object has to be supplied to analyse something. \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   if (ctmaInitFit$model.type == "mx") {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Your attention is required."))}
-    cat(crayon::red$bold(" I found old OpenMx-fitted Init fits. Will try ctmaBiGOMX!", sep="\n"))
-    cat(crayon::red$bold(" ", " ", sep="\n"))
+    Msg <- "I found old OpenMx-fitted Init fits. Will try ctmaBiGOMX! \n"
+    message(Msg)
     result <- ctmaBiGOMX(ctmaInitFit=ctmaInitFit,
                          activeDirectory=activeDirectory,
                          PETPEESEalpha=PETPEESEalpha,

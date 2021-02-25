@@ -44,22 +44,23 @@ ctmaGetPub <- function(authorList=NULL,
   if (is.na(yearsToExclude)) yearsToExclude <- 0
 
   if (length(authorList) == 0) {
-    cat(crayon::red$bold("At least one author name is required (e.g., list(\"Christian; Dormann\", NA))  \n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nAt least one author name is required (e.g., list(\"Christian; Dormann\", NA))  \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   if (all(is.na(lapply(authorList, function(x) x[2])))) {
-    cat(crayon::red$bold("No google scholar IDs (i.e., https) were provided. Not much to do. Processing continues anyway.   \n"))
+    Msg <- "No google scholar IDs (i.e., https) were provided. Not much to do. Processing continues anyway.   \n"
+    message(Msg)
   }
 
-  cat(crayon::red$bold("                       BE CAREFUL                                   \n"))
-  cat(crayon::red$bold("Google Scholar might lock you out for a day or so if you retrieve \n"))
-  cat(crayon::red$bold("a particular author's information too frequently in short time.\n"))
+  Msg <- "                       BE CAREFUL                                   \nGoogle Scholar might lock you out for a day or so if you retrieve \na particular author's information too frequently in short time.\n"
+  message(Msg)
 
   counter <- 0
   for (i in 1:length(authorList)) {
 
-    cat(paste0("Retrieving publication information of author no. ", i, " in the list provided."), "\n")
+    Msg <- paste0("Retrieving publication information of author no. ", i, " in the list provided. \n")
+    message(Msg)
 
     researchers[[i]] <- (unlist(stringi::stri_split_fixed(authorList[[i]][1], "; "))); researchers[[i]]   # user provided name
     researcherID[i] <- unlist(stringi::stri_split_fixed(authorList[[i]][2], "user="))[2]; researcherID[i] # gs ID

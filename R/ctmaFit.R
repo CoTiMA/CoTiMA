@@ -33,7 +33,6 @@
 #' @param inits vector of start values
 #'
 #' @importFrom  RPushbullet pbPost
-#' @importFrom  crayon red
 #' @importFrom  parallel detectCores
 #' @importFrom  ctsem ctWideToLong ctDeintervalise ctModel ctStanFit
 #' @importFrom  OpenMx vech2full expm
@@ -125,8 +124,8 @@ ctmaFit <- function(
   # check if fit object is specified
   if (is.null(ctmaInitFit)){
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("A fitted CoTiMA object has to be supplied to plot something. \n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nA fitted CoTiMA object has to be supplied to plot something. \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   { # set fitting params
@@ -207,7 +206,8 @@ ctmaFit <- function(
     if (coresToUse >= parallel::detectCores()) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
       coresToUse <- parallel::detectCores() - 1
-      cat(crayon::red("No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.","\n"))
+      Msg <- "No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash."
+      message(Msg)
     }
   }
 
@@ -239,8 +239,8 @@ ctmaFit <- function(
   if (!(is.null(cluster))) {
     if (length(cluster) != n.studies) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(crayon::red$bold("The vector of cluster numbers does not match the number of primary studies.\n"))
-      stop("Good luck for the next try!")
+      ErrorMsg <- "\nThe vector of cluster numbers does not match the number of primary studies.\nGood luck for the next try!"
+      stop(ErrorMsg)
     }
   }
 
@@ -255,13 +255,13 @@ ctmaFit <- function(
 
       if (any(is.na(currentModerators)) == TRUE) {
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-        cat(crayon::red$bold("At least one of the primary studies does not have a valid value for the requested moderator.  \n"))
-        stop("Good luck for the next try!")
+        ErrorMsg <- "\nAt least one of the primary studies does not have a valid value for the requested moderator. \nGood luck for the next try!"
+        stop(ErrorMsg)
       }
       if (var(currentModerators) == 0) {
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-        cat(crayon::red$bold("Moderator is constant across cases.", sep="\n"))
-        stop("Good luck for the next try!")
+        ErrorMsg <- "\nModerator is constant across cases.\nGood luck for the next try!"
+        stop(ErrorMsg)
       }
     }
   }
@@ -635,7 +635,8 @@ ctmaFit <- function(
     if (!(optimize)) {
       customPar <- FALSE
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-      cat(crayon::red("Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output","\n"))
+      Msg <- "Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output\n"
+      message(Msg)
     }
     #stanctModel$pars
 

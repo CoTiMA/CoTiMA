@@ -34,9 +34,8 @@ ctmaPub <- function(getPubObj=NULL, primaryStudyList=NULL,
 
   if ( (!(indFUN %in% c("mean", "sum", "max", "min", "var"))) |
        (!(colFUN %in% c("mean", "sum", "max", "min", "var"))) ) {
-    cat(crayon::red$bold("Unknown function to collect publication & citation information specified.  \n"))
-    cat(crayon::red$bold("Functions must be mean, sum, max, min, or var.  \n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "Unknown function to collect publication & citation information specified.  \nFunctions must be mean, sum, max, min, or var.  \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   # backup to use for labeling return objects later
@@ -71,14 +70,16 @@ ctmaPub <- function(getPubObj=NULL, primaryStudyList=NULL,
     # source
     tmp1 <- primaryStudyList$source[[i]]; tmp1
     if (is.null(tmp1)) {
-      stop(paste0("No source specified for Study no. ", primaryStudyList$studyNumbers[[i]], "."))
+      ErrorMsg <- paste0("No source specified for Study no. ", primaryStudyList$studyNumbers[[i]], ".")
+      stop(ErrorMsg)
     } else {
       source[[i]] <- tmp1; source[[i]]
     }
     # year
     year[[i]] <- as.numeric(source[[i]][length(source[[i]])]); year[[i]]
     if (is.na(year[[i]])) {
-      stop(paste0("Year was not correctly specified for Study ", primaryStudyList$studyNumbers[[i]], "."))
+      ErrorMsg <- paste0("Year was not correctly specified for Study ", primaryStudyList$studyNumbers[[i]], ".")
+      stop(ErrorMsg)
     }
     # target year
     if (is.null(targetYear)) targetYear2 <- as.numeric(year[[i]]) else targetYear2 <- targetYear; targetYear2
