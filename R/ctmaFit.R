@@ -50,20 +50,20 @@
 #' }
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Example 2. Fit a CoTiMA with only 2 cross effects invariant (not the auto
 #' # effects) to all primary studies previously fitted one by one with the fits
 #' # assigned to CoTiMAInitFit_6
-#' CoTiMAInitFit_6$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+#' CoTiMAInitFit_6$activeDirectory <- "/Users/tmp/" # adapt!
 #' CoTiMAFullInv23Fit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6,
 #'                         invariantDrift=c("V1toV2", "V2toV1"))
 #' summary(CoTiMAFullInv23Fit_6)
 #' }
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Example 3. Fit a moderated CoTiMA
-#' CoTiMAInitFit_6$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+#' CoTiMAInitFit_6$activeDirectory <- "/Users/tmp/" # adapt!
 #' CoTiMAMod1onFullFit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6,
 #'                                  mod.number=1, mod.type="cont",
 #'                                  mod.names=c("Control"))

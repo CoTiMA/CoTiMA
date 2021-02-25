@@ -23,9 +23,9 @@
 #' @note During fitting, not output is generated. Be patient.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' optimFit313 <- ctmaOptimzeInit(oldStudyList=CoTiMAstudyList_3,
-#'                                activeDirectory="/Users/cdormann/tmp/",
+#'                                activeDirectory="/Users/tmp/",  # adapt!
 #'                                problemStudy=which(CoTiMAstudyList_3$studyNumbers == 313),
 #'                                reFits=10,
 #'                                n.latent=2)

@@ -44,11 +44,11 @@
 #' @examples
 #' # Fit a ctsem model to all three primary studies summarized in
 #' # CoTiMAstudyList_3 and save the three fitted models
-#' \donttest{
+#' \dontrun{
 #' CoTiMAInitFit_3 <- ctmaInit(primaryStudies=CoTiMAstudyList_3,
 #'                             n.latent=2,
 #'                             checkSingleStudyResults=FALSE,
-#'                             activeDirectory="/Users/cdormann/tmp/") # adapt!
+#'                             activeDirectory="/Users/tmp/") # adapt!
 #' summary(CoTiMAInitFit_3)
 #' }
 #'

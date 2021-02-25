@@ -6,8 +6,8 @@
 #'
 #' @examples
 #' \dontrun{
-#' CoTiMAInitFit_3$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
-#' CoTiMAFullFit_3$activeDirectory <- "/Users/cdormann/tmp/" # adapt!
+#' CoTiMAInitFit_3$activeDirectory <- "/Users/tmp/" # adapt!
+#' CoTiMAFullFit_3$activeDirectory <- "/Users/tmp/" # adapt!
 #' plot(ctmaFitList(CoTiMAInitFit_3, CoTiMAFullFit_3),
 #'      timeUnit="Months",
 #'      timeRange=c(1, 144, 1) )
