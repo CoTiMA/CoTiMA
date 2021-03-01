@@ -5,7 +5,7 @@
 \alias{CoTiMAMod1onFullFit_6}
 \title{ctmaFit-object with a categorical moderator of the full drift matrix}
 \format{
-An object of class \code{CoTiMAFit} of length 17.
+An object of class \code{CoTiMAFit} of length 16.
 }
 \usage{
 CoTiMAMod1onFullFit_6
