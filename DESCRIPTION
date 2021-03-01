@@ -2,7 +2,7 @@ Package: CoTiMA
 Type: Package
 Title: Continuous Time Meta-Analysis ('CoTiMA')
 Version: 0.3.5
-Date: 2020-02-25
+Date: 2021-03-02
 Authors@R: c(person("Christian", "Dormann", role = c("aut","cph")), person("Markus", "Homberg", email = "cotima@uni-mainz.de", role = c("ctb", "com", "cre")))    
 Description: Performs meta-analyses of correlation matrices of repeatedly measured variables for studies with different time lags. 
     As always, variables are measured at discrete time points (e.g., today at 4pm, next week on Monday etc.), which imposes a problem 
