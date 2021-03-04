@@ -1,15 +1,18 @@
 Package: CoTiMA
 Type: Package
 Title: Continuous Time Meta-Analysis ('CoTiMA')
-Version: 0.3.5
-Date: 2021-03-02
-Authors@R: c(person("Christian", "Dormann", role = c("aut","cph")), person("Markus", "Homberg", email = "cotima@uni-mainz.de", role = c("ctb", "com", "cre")))    
+Version: 0.3.6
+Date: 2021-03-04
+Authors@R: c(person("Christian", "Dormann", role = c("aut","cph")),
+            person("Markus", "Homberg", email = "cotima@uni-mainz.de", role = c("ctb", "com", "cre")),
+            person("Christina", "Guthier", role = c("ctb")),
+            person("Manuel", "Voelkle", role = c("ctb")))    
 Description: Performs meta-analyses of correlation matrices of repeatedly measured variables for studies with different time lags. 
     As always, variables are measured at discrete time points (e.g., today at 4pm, next week on Monday etc.), which imposes a problem 
     for meta-analysis of studies that repeatedly measured the variables because the time lags between measurement could vary across studies.
     However, so-called continuous time math can be used to extrapolate or intrapolate the results from all studies to any desired time lag.
     By this, effects obtained in studies that used different time lags can be meta-analyzed.
-    In a nutshell, CoTiMA fits models to empirical data using the structural equation model (SEM) packages 'OpenMx' and 'CTSEM',
+    In a nutshell, 'CoTiMA' fits models to empirical data using the structural equation model (SEM) packages 'OpenMx' and 'CTSEM',
     the effects specified in a SEM are related to parameters that are not directly included in the model (i.e., continuous time parameters;
     together, they represent the continuous time structural equation model, 'ctsem') which is done in a fashion similar to other SEM programs
     (e.g., like a = b × c to test for mediation in 'MPLUS') using matrix algebra functions (e.g., matrix exponentiation, which is not available 
