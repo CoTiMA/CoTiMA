@@ -7,12 +7,15 @@
 ctmaStanResample(ctmaFittedModel = NULL, nsamples = 25, overallSamples = 500)
 }
 \arguments{
-\item{ctmaFittedModel}{a CoTiMA fit object, usually with few 'finishsamples' to prevent memory exhaustion}
+\item{ctmaFittedModel}{a 'CoTiMA' fit object, usually with few 'finishsamples' to prevent memory exhaustion}
 
 \item{nsamples}{sample size per run}
 
 \item{overallSamples}{overall samples size to be achieved}
 }
+\value{
+returns a CoTiMA fit object with an increased number of finish samples
+}
 \description{
-Re-sample from a fitted stanct model to achieve desired number of finishsamples (could be useful to prevent exhausted memory)
+re-sample from a fitted stanct model to achieve desired number of finishsamples (could be useful to prevent exhausted memory)
 }

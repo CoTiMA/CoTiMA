@@ -15,6 +15,7 @@
 #' @importFrom utils capture.output
 #' @importFrom zcurve zcurve
 #'
+#' @return returns a CoTiMA fit object with results of publication bias analysis, fixed and random effect analysis, Egger's tests, PET-PEESE corrections.
 #'
 ctmaBiGOMX <- function(
   ctmaInitFit=NULL,

@@ -2,31 +2,31 @@
 #'
 #' @description Fits a full invariant model to a list of primary studies and performs analyses of expected (post hoc) power and required sample sizes.
 #'
-#' @param ctmaInitFit object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by ctmaInit)
-#' @param activeDirectory defines another active directory than the one used in ctmaInit
+#' @param ctmaInitFit object to which all single 'ctsem' fits of primary studies has been assigned to (i.e., what has been returned by \code{\link{ctmaInit}})
+#' @param activeDirectory defines another active directory than the one used in \code{\link{ctmaInit}}
 #' @param statisticalPower vector of requested statistical power values
-#' @param failSafeN  sample size used to determine across which time intervals effects become non-sign
-#' @param failSafeP  p-value used to determine across which time intervals effects become non-sign.
+#' @param failSafeN  sample size used to determine across which time intervals effects become non-significant
+#' @param failSafeP  p-value used to determine across which time intervals effects become non-significant
 #' @param timeRange vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))
-#' @param useMBESS use MBESS package to calculate statistical power (slower)
+#' @param useMBESS use 'MBESS' package to calculate statistical power (slower)
 #' @param coresToUse vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))
-#' @param indVarying Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)
-#' @param activateRPB set to TRUE to receive push messages with CoTiMA notifications on your phone
-#' @param silentOverwrite Overwrite old files without asking
-#' @param digits Number of digits used for rounding (in outputs)
-#' @param loadAllInvFit load the fit of fully constrained CoTiMA model
-#' @param saveAllInvFit save the fit of fully constrained CoTiMA model
-#' @param loadAllInvWOSingFit load series of fits of fully constrained CoTiMA model withoutwith one cross effect excluded, respectively
-#' @param saveAllInvWOSingFit save series of fits of fully constrained CoTiMA model withoutwith one cross effect excluded, respectively
-#' @param skipScaling Does not (re-)scale raw data (re-scaling of imported pseudo raw data achieves correlations = 1)
-#' @param useSampleFraction To speed up debugging. Provided as fraction (e.g., 1/10)
+#' @param indVarying Allows continuous time intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)
+#' @param activateRPB set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
+#' @param silentOverwrite overwrite old files without asking
+#' @param digits number of digits used for rounding (in outputs)
+#' @param loadAllInvFit load the fit of fully constrained 'CoTiMA' model
+#' @param saveAllInvFit save the fit of fully constrained 'CoTiMA' model
+#' @param loadAllInvWOSingFit load series of fits of fully constrained 'CoTiMA' model with single cross effects excluded, respectively
+#' @param saveAllInvWOSingFit save series of fits of fully constrained 'CoTiMA' model with single cross effects excluded, respectively
+#' @param skipScaling does not (re-)scale raw data (re-scaling of imported pseudo raw data achieves correlations = 1)
+#' @param useSampleFraction to speed up debugging. Provided as fraction (e.g., 1/10)
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
-#' @param iter number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation
+#' @param iter number of iterations (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
-#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)
+#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue

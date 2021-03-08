@@ -1,34 +1,34 @@
 #' ctmaFit
 #'
 #' @description Fits a ctsem model with invariant drift effects across primary studies, possible multiple moderators (but all of them of the
-#' the same type, either "cont§ or "cat"), and possible cluster (e.g., countries where primary studies were conducted).
+#' the same type, either "cont" or "cat"), and possible cluster (e.g., countries where primary studies were conducted).
 #'
-#' @param ctmaInitFit object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by ctmaInit)
-#' @param primaryStudyList  could be a list of primary studies compiled with ctmaPrep that defines the subset of studies in ctmaInitFit that should actually be used
-#' @param cluster  vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in ctmaPrep later.
+#' @param ctmaInitFit object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by \code{\link{ctmaInit}})
+#' @param primaryStudyList  could be a list of primary studies compiled with \code{\link{ctmaPrep}} that defines the subset of studies in ctmaInitFit that should actually be used
+#' @param cluster  vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in \code{\link{ctmaPrep}} in later 'CoTiMA' versions.
 #' @param activeDirectory  defines another active directory than the one used in ctmaInitFit
-#' @param activateRPB  set to TRUE to receive push messages with CoTiMA notifications on your phone
+#' @param activateRPB  set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
 #' @param digits Number of digits used for rounding (in outputs)
-#' @param invariantDrift  drift Labels for drift effects that are set invariant across primary studies (default = all drift effects).
-#' @param drift Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)
-#' @param moderatedDrift drift Labels for drift effects that are moderated (default = all drift effects) (PRELIMINARY TEST)
-#' @param mod.number which in the vector of moderator values to use (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
-#' @param mod.type "cont" or "cat" (mixing them in a single model not yet possible)
+#' @param invariantDrift  drift labels for drift effects that are set invariant across primary studies (default = all drift effects).
+#' @param drift labels for drift effects. Have to be either of the type 'V1toV2' or '0' for effects to be excluded.
+#' @param moderatedDrift labels for drift effects that are moderated (default = all drift effects)
+#' @param mod.number which in the vector of moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
+#' @param mod.type 'cont' or 'cat' (mixing them in a single model not yet possible)
 #' @param mod.names vector of names for moderators used in output
-#' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
-#' @param indVarying Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)
-#' @param scaleTI scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances
+#' @param coresToUse if negative, the value is subtracted from available cores, else value = cores to use
+#' @param indVarying allows continuous time intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)
+#' @param scaleTI scale TI predictors - not recommended if TI are dummies representing primary studies, which would be the usual case
 #' @param scaleClus scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster
-#' @param scaleMod scale moderator variables - TRUE (default) highly recommended
+#' @param scaleMod scale moderator variables - FALSE (default) highly recommended for categorical moderators, TRUE highly recommended for continuous moderators
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
-#' @param iter number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation
+#' @param iter number of iterations (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
-#' @param allInvModel estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR)
-#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)
+#' @param allInvModel estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR) if set TRUE (defautl = FALSE)
+#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)
 #' @param equalDrift Not enabled
 #' @param inits vector of start values
 #'

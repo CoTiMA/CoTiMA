@@ -11,6 +11,9 @@
 
 \item{...}{further arguments to be passed through to summary()}
 }
+\value{
+returns a printed summary of a 'CoTiMA' fit object
+}
 \description{
-defines summary for CoTiMAFit objects
+defines summary for 'CoTiMA' fit objects
 }

@@ -14,17 +14,20 @@ ctmaSaveFile(
 )
 }
 \arguments{
-\item{activateRPB}{"set to TRUE to receive push messages with CoTiMA notifications on your phone"}
+\item{activateRPB}{set TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 
-\item{activeDirectory}{"Directory name"}
+\item{activeDirectory}{directory name}
 
-\item{SaveObject}{"Object to save"}
+\item{SaveObject}{object to save}
 
-\item{FileName}{"Filename"}
+\item{FileName}{filename}
 
-\item{Directory}{"Directory to save file in"}
+\item{Directory}{directory to save file in}
 
-\item{silentOverwrite}{"override old files without asking"}
+\item{silentOverwrite}{override old files without asking}
+}
+\value{
+No return value. Just saves files
 }
 \description{
 Internal fcuntion to save files

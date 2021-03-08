@@ -13,7 +13,8 @@ ctmaEqual(
 )
 }
 \arguments{
-\item{ctmaInvariantFit}{object to which a CoTiMA fit has been assigned to (i.e., what has been returned by ctmaFit). In most cases probably a model in which only (two) effects were specified with invariantDrift.}
+\item{ctmaInvariantFit}{object to which a CoTiMA fit has been assigned to (i.e., what has been returned by \code{\link{ctmaFit}}).
+In most cases probably a model in which (only) two effects were specified with invariantDrift.}
 
 \item{activeDirectory}{defines another active directory than the one used in ctmaInvariantFit}
 
@@ -29,7 +30,7 @@ informing about the probablity that the equality assumption is correct.
 }
 \description{
 test if the two or more invariant drift parameters in the CoTiMAFit object supplied are equal. The supplied CoTiMA fit-object
-(ctmaInvariantFit) has to be fitted to a model where at least two parameters were set invariant across primary studies (e.g., 2 cross
+(ctmaInvariantFit) has to be a model fitted with \code{\link{ctmaFit}} where at least two parameters were set invariant across primary studies (e.g., 2 cross
 effects). All parameters that are set invariant in the supplied model are then constrained to be equal by ctmaEqual (no user action
 required), the model is fitted, and a log-liklihood ratio test is performed informing about the probability that equality applies.
 }

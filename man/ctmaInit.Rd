@@ -15,7 +15,6 @@ ctmaInit(
   lambda = NULL,
   manifestVars = NULL,
   drift = NULL,
-  equalDrift = NULL,
   indVarying = FALSE,
   saveRawData = list(),
   coresToUse = c(1),
@@ -35,11 +34,11 @@ ctmaInit(
 )
 }
 \arguments{
-\item{primaryStudies}{list of primary study information created with ctmaPrep}
+\item{primaryStudies}{list of primary study information created with \code{\link{ctmaPrep}}}
 
-\item{activeDirectory}{defines another active directory than the one used in ctmaPrep}
+\item{activeDirectory}{defines another active directory than the one used in \code{\link{ctmaPrep}}}
 
-\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
+\item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 
 \item{checkSingleStudyResults}{Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.}
 
@@ -54,8 +53,6 @@ ctmaInit(
 \item{manifestVars}{Define the error variances of the manifests with a single time point using R-type matrix with nrow=n.manifest & ncol=n.manifest.}
 
 \item{drift}{Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)}
-
-\item{equalDrift}{Not yet enabled}
 
 \item{indVarying}{Control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
 
@@ -81,11 +78,11 @@ ctmaInit(
 
 \item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
 
-\item{iter}{number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation}
+\item{iter}{number of interation (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation}
 
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit - for debugging}
 
-\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)}
+\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)}
 
 \item{doPar}{parallel and multiple fitting if single studies}
 }
@@ -104,7 +101,7 @@ minus2ll value and its n.parameters, and possible warning messages (message). Pl
 ("omx" was deprecated).
 }
 \description{
-Fits ctsem models to each primary study in the supplied list of primary studies prepared by ctmaPrep.
+Fits ctsem models to each primary study in the supplied list of primary studies prepared by \code{\link{ctmaPrep}}.
 }
 \examples{
 # Fit a ctsem model to all three primary studies summarized in

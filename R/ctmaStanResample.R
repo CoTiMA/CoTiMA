@@ -1,13 +1,15 @@
 #' ctmaStanResample
 #'
-#' @description Re-sample from a fitted stanct model to achieve desired number of finishsamples (could be useful to prevent exhausted memory)
+#' @description re-sample from a fitted stanct model to achieve desired number of finishsamples (could be useful to prevent exhausted memory)
 #'
-#' @param ctmaFittedModel a CoTiMA fit object, usually with few 'finishsamples' to prevent memory exhaustion
+#' @param ctmaFittedModel a 'CoTiMA' fit object, usually with few 'finishsamples' to prevent memory exhaustion
 #' @param nsamples sample size per run
 #' @param overallSamples overall samples size to be achieved
 #'
 #' @importFrom ctsem ctAddSamples
 #' @importFrom abind abind
+#'
+#' @return returns a CoTiMA fit object with an increased number of finish samples
 #'
 ctmaStanResample <- function(ctmaFittedModel=NULL,
                              nsamples=25,

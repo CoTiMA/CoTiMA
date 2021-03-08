@@ -65,6 +65,9 @@ ctmaAllInvFit(
 
 \item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)}
 }
+\value{
+returns a fitted CoTiMA object, in which all drift parameters, Time 0 variances and covariances, and diffusion parameters were set invariant across primary studies
+}
 \description{
 #' @description Fit a CoTiMA model with all params (drift, T0var, diffusion) invariant across primary studies
 }

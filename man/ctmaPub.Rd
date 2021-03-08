@@ -16,7 +16,7 @@ ctmaPub(
 )
 }
 \arguments{
-\item{getPubObj}{publication information compiled with ctmaGetPub}
+\item{getPubObj}{publication information compiled with \code{\link{ctmaGetPub}}}
 
 \item{primaryStudyList}{vector with numbers of studies (e.g., c(1,3); requires source1 and source3 to be available)}
 

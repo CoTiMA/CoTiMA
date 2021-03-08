@@ -10,7 +10,7 @@ ctmaFitList(...)
 \item{...}{any number of CoTiMAFit objects}
 }
 \value{
-a list that combines all objects supplied and is assigned the class "CoTiMAFit"
+a list that combines all objects supplied and is assigned the class 'CoTiMAFit'
 }
 \description{
 Combines CoTiMAFit objects into a list with class CoTiMAFit to inform generic functions what to do

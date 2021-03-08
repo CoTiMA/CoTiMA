@@ -15,7 +15,7 @@
 #'
 #' @export ctmaFitList
 #'
-#' @return a list that combines all objects supplied and is assigned the class "CoTiMAFit"
+#' @return a list that combines all objects supplied and is assigned the class 'CoTiMAFit'
 #'
 ctmaFitList <- function(...) {
   x <- list(...)

@@ -1,8 +1,8 @@
 #' ctmaCompFit
 #'
-#' @description Performs log-liklihood ratio tests to compare the fit of 2 models (CoTiMAFit objects), i.e., the difference
-#' between the two -2 times LLs between the first model and the more constrained second model. The nested sturcture of the
-#' two models is assumed to be given and not checked.
+#' @description Performs log-liklihood ratio tests to compare the fit of 2 models (CoTiMAFit objects created with \code{\link{ctmaFit}}
+#' or \code{\link{ctmaEqual}}), i.e., the difference between the two -2 times LLs between the first model and the more constrained second
+#' model. The nested structure of the two models is assumed to be given and not checked.
 #'
 #' @param model1 Model 1
 #' @param model2 Model 2

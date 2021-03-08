@@ -11,6 +11,9 @@
 #' @param moderatedDrift moderatedDrift
 #' @param equalDrift equalDrift
 #'
+#' @return returns consistently named parameters (e.g., "V1toV2") as well es their symbolic values, which are used to fix or free
+#' parameters when fitting a 'CoTiMA' model
+#'
 ctmaLabels <- function(
   n.latent=NULL,
   n.manifest=0,

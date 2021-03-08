@@ -12,8 +12,6 @@ ctmaCorRel(empcov = NULL, alphas = NULL)
 \item{alphas}{Vector reliabilities}
 }
 \value{
-"Empirical correlation matrix corrected for unreliability"
-
 A corrected correlation matrix (corEmpcov). Corrections leading to r > 1.0 are set to 1.0.
 }
 \description{

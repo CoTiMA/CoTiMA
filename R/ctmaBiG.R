@@ -1,11 +1,11 @@
 #' ctmaBiG
 #'
-#' @description Analysis of publication bias and generalizability. The function takes a CoTiMA fit object (created with ctmaInit)
+#' @description Analysis of publication bias and generalizability. The function takes a CoTiMA fit object (created with \code{\link{ctmaInit}})
 #' and estimates fixed and random effects of single drift coefficients, heterogeneity  (Q, I square, H square, tau square),
-#' PET-PEESE corrections, Egger's tests, and z-curve analysis yielding expected  replication and detection rates (ERR, EDR).
+#' PET-PEESE corrections, Egger's tests, and z-curve analysis yielding expected replication and detection rates (ERR, EDR).
 #'
 #'
-#' @param ctmaInitFit fit object created with ctmaInit containing the fitted ctsem model of each primary study
+#' @param ctmaInitFit fit object created with \code{\link{ctmaInit}} containing the fitted ctsem model of each primary study
 #' @param activeDirectory the directory where to save results (if not specified, it is taken from ctmaInitFit)
 #' @param PETPEESEalpha probability level (condition) below which to switch from PET to PEESE (cf. Stanley, 2017, p. 582, below Eq. 2; default p = .10)
 #' @param activateRPB if TRUE, messages (warning, finished) could be send to smart phone (default = FALSE)

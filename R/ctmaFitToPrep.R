@@ -1,6 +1,6 @@
 #' ctmaFitToPrep
 #'
-#'@description Extracts information from fitted CoTiMA object to (re-)crearte list of primary studies originally created with ctmaPrep
+#' @description Extracts information from fitted CoTiMA objects to (re-)crearte list of primary studies originally created with \code{\link{ctmaPrep}}
 #'
 #' @param ctmaFitObject  ctmaFitObject
 #'
@@ -9,7 +9,7 @@
 #'
 #' @export ctmaFitToPrep
 #'
-#' @return list that could be used for fitting new CoTiMA models with ctmaInit or ctmaFit.
+#' @return list that could be used for fitting new CoTiMA models with \code{\link{ctmaInit}} or \code{\link{ctmaFit}}.
 #'
 ctmaFitToPrep <- function(ctmaFitObject=NULL)
 {

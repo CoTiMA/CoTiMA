@@ -8,7 +8,7 @@
 #' @param studyNumber internal number
 #' @param empMeanVector vector of means for all variables, usually 0
 #' @param empVarVector vector of variances for all variables, usually 1
-#' @param activateRPB "set to TRUE to receive push messages with CoTiMA notifications on your phone"
+#' @param activateRPB set TRUE to receive push messages with 'CoTiMA' notifications on your phone
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom stats rnorm

@@ -11,6 +11,9 @@
 
 \item{...}{further arguments to be passed through to summary()}
 }
+\value{
+returns a call to 'ctmaPlot', which is used to plot CoTiMA fit objects
+}
 \description{
-call ctmaPlot if a CoTiMAFit object is supplied to plot()
+call \code{\link{ctmaPlot}} if a CoTiMAFit object is supplied to plot()
 }

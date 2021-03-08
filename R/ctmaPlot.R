@@ -2,17 +2,17 @@
 #'
 #' @description Forest plot, funnel plots, plots of discrete time cross-lagged and autoregressive effect, and plots of required sample sizes
 #'
-#' @param ctmaFitObject CoTiMA Fit object
+#' @param ctmaFitObject 'CoTiMA' Fit object
 #' @param activeDirectory  defines another active directory than the one used in ctmaInitFit
 #' @param saveFilePrefix Prefix used for saved plots
-#' @param activateRPB  set to TRUE to receive push messages with CoTiMA notifications on your phone
+#' @param activateRPB  set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
 #' @param plotCrossEffects logical
 #' @param plotAutoEffects logical
 #' @param timeUnit label for x-axis when plotting discrete time plots
 #' @param timeRange vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))
 #' @param yLimitsForEffects range for y-axis
 #' @param mod.values moderator values that should be used for plots
-#' @param aggregateLabel label to indicat aggregated discrete time effects
+#' @param aggregateLabel label to indicate aggregated discrete time effects
 #' @param xLabels labes used for x-axis
 #' @param ... arguments passed through to plot()
 #'

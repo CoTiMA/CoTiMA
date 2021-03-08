@@ -5,6 +5,8 @@
 #' @param listOfStudyFits "Listobject of Studyfits"
 #' @param moderatorValues "Moderators
 #'
+#' @return returns a pseudo raw data set that combines pseudo raw data and moderators of primary studies
+#'
 ctmaCombPRaw <- function(listOfStudyFits=NULL, moderatorValues=NULL) {
 
   allSampleSizes <- maxLatents <- allTpoints <- c()

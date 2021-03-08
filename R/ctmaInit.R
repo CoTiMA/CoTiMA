@@ -1,10 +1,10 @@
 #' ctmaInit
 #'
-#' @description Fits ctsem models to each primary study in the supplied list of primary studies prepared by ctmaPrep.
+#' @description Fits ctsem models to each primary study in the supplied list of primary studies prepared by \code{\link{ctmaPrep}}.
 #'
-#' @param primaryStudies list of primary study information created with ctmaPrep
-#' @param activeDirectory defines another active directory than the one used in ctmaPrep
-#' @param activateRPB set to TRUE to receive push messages with CoTiMA notifications on your phone
+#' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}}
+#' @param activeDirectory defines another active directory than the one used in \code{\link{ctmaPrep}}
+#' @param activateRPB set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
 #' @param checkSingleStudyResults Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.
 #' @param digits Number of digits used for rounding (in outputs)
 #' @param n.latent Number of latent variables of the model (hast to be specified)!
@@ -24,10 +24,9 @@
 #' @param nopriors if TRUE, any priors are disabled - sometimes desirable for optimization
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
-#' @param iter number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation
+#' @param iter number of interation (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit - for debugging
-#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)
-#' @param equalDrift Not yet enabled
+#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)
 #' @param doPar parallel and multiple fitting if single studies
 #'
 #' @importFrom  RPushbullet pbPost
@@ -76,7 +75,6 @@ ctmaInit <- function(
   lambda=NULL,
   manifestVars=NULL,
   drift=NULL,
-  equalDrift=NULL,
   indVarying=FALSE,
   saveRawData=list(),
   coresToUse=c(1),
@@ -505,7 +503,7 @@ ctmaInit <- function(
       drift=drift,
       invariantDrift=invariantDrift,
       moderatedDrift=NULL,
-      equalDrift=equalDrift
+      equalDrift=NULL
     )
     driftNames <- namesAndParams$driftNames; driftNames
     driftFullNames <- namesAndParams$driftFullNames; driftFullNames

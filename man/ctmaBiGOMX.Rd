@@ -23,6 +23,9 @@ ctmaBiGOMX(
 
 \item{digits}{rounding (default = 4)}
 }
+\value{
+returns a CoTiMA fit object with results of publication bias analysis, fixed and random effect analysis, Egger's tests, PET-PEESE corrections.
+}
 \description{
 Analysis of publication bias and fixed and ranom effects analysis of single drift coefficients if OLD OpenMx fit files are supplied
 }

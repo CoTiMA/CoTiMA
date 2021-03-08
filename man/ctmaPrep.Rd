@@ -16,10 +16,23 @@ ctmaPrep(
 \arguments{
 \item{selectedStudies}{Vector of primary study numbers (numeric values with no leading 0; e.g., '2' but not '02')}
 
-\item{excludedElements}{Vector of predefined objects used to code primary study information. Some predefined objects are strongly defined; they have to be used in a special way because they are actually used in subsequent analyses. Some other objects could be used at the researcher's convenience (information is just collected). Strongly predefined objects are 'delta_t' (vector of time intervals; the only mandatory requirement; should be of the type c(NA, NA) in cases when raw data are provided), 'sampleSize' (single number), 'pairwiseN' (matrix of pairwise N; could be used if correlation matrix is based on pairwise N), 'empcov' (correlation matrix), 'moderator' (vector of numbers; could be continuous or categorical), 'startValues' (vector of start values), 'rawData' (information about file name and structure of raw data), 'empMeans' (means for variables; usually 0), and 'empVars' (varainces for variables; usually 1). Weakly predefined objects are 'studyNumber' (intended as a special number used for the outputs of subsequently fitted CoTiMA models), 'source' (intended as vector of authors' names and publication year), 'ageM' (intended as
-value indicating the mean age of participants in a primary study), 'malePercent' (intended as value indicating the percentage of male participants in a primary study), 'occupation' (intended as vector of character strings representing the occupations of participants in a primary study), 'country' (intended as single character string representing the country in which a primary study was conducted), 'alphas' (intended as vector of Cronbach's alphas of the variables of a primary study; not yet functional), and 'targetVariables' (intended as vector of character strings representing information about the variables used).'}
+\item{excludedElements}{Vector of predefined objects used to code primary study information. Some predefined objects are strongly
+defined; they have to be used in a special way because they are actually used in subsequent analyses. Some other objects could be
+used at the researcher's convenience (information is just collected). Strongly predefined objects are 'delta_t' (vector of time
+intervals; the only mandatory requirement; should be of the type c(NA, NA) in cases when raw data are provided), 'sampleSize'
+(single number), 'pairwiseN' (matrix of pairwise N; could be used if correlation matrix is based on pairwise N), 'empcov' (correlation
+matrix), 'moderator' (vector of numbers; could be continuous or categorical), 'startValues' (vector of start values), 'rawData'
+(information about file name and structure of raw data), 'empMeans' (means for variables; usually 0), and 'empVars' (varainces for
+variables; usually 1). Weakly predefined objects are 'studyNumber' (intended as a special number used for the outputs of subsequently
+fitted CoTiMA models), 'source' (intended as vector of authors' names and publication year), 'ageM' (intended as value indicating the
+mean age of participants in a primary study), 'malePercent' (intended as value indicating the percentage of male participants in a
+primary study), 'occupation' (intended as vector of character strings representing the occupations of participants in a primary study),
+'country' (intended as single character string representing the country in which a primary study was conducted), 'alphas' (intended as
+vector of Cronbach's alphas of the variables of a primary study; not yet functional), and 'targetVariables' (intended as vector of
+character strings representing information about the variables used).'}
 
-\item{addElements}{User-added objects that are handled as the weakly predefined objects. The major purpose is to collect information a researcher regards as important.}
+\item{addElements}{User-added objects that are handled as the weakly predefined objects. The major purpose is to collect information
+a researcher regards as important.}
 
 \item{digits}{Rounding used for summary function}
 
@@ -31,8 +44,11 @@ value indicating the mean age of participants in a primary study), 'malePercent'
 List of primary studies and parameters for the following CoTiMA (plus StudyInformation which could be saved to Excel)
 }
 \description{
-Combines information of primary studies into a list object and returns this list. This list is then used as input to fit CoTiMA models (ctmaFit, ctmaModFit).
-             Primary study information is expected to be assigned to 'numbered' objects. Some of these objects are pre-defined (e.g., 'empcov', 'ageM'). Most of the pre-defined objects could be empty, or they could be dropped by entering their names in the excludedElements-object (e.g., excludedElements = c('ageM')), but dropping them is not really necessary. Additional elements could also be added, which could be useful to put together all information about primary studies at the convenience of the researcher.
+Combines information of primary studies into a list object and returns this list. This list is then used as input to
+fit 'ctsem' models. Primary study information is expected to be assigned to 'numbered' objects. Some of these objects are pre-defined
+(e.g., 'empcov', 'ageM'). Most of the pre-defined objects could be empty, or they could be dropped by entering their names in the
+excludedElements-object (e.g., excludedElements = c('ageM')), but dropping them is not really necessary. Additional elements could
+also be added, which could be useful to put together all information about primary studies at the convenience of the researcher.
 }
 \note{
 The following example shows information a researcher has about three studies, which have the numbers '2', '4' and '17'.

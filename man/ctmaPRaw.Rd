@@ -27,7 +27,7 @@ ctmaPRaw(
 
 \item{empVarVector}{vector of variances for all variables, usually 1}
 
-\item{activateRPB}{"set to TRUE to receive push messages with CoTiMA notifications on your phone"}
+\item{activateRPB}{set TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 }
 \description{
 Converts empirical correlation matrices to pseudo raw data (i.e. random data, that perfectly reproduce the correlations)

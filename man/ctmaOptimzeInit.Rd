@@ -28,9 +28,10 @@ ctmaOptimzeInit(
 
 \item{coresToUse}{If neg., the value is subtracted from available cores, else value = cores to use}
 
-\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
+\item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 
-\item{checkSingleStudyResults}{Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.}
+\item{checkSingleStudyResults}{Displays estimates from single study 'ctsem' models and waits for user input to continue.
+Useful to check estimates before they are saved.}
 }
 \value{
 returns a list with bestFit (= the best fit achieved), all_minus2ll (= all -2ll values for all fitted models), and summary, which
@@ -38,11 +39,11 @@ is printed if the summary function is applied to the returned object, and which 
 best fit.
 }
 \description{
-Initial fitting (i.e., applies ctmaInit) to a primary study reFit times to capitalize on chance for obtaining a hard-to-find optimal fit.
-This could be very helpful if a primary yields out-of-range estimates, which could happen if the fitting algorithm unfortunately used random start
-values that resulted in a locally but not globally optimal fit. Essentially, ctmaOptimzeInit is like gambling, hoping that at leas one set of starting
-values (the number is tries is specified in the reFits argument) eneables finding the global optimal fit. On unix-like machines (e.g. MacOS), this
-could be done in parallel mode if coresToUse > 1.
+Initial fitting (i.e., applies \code{\link{ctmaInit}}) to a primary study reFit times to capitalize on chance for obtaining
+a hard-to-find optimal fit. This could be very helpful if a primary yields out-of-range estimates, which could happen if the fitting
+algorithm unfortunately used random start values that resulted in a locally but not globally optimal fit. Essentially, using
+ctmaOptimzeInit is like gambling, hoping that at leas one set of starting values (the number is tries is specified in the reFits argument)
+eneables finding the global optimal fit. On unix-like machines (e.g. MacOS), this could be done in parallel mode if coresToUse > 1.
 }
 \note{
 All but one of multiple cores are used on unix-type machines for parallel fitting

@@ -10,10 +10,10 @@ ctmaFitToPrep(ctmaFitObject = NULL)
 \item{ctmaFitObject}{ctmaFitObject}
 }
 \value{
-list that could be used for fitting new CoTiMA models with ctmaInit or ctmaFit.
+list that could be used for fitting new CoTiMA models with \code{\link{ctmaInit}} or \code{\link{ctmaFit}}.
 }
 \description{
-Extracts information from fitted CoTiMA object to (re-)crearte list of primary studies originally created with ctmaPrep
+Extracts information from fitted CoTiMA objects to (re-)crearte list of primary studies originally created with \code{\link{ctmaPrep}}
 }
 \examples{
 newStudyList <- ctmaFitToPrep(CoTiMAInitFit_3)

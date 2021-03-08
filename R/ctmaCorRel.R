@@ -5,8 +5,6 @@
 #' @param empcov Empirical correlation matrix
 #' @param alphas Vector reliabilities
 #'
-#' @return "Empirical correlation matrix corrected for unreliability"
-#'
 #' @examples
 #' empcov313new <- ctmaCorRel(empcov=empcov313, alphas=alphas313)
 #'

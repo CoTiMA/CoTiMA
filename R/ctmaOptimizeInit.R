@@ -1,10 +1,10 @@
 #' ctmaOptimzeInit
 #'
-#' @description Initial fitting (i.e., applies ctmaInit) to a primary study reFit times to capitalize on chance for obtaining a hard-to-find optimal fit.
-#' This could be very helpful if a primary yields out-of-range estimates, which could happen if the fitting algorithm unfortunately used random start
-#' values that resulted in a locally but not globally optimal fit. Essentially, ctmaOptimzeInit is like gambling, hoping that at leas one set of starting
-#' values (the number is tries is specified in the reFits argument) eneables finding the global optimal fit. On unix-like machines (e.g. MacOS), this
-#' could be done in parallel mode if coresToUse > 1.
+#' @description Initial fitting (i.e., applies \code{\link{ctmaInit}}) to a primary study reFit times to capitalize on chance for obtaining
+#' a hard-to-find optimal fit. This could be very helpful if a primary yields out-of-range estimates, which could happen if the fitting
+#' algorithm unfortunately used random start values that resulted in a locally but not globally optimal fit. Essentially, using
+#' ctmaOptimzeInit is like gambling, hoping that at leas one set of starting values (the number is tries is specified in the reFits argument)
+#' eneables finding the global optimal fit. On unix-like machines (e.g. MacOS), this could be done in parallel mode if coresToUse > 1.
 #'
 #' @param oldStudyList oldStudyList
 #' @param activeDirectory activeDirectory
@@ -12,8 +12,9 @@
 #' @param reFits reFits
 #' @param n.latent n.latent
 #' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
-#' @param activateRPB  set to TRUE to receive push messages with CoTiMA notifications on your phone
-#' @param checkSingleStudyResults Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.
+#' @param activateRPB  set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
+#' @param checkSingleStudyResults Displays estimates from single study 'ctsem' models and waits for user input to continue.
+#' Useful to check estimates before they are saved.
 #'
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach %dopar%

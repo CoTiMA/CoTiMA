@@ -2,7 +2,7 @@
 #'
 #' @description Compute publication and citation scores for studies based on the (team of) authors' publication scores .
 #'
-#' @param getPubObj publication information compiled with ctmaGetPub
+#' @param getPubObj publication information compiled with \code{\link{ctmaGetPub}}
 #' @param primaryStudyList vector with numbers of studies (e.g., c(1,3); requires source1 and source3 to be available)
 #' @param yearsToExclude years to exclude from publications
 #' @param targetYear year (default = last year) after which publications are ignored

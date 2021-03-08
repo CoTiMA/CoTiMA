@@ -2,15 +2,17 @@
 #'
 #' @description Internal fcuntion to save files
 #'
-#' @param activateRPB "set to TRUE to receive push messages with CoTiMA notifications on your phone"
-#' @param activeDirectory "Directory name"
-#' @param SaveObject "Object to save"
-#' @param FileName "Filename"
-#' @param Directory "Directory to save file in"
-#' @param silentOverwrite "override old files without asking"
+#' @param activateRPB set TRUE to receive push messages with 'CoTiMA' notifications on your phone
+#' @param activeDirectory directory name
+#' @param SaveObject object to save
+#' @param FileName filename
+#' @param Directory directory to save file in
+#' @param silentOverwrite override old files without asking
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
+#'
+#' @return No return value. Just saves files
 #'
 ctmaSaveFile <- function(activateRPB,
                            activeDirectory=activeDirectory,

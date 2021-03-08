@@ -33,41 +33,41 @@ ctmaPower(
 )
 }
 \arguments{
-\item{ctmaInitFit}{object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by ctmaInit)}
+\item{ctmaInitFit}{object to which all single 'ctsem' fits of primary studies has been assigned to (i.e., what has been returned by \code{\link{ctmaInit}})}
 
-\item{activeDirectory}{defines another active directory than the one used in ctmaInit}
+\item{activeDirectory}{defines another active directory than the one used in \code{\link{ctmaInit}}}
 
 \item{statisticalPower}{vector of requested statistical power values}
 
-\item{failSafeN}{sample size used to determine across which time intervals effects become non-sign}
+\item{failSafeN}{sample size used to determine across which time intervals effects become non-significant}
 
-\item{failSafeP}{p-value used to determine across which time intervals effects become non-sign.}
+\item{failSafeP}{p-value used to determine across which time intervals effects become non-significant}
 
 \item{timeRange}{vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))}
 
-\item{useMBESS}{use MBESS package to calculate statistical power (slower)}
+\item{useMBESS}{use 'MBESS' package to calculate statistical power (slower)}
 
 \item{coresToUse}{vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))}
 
-\item{digits}{Number of digits used for rounding (in outputs)}
+\item{digits}{number of digits used for rounding (in outputs)}
 
-\item{indVarying}{Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)}
+\item{indVarying}{Allows continuous time intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)}
 
-\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
+\item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 
-\item{silentOverwrite}{Overwrite old files without asking}
+\item{silentOverwrite}{overwrite old files without asking}
 
-\item{loadAllInvFit}{load the fit of fully constrained CoTiMA model}
+\item{loadAllInvFit}{load the fit of fully constrained 'CoTiMA' model}
 
-\item{saveAllInvFit}{save the fit of fully constrained CoTiMA model}
+\item{saveAllInvFit}{save the fit of fully constrained 'CoTiMA' model}
 
-\item{loadAllInvWOSingFit}{load series of fits of fully constrained CoTiMA model withoutwith one cross effect excluded, respectively}
+\item{loadAllInvWOSingFit}{load series of fits of fully constrained 'CoTiMA' model with single cross effects excluded, respectively}
 
-\item{saveAllInvWOSingFit}{save series of fits of fully constrained CoTiMA model withoutwith one cross effect excluded, respectively}
+\item{saveAllInvWOSingFit}{save series of fits of fully constrained 'CoTiMA' model with single cross effects excluded, respectively}
 
-\item{skipScaling}{Does not (re-)scale raw data (re-scaling of imported pseudo raw data achieves correlations = 1)}
+\item{skipScaling}{does not (re-)scale raw data (re-scaling of imported pseudo raw data achieves correlations = 1)}
 
-\item{useSampleFraction}{To speed up debugging. Provided as fraction (e.g., 1/10)}
+\item{useSampleFraction}{to speed up debugging. Provided as fraction (e.g., 1/10)}
 
 \item{optimize}{if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
 
@@ -75,13 +75,13 @@ ctmaPower(
 
 \item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
 
-\item{iter}{number of interation (defaul = 1000). Sometimes larger values could be reqiured fom Baysian estimation}
+\item{iter}{number of iterations (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation}
 
 \item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
 
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
 
-\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)}
+\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)}
 }
 \value{
 ctmaPower returns a list containing some arguments supplied, a fitted model with all (!) parameters invariant across primary

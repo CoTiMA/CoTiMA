@@ -32,6 +32,10 @@ ctmaLabels(
 
 \item{equalDrift}{equalDrift}
 }
+\value{
+returns consistently named parameters (e.g., "V1toV2") as well es their symbolic values, which are used to fix or free
+parameters when fitting a 'CoTiMA' model
+}
 \description{
 used for consistent labeling of names and parameters
 }

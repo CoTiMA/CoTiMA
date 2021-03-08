@@ -14,7 +14,7 @@ ctmaBiG(
 )
 }
 \arguments{
-\item{ctmaInitFit}{fit object created with ctmaInit containing the fitted ctsem model of each primary study}
+\item{ctmaInitFit}{fit object created with \code{\link{ctmaInit}} containing the fitted ctsem model of each primary study}
 
 \item{activeDirectory}{the directory where to save results (if not specified, it is taken from ctmaInitFit)}
 
@@ -39,9 +39,9 @@ comprises a title (model='Analysis of Publication Bias & Generalizability') and 
 precision), and "Z-Curve 2.0 Results". Plot type is plot.type=c("funnel", "forest") and model.type="BiG".
 }
 \description{
-Analysis of publication bias and generalizability. The function takes a CoTiMA fit object (created with ctmaInit)
+Analysis of publication bias and generalizability. The function takes a CoTiMA fit object (created with \code{\link{ctmaInit}})
 and estimates fixed and random effects of single drift coefficients, heterogeneity  (Q, I square, H square, tau square),
-PET-PEESE corrections, Egger's tests, and z-curve analysis yielding expected  replication and detection rates (ERR, EDR).
+PET-PEESE corrections, Egger's tests, and z-curve analysis yielding expected replication and detection rates (ERR, EDR).
 }
 \examples{
 \dontrun{
