@@ -2,7 +2,7 @@ Package: CoTiMA
 Type: Package
 Title: Continuous Time Meta-Analysis ('CoTiMA')
 Version: 0.3.6
-Date: 2021-03-04
+Date: 2021-03-08
 Authors@R: c(person("Christian", "Dormann", role = c("aut","cph")),
             person("Markus", "Homberg", email = "cotima@uni-mainz.de", role = c("ctb", "com", "cre")),
             person("Christina", "Guthier", role = c("ctb")),
@@ -58,4 +58,6 @@ Imports:
     zcurve (>= 1.0.7),
     scholar (>= 0.2.0),
     stringi (>= 1.0.7)
+Suggests: R.rsp
+VignetteBuilder: R.rsp
 RoxygenNote: 7.1.1
