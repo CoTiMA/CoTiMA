@@ -245,10 +245,9 @@ ctmaInit <- function(
     if (!(is.null(primaryStudies$n.studies))) n.studies <- primaryStudies$n.studies; n.studies
 
     # delete empty list entries
-    tmp1 <- which(names(primaryStudies) == "n.studies"); tmp1
-    for (i in 1:(tmp1-1)) primaryStudies[[i]][[n.studies+1]] <- NULL
-    for (i in 1:(tmp1-1)) {
-      if(!(is.na(primaryStudies[[i]][[n.studies+1]]))) primaryStudies[[i]][[n.studies+1]] <- NULL
+    if (n.studies > 1) { # may not apply if a single study is fitted (e.g., ctmaOptimizeInit) # RECENT CHANGE
+      tmp1 <- which(names(primaryStudies) == "n.studies"); tmp1
+      for (i in 1:(tmp1-1)) primaryStudies[[i]][[n.studies+1]] <- NULL
     }
 
     for (i in 1:n.studies) {

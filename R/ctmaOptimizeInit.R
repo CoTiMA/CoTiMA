@@ -3,7 +3,7 @@
 #' @description Initial fitting (i.e., applies \code{\link{ctmaInit}}) to a primary study reFit times to capitalize on chance for obtaining
 #' a hard-to-find optimal fit. This could be very helpful if a primary yields out-of-range estimates, which could happen if the fitting
 #' algorithm unfortunately used random start values that resulted in a locally but not globally optimal fit. Essentially, using
-#' ctmaOptimzeInit is like gambling, hoping that at leas one set of starting values (the number is tries is specified in the reFits argument)
+#' ctmaOptimizeInit is like gambling, hoping that at leas one set of starting values (the number is tries is specified in the reFits argument)
 #' eneables finding the global optimal fit. On unix-like machines (e.g. MacOS), this could be done in parallel mode if coresToUse > 1.
 #'
 #' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}
@@ -33,7 +33,7 @@
 #' summary(optimFit313)
 #' }
 #'
-#' @export ctmaOptimzeInit
+#' @export ctmaOptimizeInit
 #'
 #' @return returns a list with bestFit (= the best fit achieved), all_minus2ll (= all -2ll values for all fitted models), and summary, which
 #' is printed if the summary function is applied to the returned object, and which shows the summary information of the ctsem model with the
@@ -118,31 +118,4 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
 
   invisible(results)
 }
-
-primaryStudies=newStudyList
-activateRPB=FALSE
-checkSingleStudyResults=TRUE
-digits=4
-n.latent=2
-n.manifest=0
-lambda=NULL
-manifestVars=NULL
-drift=NULL
-indVarying=FALSE
-saveRawData=list()
-coresToUse=c(1)
-silentOverwrite=FALSE
-saveSingleStudyModelFit=c()
-loadSingleStudyModelFit=c()
-scaleTI=NULL
-scaleTime=NULL
-optimize=TRUE
-nopriors=TRUE
-finishsamples=NULL
-chains=NULL
-iter=NULL
-verbose=NULL
-customPar=TRUE
-doPar=1
-
 
