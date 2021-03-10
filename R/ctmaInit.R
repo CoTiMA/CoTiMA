@@ -6,16 +6,16 @@
 #' @param activeDirectory defines another active directory than the one used in \code{\link{ctmaPrep}}
 #' @param activateRPB set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
 #' @param checkSingleStudyResults Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.
-#' @param digits Number of digits used for rounding (in outputs)
-#' @param n.latent Number of latent variables of the model (hast to be specified)!
-#' @param n.manifest Number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
+#' @param digits number of digits used for rounding (in outputs)
+#' @param n.latent number of latent variables of the model (hast to be specified)!
+#' @param n.manifest number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
-#' @param manifestVars Define the error variances of the manifests with a single time point using R-type matrix with nrow=n.manifest & ncol=n.manifest.
-#' @param drift Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)
-#' @param indVarying Control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
-#' @param saveRawData Save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
-#' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
-#' @param silentOverwrite Overwrite old files without asking
+#' @param manifestVars define the error variances of the manifests with a single time point using R-type matrix with nrow=n.manifest & ncol=n.manifest.
+#' @param drift labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)
+#' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
+#' @param saveRawData save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
+#' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
+#' @param silentOverwrite overwrite old files without asking
 #' @param saveSingleStudyModelFit save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
 #' @param loadSingleStudyModelFit load the fit of single study ctsem models
 #' @param scaleTI scale TI predictors
@@ -247,6 +247,9 @@ ctmaInit <- function(
     # delete empty list entries
     tmp1 <- which(names(primaryStudies) == "n.studies"); tmp1
     for (i in 1:(tmp1-1)) primaryStudies[[i]][[n.studies+1]] <- NULL
+    for (i in 1:(tmp1-1)) {
+      if(!(is.na(primaryStudies[[i]][[n.studies+1]]))) primaryStudies[[i]][[n.studies+1]] <- NULL
+    }
 
     for (i in 1:n.studies) {
       studyList[[i]] <- list(studyNumber=i, empcov=primaryStudies$empcovs[[i]], delta_t=primaryStudies$deltas[[i]],

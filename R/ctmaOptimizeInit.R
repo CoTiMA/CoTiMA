@@ -1,4 +1,4 @@
-#' ctmaOptimzeInit
+#' ctmaOptimizeInit
 #'
 #' @description Initial fitting (i.e., applies \code{\link{ctmaInit}}) to a primary study reFit times to capitalize on chance for obtaining
 #' a hard-to-find optimal fit. This could be very helpful if a primary yields out-of-range estimates, which could happen if the fitting
@@ -6,14 +6,14 @@
 #' ctmaOptimzeInit is like gambling, hoping that at leas one set of starting values (the number is tries is specified in the reFits argument)
 #' eneables finding the global optimal fit. On unix-like machines (e.g. MacOS), this could be done in parallel mode if coresToUse > 1.
 #'
-#' @param oldStudyList oldStudyList
+#' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}
 #' @param activeDirectory activeDirectory
-#' @param problemStudy problemStudy
-#' @param reFits reFits
-#' @param n.latent n.latent
-#' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
+#' @param problemStudy number (position in list) where the problem study in primaryStudies is found
+#' @param reFits how many reFits should be done
+#' @param n.latent number of latent variables of the model (hast to be specified)!
+#' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
 #' @param activateRPB  set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
-#' @param checkSingleStudyResults Displays estimates from single study 'ctsem' models and waits for user input to continue.
+#' @param checkSingleStudyResults displays estimates from single study 'ctsem' models and waits for user input to continue.
 #' Useful to check estimates before they are saved.
 #'
 #' @importFrom doParallel registerDoParallel
@@ -25,11 +25,11 @@
 #'
 #' @examples
 #' \dontrun{
-#' optimFit313 <- ctmaOptimzeInit(oldStudyList=CoTiMAstudyList_3,
-#'                                activeDirectory="/Users/tmp/",  # adapt!
-#'                                problemStudy=which(CoTiMAstudyList_3$studyNumbers == 313),
-#'                                reFits=10,
-#'                                n.latent=2)
+#' optimFit313 <- ctmaOptimizeInit(primaryStudies=CoTiMAstudyList_3,
+#'                                 activeDirectory="/Users/tmp/",  # adapt!
+#'                                 problemStudy=which(CoTiMAstudyList_3$studyNumbers == 313),
+#'                                 reFits=10,
+#'                                 n.latent=2)
 #' summary(optimFit313)
 #' }
 #'
@@ -39,14 +39,14 @@
 #' is printed if the summary function is applied to the returned object, and which shows the summary information of the ctsem model with the
 #' best fit.
 #'
-ctmaOptimzeInit <- function(oldStudyList=NULL,
-                            activeDirectory=NULL,
-                            problemStudy=NULL,
-                            reFits=NULL,
-                            n.latent=NULL,
-                            coresToUse=c(1),
-                            activateRPB=FALSE,
-                            checkSingleStudyResults=FALSE)
+ctmaOptimizeInit <- function(primaryStudies=NULL,
+                             activeDirectory=NULL,
+                             problemStudy=NULL,
+                             reFits=NULL,
+                             n.latent=NULL,
+                             coresToUse=c(1),
+                             activateRPB=FALSE,
+                             checkSingleStudyResults=FALSE)
 {
 
   #######################################################################################################################
@@ -76,19 +76,29 @@ ctmaOptimzeInit <- function(oldStudyList=NULL,
 
   '%dopar%' <- foreach::'%dopar%'
   ErrorMsg <- "arguments are missing"
-  if (is.null(oldStudyList) | is.null(problemStudy) | is.null(reFits) | is.null(activeDirectory) | is.null(n.latent)  ) stop(ErrorMsg)
+  if (is.null(primaryStudies) | is.null(problemStudy) | is.null(reFits) | is.null(activeDirectory) | is.null(n.latent)  ) stop(ErrorMsg)
 
   # create new study list with a single problem study only
-  newStudyList <- list()
-  for (j in 1:(length(names(oldStudyList)))) {
-    tmp1 <- lapply(oldStudyList[[names(oldStudyList)[j]]], function(x) x)
-    if (length(tmp1) == 1) {
-      newStudyList[[j]] <- tmp1
+  listElements <- names(primaryStudies); listElements
+  newStudyList <- as.list(listElements)
+  validElements <- c("deltas", "sampleSizes", "pairwiseNs", "empcovs", "moderators", "startValues", "studyNumbers", "rawData", "empMeans", "empVars",
+                     "source", "ageM", "malePercent", "occupation", "country", "alphas", "targetVariables", "recodeVariables", "combineVariables",
+                     "combineVariablesNames", "missingVariables") #, "n.studies", "summary", "excelSheets", "plot.type")
+  counter <- 0
+  for (i in listElements) {
+    counter <- counter + 1
+    if (i %in% validElements) {
+      if (i %in% c("pairwiseNs", "empcovs", "rawData")) {
+        newStudyList[[counter]] <- primaryStudies[[counter]][problemStudy]
+      } else {
+        newStudyList[[counter]] <- list(unlist(primaryStudies[[counter]][problemStudy], recursive=TRUE))
+      }
     } else {
-      newStudyList[[j]] <- list(tmp1[[problemStudy]])
+      newStudyList[[counter]] <- unlist(primaryStudies[[counter]])
     }
+    if (is.logical(newStudyList[[counter]])) newStudyList[[counter]] <- NA
   }
-  names(newStudyList) <- names(oldStudyList)
+  names(newStudyList) <- names(primaryStudies)
   newStudyList$n.studies <- 1
 
   # parallel re-fitting of problem study
@@ -108,5 +118,31 @@ ctmaOptimzeInit <- function(oldStudyList=NULL,
 
   invisible(results)
 }
+
+primaryStudies=newStudyList
+activateRPB=FALSE
+checkSingleStudyResults=TRUE
+digits=4
+n.latent=2
+n.manifest=0
+lambda=NULL
+manifestVars=NULL
+drift=NULL
+indVarying=FALSE
+saveRawData=list()
+coresToUse=c(1)
+silentOverwrite=FALSE
+saveSingleStudyModelFit=c()
+loadSingleStudyModelFit=c()
+scaleTI=NULL
+scaleTime=NULL
+optimize=TRUE
+nopriors=TRUE
+finishsamples=NULL
+chains=NULL
+iter=NULL
+verbose=NULL
+customPar=TRUE
+doPar=1
 
 
