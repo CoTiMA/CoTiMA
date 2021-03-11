@@ -990,7 +990,7 @@ ctmaInit <- function(
     # DRIFT
     startCol <- 2; startCol
     startRow <- 1; startRow
-    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, matrix(driftNames, nrow=1), colNames = FALSE)
+    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, matrix(c(t(matrix(driftNames, nrow=n.latent))), nrow=1), colNames = FALSE)
     startCol <- 2; startCol
     startRow <- 2; startRow
     openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
