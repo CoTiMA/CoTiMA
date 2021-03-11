@@ -13,6 +13,7 @@
 #' @param n.latent number of latent variables of the model (hast to be specified)!
 #' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
 #' @param activateRPB  set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
+#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)
 #' @param checkSingleStudyResults displays estimates from single study 'ctsem' models and waits for user input to continue.
 #' Useful to check estimates before they are saved.
 #'
@@ -46,7 +47,8 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
                              n.latent=NULL,
                              coresToUse=c(1),
                              activateRPB=FALSE,
-                             checkSingleStudyResults=FALSE)
+                             checkSingleStudyResults=FALSE,
+                             customPar=FALSE)
 {
 
   #######################################################################################################################
@@ -105,7 +107,8 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
   allfits <- foreach::foreach(i=1:reFits) %dopar% {
     fits <- ctmaInit(newStudyList, coresToUse = 1, n.latent=n.latent,
                      activeDirectory = activeDirectory,
-                     checkSingleStudyResults=checkSingleStudyResults)
+                     checkSingleStudyResults=checkSingleStudyResults,
+                     customPar=customPar)
     return(fits)
   }
 

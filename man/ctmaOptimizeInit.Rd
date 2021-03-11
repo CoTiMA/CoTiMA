@@ -12,7 +12,8 @@ ctmaOptimizeInit(
   n.latent = NULL,
   coresToUse = c(1),
   activateRPB = FALSE,
-  checkSingleStudyResults = FALSE
+  checkSingleStudyResults = FALSE,
+  customPar = FALSE
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ ctmaOptimizeInit(
 
 \item{checkSingleStudyResults}{displays estimates from single study 'ctsem' models and waits for user input to continue.
 Useful to check estimates before they are saved.}
+
+\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)}
 }
 \value{
 returns a list with bestFit (= the best fit achieved), all_minus2ll (= all -2ll values for all fitted models), and summary, which
