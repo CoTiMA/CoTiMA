@@ -603,7 +603,7 @@ ctmaPower <- function(
       }
       model.full.fit2 <- lavaan::sem(model.full, sample.cov = implCov[[t]], sample.nobs = failSafeN)
 
-      # The following lines just extract p-values from lavaans results, but the result ist delivered in 'strange' format.
+      # The following lines just extract p-values from lavaans results, but the result is delivered in 'strange' format.
       # Strange format means the R can easily handle the fit objects, but NOT within a package.
       # Therefore, we developed some weird code that finally turned out to work.
       # str(model.full.fit2)

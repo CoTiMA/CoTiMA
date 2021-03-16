@@ -30,7 +30,8 @@ ctmaInit(
   iter = NULL,
   verbose = NULL,
   customPar = TRUE,
-  doPar = 1
+  doPar = 1,
+  useSV = TRUE
 )
 }
 \arguments{
@@ -85,6 +86,8 @@ ctmaInit(
 \item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)}
 
 \item{doPar}{parallel and multiple fitting if single studies}
+
+\item{useSV}{if TRUE (default) start values will be used if provided in the list of primary studies}
 }
 \value{
 ctmaFit returns a list containing some arguments supplied, the fitted models, different elements summarizing the main results,

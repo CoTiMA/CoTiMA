@@ -28,6 +28,7 @@
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit - for debugging
 #' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)
 #' @param doPar parallel and multiple fitting if single studies
+#' @param useSV if TRUE (default) start values will be used if provided in the list of primary studies
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  crayon red blue
@@ -90,7 +91,8 @@ ctmaInit <- function(
   iter=NULL,
   verbose=NULL,
   customPar=TRUE,
-  doPar=1
+  doPar=1,
+  useSV=TRUE
 )
 
 {  # begin function definition (until end of file)
@@ -256,7 +258,9 @@ ctmaInit <- function(
                              timePoints=sum(length(primaryStudies$deltas[[i]]), 1), moderators=primaryStudies$moderators[[i]],
                              maxModerators=length(primaryStudies$moderators[[i]]), startValues=primaryStudies$startValues[[i]],
                              rawData=primaryStudies$rawData[[i]], pairwiseN=primaryStudies$pairwiseNs[[i]],
+                             startValues=primaryStudies$inits[[i]],
                              source=paste(primaryStudies$source[[i]], collapse=", "))
+      if (useSV == FALSE) studyList[[i]]$startValues <- NULL
       if (length(primaryStudies$moderators[[i]]) > maxLengthModeratorVector) maxLengthModeratorVector <- length(primaryStudies$moderators[[i]])
       # check matrix symmetry if matrix is provided
       if (!(primaryStudies$studyNumbers[i] %in% loadRawDataStudyNumbers)) {
@@ -700,6 +704,7 @@ ctmaInit <- function(
           results <- suppressMessages(ctsem::ctStanFit(
             datalong = emprawLong[[i]],
             ctstanmodel = currentModel,
+            inits=studyList[[i]]$startValues,
             savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
             stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
             iter=CoTiMAStanctArgs$iter,
@@ -731,6 +736,7 @@ ctmaInit <- function(
             fits <- suppressMessages(ctsem::ctStanFit(
               datalong = emprawLong[[i]],
               ctstanmodel = currentModel,
+              inits=studyList[[i]]$startValues,
               savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
               stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
               iter=CoTiMAStanctArgs$iter,
