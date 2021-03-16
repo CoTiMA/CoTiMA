@@ -149,6 +149,7 @@ ctmaSV <- function(
 
       #model.full.fit <- list()
       driftSV <- diffSV <- array(NA, dim=c(n.studies, n.latent, n.latent) ); driftSV
+      model.full.fit.summary <- list()
       for (k in 1:n.studies) {
         #k <- 1
         dataTmp <- ctmaInitFit$emprawList[[k]]
