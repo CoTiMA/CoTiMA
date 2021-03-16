@@ -256,9 +256,8 @@ ctmaInit <- function(
       studyList[[i]] <- list(studyNumber=i, empcov=primaryStudies$empcovs[[i]], delta_t=primaryStudies$deltas[[i]],
                              sampleSize=primaryStudies$sampleSizes[[i]], originalStudyNo=primaryStudies$studyNumber[[i]],
                              timePoints=sum(length(primaryStudies$deltas[[i]]), 1), moderators=primaryStudies$moderators[[i]],
-                             maxModerators=length(primaryStudies$moderators[[i]]), startValues=primaryStudies$startValues[[i]],
+                             maxModerators=length(primaryStudies$moderators[[i]]), startValues=primaryStudies$inits[[i]],
                              rawData=primaryStudies$rawData[[i]], pairwiseN=primaryStudies$pairwiseNs[[i]],
-                             startValues=primaryStudies$inits[[i]],
                              source=paste(primaryStudies$source[[i]], collapse=", "))
       if (useSV == FALSE) studyList[[i]]$startValues <- NULL
       if (length(primaryStudies$moderators[[i]]) > maxLengthModeratorVector) maxLengthModeratorVector <- length(primaryStudies$moderators[[i]])
@@ -270,7 +269,6 @@ ctmaInit <- function(
         }
       }
     }
-
 
     ### create pseudo raw data for all studies or load raw data if available & specified
     empraw <- lags <- moderators <- emprawMod <- allSampleSizes <- lostN <- overallNDiff <- relativeNDiff <- list()

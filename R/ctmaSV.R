@@ -129,7 +129,7 @@ ctmaSV <- function(
 
       model.full <- list()
       for (k in 1:n.studies) {
-        #k <- 42
+        #k <- 1
         model.full[[k]] <- model.2w
         #(length(ctmaInitFit$primaryStudyList$deltas[[k]]))
         if (length(ctmaInitFit$primaryStudyList$deltas[[k]]) > 1 ) {
@@ -156,8 +156,10 @@ ctmaSV <- function(
         model.full.fit <- suppressWarnings(lavaan::sem(model.full[[k]], # its okay to "duplicated elements in model syntax have been ignored":" - it was easier to leave them in
                                                        data = dataTmp,
                                                        sample.nobs = ctmaInitFit$primaryStudyList$sampleSizes[[k]]))
-        model.full.fit.summary <- summary(model.full.fit)
-        #model.full.fit.summary$PE
+        tmp1 <- model.full.fit@ParTable; tmp1
+        # model.full.fit.summary <- summary(model.full.fit) # THIS DOES NOT WORK, weird code required, cf ctmaPower
+        model.full.fit.summary$PE <- as.data.frame(cbind(tmp1$lhs, tmp1$op, tmp1$rhs, tmp1$est)); model.full.fit.summary$PE
+        colnames(model.full.fit.summary$PE) <- c("lhs", "op", "rhs", "est"); model.full.fit.summary$PE
 
         # get effects
         for (j in 1:n.latent) {
@@ -177,7 +179,7 @@ ctmaSV <- function(
 
             tmp4 <- tmp1[tmp1 %in% tmp3]; tmp4
             #model.full.fit.summary$PE
-            driftSV[k, h,j] <- mean(model.full.fit.summary$PE$est[tmp4]); driftSV[k,h,j]
+            driftSV[k, h,j] <- mean(as.numeric(model.full.fit.summary$PE$est[tmp4])); driftSV[k,h,j]
             # diffusion
             tmp2 <- grep("T0", model.full.fit.summary$PE$lhs); tmp2
             tmp2 <- c(tmp2, grep("T0", model.full.fit.summary$PE$rhs)); tmp2
@@ -186,7 +188,7 @@ ctmaSV <- function(
             #tmp5 <- mean(model.full.fit.summary$PE$est[tmp4]); tmp5 #diffSV[k, h, j]
             #tmp5[upper.tri(tmp5)] <- tmp5[lower.tri(tmp5)]; tmp5
             #diffSV[k, , ] <- tmp5; diffSV[k, , ]
-            diffSV[k, h, j]  <- mean(model.full.fit.summary$PE$est[tmp4]) #diffSV[k, h, j]
+            diffSV[k, h, j]  <- mean(as.numeric(model.full.fit.summary$PE$est[tmp4])) #diffSV[k, h, j]
           }
         }
         tmp5 <- diffSV[k, , ]
