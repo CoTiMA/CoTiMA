@@ -2,7 +2,7 @@
 % Please edit documentation in R/ctmaSV.R
 \name{ctmaSV}
 \alias{ctmaSV}
-\title{ctmaPower}
+\title{ctmaSV}
 \usage{
 ctmaSV(ctmaInitFit = NULL, activeDirectory = NULL, coresToUse = 1)
 }
@@ -21,7 +21,7 @@ derives start values by average discrete time SEM effects, converting them to co
 }
 \examples{
 \dontrun{
-tmp1
+newPrimaryStudyList <- ctmaSV(ctmaInitFit=CoTiMAInitFit_6)
 }
 
 }

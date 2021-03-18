@@ -1,4 +1,4 @@
-#' ctmaPower
+#' ctmaSV
 #'
 #' @description derives start values by average discrete time SEM effects, converting them to continuous time, and inversely apply transformations used by 'ctsem'
 #'
@@ -14,7 +14,7 @@
 #' @importFrom lavaan sem inspect
 #'
 #' @examples \dontrun{
-#' tmp1
+#' newPrimaryStudyList <- ctmaSV(ctmaInitFit=CoTiMAInitFit_6)
 #' }
 #'
 #' @export ctmaSV
