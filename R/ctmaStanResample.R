@@ -1,29 +1,27 @@
 #' ctmaStanResample
 #'
-#' @description Re-sample from a fitted stanct model to achieve desired number of finishsamples (could be useful to prevent exhausted memory)
+#' @description re-sample from a fitted stanct model to achieve desired number of finishsamples (could be useful to prevent exhausted memory)
 #'
-#' @param ctmaFittedModel a model fitted ith CoTiMA R package, usually with few 'finishsamples' to prevent memory exhaustion
-#' @param nsamples sample size per rund
-#' @param overallSamples overall samples isze to be achieved
+#' @param ctmaFittedModel a 'CoTiMA' fit object, usually with few 'finishsamples' to prevent memory exhaustion
+#' @param nsamples sample size per run
+#' @param overallSamples overall samples size to be achieved
 #'
-#' @import ctsem
+#' @importFrom ctsem ctAddSamples
 #' @importFrom abind abind
 #'
-#' @export ctmaStanResample
+#' @return returns a CoTiMA fit object with an increased number of finish samples
 #'
 ctmaStanResample <- function(ctmaFittedModel=NULL,
                              nsamples=25,
                              overallSamples=500) {
 
-  skip <- 1
-  if (skip == 0) {
   sm1 <- ctmaFittedModel
   sm1$stanfit$rawposterior <- sm1$stanfit$rawposterior[1:2,]
   runs <- round(overallSamples/nsamples+0.5); runs
   currentResults <- list()
   for (i in 1:runs) {
     cat(i*nsamples, "out of", overallSamples, "\n")
-    ### currentResults[[i]] <- ctsem:::ctAddSamples(sm1, nsamples=nsamples, cores=1) # ctmaAddSamples
+    currentResults[[i]] <- ctsem::ctAddSamples(sm1, nsamples=nsamples, cores=1) # ctmaAddSamples
   }
   ## combine resampled results
   # extract 2 rawposteriors
@@ -66,8 +64,6 @@ ctmaStanResample <- function(ctmaFittedModel=NULL,
     }
   }
   return(ctmaFittedModel)
-  }
-  cat("Resampling is currently disabled. \n")
-  return(ctmaFittedModel)
+
 }
 

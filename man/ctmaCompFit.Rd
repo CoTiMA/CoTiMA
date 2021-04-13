@@ -11,6 +11,18 @@ ctmaCompFit(model1 = NULL, model2 = NULL)
 
 \item{model2}{Model 2}
 }
+\value{
+Returns the the difference between the two -2 times LLs (Diff_Minus2LL), the associated difference in degrees of
+freedom (Diff_df (= Diff_n.params)), and the probability (prob).
+}
 \description{
-Performs -2ll different tests of 2 Models (CoTiMAFit objects))
+Performs log-liklihood ratio tests to compare the fit of 2 models (CoTiMAFit objects created with \code{\link{ctmaFit}}
+or \code{\link{ctmaEqual}}), i.e., the difference between the two -2 times LLs between the first model and the more constrained second
+model. The nested structure of the two models is assumed to be given and not checked.
+}
+\examples{
+minus2llDiffTest <- ctmaCompFit(CoTiMAFullInv23Fit_6,
+                                CoTiMAFullInvEq23Fit_6)
+summary(minus2llDiffTest)
+
 }

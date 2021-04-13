@@ -16,14 +16,27 @@ ctmaPrep(
 \arguments{
 \item{selectedStudies}{Vector of primary study numbers (numeric values with no leading 0; e.g., '2' but not '02')}
 
-\item{excludedElements}{Vector of predefined objects used to code primary study information. Some predefined objects are strongly defined; they have to be used in a special way because they are actually used in subsequent analyses. Some other objects could be used at the researcher's convenience (information is just collected). Strongly predefined objects are 'delta_t' (vector of time intervals; the only mandatory requirement; should be of the type c(NA, NA) in cases when raw data are provided), 'sampleSize' (single number), 'pairwiseN' (matrix of pairwise N; could be used if correlation matrix is based on pairwise N), 'empcov' (correlation matrix), 'moderator' (vector of numbers; could be continuous or categorical), 'startValues' (vector of start values), 'rawData' (information about file name and structure of raw data), 'empMeans' (means for variables; usually 0), and 'empVars' (varainces for variables; usually 1). Weakly predefined objects are 'studyNumber' (intended as a special number used for the outputs of subsequently fitted CoTiMA models), 'source' (intended as vector of authors' names and publication year), 'ageM' (intended as
-value indicating the mean age of participants in a primary study), 'malePercent' (intended as value indicating the percentage of male participants in a primary study), 'occupation' (intended as vector of character strings representing the occupations of participants in a primary study), 'country' (intended as single character string representing the country in which a primary study was conducted), 'alphas' (intended as vector of Cronbach's alphas of the variables of a primary study; not yet functional), and 'targetVariables' (intended as vector of character strings representing information about the variables used).'}
+\item{excludedElements}{Vector of predefined objects used to code primary study information. Some predefined objects are strongly
+defined; they have to be used in a special way because they are actually used in subsequent analyses. Some other objects could be
+used at the researcher's convenience (information is just collected). Strongly predefined objects are 'delta_t' (vector of time
+intervals; the only mandatory requirement; should be of the type c(NA, NA) in cases when raw data are provided), 'sampleSize'
+(single number), 'pairwiseN' (matrix of pairwise N; could be used if correlation matrix is based on pairwise N), 'empcov' (correlation
+matrix), 'moderator' (vector of numbers; could be continuous or categorical), 'startValues' (vector of start values), 'rawData'
+(information about file name and structure of raw data), 'empMeans' (means for variables; usually 0), and 'empVars' (varainces for
+variables; usually 1). Weakly predefined objects are 'studyNumber' (intended as a special number used for the outputs of subsequently
+fitted CoTiMA models), 'source' (intended as vector of authors' names and publication year), 'ageM' (intended as value indicating the
+mean age of participants in a primary study), 'malePercent' (intended as value indicating the percentage of male participants in a
+primary study), 'occupation' (intended as vector of character strings representing the occupations of participants in a primary study),
+'country' (intended as single character string representing the country in which a primary study was conducted), 'alphas' (intended as
+vector of Cronbach's alphas of the variables of a primary study; not yet functional), and 'targetVariables' (intended as vector of
+character strings representing information about the variables used).'}
 
-\item{addElements}{User-added objects that are handled as the weakly predefined objects. The major purpose is to collect information a researcher regards as important.}
+\item{addElements}{User-added objects that are handled as the weakly predefined objects. The major purpose is to collect information
+a researcher regards as important.}
 
 \item{digits}{Rounding used for summary function}
 
-\item{moderatorLabels}{vector of names}
+\item{moderatorLabels}{character vector of names}
 
 \item{moderatorValues}{list of character vectors}
 }
@@ -31,85 +44,66 @@ value indicating the mean age of participants in a primary study), 'malePercent'
 List of primary studies and parameters for the following CoTiMA (plus StudyInformation which could be saved to Excel)
 }
 \description{
-Combines information of primary studies into a list object and returns this list. This list is then used as input to fit CoTiMA models (ctmaFit, ctmaModFit), for analyses of publication bias (ctmaBias) or statistical power (ctmaPower), or for plotting the results (ctmaPlot).
-             Primary study information is expected to be assigned to 'numbered' objects. Some of these objects are pre-defined (e.g., 'empcov', 'ageM'). Most of the pre-defined objects could be empty, or they could be dropped by entering their names in the excludedElements-object (e.g., excludedElements = c('ageM')), but dropping them is not really necessary. Additional elements could also be added, which could be useful to put together all information about primary studies at the convenience of the researcher.
+Combines information of primary studies into a list object and returns this list. This list is then used as input to
+fit 'ctsem' models. Primary study information is expected to be assigned to 'numbered' objects. Some of these objects are pre-defined
+(e.g., 'empcov', 'ageM'). Most of the pre-defined objects could be empty, or they could be dropped by entering their names in the
+excludedElements-object (e.g., excludedElements = c('ageM')), but dropping them is not really necessary. Additional elements could
+also be added, which could be useful to put together all information about primary studies at the convenience of the researcher.
 }
 \note{
-The following example shows information a researcher has about two studies, which have the numbers '2' and '4'.
-All information about these studies are stored in objects ending with '2' and '4', respectively.
-In most instances, one relevant piece of information is the empirical correlation (or covariance) matrix reported in this study,
-which is stored in the objects 'empcov2' and 'empcov4'. Note that full and symmetric matrices are required for ctmaPrep.
-Usually, sample sizes ('sampleSize2', 'sampleSize4') and time lags ('delta_t2', 'delta_t4'), are required, too
+The following example shows information a researcher has about three studies, which have the numbers '2', '4' and '17'.
+All information about these studies are stored in objects ending with '2', '4', and '17', respectively. In most instances, one
+relevant piece of information is the empirical correlation (or covariance) matrix reported in this study, which is stored in the
+objects 'empcov2', 'empcov4', and 'empcov17'. Note that full and symmetric matrices are required for ctmaPrep. Usually, sample
+sizes ('sampleSize2', 'sampleSize4', & 'sampleSize17') and time lags ('delta_t2', 'delta_t4', & 'delta_t17'), are required, too.
 }
 \examples{
 # First Study
-source2 <- c("Dollard", "& Bakker", "2010")
+empcov2 <- matrix(c(1.00, 0.45, 0.57, 0.18,
+                    0.45, 1.00, 0.31, 0.66,
+                    0.57, 0.31, 1.00, 0.40,
+                    0.18, 0.66, 0.40, 1.00), nrow=4, ncol=4)
 delta_t2 <- 12
-sampleSize2 <- 209
-empcov2 <- matrix(c(1.00, 0.55, 0.69, 0.37,
-                    0.55, 1.00, 0.43, 0.55,
-                    0.69, 0.43, 1.00, 0.58,
-                    0.37, 0.55, 0.58, 1.00),
-                   nrow = 4, ncol = 4)
-moderator2 <- c(2, 2)
+sampleSize2 <- 148
+moderator2 <- c(1, 0.72)
+source2 <- c("Houkes, I,", "Janssen, P, P, M,", "de Jonge, J",
+              "& Bakker, A, B", "Study1", "2003")
 addedByResearcher2 <- "something you want to add"
 
 # Second Study
-delta_t4 <- c(12, 6)
-sampleSize4 <- 261
-empcov4 <- matrix(c(1.00, 0.44, 0.74, 0.36, 0.71, 0.32,
-                    0.44, 1.00, 0.35, 0.66, 0.38, 0.65,
-                    0.74, 0.35, 1.00, 0.43, 0.83, 0.35,
-                    0.36, 0.66, 0.43, 1.00, 0.41, 0.71,
-                    0.71, 0.38, 0.83, 0.41, 1.00, 0.44,
-                    0.32, 0.65, 0.35, 0.71, 0.44, 1.00),
-                    nrow=6, ncol=6)
-moderator4 <- c(3, 1) #
-addedByResearcher4 <- "another comment"
+empcov3 <- matrix(c(1.00, 0.43, 0.71, 0.37,
+                    0.43, 1.00, 0.34, 0.69,
+                    0.71, 0.34, 1.00, 0.50,
+                    0.37, 0.69, 0.50, 1.00), nrow=4, ncol=4)
+delta_t3 <- 12
+sampleSize3 <- 88
+moderator3 <- c(1, 0.72)
+source3 <- c("Houkes, I,", "Janssen, P, P, M,", "de Jonge, J",
+              "& Bakker, A, B", "Study2", "2003")
+addedByResearcher3 <- ""
 
 # Third Study
-source17 <- c()
-delta_t17 <- c(12)
-sampleSize17 <- 440
-empcov17 <- matrix(c( 1.00,  0.60,  0.36,  0.62,  0.47,  0.18,
-                      0.60,  1.00,  0.55,  0.43,  0.52,  0.27,
-                      0.36,  0.55,  1.00,  0.26,  0.37,  0.51,
-                      0.62,  0.43,  0.26,  1.00,  0.63,  0.30,
-                      0.47,  0.52,  0.37,  0.63,  1.00,  0.55,
-                      0.18,  0.27,  0.51,  0.30,  0.55,  1.00,
-                     nrow=6, ncol=6))
-moderator17 <- c(3, 2)
-targetVariables17 <- c("Workload_1", "Exhaustion_1", "Cynicism_1",
-                       "Workload_2", "Exhaustion_2", "Cynicism_2")
-recodeVariables17 <- c(1, 4)
-combineVariables17 <- list("Workload_1", c("Exhaustion_1", "Cynicism_1"),
-                           "Workload_2", c("Exhaustion_2", "Cynicism_2"))
-combineVariablesNames17 <- c("Demands_1",  "Burnout_1",
-                             "Demands_2",  "Burnout_2")
-missingVariables17 <- c();
-\dontrun{
-results <- ctmaEmpCov(targetVariables=targetVariables17,
-                      recodeVariables=recodeVariables17,
-                      combineVariables=combineVariables17,
-                      combineVariablesNames=combineVariablesNames17,
-                      missingVariables=missingVariables17,
-                      nlatents=2, sampleSize=sampleSize17, Tpoints=2, empcov=empcov17)
-empcov17 <- results$r
-}
+empcov313 <- matrix(c(1.00, 0.38, 0.54, 0.34, 0.60, 0.28,
+                      0.38, 1.00, 0.34, 0.68, 0.28, 0.68,
+                      0.54, 0.34, 1.00, 0.47, 0.66, 0.39,
+                      0.34, 0.68, 0.47, 1.00, 0.38, 0.72,
+                      0.60, 0.28, 0.66, 0.38, 1.00, 0.38,
+                      0.28, 0.68, 0.39, 0.72, 0.38, 1.00), nrow=6, ncol=6)
+delta_t313 <- c(1.5, 1.5)
+sampleSize313 <- 335
+moderator313 <- c(0.8,	2.47)
+source313 <- c("Demerouti", "Bakker", "& Bulters", "2004")
+addedByResearcher313 <- "check correlation matrix"
 
 # Add Labels and Values for Moderators (just for optional excel tables)
-moderatorLabels <- c("Social Support", "Control")
+moderatorLabels <- c("Control", "Social Support")
 moderatorValues <- list("continuous", c("1 = very low", "2 = low",
                        "3 = medium", "4 = high", "5 = very high"))
 
-\dontrun{
-studyList_Ex1 <- ctmaPrep(selectedStudies = c(2, 4, 17),
-                          excludedElements = "ageM",
-                          addElements = "addedByResearcher",
-                          moderatorLabels=moderatorLabels,
-                          moderatorValues=moderatorValues)
-library(openxlsx)
-openXL(studyList_Ex1$excelSheets)
-}
+CoTiMAstudyList_3 <- ctmaPrep(selectedStudies = c(2, 3, 313),
+                              excludedElements = "ageM",
+                              addElements = "addedByResearcher",
+                              moderatorLabels=moderatorLabels,
+                              moderatorValues=moderatorValues)
 
 }

@@ -1,15 +1,18 @@
 #' ctmaEqual
 #'
-#' @description Test if the two or more invariant drift parameters in the CoTiMAFit object supplied are equal
+#' @description test if the two or more invariant drift parameters in the CoTiMAFit object supplied are equal. The supplied CoTiMA fit-object
+#' (ctmaInvariantFit) has to be a model fitted with \code{\link{ctmaFit}} where at least two parameters were set invariant across primary studies (e.g., 2 cross
+#' effects). All parameters that are set invariant in the supplied model are then constrained to be equal by ctmaEqual (no user action
+#' required), the model is fitted, and a log-liklihood ratio test is performed informing about the probability that equality applies.
 #'
-#' @param ctmaInvariantFit  object to which a CoTiMA fit has been assigned to (i.e., what has been returned by ctmaFit). In most cases probably a model in which only (two) effects were specified with invaraintDrift.
+#' @param ctmaInvariantFit  object to which a CoTiMA fit has been assigned to (i.e., what has been returned by \code{\link{ctmaFit}}).
+#' In most cases probably a model in which (only) two effects were specified with invariantDrift.
 #' @param activeDirectory defines another active directory than the one used in ctmaInvariantFit
 #' @param activateRPB  set to TRUE to receive push messages with CoTiMA notifications on your phone
 #' @param digits Number of digits used for rounding (in outputs)
 #' @param coresToUse If neg., the value is subtracted from available cores, else value = cores to use
 #'
 #' @importFrom  RPushbullet pbPost
-#' @importFrom  crayon red
 #' @importFrom  parallel detectCores
 #' @importFrom  ctsem ctStanFit
 #' @importFrom  OpenMx vech2full
@@ -17,11 +20,16 @@
 #' @export ctmaEqual
 #'
 #' @examples
-#' # Fit a CoTiMA to all primary studies previously fitted one
-#' # by one with the fits assigned to CoTiMAInitFit_Ex1
+#' # Fit a CoTiMA with a set of parameters set equal that were set
+#' # invariant in a previous model (of which the fit object is
+#' # supplied in argument ctmaInvariantFit)
 #' \dontrun{
-#' CoTiMAEqualFit_Ex1 <- ctmaEqual(ctmaInvariantFit=CoTiMA12Fit_Ex1)
+#' CoTiMAFullInv23Fit_6$activeDirectory <- "/Users/tmp/" # adapt!
+#' CoTiMAFullInvEq23Fit_6 <- ctmaEqual(ctmaInvariantFit=CoTiMAFullInv23Fit_6)
 #' }
+#'
+#' @return returns a model where two or more parameteres were set equal across primary studies and a log-liklihood difference test
+#' informing about the probablity that the equality assumption is correct.
 #'
 ctmaEqual <- function(
   ctmaInvariantFit=NULL,
@@ -39,21 +47,21 @@ ctmaEqual <- function(
   # check if mutipleDriftFit object is supplied
   if (! ((ctmaInvariantFit$model.type == "mx") || (ctmaInvariantFit$model.type == "stanct")) ) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("A fitted CoTiMA object with more than a single invariant drift effect (fit of ctmaFit) has to be supplied compare the effects. \n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nA fitted CoTiMA object with more than a single invariant drift effect (fit of ctmaFit) has to be supplied compare the effects. \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   # check if fit object is specified
   if (is.null(ctmaInvariantFit)){
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("A fitted CoTiMA object with more than a single invariant drift effect (fit of ctmaFit) has to be supplied compare the effects. \n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nA fitted CoTiMA object with more than a single invariant drift effect (fit of ctmaFit) has to be supplied compare the effects. \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   if ( length(grep("invariant", names(ctmaInvariantFit$modelResults$DRIFT))) < 2) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    cat(crayon::red$bold("A fitted CoTiMA object was supplied, but is has to have more than a single invariant drift effect to compare the effects. \n"))
-    stop("Good luck for the next try!")
+    ErrorMsg <- "\nA fitted CoTiMA object was supplied, but is has to have more than a single invariant drift effect to compare the effects. \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
 
@@ -68,7 +76,8 @@ ctmaEqual <- function(
   if (coresToUse >= parallel::detectCores()) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
     coresToUse <- parallel::detectCores() - 1
-    cat(crayon::red("No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.","\n"))
+    Msg <- "No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash."
+    message(Msg)
   }
 
 
@@ -95,7 +104,9 @@ ctmaEqual <- function(
 
   # copy previous model
   prevStanctModel <- ctmaInvariantFit$studyFitList[[1]]$ctstanmodelbase
+  if (is.null(prevStanctModel)) prevStanctModel <- ctmaInvariantFit$studyFitList$ctstanmodelbase
   prevStanctModelFit <- summary(ctmaInvariantFit$studyFitList[[1]])
+  if (!("npars" %in% names(prevStanctModelFit))) prevStanctModelFit <- summary(ctmaInvariantFit$studyFitList)
 
   # identify Drift coefficents that were fixed (across all TI, which is just a check)
   tmpRow <- which(prevStanctModel$pars$matrix == "DRIFT"); tmpRow
@@ -112,6 +123,7 @@ ctmaEqual <- function(
   stanctModel$pars[targetDriftRow, "param"] <- newDriftLabel
 
   prevEst <- ctmaInvariantFit$studyFitList[[1]]$stanfit$rawest; prevEst
+  if (is.null(prevEst)) prevEst <- ctmaInvariantFit$studyFitList$stanfit$rawest
   # correct for having appropriate inits
   tmp1 <- which(tmpRow %in% targetDriftRow); tmp1
   newInits <- mean(prevEst[tmp1]); newInits
@@ -119,7 +131,6 @@ ctmaEqual <- function(
   prevEst <- prevEst[-tmp1[-1]]; prevEst
 
   prevData <- ctmaInvariantFit$data
-
 
   fitStanctModel <- ctsem::ctStanFit(
     inits=prevEst,
@@ -153,39 +164,66 @@ ctmaEqual <- function(
 
   equalDriftStanctFit <- summary(fitStanctModel, digits=digits)
 
+  # Extract estimates & statistics
+  # account for changes in ctsem 3.4.1
+  if ("matrix" %in% colnames(equalDriftStanctFit$parmatrices)) ctsem341 <- TRUE else ctsem341 <- FALSE
+  tmpMean <- grep("ean", colnames(equalDriftStanctFit$parmatrices)); tmpMean
+  tmpSd <- tmpMean+1; tmpSd
+  Tvalues <- equalDriftStanctFit$parmatrices[,tmpMean]/equalDriftStanctFit$parmatrices[,tmpSd]; Tvalues
+  equalDrift_Coeff <- cbind(equalDriftStanctFit$parmatrices, Tvalues); equalDrift_Coeff
+  equalDrift_Coeff[, tmpMean:(dim(equalDrift_Coeff)[2])] <- round(equalDrift_Coeff[, tmpMean:(dim(equalDrift_Coeff)[2])], digits); equalDrift_Coeff
 
-  Tvalues <- equalDriftStanctFit$parmatrices[,3]/equalDriftStanctFit$parmatrices[,4]; Tvalues
-  equalDrift_Coeff <- round(cbind(equalDriftStanctFit$parmatrices, Tvalues), digits); equalDrift_Coeff
   # re-label
-  tmp1 <- which(rownames(equalDrift_Coeff) == "DRIFT"); tmp1
-  rownames(equalDrift_Coeff)[tmp1] <- "DRIFT " # space at the end for later extraction
-  tmp2 <- tmp1[equalDriftPos]; tmp2
-  tmp3 <- paste0(rownames(equalDrift_Coeff)[tmp2] , "(invariant & equal)"); tmp3
-  #tmp1 <- which(rownames(equalDrift_Coeff) %in% newDriftLabel); tmp1
-  #tmp2 <- paste0(rownames(equalDrift_Coeff)[tmp1] , " (invariant)"); tmp2
-  #rownames(equalDrift_Coeff)[tmp1] <- tmp2; equalDrift_Coeff
-  rownames(equalDrift_Coeff)[tmp2] <- tmp3; equalDrift_Coeff
+  if (ctsem341) {
+    tmp1 <- which(equalDrift_Coeff[, "matrix"] == "DRIFT")
+    driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); driftNamesTmp
+    rownames(equalDrift_Coeff) <- paste0(equalDrift_Coeff[, c("matrix")], "_",
+                                         equalDrift_Coeff[, c("row")], "_",
+                                         equalDrift_Coeff[, c("col")])
+  } else {
+    tmp1 <- which(rownames(equalDrift_Coeff) == "DRIFT")
+    driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); driftNamesTmp
+  }
+
+  driftNamesTmp[equalDriftPos] <- paste0(driftNamesTmp[equalDriftPos], " (invariant & equal)"); driftNamesTmp
+  rownames(equalDrift_Coeff)[tmp1] <- driftNamesTmp; equalDrift_Coeff
+  tmp2 <- grep("toV", rownames(equalDrift_Coeff)); tmp2
+  #tmp2 <- grep("invariant", rownames(equalDrift_Coeff)); tmp2
+  #tmp3 <- paste0("DRIFT ", rownames(equalDrift_Coeff)[tmp2] , " (invariant & equal)"); tmp3
+  #rownames(equalDrift_Coeff)[tmp2] <- tmp3; equalDrift_Coeff
+  #tmp4 <- tmp1[which(!(tmp1 %in% tmp2))]; tmp4 # change to "DRIFT " for later extraction
+  #rownames(invariantDrift_Coeff)[tmp4] <- paste0("DRIFT ", driftNames[which(!(tmp1 %in% tmp2))]); invariantDrift_Coeff
+  rownames(equalDrift_Coeff)[tmp2] <- paste0("DRIFT ", rownames(equalDrift_Coeff)[tmp2]); equalDrift_Coeff
+
+
+  #tmp1 <- which(rownames(equalDrift_Coeff) == "DRIFT"); tmp1
+  #rownames(equalDrift_Coeff)[tmp1] <- "DRIFT " # space at the end for later extraction
+  #tmp2 <- tmp1[equalDriftPos]; tmp2
+  #tmp3 <- paste0(rownames(equalDrift_Coeff)[tmp2] , "(invariant & equal)"); tmp3
+  ##tmp1 <- which(rownames(equalDrift_Coeff) %in% newDriftLabel); tmp1
+  ##tmp2 <- paste0(rownames(equalDrift_Coeff)[tmp1] , " (invariant)"); tmp2
+  ##rownames(equalDrift_Coeff)[tmp1] <- tmp2; equalDrift_Coeff
+  #rownames(equalDrift_Coeff)[tmp2] <- tmp3; equalDrift_Coeff
   #
   equalDrift_Minus2LogLikelihood  <- -2*equalDriftStanctFit$loglik; equalDrift_Minus2LogLikelihood
   equalDrift_estimatedParameters  <- equalDriftStanctFit$npars; equalDrift_estimatedParameters
-  #equalDrift_df <- ((n.latent * unlist(allTpoints)) %*% ((n.latent * unlist(allTpoints)) +1 )) / 2 -
-  #  equalDrift_estimatedParameters; equalDrift_df
-  #n.par.first.lag <- ((2 * n.latent) * (2 * n.latent + 1)) / 2; n.par.first.lag
-  #n.par.later.lag <- ((2 * n.latent) * (2 * n.latent - 1)) / 2; n.par.later.lag
-  #n.later.lags <- allTpoints - n.latent; n.later.lags
-  #equalDrift_df <- sum(n.later.lags * n.par.later.lag); equalDrift_df
-  equalDrift_df <- NULL
+  equalDrift_df <- "deprecated"
 
-  model_Drift_Coef <- equalDrift_Coeff[grep("DRIFT ", rownames(equalDrift_Coeff)), 3]; model_Drift_Coef
-  names(model_Drift_Coef) <- driftNames
+  model_Drift_Coef <- equalDrift_Coeff[grep("DRIFT ", rownames(equalDrift_Coeff)), tmpMean]; model_Drift_Coef
+  names(model_Drift_Coef) <- rownames(equalDrift_Coeff)[grep("DRIFT ", rownames(equalDrift_Coeff))]
   names(model_Drift_Coef)[equalDriftPos] <- newDriftLabel; model_Drift_Coef
+  names(model_Drift_Coef) <- gsub("DRIFT ", "", names(model_Drift_Coef)); model_Drift_Coef
 
-  model_Diffusion_Coef <- equalDrift_Coeff[(rownames(equalDrift_Coeff) == "DIFFUSIONcov"), 3]; model_Diffusion_Coef
-  model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
+  model_Diffusion_Coef <- equalDrift_Coeff[grep("DIFFUSIONcov", substr(rownames(equalDrift_Coeff), 1, 12)), tmpMean] ; model_Diffusion_Coef
+  if (!(ctsem341)) model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
   names(model_Diffusion_Coef) <- paste0("diff_", driftNames); model_Diffusion_Coef
 
-  model_T0var_Coef <- equalDrift_Coeff[(rownames(equalDrift_Coeff) == "T0VAR"), 3]; model_T0var_Coef
-  model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
+  if (ctsem341) {
+    model_T0var_Coef <- equalDrift_Coeff[grep("T0cov", substr(rownames(equalDrift_Coeff), 1, 5)), tmpMean]; model_T0var_Coef
+  } else {
+    model_T0var_Coef <- equalDrift_Coeff[grep("T0VAR", substr(rownames(equalDrift_Coeff), 1, 5)), tmpMean]; model_T0var_Coef
+    model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
+  }
   names(model_T0var_Coef) <- paste0("T0VAR_", driftNames); model_T0var_Coef
 
   end.time <- Sys.time()
@@ -208,10 +246,9 @@ ctmaEqual <- function(
                   equalDrift=newDriftLabel,
                   summary=list(#model=paste(targetNames, collapse=" equal to "),
                                model=newDriftLabel,
-                               estimates=round(equalDrift_Coeff, digits), #[]
-                               minus2ll= round(equalDrift_Minus2LogLikelihood, digits),
-                               n.parameters = round(equalDrift_estimatedParameters, digits),
-                               df= NULL))
+                               estimates=equalDrift_Coeff,
+                               minus2ll=equalDrift_Minus2LogLikelihood,
+                               n.parameters = round(equalDrift_estimatedParameters, digits)))
   class(results) <- "CoTiMAFit"
 
   # model comparison

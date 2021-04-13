@@ -11,41 +11,66 @@ ctmaFit(
   activeDirectory = NULL,
   activateRPB = FALSE,
   digits = 4,
-  invariantDrift = NULL,
   drift = NULL,
+  invariantDrift = NULL,
+  moderatedDrift = NULL,
+  equalDrift = NULL,
+  mod.number = NULL,
+  mod.type = "cont",
+  mod.names = NULL,
   indVarying = FALSE,
   coresToUse = c(1),
   scaleTI = NULL,
+  scaleMod = NULL,
+  scaleClus = NULL,
   scaleTime = NULL,
   optimize = TRUE,
   nopriors = TRUE,
   finishsamples = NULL,
+  iter = NULL,
   chains = NULL,
-  verbose = NULL
+  verbose = NULL,
+  allInvModel = FALSE,
+  customPar = TRUE,
+  inits = NULL
 )
 }
 \arguments{
-\item{ctmaInitFit}{object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by ctmaInit)}
+\item{ctmaInitFit}{object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by \code{\link{ctmaInit}})}
 
-\item{primaryStudyList}{could be a list of primary studies compiled with ctmaPrep that defines the subset of studies in ctmaInitFit that should actually be used}
+\item{primaryStudyList}{could be a list of primary studies compiled with \code{\link{ctmaPrep}} that defines the subset of studies in ctmaInitFit that should actually be used}
 
-\item{cluster}{vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in ctmaPrep later.}
+\item{cluster}{vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in \code{\link{ctmaPrep}} in later 'CoTiMA' versions.}
 
 \item{activeDirectory}{defines another active directory than the one used in ctmaInitFit}
 
-\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
+\item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 
 \item{digits}{Number of digits used for rounding (in outputs)}
 
-\item{invariantDrift}{drift Labels for drift effects that are set invariant across primary studies (default = all drift effects).}
+\item{drift}{labels for drift effects. Have to be either of the type 'V1toV2' or '0' for effects to be excluded.}
 
-\item{drift}{Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)}
+\item{invariantDrift}{drift labels for drift effects that are set invariant across primary studies (default = all drift effects).}
 
-\item{indVarying}{Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heteregeneity)}
+\item{moderatedDrift}{labels for drift effects that are moderated (default = all drift effects)}
 
-\item{coresToUse}{If neg., the value is subtracted from available cores, else value = cores to use}
+\item{equalDrift}{Not enabled}
 
-\item{scaleTI}{scale TI predictors - not recommended if TI are dummies representing primary studies as probably in most instances}
+\item{mod.number}{which in the vector of moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)}
+
+\item{mod.type}{'cont' or 'cat' (mixing them in a single model not yet possible)}
+
+\item{mod.names}{vector of names for moderators used in output}
+
+\item{indVarying}{allows continuous time intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)}
+
+\item{coresToUse}{if negative, the value is subtracted from available cores, else value = cores to use}
+
+\item{scaleTI}{scale TI predictors - not recommended if TI are dummies representing primary studies, which would be the usual case}
+
+\item{scaleMod}{scale moderator variables - FALSE (default) highly recommended for categorical moderators, TRUE highly recommended for continuous moderators}
+
+\item{scaleClus}{scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster}
 
 \item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
 
@@ -55,32 +80,62 @@ ctmaFit(
 
 \item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
 
+\item{iter}{number of iterations (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation}
+
 \item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
 
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
+
+\item{allInvModel}{estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR) if set TRUE (defautl = FALSE)}
+
+\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)}
+
+\item{inits}{vector of start values}
+}
+\value{
+ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,
+model type, and the type of plot that could be performed with the returned object. The arguments in the returned object are activeDirectory,
+coresToUse, moderator names (mod.names), and moderator type (mod.type). Further arguments, which are just copied from the init-fit object
+supplied, are, n.latent, studyList, parameterNames, and statisticsList. The fitted model is found in studyFitList, which is a large list
+with many elements (e.g., the ctsem model specified by CoTiMA, the rstan model created by ctsem, the fitted rstan model etc.). Further
+results returned are n.studies = 1 (required for proper plotting), data (created pseudo raw data), and a list with modelResults (i.e.,
+DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef, MOD=modTI_Coeff,  and
+CLUS=clusTI_Coeff). Possible invariance constraints are included in invariantDrift. The number of moderators simultaneously analyzed are
+included in ' n.moderators. The most important new results are returned as the list element "summary", which is printed if the summary
+function is applied to the returned object. The summary list element comprises "estimates" (the aggregated effects), possible
+randomEffects (not yet fully working),  the minus2ll value and its n.parameters, the opt.lag sensu Dormann & Griffin (2015) and the
+max.effects that occur at the opt.lag, clus.effects and mod.effects, and possible warning messages (message). Plot type is
+plot.type=c("drift") and model.type="stanct" ("omx" was deprecated).
 }
 \description{
-Fits a ctsem model with invariant drift effects across primary studies
+Fits a ctsem model with invariant drift effects across primary studies, possible multiple moderators (but all of them of the
+the same type, either "cont" or "cat"), and possible cluster (e.g., countries where primary studies were conducted).
 }
 \examples{
+\donttest{
 # Example 1. Fit a CoTiMA to all primary studies previously fitted one by one
-# with the fits assigned to CoTiMAInitFit_Ex1
-\dontrun{
-CoTiMAFullFit_Ex1 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_Ex1)
-
-saveRDS(CoTiMAFullFit_Ex1, file=paste0(activeDirectory, "CoTiMAFullFit_Ex1.rds"))
-summary(CoTiMAFullFit_Ex1)
+# with the fits assigned to CoTiMAInitFit_6
+CoTiMAFullFit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6)
+summary(CoTiMAFullFit_6)
 }
 
-# Example 2. Fit a CoTiMA with only 2 cross effects invariant (not the auto
-# effects) to all primary studies previously fitted one by one with the fits assigned
-# to CoTiMAInitFit_Ex1
 \dontrun{
-CoTiMA12lFit_Ex2 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_Ex1,
-invariantDrift=c("V1toV2", "V2toV1"))
+# Example 2. Fit a CoTiMA with only 2 cross effects invariant (not the auto
+# effects) to all primary studies previously fitted one by one with the fits
+# assigned to CoTiMAInitFit_6
+CoTiMAInitFit_6$activeDirectory <- "/Users/tmp/" # adapt!
+CoTiMAFullInv23Fit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6,
+                        invariantDrift=c("V1toV2", "V2toV1"))
+summary(CoTiMAFullInv23Fit_6)
+}
 
-saveRDS(CoTiMA12Fit_Ex2, file=paste0(activeDirectory, "CoTiMA12Fit_Ex2.rds"))
-summary(CoTiMA12lFit_Ex2)
+\dontrun{
+# Example 3. Fit a moderated CoTiMA
+CoTiMAInitFit_6$activeDirectory <- "/Users/tmp/" # adapt!
+CoTiMAMod1onFullFit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6,
+                                 mod.number=1, mod.type="cont",
+                                 mod.names=c("Control"))
+summary(CoTiMAMod1onFullFit_6)
 }
 
 }
