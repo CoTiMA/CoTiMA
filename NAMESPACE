@@ -2,7 +2,6 @@
 
 S3method(plot,CoTiMAFit)
 S3method(summary,CoTiMAFit)
-export(CoTiMAStanctArgs)
 export(ctmaBiG)
 export(ctmaCompFit)
 export(ctmaCorRel)
