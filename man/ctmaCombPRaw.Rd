@@ -11,6 +11,9 @@ ctmaCombPRaw(listOfStudyFits = NULL, moderatorValues = NULL)
 
 \item{moderatorValues}{"Moderators}
 }
+\value{
+returns a pseudo raw data set that combines pseudo raw data and moderators of primary studies
+}
 \description{
 Combine Pseudo Raw Data (extract them from 'CoTiMAFit object'$studyFitList)
 }

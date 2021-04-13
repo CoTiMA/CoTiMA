@@ -15,20 +15,19 @@ ctmaPlot(
   timeRange = c(),
   yLimitsForEffects = c(),
   mod.values = -2:2,
-  mod.num = 1,
   aggregateLabel = "",
   xLabels = NULL,
   ...
 )
 }
 \arguments{
-\item{ctmaFitObject}{CoTiMA Fit object}
+\item{ctmaFitObject}{'CoTiMA' Fit object}
 
 \item{activeDirectory}{defines another active directory than the one used in ctmaInitFit}
 
 \item{saveFilePrefix}{Prefix used for saved plots}
 
-\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
+\item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 
 \item{plotCrossEffects}{logical}
 
@@ -36,20 +35,39 @@ ctmaPlot(
 
 \item{timeUnit}{label for x-axis when plotting discrete time plots}
 
-\item{timeRange}{time range for x-axis}
+\item{timeRange}{vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))}
 
 \item{yLimitsForEffects}{range for y-axis}
 
 \item{mod.values}{moderator values that should be used for plots}
 
-\item{mod.num}{which of possible multiple moderator effects should be plotted}
-
-\item{aggregateLabel}{label to indicat aggregated discrete time effects}
+\item{aggregateLabel}{label to indicate aggregated discrete time effects}
 
 \item{xLabels}{labes used for x-axis}
 
 \item{...}{arguments passed through to plot()}
 }
+\value{
+depending on the CoTiMA fit object supplied, generates funnel plots, forest plots, discrete time plots of
+autoregressive and cross-lagged effects, plots of required samples sizes across a range of discrete time intervals
+to achieve desired levels of statistical power, and post hoc power of primary studies. Plots are saved to disk.
+}
 \description{
 Forest plot, funnel plots, plots of discrete time cross-lagged and autoregressive effect, and plots of required sample sizes
+}
+\examples{
+\dontrun{
+# cannot run without proper activeDirectory specified. Adapt!
+CoTiMAFullFit_3$activeDirectory <- "/Users/tmp/" # adapt!
+plot(ctmaFitList(CoTiMAInitFit_3, CoTiMAFullFit_3),
+     timeUnit="Months", timeRange=c(1, 144, 1),
+     plotAutoEffects=FALSE)
+}
+
+\dontrun{
+# cannot run without proper activeDirectory specified. Adapt!
+CoTiMABiG_D_BO$activeDirectory <- "/Users/tmp/" # adapt!
+plot(CoTiMABiG_D_BO)
+}
+
 }

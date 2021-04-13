@@ -27,37 +27,41 @@ ctmaInit(
   nopriors = TRUE,
   finishsamples = NULL,
   chains = NULL,
-  verbose = NULL
+  iter = NULL,
+  verbose = NULL,
+  customPar = TRUE,
+  doPar = 1,
+  useSV = TRUE
 )
 }
 \arguments{
-\item{primaryStudies}{list of primary study information created with ctmaPrep}
+\item{primaryStudies}{list of primary study information created with \code{\link{ctmaPrep}}}
 
-\item{activeDirectory}{defines another active directory than the one used in ctmaPrep}
+\item{activeDirectory}{defines another active directory than the one used in \code{\link{ctmaPrep}}}
 
-\item{activateRPB}{set to TRUE to receive push messages with CoTiMA notifications on your phone}
+\item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 
-\item{checkSingleStudyResults}{Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before the are saved.}
+\item{checkSingleStudyResults}{Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.}
 
-\item{digits}{Number of digits used for rounding (in outputs)}
+\item{digits}{number of digits used for rounding (in outputs)}
 
-\item{n.latent}{Number of latent variables of the model (hast to be specified)!}
+\item{n.latent}{number of latent variables of the model (hast to be specified)!}
 
-\item{n.manifest}{Number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).}
+\item{n.manifest}{number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).}
 
 \item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
 
-\item{manifestVars}{Define the error variances of the manifests with a single time point using R-type matrix with nrow=n.manifest & ncol=n.manifest.}
+\item{manifestVars}{define the error variances of the manifests with a single time point using R-type matrix with nrow=n.manifest & ncol=n.manifest.}
 
-\item{drift}{Labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)}
+\item{drift}{labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)}
 
-\item{indVarying}{Control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
+\item{indVarying}{control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
 
-\item{saveRawData}{Save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec}
+\item{saveRawData}{save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec}
 
-\item{coresToUse}{If neg., the value is subtracted from available cores, else value = cores to use}
+\item{coresToUse}{if neg., the value is subtracted from available cores, else value = cores to use}
 
-\item{silentOverwrite}{Override old files without asking}
+\item{silentOverwrite}{overwrite old files without asking}
 
 \item{saveSingleStudyModelFit}{save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)}
 
@@ -67,29 +71,50 @@ ctmaInit(
 
 \item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
 
-\item{optimize}{if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
+\item{optimize}{if set to FALSE, Stan's Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
 
-\item{nopriors}{if TRUE, any priors are disabled – sometimes desirable for optimization}
+\item{nopriors}{if TRUE, any priors are disabled - sometimes desirable for optimization}
 
 \item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
 
 \item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
 
-\item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
+\item{iter}{number of interation (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation}
+
+\item{verbose}{integer from 0 to 2. Higher values print more information during model fit - for debugging}
+
+\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)}
+
+\item{doPar}{parallel and multiple fitting if single studies}
+
+\item{useSV}{if TRUE (default) start values will be used if provided in the list of primary studies}
+}
+\value{
+ctmaFit returns a list containing some arguments supplied, the fitted models, different elements summarizing the main results,
+model type, and the type of plot that could be performed with the returned object. The arguments in the returned object are activeDirectory,
+coresToUse, n.latent, n.manifest, and primaryStudyList. The study count is returned as n.studies, the created matrix of loadings of
+manifest on latent factors is returned as lambda, and a re-organized list of primary studies with some information ommited is returned as
+studyList. The fitted models for each primary study are found in studyFitList, which is a large list with many elements (e.g., the ctsem
+model specified by CoTiMA, the rstan model created by ctsem, the fitted rstan model etc.). Further results returned are emprawList
+(containing the pseudo raw data created), statisticsList (comprising baisc stats such as average sample size, no. of measurement points,
+etc.), a list with modelResults (i.e., DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef,
+CINT=model_Cint_Coef), and the paramter names internally used. The summary list,  which is printed if the summary function is applied to the
+returned object, comprises "estimates" (the aggregated effects), possible randomEffects (not yet fully working),  confidenceIntervals, the
+minus2ll value and its n.parameters, and possible warning messages (message). Plot type is plot.type=c("drift") and model.type="stanct"
+("omx" was deprecated).
 }
 \description{
-Fits a ctsem model to a list of primary studies prepared by ctmaPrep.
+Fits ctsem models to each primary study in the supplied list of primary studies prepared by \code{\link{ctmaPrep}}.
 }
 \examples{
-# Fit a ctsem model to all primary studies summarized in
-# studyList_Ex1 and save fitted models
+# Fit a ctsem model to all three primary studies summarized in
+# CoTiMAstudyList_3 and save the three fitted models
 \dontrun{
-CoTiMAInitFit_Ex1 <- ctmaInit(
-primaryStudies=studyList_Ex1,
-n.latent=2,
-saveSingleStudyModelFit=c(2, 4, 17))
-
-summary(CoTiMAInitFit_Ex1)
+CoTiMAInitFit_3 <- ctmaInit(primaryStudies=CoTiMAstudyList_3,
+                            n.latent=2,
+                            checkSingleStudyResults=FALSE,
+                            activeDirectory="/Users/tmp/") # adapt!
+summary(CoTiMAInitFit_3)
 }
 
 }

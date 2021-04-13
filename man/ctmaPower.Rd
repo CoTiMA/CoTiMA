@@ -14,62 +14,99 @@ ctmaPower(
   useMBESS = FALSE,
   coresToUse = 1,
   digits = 4,
+  indVarying = FALSE,
   activateRPB = FALSE,
   silentOverwrite = FALSE,
   loadAllInvFit = c(),
-  saveAllInvFit = NULL,
+  saveAllInvFit = c(),
   loadAllInvWOSingFit = c(),
-  saveAllInvWOSingFit = NULL,
+  saveAllInvWOSingFit = c(),
   skipScaling = TRUE,
   useSampleFraction = NULL,
-  CoTiMAStanctArgs = list(test = TRUE, scaleTI = TRUE, scaleTime = 1/1, scaleMod =
-    TRUE, scaleLongData = FALSE, savesubjectmatrices = FALSE, verbose = 1, datalong = NA,
-    ctstanmodel = NA, stanmodeltext = NA, iter = 1000, intoverstates = TRUE, binomial =
-    FALSE, fit = TRUE, intoverpop = "auto", stationary = FALSE, plot = FALSE, derrind =
-    "all", optimize = TRUE, optimcontrol = list(is = F, stochastic = FALSE), nlcontrol =
-    list(), nopriors = TRUE, chains = 2, cores = 1, inits = NULL, forcerecompile = FALSE,
-    savescores = FALSE,      gendata = FALSE, control = list(adapt_delta = 0.8,
-    adapt_window = 2, max_treedepth = 10, adapt_init_buffer = 2, stepsize = 0.001),
-    verbose = 0, warmup = 500)
+  optimize = TRUE,
+  nopriors = TRUE,
+  finishsamples = NULL,
+  iter = NULL,
+  chains = NULL,
+  verbose = NULL,
+  customPar = TRUE
 )
 }
 \arguments{
-\item{ctmaInitFit}{""}
+\item{ctmaInitFit}{object to which all single 'ctsem' fits of primary studies has been assigned to (i.e., what has been returned by \code{\link{ctmaInit}})}
 
-\item{activeDirectory}{""}
+\item{activeDirectory}{defines another active directory than the one used in \code{\link{ctmaInit}}}
 
-\item{statisticalPower}{""}
+\item{statisticalPower}{vector of requested statistical power values}
 
-\item{failSafeN}{""}
+\item{failSafeN}{sample size used to determine across which time intervals effects become non-significant}
 
-\item{failSafeP}{""}
+\item{failSafeP}{p-value used to determine across which time intervals effects become non-significant}
 
-\item{timeRange}{""}
+\item{timeRange}{vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))}
 
-\item{useMBESS}{""}
+\item{useMBESS}{use 'MBESS' package to calculate statistical power (slower)}
 
-\item{coresToUse}{""}
+\item{coresToUse}{vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))}
 
-\item{digits}{""}
+\item{digits}{number of digits used for rounding (in outputs)}
 
-\item{activateRPB}{""}
+\item{indVarying}{Allows continuous time intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)}
 
-\item{silentOverwrite}{""}
+\item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 
-\item{loadAllInvFit}{""}
+\item{silentOverwrite}{overwrite old files without asking}
 
-\item{saveAllInvFit}{""}
+\item{loadAllInvFit}{load the fit of fully constrained 'CoTiMA' model}
 
-\item{loadAllInvWOSingFit}{""}
+\item{saveAllInvFit}{save the fit of fully constrained 'CoTiMA' model}
 
-\item{saveAllInvWOSingFit}{""}
+\item{loadAllInvWOSingFit}{load series of fits of fully constrained 'CoTiMA' model with single cross effects excluded, respectively}
 
-\item{skipScaling}{""}
+\item{saveAllInvWOSingFit}{save series of fits of fully constrained 'CoTiMA' model with single cross effects excluded, respectively}
 
-\item{useSampleFraction}{""}
+\item{skipScaling}{does not (re-)scale raw data (re-scaling of imported pseudo raw data achieves correlations = 1)}
 
-\item{CoTiMAStanctArgs}{""}
+\item{useSampleFraction}{to speed up debugging. Provided as fraction (e.g., 1/10)}
+
+\item{optimize}{if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
+
+\item{nopriors}{if TRUE, any priors are disabled – sometimes desirable for optimization}
+
+\item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
+
+\item{iter}{number of iterations (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation}
+
+\item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
+
+\item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
+
+\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)}
+}
+\value{
+ctmaPower returns a list containing some arguments supplied, a fitted model with all (!) parameters invariant across primary
+studies, different elements summarizing the main results, model type, and the type of plot that could be performed with the returned object.
+The arguments in the returned object are activeDirectory, coresToUse, n.latent, n.manifest, and primaryStudyList. A further result
+returned is n.studies = 1 (required for proper plotting). Further arguments, which are just copied from the init-fit object supplied, are,
+n.latent, studyList, and the statisticsList. The fitted model is found in studyFitList, which is a large list with many elements (e.g., the
+ctsem model specified by CoTiMA, the rstan model created by ctsem, the fitted rstan model etc.). Further results returned are  a list with
+modelResults (i.e., DRIFT=DRIFT, DIFFUSION=DIFFUSION, T0VAR=T0VAR, CINT=NULL) and the paramter names internally used. The summary list,
+which is printed if the summary function is applied to the returned object, contains "estimates", which is itself a list comprising
+"Estimates of Model with all Effects Invariant", "Requested Statistical Power" (which just returns the argument statisticalPower),
+"Power (post hoc) for Drift Effects",  "Required Sample Sizes" "Effect Sizes (based on discrete-time calcs; used for power calcs.)", and
+"Range of significant effects" (across which intervals effects were significant). Plot type is plot.type=c("power") and model.type="stanct"
+("omx" was deprecated).
 }
 \description{
-Fits a full invariant model to a list of primary studies and performs analyses of expected power and required sample sizes
+Fits a full invariant model to a list of primary studies and performs analyses of expected (post hoc) power and required sample sizes.
+}
+\examples{
+\dontrun{
+CoTiMAInitFit_D_BO$activeDirectory <- "/Users/tmp/" # adapt!
+CoTiMAPower_D_BO <- ctmaPower(ctmaInitFit=CoTiMAInitFit_D_BO,
+                              statisticalPower = c(.50, .80, .95),
+                              finishsamples = 10000)
+summary(CoTiMAPower_D_BO)
+}
+
 }
