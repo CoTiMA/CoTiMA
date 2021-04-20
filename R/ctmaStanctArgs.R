@@ -1,6 +1,8 @@
 #' This are preset arguments
 #'
 #' @name CoTiMAStanctArgs
+#' @export CoTiMAStanctArgs
+#'
 CoTiMAStanctArgs<-list(test=TRUE,
                        scaleTI=FALSE, scaleMod=FALSE, scaleClus=TRUE,
                        scaleTD=FALSE, scaleLongData=FALSE, scaleTime=1/1,
