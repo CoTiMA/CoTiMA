@@ -111,7 +111,7 @@ ctmaFit <- function(
   chains=NULL,
   verbose=NULL,
   allInvModel=FALSE,
-  customPar=TRUE,
+  customPar=FALSE,
   inits=NULL
 )
 
