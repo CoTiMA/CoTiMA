@@ -987,9 +987,8 @@ ctmaFit <- function(
                         matrix(names(results$modelResults$DIFFUSION), nrow=1), colNames = FALSE)
     startCol <- 2; startCol
     startRow <- 2 + offset + 1# offset; startRow
-    results$modelResults
     openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
-                        matrix(names(results$modelResults$DIFFUSION),
+                        matrix(results$modelResults$DIFFUSION,
                                nrow=1, byrow=TRUE))
     results$modelResults$DIFFUSION
     startCol <- 1; startCol
