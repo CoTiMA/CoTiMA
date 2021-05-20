@@ -29,7 +29,7 @@ ctmaPower(
   iter = NULL,
   chains = NULL,
   verbose = NULL,
-  customPar = TRUE
+  customPar = FALSE
 )
 }
 \arguments{
