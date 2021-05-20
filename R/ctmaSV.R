@@ -217,7 +217,8 @@ ctmaSV <- function(
         driftTmp  <- OpenMx::logm(driftSV[k,,]) / mean(ctmaInitFit$primaryStudyList$deltas[[k]]); driftTmp
         driftTmpKron <- driftTmp %x% diag(1, n.latent, n.latent) + diag(1, n.latent, n.latent) %x% driftTmp; driftTmpKron
         driftTmpKronSolv <- solve(driftTmpKron); driftTmpKronSolv
-        diffTmp <- driftTmpKronSolv %*% (OpenMx::expm(driftTmpKron * 3.99) - diag(1, dim(driftTmpKron)[1], dim(driftTmpKron)[2])) %*% c(diffSV[k, , ]); diffTmp
+        #diffTmp <- driftTmpKronSolv %*% (OpenMx::expm(driftTmpKron * 3.99) - diag(1, dim(driftTmpKron)[1], dim(driftTmpKron)[2])) %*% c(diffSV[k, , ]); diffTmp
+        diffTmp <- driftTmpKronSolv %*% (OpenMx::expm(driftTmpKron * 1) - diag(1, dim(driftTmpKron)[1], dim(driftTmpKron)[2])) %*% c(diffSV[k, , ]); diffTmp
         diffTmp <- solve(driftTmpKronSolv %*% ( OpenMx::expm(driftTmpKron * mean(ctmaInitFit$primaryStudyList$deltas[[k]])) -
                                                   diag(1, dim(driftTmpKron)[1], dim(driftTmpKron)[2]) )) %*% c(diffSV[k, , ]); diffTmp
         diffTmp <- matrix(diffTmp, n.latent, n.latent); diffTmp

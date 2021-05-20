@@ -111,7 +111,7 @@ ctmaFit <- function(
   chains=NULL,
   verbose=NULL,
   allInvModel=FALSE,
-  customPar=TRUE,
+  customPar=FALSE,
   inits=NULL
 )
 
@@ -973,8 +973,8 @@ ctmaFit <- function(
     startCol <- 2; startCol
     startRow <- 2; startRow
     openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
-                        matrix(unlist(results$modelResults$DRIFT),
-                               nrow=1, ncol=n.latent^2, byrow=TRUE))
+                        c(t(matrix(unlist(results$modelResults$DRIFT),
+                               nrow=n.latent, ncol=n.latent))))
     startCol <- 1; startCol
     startRow <- 2; startRow
     openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
@@ -987,9 +987,8 @@ ctmaFit <- function(
                         matrix(names(results$modelResults$DIFFUSION), nrow=1), colNames = FALSE)
     startCol <- 2; startCol
     startRow <- 2 + offset + 1# offset; startRow
-    results$modelResults
     openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
-                        matrix(names(results$modelResults$DIFFUSION),
+                        matrix(results$modelResults$DIFFUSION,
                                nrow=1, byrow=TRUE))
     results$modelResults$DIFFUSION
     startCol <- 1; startCol

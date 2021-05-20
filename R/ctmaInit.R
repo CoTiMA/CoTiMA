@@ -90,7 +90,7 @@ ctmaInit <- function(
   chains=NULL,
   iter=NULL,
   verbose=NULL,
-  customPar=TRUE,
+  customPar=FALSE,
   doPar=1,
   useSV=TRUE
 )
@@ -316,6 +316,8 @@ ctmaInit <- function(
         relativeNDiff[[i]] <- tmp$relativeLostN
         lags[[i]] <- matrix(currentLags, nrow=dim(empraw[[i]])[1], ncol=currentTpoints-1, byrow=TRUE)
         empraw[[i]] <- cbind(empraw[[i]], lags[[i]]);
+        empraw[[i]]
+        currentVarnames
         colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
         empraw[[i]] <- as.data.frame(empraw[[i]])
 
@@ -442,6 +444,8 @@ ctmaInit <- function(
   } ### END Read user provided data and create list with all study information ###
 
   # Check if sample sizes specified in prep file deviate from cases provided in possible raw data files
+  N1 <- (unlist((lapply(empraw, function(extract) dim(extract)[1])))); N1
+  N2 <- (unlist(primaryStudies$sampleSizes)); N2
   N1 <- sum(unlist((lapply(empraw, function(extract) dim(extract)[1]))) , na.rm=TRUE); N1
   N2 <- sum(unlist(primaryStudies$sampleSizes), na.rm=TRUE); N2
   if (!(N1 == N2)) {

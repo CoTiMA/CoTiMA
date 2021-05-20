@@ -18,7 +18,7 @@
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red
-#' @importFrom graphics plot.new polygon abline par rect axis title text legend
+#' @importFrom graphics plot plot.new polygon abline par rect axis title text legend
 #' @importFrom grDevices dev.copy png dev.off
 #' @importFrom OpenMx expm
 #' @importFrom stats quantile

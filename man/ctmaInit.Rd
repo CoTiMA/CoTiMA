@@ -29,7 +29,7 @@ ctmaInit(
   chains = NULL,
   iter = NULL,
   verbose = NULL,
-  customPar = TRUE,
+  customPar = FALSE,
   doPar = 1,
   useSV = TRUE
 )

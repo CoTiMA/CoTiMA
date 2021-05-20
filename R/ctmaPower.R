@@ -87,7 +87,7 @@ ctmaPower <- function(
   iter=NULL,
   chains=NULL,
   verbose=NULL,
-  customPar=TRUE
+  customPar=FALSE
 )
 
 {  # begin function definition (until end of file)
