@@ -10,7 +10,8 @@ ctmaPrep(
   addElements = NULL,
   digits = 4,
   moderatorLabels = NULL,
-  moderatorValues = NULL
+  moderatorValues = NULL,
+  summary = TRUE
 )
 }
 \arguments{
@@ -39,6 +40,8 @@ a researcher regards as important.}
 \item{moderatorLabels}{character vector of names}
 
 \item{moderatorValues}{list of character vectors}
+
+\item{summary}{if TRUE (default) creates summary table and xlsx sheets. Could be set to FALSE in case of errors.}
 }
 \value{
 List of primary studies and parameters for the following CoTiMA (plus StudyInformation which could be saved to Excel)

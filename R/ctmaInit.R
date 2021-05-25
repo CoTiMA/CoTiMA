@@ -364,8 +364,6 @@ ctmaInit <- function(
             }
           }
         }
-        print(i)
-        print(currentVarnames)
 
         # replace missing values
         tmpData <- as.matrix(tmpData) # important: line below will not work without having data as a matrix
