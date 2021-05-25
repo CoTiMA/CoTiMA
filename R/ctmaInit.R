@@ -316,8 +316,6 @@ ctmaInit <- function(
         relativeNDiff[[i]] <- tmp$relativeLostN
         lags[[i]] <- matrix(currentLags, nrow=dim(empraw[[i]])[1], ncol=currentTpoints-1, byrow=TRUE)
         empraw[[i]] <- cbind(empraw[[i]], lags[[i]]);
-        empraw[[i]]
-        currentVarnames
         colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
         empraw[[i]] <- as.data.frame(empraw[[i]])
 
@@ -343,6 +341,9 @@ ctmaInit <- function(
 
       # load raw data on request
       if ( i %in% loadRawDataStudyNumbers ) {
+
+        currentTpoints <- length((lapply(studyList, function(extract) extract$delta_t))[[i]])+1; currentTpoints
+
         tmp1 <- studyList[[i]]$rawData$fileName; tmp1
         tmp2 <- studyList[[i]]$rawData$header; tmp2
         tmp3 <- studyList[[i]]$rawData$dec; tmp3
@@ -351,10 +352,26 @@ ctmaInit <- function(
                                      header=tmp2,
                                      dec=tmp3,
                                      sep=tmp4)
+        currentVarnames <- c()
+        for (j in 1:(currentTpoints)) {
+          if (n.manifest == 0) {
+            for (h in 1:n.latent) {
+              currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
+            }
+          } else {
+            for (h in 1:n.manifest) {
+              currentVarnames <- c(currentVarnames, paste0("y",h,"_T", (j-1)))
+            }
+          }
+        }
+        print(i)
+        print(currentVarnames)
+
         # replace missing values
         tmpData <- as.matrix(tmpData) # important: line below will not work without having data as a matrix
         tmpData[tmpData %in% studyList[[i]]$rawData$missingValues] <- NA
         empraw[[i]] <- as.data.frame(tmpData)
+
         ## START correction of current lags if entire time point is missing for a case
         # change variable names
         tmp1 <- dim(empraw[[i]])[2]; tmp1
@@ -364,9 +381,11 @@ ctmaInit <- function(
         } else {
           colnames(empraw[[i]])[1:(currentTpoints * n.latent)] <- paste0(paste0("V", 1:n.latent), "_T", rep(0:(currentTpoints-1), each=n.latent))
         }
+
         # wide to long
         emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames)
         emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
+
         # eliminate rows where ALL latents are NA
         if (n.manifest > n.latent) {
           emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("x", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
@@ -385,6 +404,7 @@ ctmaInit <- function(
                                                             mininterval=minInterval))
         # restore
         empraw[[i]] <- as.data.frame(emprawWide)
+        #head(empraw[[i]])
         # END correction
 
         # Change the NAs provided for deltas if raw data are loaded
@@ -401,10 +421,11 @@ ctmaInit <- function(
 
       # change sample size if entire cases were deleted
       studyList[[i]]$sampleSize <- (dim(empraw[[i]]))[1]
-      allSampleSizes[[i]] <- dim(empraw[[i]])[1]
+      allSampleSizes[[i]] <- dim(empraw[[i]])[1]; allSampleSizes[[i]]
       currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
       currentTpoints <- allTpoints[[i]]; currentTpoints
 
+      #currentVarnames
       colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
 
       # standardize (variables - not time lags) if option is chosen
@@ -414,6 +435,7 @@ ctmaInit <- function(
       tmpData <- empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))]
       tmpData[is.na(tmpData)] <- minInterval
       empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))] <- tmpData
+      #head(empraw[[i]])
 
       # add moderators to loaded raw data
       # Save raw data  on request
@@ -439,7 +461,7 @@ ctmaInit <- function(
         }
         emprawLong[[i]] <- dataTmp3
       }
-
+      #head(emprawLong[[i]], 40)
     } ### END for i ...
   } ### END Read user provided data and create list with all study information ###
 
