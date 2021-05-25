@@ -1,10 +1,10 @@
 Package: CoTiMA
 Type: Package
 Title: Continuous Time Meta-Analysis ('CoTiMA')
-Version: 0.3.9
-Date: 2021-04-13
+Version: 0.4.0
+Date: 2021-05-20
 Authors@R: c(person("Christian", "Dormann", role = c("aut","cph")),
-            person("Markus", "Homberg", email = "cotima@uni-mainz.de", role = c("ctb", "com", "cre")),
+            person("Markus", "Homberg", email = "cotima@uni-mainz.de", role = c("aut", "com", "cre")),
             person("Christina", "Guthier", role = c("ctb")),
             person("Manuel", "Voelkle", role = c("ctb")))    
 Description: The 'CoTiMA' package performs meta-analyses of correlation matrices of repeatedly measured variables taken from 
