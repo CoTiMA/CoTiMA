@@ -371,9 +371,12 @@ ctmaInit <- function(
         empraw[[i]] <- as.data.frame(tmpData)
 
         ## START correction of current lags if entire time point is missing for a case
+        # if called from ctmaOptimize
+        if (!(exists("n.var"))) n.var <- max(n.latent, n.manifest)
         # change variable names
         tmp1 <- dim(empraw[[i]])[2]; tmp1
         currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
+        currentTpointsBackup <- currentTpoints # in case function is called from ctmaOptimizeInit
         if (n.manifest > n.latent) {
           colnames(empraw[[i]])[1:(currentTpoints * n.manifest)] <- paste0(paste0("x", 1:n.manifest), "_T", rep(0:(currentTpoints-1), each=n.manifest))
         } else {
@@ -422,6 +425,7 @@ ctmaInit <- function(
       allSampleSizes[[i]] <- dim(empraw[[i]])[1]; allSampleSizes[[i]]
       currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
       currentTpoints <- allTpoints[[i]]; currentTpoints
+      if (is.null(currentTpoints)) currentTpoints <- currentTpointsBackup
 
       #currentVarnames
       colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))

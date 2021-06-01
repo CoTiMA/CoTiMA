@@ -90,7 +90,7 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
   for (i in listElements) {
     counter <- counter + 1
     if (i %in% validElements) {
-      if (i %in% c("pairwiseNs", "empcovs", "rawData")) {
+      if (i %in% c("pairwiseNs", "empcovs", "rawData", "deltas")) {
         newStudyList[[counter]] <- primaryStudies[[counter]][problemStudy]
       } else {
         newStudyList[[counter]] <- list(unlist(primaryStudies[[counter]][problemStudy], recursive=TRUE))
@@ -102,6 +102,14 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
   }
   names(newStudyList) <- names(primaryStudies)
   newStudyList$n.studies <- 1
+
+
+  # adaptations for dealing with raw data
+  if (!(is.na(newStudyList$rawData[[1]]$studyNumbers))) {
+    newStudyList$rawData[[1]]$studyNumbers <- 1
+    newStudyList$studyNumbers <- 1 # otherwise raw data will not be loaded
+    newStudyList$deltas <- unlist(newStudyList$deltas)
+  }
 
   # parallel re-fitting of problem study
   allfits <- foreach::foreach(i=1:reFits) %dopar% {
