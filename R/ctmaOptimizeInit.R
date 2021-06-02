@@ -85,12 +85,12 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
   newStudyList <- as.list(listElements)
   validElements <- c("deltas", "sampleSizes", "pairwiseNs", "empcovs", "moderators", "startValues", "studyNumbers", "rawData", "empMeans", "empVars",
                      "source", "ageM", "malePercent", "occupation", "country", "alphas", "targetVariables", "recodeVariables", "combineVariables",
-                     "combineVariablesNames", "missingVariables") #, "n.studies", "summary", "excelSheets", "plot.type")
+                     "combineVariablesNames", "missingVariables", "inits", "emprawList") #, "n.studies", "summary", "excelSheets", "plot.type")
   counter <- 0
   for (i in listElements) {
     counter <- counter + 1
     if (i %in% validElements) {
-      if (i %in% c("pairwiseNs", "empcovs", "rawData", "deltas")) {
+      if (i %in% c("pairwiseNs", "empcovs", "rawData", "deltas", "emprawList")) {
         newStudyList[[counter]] <- primaryStudies[[counter]][problemStudy]
       } else {
         newStudyList[[counter]] <- list(unlist(primaryStudies[[counter]][problemStudy], recursive=TRUE))
@@ -103,6 +103,7 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
   names(newStudyList) <- names(primaryStudies)
   newStudyList$n.studies <- 1
 
+  #
   # adaptations for dealing with raw data
   if (!(is.null(newStudyList$rawData[[1]]$studyNumbers))) {
     newStudyList$rawData[[1]]$studyNumbers <- 1
@@ -112,6 +113,7 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
 
   # parallel re-fitting of problem study
   allfits <- foreach::foreach(i=1:reFits) %dopar% {
+    #head(newStudyList$emprawList[[1]])
     fits <- ctmaInit(newStudyList, coresToUse = 1, n.latent=n.latent,
                      activeDirectory = activeDirectory,
                      checkSingleStudyResults=checkSingleStudyResults,
