@@ -125,9 +125,12 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
   bestFit <- which(unlist(all_minus2ll) == min(unlist(all_minus2ll)))[1]; bestFit
   bestFit <- allfits[[bestFit]]
 
-  results <- list(bestFit=bestFit, all_minus2ll=all_minus2ll, summary=bestFit$summary)
+  results <- list(bestFit=bestFit, all_minus2ll=all_minus2ll, summary=bestFit$summary,
+                  resultsSummary=bestFit$studyFitList[[1]]$resultsSummary
+  )
   class(results) <- "CoTiMAFit"
 
   invisible(results)
 }
+
 

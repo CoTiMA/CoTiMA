@@ -345,7 +345,8 @@ ctmaInit <- function(
 
       # load raw data on request
       if ( i %in% loadRawDataStudyNumbers ) {
-        if (!(is.null(primaryStudies$emprawList[[i]]))) {  # if the function list of primary studies is alread post-processed (ctmaSV) and called from ctmaOptimizeINit)
+        if ( (!(is.null(primaryStudies$emprawList[[i]]))) &
+          ((is.null(primaryStudies$empcovs[[i]]))) ) {  # if the function list of primary studies is alread post-processed (ctmaSV) and called from ctmaOptimizeINit)
           #empraw[[i]] <- emprawLong[[i]] <- primaryStudies$emprawList[[i]]
           empraw[[i]] <- primaryStudies$emprawList[[i]]
           if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
