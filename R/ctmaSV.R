@@ -233,7 +233,11 @@ ctmaSV <- function(
         if (!(is.na(ctmaInitFit$primaryStudyList$empcovs[[k]][1]))) {
           T0varTmp <- ctmaInitFit$primaryStudyList$empcovs[[k]][1:n.latent, 1:n.latent]; T0varTmp
         } else {
-          T0varTmp <- OpenMx::vech2full(ctmaInitFit$modelResults$T0VAR[[k]])
+          if ( length(ctmaInitFit$modelResults$T0VAR[[k]]) == n.latent^2) {
+            T0varTmp <- matrix(ctmaInitFit$modelResults$T0VAR[[k]], n.latent, n.latent)
+          } else {
+            T0varTmp <- OpenMx::vech2full(ctmaInitFit$modelResults$T0VAR[[k]])
+          }
         }
         ## tform inv
         #
