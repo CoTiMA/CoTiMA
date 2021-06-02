@@ -346,7 +346,7 @@ ctmaInit <- function(
       # load raw data on request
       if ( i %in% loadRawDataStudyNumbers ) {
         if ( (!(is.null(primaryStudies$emprawList[[i]]))) &
-          ((is.null(primaryStudies$empcovs[[i]]))) ) {  # if the function list of primary studies is alread post-processed (ctmaSV) and called from ctmaOptimizeINit)
+             ((is.null(primaryStudies$empcovs[[i]]))) ) {  # if the function list of primary studies is alread post-processed (ctmaSV) and called from ctmaOptimizeINit)
           #empraw[[i]] <- emprawLong[[i]] <- primaryStudies$emprawList[[i]]
           empraw[[i]] <- primaryStudies$emprawList[[i]]
           if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
@@ -480,25 +480,25 @@ ctmaInit <- function(
                                sep=saveRawData$sep, dec=saveRawData$dec)
           }
         }
-
-        # augment pseudo raw data for stanct model
-        {
-          dataTmp <- empraw[[i]]
-          dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=currentTpoints, n.manifest=n.var, #n.TIpred = (n.studies-1),
-                                          manifestNames=manifestNames)
-          dataTmp3 <- suppressMessages(ctsem::ctDeintervalise(dataTmp2))
-          dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
-
-          # eliminate rows where ALL latents are NA
-          if (n.manifest > n.latent) {
-            dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("y", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
-          } else {
-            dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
-          }
-          emprawLong[[i]] <- dataTmp3
-        }
-        #head(emprawLong[[i]], 40)
       }
+
+      # augment pseudo raw data for stanct model
+      {
+        dataTmp <- empraw[[i]]
+        dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=currentTpoints, n.manifest=n.var, #n.TIpred = (n.studies-1),
+                                        manifestNames=manifestNames)
+        dataTmp3 <- suppressMessages(ctsem::ctDeintervalise(dataTmp2))
+        dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
+
+        # eliminate rows where ALL latents are NA
+        if (n.manifest > n.latent) {
+          dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("y", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
+        } else {
+          dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+        }
+        emprawLong[[i]] <- dataTmp3
+      }
+      #head(emprawLong[[i]], 40)
       #}
     } ### END for i ...
   } ### END Read user provided data and create list with all study information ###
@@ -513,7 +513,7 @@ ctmaInit <- function(
     tmp2 <- unlist(primaryStudies$sampleSizes); tmp2
     if (!(any(is.na(tmp2)))) {   # check if mismatch is because >= 1 study used pairwise N
       Msg <- paste0("There is a possible mismatch between sample sizes specified in the primary study list
-    (created with the PREP R-file) and the cases pwovided in raw data files.\nN based on raw data: \n", tmp1)
+    (created with the PREP R-file) and the cases provided in raw data files.\nN based on raw data: \n", tmp1)
       message(Msg)
       Msg <- paste0("\nN as specified in list: \n", tmp2)
       message(Msg)
