@@ -104,6 +104,7 @@ ctmaPlot <- function(
       plot.type[[1]] <- ctmaFitObject[[1]]$plot.type; plot.type[[1]]
       if (is.null(tmp)) {
         activeDirectory <- ctmaFitObject[[1]]$activeDirectory
+        if (is.null(activeDirectory)) activeDirectory <- ctmaFitObject$activeDirectory
       } else {
         activeDirectory <- tmp
       }
