@@ -383,7 +383,7 @@ ctmaPlot <- function(
         # y-axis (original study numbers)
         atSeq <- seq(((n.studies+1)*heigthPerStudy- heigthPerStudy/2), 0, by = -heigthPerStudy); atSeq
         labelsSeq <- c(unlist(study.numbers), "SUM"); labelsSeq
-        graphics::axis(side=2, at = atSeq, labels=labelsSeq, las=1)
+        #graphics::axis(side=2, at = atSeq, labels=labelsSeq, las=1)
         graphics::axis(side=2, at = atSeq, labels=labelsSeq, las=1)
         # x-axis (effect size)
         #atSeq <- seq(0, xMax, by = 10); atSeq
@@ -699,7 +699,8 @@ ctmaPlot <- function(
           xLabels <- xLabelsBckup; xLabels
           if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange+.4)),2), 1), 2); xLabels
           posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
-          if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
+          #if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
+          if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels
 
           graphics::axis(side=1, at = posForXLabel, labels=xLabels, las=2)
           # add labels and title
@@ -804,7 +805,8 @@ ctmaPlot <- function(
           xLabels <- xLabelsBckup; xLabels
           if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange+.4)),2), 1), 2); xLabels
           posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
-          if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
+          #if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
+          if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels
 
           graphics::axis(side=1, at = posForXLabel, labels=xLabels, las=2)
 
@@ -897,7 +899,8 @@ ctmaPlot <- function(
       xLabels <- xLabelsBckup; xLabels
       if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange)+1),2), 1), 2); xLabels
       posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
-      if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
+      #if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
+      if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels
 
       graphics::axis(side=1, at = posForXLabel, labels=xLabels, las=2)
 

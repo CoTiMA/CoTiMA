@@ -37,7 +37,7 @@ ctmaEqual <- function(
   activateRPB=FALSE,
   digits=4,
   coresToUse=1
-)
+  )
 
 {  # begin function definition (until end of file)
 
