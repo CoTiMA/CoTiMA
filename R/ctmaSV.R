@@ -5,7 +5,7 @@
 #' @param ctmaInitFit object to which all single 'ctsem' fits of primary studies has been assigned to (i.e., what has been returned by \code{\link{ctmaInit}})
 #' @param activeDirectory defines another active directory than the one used in \code{\link{ctmaInit}}
 #' @param coresToUse if negative, the value is subtracted from available cores, else value = cores to use
-#' @param primaryStudies if ctmaInitFit does not contain the primaryStudies pbject created with  \code{\link{ctmaPrep}} it could be added
+#' @param primaryStudies if ctmaInitFit does not contain the primaryStudies object created with  \code{\link{ctmaPrep}} it could be added
 #'
 #'
 #' @importFrom crayon red blue
