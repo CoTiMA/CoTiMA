@@ -8,7 +8,8 @@ ctmaSV(
   ctmaInitFit = NULL,
   activeDirectory = NULL,
   primaryStudies = NULL,
-  coresToUse = 1
+  coresToUse = 1,
+  replaceSV = TRUE
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ ctmaSV(
 \item{primaryStudies}{if ctmaInitFit does not contain the primaryStudies object created with  \code{\link{ctmaPrep}} it could be added}
 
 \item{coresToUse}{if negative, the value is subtracted from available cores, else value = cores to use}
+
+\item{replaceSV}{if TRUE replaces startValues in primaryStudies, else it saves them as list element inits}
 }
 \value{
 returns a modified list of primary studies with starting values added or replaced
