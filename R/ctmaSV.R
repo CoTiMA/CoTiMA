@@ -6,6 +6,7 @@
 #' @param activeDirectory defines another active directory than the one used in \code{\link{ctmaInit}}
 #' @param coresToUse if negative, the value is subtracted from available cores, else value = cores to use
 #' @param primaryStudies if ctmaInitFit does not contain the primaryStudies object created with  \code{\link{ctmaPrep}} it could be added
+#' @param replaceSV if TRUE replaces startValues in primaryStudies, else it saves them as list element inits
 #'
 #'
 #' @importFrom crayon red blue
@@ -27,7 +28,8 @@ ctmaSV <- function(
   ctmaInitFit=NULL,
   activeDirectory=NULL,
   primaryStudies=NULL,
-  coresToUse=1)
+  coresToUse=1,
+  replaceSV=TRUE)
 
 {  # begin function definition (until end of file)
 
@@ -255,7 +257,7 @@ ctmaSV <- function(
     }
 
     newPrimaryStudyList <- ctmaInitFit$primaryStudyList
-    newPrimaryStudyList$inits <- newInit
+    if (replaceSV == TRUE) newPrimaryStudyList$startValues <- newInit else newPrimaryStudyList$inits <- newInit
     newPrimaryStudyList$emprawList <- ctmaInitFit$emprawList
 
     results <- newPrimaryStudyList
