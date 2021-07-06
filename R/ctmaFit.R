@@ -975,7 +975,6 @@ ctmaFit <- function(
     openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
                         t(c(t(matrix(unlist(results$modelResults$DRIFT),
                                nrow=n.latent, ncol=n.latent)))))
-    openXL(wb)
     startCol <- 1; startCol
     startRow <- 2; startRow
     openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
