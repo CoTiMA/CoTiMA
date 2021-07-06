@@ -30,11 +30,11 @@
 #' @param doPar parallel and multiple fitting if single studies
 #' @param useSV if TRUE (default) start values will be used if provided in the list of primary studies
 #'
-#' @importFrom  RPushbullet pbPost
-#' @importFrom  crayon red blue
-#' @importFrom  parallel detectCores
-#' @importFrom  ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit
-#' @importFrom  utils read.table write.table
+#' @importFrom RPushbullet pbPost
+#' @importFrom crayon red blue
+#' @importFrom parallel detectCores
+#' @importFrom ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit
+#' @importFrom utils read.table write.table
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach %dopar%
