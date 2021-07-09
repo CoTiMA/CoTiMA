@@ -606,31 +606,22 @@ ctmaFit <- function(
     stanctModel$pars[stanctModel$pars$matrix %in% 'CINT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTVAR',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-    #n.studies+n.all.moderators+clusCounter-1
-    #stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[(n.studies+n.all.moderators):(n.studies+n.all.moderators+clusCounter-1)],'_effect')]
     if (!(is.null(cluster))) {
       stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[(n.studies++n.all.moderators):(n.studies+n.all.moderators+clusCounter-1)],'_effect')] <- TRUE
     }
 
     if (n.moderators > 0) {
       tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
-      #tmp2 <- which(!(stanctModel$pars[tmp1, "param"] %in% moderatedDrift)); tmp2
       tmp2 <- which((stanctModel$pars[tmp1, "param"] %in% moderatedDriftNames)); tmp2
-      #targetCols <- (n.studies-1+clusCounter+1):(n.studies-1+clusCounter+n.moderators); targetCols
-      #targetCols <- (n.studies-1+clusCounter+1):(n.studies-1+clusCounter+n.all.moderators); targetCols
       targetCols <- (n.studies):(n.studies-1+n.all.moderators); targetCols
-      #stanctModel$pars[ , paste0(stanctModel$TIpredNames[targetCols],'_effect')]
       stanctModel$pars[ , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- FALSE
       stanctModel$pars[tmp1[tmp2] , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
     }
-    stanctModel$pars
-
 
     # the target effects
     tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
     tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftNames); tmp2
     stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
-    #stanctModel$pars
 
     if (!(optimize)) {
       customPar <- FALSE
@@ -638,7 +629,6 @@ ctmaFit <- function(
       Msg <- "Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output\n"
       message(Msg)
     }
-    #stanctModel$pars
 
     fitStanctModel <- ctsem::ctStanFit(
       datalong = datalong_all,
@@ -693,7 +683,6 @@ ctmaFit <- function(
                                                invariantDrift_Coeff[, c("col")])
     } else {
       tmp1 <- which(rownames(invariantDrift_Coeff) == "DRIFT")
-      #driftFullNames <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); driftFullNames
     }
     rownames(invariantDrift_Coeff)[tmp1] <- driftFullNames; invariantDrift_Coeff
     # relabel if param is invariant
@@ -727,7 +716,6 @@ ctmaFit <- function(
     }
 
   }
-  #invariantDrift_Coeff
 
   # extract fit
   invariantDrift_Minus2LogLikelihood  <- -2*invariantDriftStanctFit$loglik; invariantDrift_Minus2LogLikelihood
@@ -760,19 +748,9 @@ ctmaFit <- function(
 
 
   ## moderator effects
-  #modTIendNum <- 0
   modTI_Coeff <- NULL
   if (n.moderators > 0) {
-    #tmp1 <- tmp2 <- c()
-
-    #if (mod.type == "cont") tmp2 <- length(mod.number)-1
-    #if (mod.type == "cat") tmp2 <- length(unlist(unique.mod))-n.moderators
-    #modTIendNum <- modTIstartNum+tmp2-1; modTIendNum
-
-    #for (i in modTIstartNum:modTIendNum) tmp1 <- c(tmp1, (grep(i, rownames(invariantDriftStanctFit$tipreds))))
-    #for (i in modTIstartNum:modTIendNum) tmp1 <- c(tmp1, (grep(paste0("TI", i), rownames(invariantDriftStanctFit$tipreds))))
     tmp1 <- c()
-    invariantDriftStanctFit$tipreds
     for (i in modTIs) tmp1 <- c(tmp1, grep(i, rownames(invariantDriftStanctFit$tipreds)))
     Tvalues <- invariantDriftStanctFit$tipreds[tmp1, ][,6]; Tvalues
     modTI_Coeff <- round(cbind(invariantDriftStanctFit$tipreds[tmp1, ], Tvalues), digits); modTI_Coeff
@@ -780,12 +758,9 @@ ctmaFit <- function(
     # re-label
     if (!(is.null(mod.names))) {
       if (mod.type == "cont") {
-        #for (i in 1:n.moderators) {
         counter <- 0
         for (i in modTIs) {
-          #i <- 1
           counter <- counter + 1
-          #targetNamePart <- paste0("tip_TI", n.studies+i-1); targetNamePart
           targetNamePart <- paste0("tip_", modTIs[counter]); targetNamePart
           rownames(modTI_Coeff) <- sub(targetNamePart, paste0(mod.names[counter], "_on_"), rownames(modTI_Coeff))
         }
@@ -793,13 +768,11 @@ ctmaFit <- function(
       if (mod.type == "cat") {
         counter <- 0
         modNameCounter <- 1
-        #for (j in 1:n.moderators) {
         for (j in modTIs) {
           if (n.moderators == 1) unique.mod.tmp <- unique.mod else unique.mod.tmp <- unique.mod[[counter+1]]
           for (i in 1:(length(unique.mod.tmp)-1)) {
             counter <- counter + 1
             current.mod.names <- mod.names[modNameCounter]; current.mod.names
-            #targetNamePart <- paste0("tip_TI", n.studies+i-1); targetNamePart
             targetNamePart <- paste0("tip_", modTIs[i]); targetNamePart
             tmp1 <- grep(targetNamePart, rownames(modTI_Coeff)); tmp1
             rownames(modTI_Coeff) <- sub(targetNamePart, paste0(counter+1, ". smallest value (category) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))

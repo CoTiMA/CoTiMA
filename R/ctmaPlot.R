@@ -461,8 +461,8 @@ ctmaPlot <- function(
 
         # discrete effects across time range
         discreteDriftCoeff <- list()
+        #g <- 1
         for (g in 1:n.fitted.obj) {
-          #g <- 1
           ########################## start dealing with possible moderator values #############################################
           if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
             if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(unlist(mod.values[[1]]))
@@ -481,11 +481,16 @@ ctmaPlot <- function(
               ctmaFitObject[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
               ctmaFitObject[[g]]$studyList[[counter]]$delta_t <- xValueForModValue[counter+1]; xValueForModValue[counter+1]
               ### compute moderated drift matrices
+              ### changed to: combine raw estimates and then use t-form
               # main effects
-              tmp1 <- ctmaFitObject[[g]]$modelResults$DRIFT; tmp1
+              #tmp1 <- ctmaFitObject[[g]]$modelResults$DRIFT; tmp1
+              tmp1 <- ctmaFitObject[[g]]$studyFitList$stanfit$rawest[1:(n.latent^2)]; tmp1
               tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE); tmp1 # main effect
               # moderator effects (could be partial)
-              tmp2 <- ctmaFitObject[[g]]$modelResults$MOD[,1]; tmp2
+              #tmp2 <- ctmaFitObject[[g]]$modelResults$MOD[,1]; tmp2
+              n.TIpreds <- ctmaFitObject[[g]]$n.studies-1; n.TIpreds
+              e <- ctExtract(ctmaFitObject[[g]]$studyFitList)
+              tmp2 <- apply(e$TIPREDEFFECT[,1:(n.latent^2),((n.TIpreds+1):(n.TIpreds+n.mod))], 2, mean); tmp2
               tmp3 <- rownames(ctmaFitObject[[g]]$modelResults$MOD); tmp3
               tmp4 <- c()
               for (l in 1:length(driftNames[[g]])) {
@@ -494,7 +499,7 @@ ctmaPlot <- function(
               }
               tmp4[!(is.na(tmp4))] <- tmp2
               tmp4[(is.na(tmp4))] <- 0
-              tmp2 <- matrix(tmp4, n.latent[[g]], byrow=TRUE); tmp2 # moderator effect to be added to main effect
+              tmp2 <- matrix(tmp4, n.latent[[g]], byrow=TRUE); tmp2 # raw moderator effect to be added to raw main effect (followed by tform)
 
               if (ctmaFitObject[[1]]$mod.type == "cont") {
                 DRIFTCoeff[[g]][[counter]] <- tmp1 + unlist(mod.values[[g]])[counter] * tmp2; DRIFTCoeff[[g]][[counter]]
@@ -514,7 +519,23 @@ ctmaPlot <- function(
               }
               counter <- counter +1
             }
-            #DRIFTCoeff
+
+            ## new: apply tform to drift elements that should be tformed (extracted into tansforms)
+            tmp1a <- ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars[, "transform"]; tmp1a
+            tmp1b <- ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars[, "param"]; tmp1b
+            transforms <- tmp1a[grep("toV", tmp1b)]; transforms
+            for (k in 1:(length(DRIFTCoeff[[g]]))) {
+              counter <- 0
+              for (l in 1:(n.latent)) {
+                for (m in 1:(n.latent)) {
+                  counter <- counter + 1
+                  param <- DRIFTCoeff[[g]][[k]][l,m]; param
+                  DRIFTCoeff[[g]][[k]][l,m] <- eval(parse(text=transforms[counter]))
+                }
+              }
+            }
+
+            # check all diags
             allDiags <- c()
             for (i in 1:length(DRIFTCoeff[[g]])) allDiags <- c(allDiags, diag(DRIFTCoeff[[g]][[i]]))
 
@@ -543,7 +564,7 @@ ctmaPlot <- function(
             } # end for (g in 1:n.fitted.obj)
           } # end if is.null(ctmaFitObject[[g]]$modelResults$MOD)) ... else ...
 
-        } # end computing discrete effects across time range
+          } # end computing discrete effects across time range
       } ### END Specification of Parameters for Plotting, Statistical Power, Optimal Lags ###
 
       Msg <- "################################################################################# \n################################### Plotting #################################### \n#################################################################################"
