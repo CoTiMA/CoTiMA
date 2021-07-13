@@ -154,6 +154,7 @@ ctmaPlot <- function(
     requiredSampleSizes <- list()
     mod.values.backup <- mod.values; mod.values.backup
     mod.values <- list()
+    n.primary.studies <- c()
 
     # detect possible categorical moderator values
     for (i in 1:n.fitted.obj) {
@@ -166,7 +167,6 @@ ctmaPlot <- function(
 
     tmp <- length(mod.values); tmp
     for (i in 1:n.fitted.obj) {
-      #i <- 2
       if (tmp != 0) {
         if (length(mod.values[[i]]) <= 1) mod.values[[i]] <- mod.values.backup; mod.values
       } else {
@@ -179,6 +179,7 @@ ctmaPlot <- function(
       n.latent[i] <- unlist(ctmaFitObject[[i]]$n.latent); n.latent[i]
       driftNames[[i]] <- ctmaFitObject[[i]]$parameterNames$DRIFT; driftNames[[i]]
       n.studies[i] <- ctmaFitObject[[i]]$n.studies; n.studies[i]
+      n.primary.studies[i] <- length(ctmaFitObject[[i]]$studyList); n.primary.studies[i]
       study.numbers[[i]] <- unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)); study.numbers[[i]]
       if (n.studies[i] == 1) {
         DRIFTCoeff[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFT); DRIFTCoeff[[i]]
@@ -461,7 +462,6 @@ ctmaPlot <- function(
 
         # discrete effects across time range
         discreteDriftCoeff <- list()
-        #g <- 1
         for (g in 1:n.fitted.obj) {
           ########################## start dealing with possible moderator values #############################################
           if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
@@ -477,7 +477,6 @@ ctmaPlot <- function(
             counter <- 1
 
             for (i in mod.values[[g]]) {
-              #i <- -2
               ctmaFitObject[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
               ctmaFitObject[[g]]$studyList[[counter]]$delta_t <- xValueForModValue[counter+1]; xValueForModValue[counter+1]
               ### compute moderated drift matrices
@@ -488,7 +487,11 @@ ctmaPlot <- function(
               tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE); tmp1 # main effect
               # moderator effects (could be partial)
               #tmp2 <- ctmaFitObject[[g]]$modelResults$MOD[,1]; tmp2
-              n.TIpreds <- ctmaFitObject[[g]]$n.studies-1; n.TIpreds
+              if (n.primary.studies[[g]] > n.studies[[g]]) {
+                n.TIpreds <- n.primary.studies[[g]]-1; n.TIpreds
+              } else {
+                n.TIpreds <- n.studies[[g]]-1; n.TIpreds
+              }
               e <- ctExtract(ctmaFitObject[[g]]$studyFitList)
               tmp2 <- apply(e$TIPREDEFFECT[,1:(n.latent^2),((n.TIpreds+1):(n.TIpreds+n.mod))], 2, mean); tmp2
               tmp3 <- rownames(ctmaFitObject[[g]]$modelResults$MOD); tmp3
@@ -510,7 +513,6 @@ ctmaPlot <- function(
                   DRIFTCoeff[[g]][[counter]] <- tmp1 # copy main effects (= comparison group)
                 } else {
                   tmp2 <- ctmaFitObject[[g]]$summary$mod.effects[,1]; tmp2
-                  #tmp2 <- tmp2[((i - 2) * n.latent^2 + 1): ((i - 2) * n.latent^2 + 0 + n.latent)]; tmp2
                   tmp2 <- tmp2[((i - 2) * n.latent^2 + 1): ((i - 2) * n.latent^2 + 0 + n.latent^2)]; tmp2
                   tmp2 <- matrix(tmp2, n.latent, n.latent, byrow=TRUE); tmp2
                   DRIFTCoeff[[g]][[counter]] <- tmp1 + (i-1) * tmp2; DRIFTCoeff[[g]][[counter]]
@@ -603,7 +605,6 @@ ctmaPlot <- function(
         } # END for (h in 1:toPlot)
       } # END for (g in 1:n.fitted.obj)
 
-
       ##################################### PLOTTING PARAMETERS ##########################################
       {
         autoCols <- seq(1, nlatent^2, (nlatent+1)); autoCols
@@ -647,10 +648,8 @@ ctmaPlot <- function(
         coeffSeq <- seq(1, nlatent^2, (nlatent+1)); coeffSeq
 
         for (j in coeffSeq) { # diagonal elements only
-          #j <- 1
           counter <- counter + 1
           for (g in 1:n.fitted.obj) {
-            #g <- 1
             if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
 
             if (is.null(ctmaFitObject[[g]]$type)) plot..type <- "l" else plot..type <- ctmaFitObject[[g]]$type; plot..type
@@ -750,10 +749,8 @@ ctmaPlot <- function(
         nlatent <- n.latent[[1]]; n.latent
         coeffSeq <- seq(1, nlatent^2, 1)[!(seq(1, nlatent^2, 1) %in% seq(1, nlatent^2, (nlatent+1)))]; coeffSeq
         for (j in coeffSeq) {
-          #j <- 3
           counter <- counter + 1
           for (g in 1:n.fitted.obj) {
-            #g <- 1
             if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
             #
             if (is.null(ctmaFitObject[[g]]$type)) plot..type <- "l" else plot..type <- ctmaFitObject[[g]]$type; plot..type
