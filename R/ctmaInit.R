@@ -346,8 +346,7 @@ ctmaInit <- function(
       # load raw data on request
       if ( i %in% loadRawDataStudyNumbers ) {
         if ( (!(is.null(primaryStudies$emprawList[[i]]))) &
-             ((is.null(primaryStudies$empcovs[[i]]))) ) {  # if the function list of primary studies is alread post-processed (ctmaSV) and called from ctmaOptimizeINit)
-          #empraw[[i]] <- emprawLong[[i]] <- primaryStudies$emprawList[[i]]
+             ((is.null(primaryStudies$empcovs[[i]]))) ) {  # if the function list of primary studies is already post-processed (ctmaSV) and called from ctmaOptimizeINit)
           empraw[[i]] <- primaryStudies$emprawList[[i]]
           if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
           tmp1 <- dim(empraw[[i]])[2]; tmp1
@@ -365,11 +364,9 @@ ctmaInit <- function(
               }
             }
           }
-          currentTpoints
           tmp1 <- empraw[[i]]
           tmp2 <- tmp1[,grep("dT", colnames(tmp1))] == minInterval
           tmp1[ ,grep("dT", colnames(tmp1))][tmp2] <- NA
-          #head(tmp1)
           for (h in 1:(currentTpoints-1)) studyList[[i]]$delta_t[h] <- mean(tmp1[, paste0("dT", h)], na.rm=TRUE)
           studyList[[i]]$delta_t
         } else {

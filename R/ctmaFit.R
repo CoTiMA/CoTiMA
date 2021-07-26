@@ -150,7 +150,8 @@ ctmaFit <- function(
   if (!(is.null(primaryStudyList))) {
     ctmaTempFit <- ctmaInitFit
     targetStudyNumbers <- unlist(primaryStudyList$studyNumbers); targetStudyNumbers; length(targetStudyNumbers)
-    targetStudyNumbers <- targetStudyNumbers[-which(is.na(targetStudyNumbers))]; targetStudyNumbers
+    if (any(is.na(targetStudyNumbers))) targetStudyNumbers <- targetStudyNumbers[-which(is.na(targetStudyNumbers))]
+    #targetStudyNumbers <- targetStudyNumbers[-which(is.na(targetStudyNumbers))]; targetStudyNumbers
     for (i in (length(ctmaTempFit$studyFitList)):1) {
       if (!(ctmaTempFit$studyList[[i]]$originalStudyNo %in% targetStudyNumbers)) {
         ctmaTempFit$studyList[[i]] <- NULL
