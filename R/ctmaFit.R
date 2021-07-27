@@ -31,6 +31,9 @@
 #' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)
 #' @param equalDrift Not enabled
 #' @param inits vector of start values
+#' @param modsToCompare when performing contrasts for categorical moderators, the moderator numbers (position in mod.number) that is used
+#' @param catsToCompare when performing contrasts for categorical moderators, the categories for which effects are set equal
+#' @param driftsToCompare when performing contrasts for categorical moderators, the (subset of) drift effects analyzed
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  parallel detectCores
@@ -112,7 +115,10 @@ ctmaFit <- function(
   verbose=NULL,
   allInvModel=FALSE,
   customPar=FALSE,
-  inits=NULL
+  inits=NULL,
+  modsToCompare=NULL,
+  catsToCompare=NULL,
+  driftsToCompare=NULL
 )
 
 
@@ -140,6 +146,16 @@ ctmaFit <- function(
     if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
     if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
   }
+
+  { # check of catsToCompare or catsToCompare is used only with mod.type = "cat"
+    if ( ((!(is.null(modsToCompare))) & (mod.type != "cat")) |
+         ((!(is.null(catsToCompare))) & (mod.type != "cat")) ) {
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+      ErrorMsg <- "The arguments modsToCompare or catsToCompare are only allowed for mod.typ=\"cat\" "
+      stop(ErrorMsg)
+    }
+  }
+  if ( (!(is.null(catsToCompare))) & (is.null(modsToCompare)) ) modsToCompare <- 1
 
 
   #######################################################################################################################
@@ -307,7 +323,22 @@ ctmaFit <- function(
       moderatorGroups <- tmp$moderatorGroups
       if (!(is.matrix(moderatorGroups))) moderatorGroups <- matrix(moderatorGroups, ncol=1)
       colnames(moderatorGroups) <- paste0("mod", 1:(dim(currentModerators)[2])); colnames(moderatorGroups)
+
+      # change category values for making specific contrasts
+      if (!(is.null(catsToCompare))) { # change category values to make the cats to compare the largest ones
+        for (c1 in 1:dim(moderatorGroups)[2]) {
+          if (c1 %in% modsToCompare) {
+            maxModeratorGroups <- max(moderatorGroups[, c1]); maxModeratorGroups
+            for (c2 in catsToCompare) {
+              #moderatorGroups[moderatorGroups[ ,c1] == c2] <- moderatorGroups[moderatorGroups[ ,c1] == c2] + maxModeratorGroups
+              moderatorGroups[moderatorGroups[ ,c1] == c2] <- moderatorGroups[moderatorGroups[ ,c1] == c2] - maxModeratorGroups
+            }
+          }
+        }
+      }  # END if (!(is.null(catsToCompare)))
+
     }
+    #table(moderatorGroups)
 
     # label group vectors
     names(groups) <- c("Study_No_"); groups
@@ -356,6 +387,7 @@ ctmaFit <- function(
         } else {
           unique.mod <- sort(c(unique(tmp)))
         }
+
         # determine number of required dummies
         if (n.moderators > 1) {
           catCounter <- 0
@@ -363,6 +395,7 @@ ctmaFit <- function(
         } else {
           catCounter <- length(unique.mod) -1
         }
+
         # create dummies
         tmpTI <- matrix(0, dim(tmp)[1], catCounter)
         counter <- 0
@@ -376,7 +409,7 @@ ctmaFit <- function(
           }
         } else {
           for (i in 2:length(unique.mod)) {
-            counter <- counter + 1
+            counter <- counter + 1; counter
             tmp2 <- which(tmp == unique.mod[i]); tmp2
             tmpTI[tmp2, counter] <- 1
           }
@@ -465,7 +498,6 @@ ctmaFit <- function(
 
   # TI-identifiers for groups, moderators, and clusters
   {
-    #head(datalong_all)
     groupTIs <- paste0("TI", 1:(length(unique(groups))-1)); groupTIs
     tmp1 <- (length(unique(groups))); tmp1
     if (n.moderators > 0) modTIs <- paste0("TI", tmp1:(tmp1+n.all.moderators-1))
@@ -617,12 +649,35 @@ ctmaFit <- function(
       targetCols <- (n.studies):(n.studies-1+n.all.moderators); targetCols
       stanctModel$pars[ , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- FALSE
       stanctModel$pars[tmp1[tmp2] , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
+
+      # change model to allow for camparsion of categories (-2ll is the only important result)
+      if (!(is.null(catsToCompare))) {
+        currentStartNumber <- modTIstartNum; currentStartNumber
+        for (c1 in 1:modsToCompare) {
+          if (n.moderators > 1) {
+            targetCols2 <- c()
+            for (c3 in 1:length(unique.mod)) {
+              targetCols2 <- c(targetCols2, currentStartNumber:(currentStartNumber+length(catsToCompare)-2))
+              currentStartNumber <- currentStartNumber + length(unique.mod[[c3]]) - 1
+            }
+          } else {
+            targetCols2 <- currentStartNumber:(currentStartNumber+length(catsToCompare)-2); targetCols2
+          }
+        }
+        if (is.null(driftsToCompare)) driftsToCompare <- driftFullNames
+        targetRows2 <- which(stanctModel$pars[, "param"] %in% driftsToCompare); targetRows2
+        targetCols3 <- grep(targetCols2, colnames(stanctModel$pars)); targetCols3
+        stanctModel$pars[targetRows2, targetCols3] <- FALSE
+      }
+
     }
 
+    #stanctModel$pars
     # the target effects
     tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
     tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftNames); tmp2
     stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
+    #stanctModel$pars
 
     if (!(optimize)) {
       customPar <- FALSE
@@ -662,7 +717,7 @@ ctmaFit <- function(
     if (!(is.null(CoTiMAStanctArgs$resample))) {
       fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel) #, CoTiMAStanctArgs=CoTiMAStanctArgs)
     }
-        invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
+    invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
   } # end if else (allInvModel)
 
   # Extract estimates & statistics
@@ -766,24 +821,31 @@ ctmaFit <- function(
           rownames(modTI_Coeff) <- sub(targetNamePart, paste0(mod.names[counter], "_on_"), rownames(modTI_Coeff))
         }
       }
+
       if (mod.type == "cat") {
         counter <- 0
         modNameCounter <- 1
         for (j in modTIs) {
+          #j <- modTIs[1]; j
           if (n.moderators == 1) unique.mod.tmp <- unique.mod else unique.mod.tmp <- unique.mod[[counter+1]]
+          modCatOrder <- unique.mod.tmp; modCatOrder
+          if (!(is.null(catsToCompare))) {
+            tmp1 <- which(1:length(unique.mod.tmp) %in% unique.mod.tmp); tmp1
+            tmp2 <- which(!(1:length(unique.mod.tmp) %in% unique.mod.tmp)); tmp2
+            modCatOrder <- c(tmp2, tmp1); modCatOrder
+          }
           for (i in 1:(length(unique.mod.tmp)-1)) {
-            counter <- counter + 1
+            counter <- counter + 1; counter
             current.mod.names <- mod.names[modNameCounter]; current.mod.names
             targetNamePart <- paste0("tip_", modTIs[i]); targetNamePart
             tmp1 <- grep(targetNamePart, rownames(modTI_Coeff)); tmp1
-            rownames(modTI_Coeff) <- sub(targetNamePart, paste0(counter+1, ". smallest value (category) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
+            rownames(modTI_Coeff) <- sub(targetNamePart, paste0(modCatOrder[counter+1], ". smallest value (category) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
           }
           counter <- 0
           modNameCounter <- modNameCounter + 1
         }
       }
     }
-
     # eliminate z
     modTI_Coeff[, "z"] <- NULL; modTI_Coeff
   }
@@ -922,8 +984,8 @@ ctmaFit <- function(
                                clus.effects=clus.effects,
                                mod.effects=modTI_Coeff,
                                message=message)
-                  # excel workboo is added later
-                  )
+                  # excel workbook is added later
+  )
 
   class(results) <- "CoTiMAFit"
 
@@ -948,7 +1010,7 @@ ctmaFit <- function(
     startRow <- 2; startRow
     openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
                         t(c(t(matrix(unlist(results$modelResults$DRIFT),
-                               nrow=n.latent, ncol=n.latent)))))
+                                     nrow=n.latent, ncol=n.latent)))))
     startCol <- 1; startCol
     startRow <- 2; startRow
     openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
