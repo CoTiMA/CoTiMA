@@ -654,6 +654,7 @@ ctmaFit <- function(
       if (!(is.null(catsToCompare))) {
         currentStartNumber <- modTIstartNum; currentStartNumber
         for (c1 in 1:modsToCompare) {
+          #c1 <-1
           if (n.moderators > 1) {
             targetCols2 <- c()
             for (c3 in 1:length(unique.mod)) {
@@ -664,9 +665,13 @@ ctmaFit <- function(
             targetCols2 <- currentStartNumber:(currentStartNumber+length(catsToCompare)-2); targetCols2
           }
         }
+        targetCols2
         if (is.null(driftsToCompare)) driftsToCompare <- driftFullNames
         targetRows2 <- which(stanctModel$pars[, "param"] %in% driftsToCompare); targetRows2
-        targetCols3 <- grep(targetCols2, colnames(stanctModel$pars)); targetCols3
+        #targetCols3 <- grep(targetCols2, colnames(stanctModel$pars)); targetCols3
+        targetCols3 <- c()
+        for (c4 in targetCols2) targetCols3 <- c(targetCols3, grep(c4, colnames(stanctModel$pars)))
+        #targetCols3
         stanctModel$pars[targetRows2, targetCols3] <- FALSE
       }
 
@@ -849,6 +854,7 @@ ctmaFit <- function(
     # eliminate z
     modTI_Coeff[, "z"] <- NULL; modTI_Coeff
   }
+  #modTI_Coeff
 
   ## cluster effects
   if (!(is.null(cluster))) {
