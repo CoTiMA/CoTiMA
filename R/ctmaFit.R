@@ -326,6 +326,24 @@ ctmaFit <- function(
 
       # change category values for making specific contrasts
       if (!(is.null(catsToCompare))) { # change category values to make the cats to compare the largest ones
+
+        ### check if comparison of requested categories is possible
+        tmp1 <- as.numeric(names(table(moderatorGroups))); tmp1
+        counter <- 0
+        for (c1 in catsToCompare) if (c1 %in% tmp1) counter <- counter + 1
+        if (counter < length(catsToCompare)){
+          if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+          ErrorMsg <- "\nAt least one of the categories that should be compared is not available in the data. \nGood luck for the next try!"
+          stop(ErrorMsg)
+        }
+
+        # check if each requested moderators is available in more than 1 study
+        for (c1 in catsToCompare) if (!(c1 %in% as.numeric(names(table(currentModerators))))) {
+          if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+          ErrorMsg <- "\nOne of the categories that should be compared exists in a single primary study only. This model is not identified. Eliminate the primary study and redo ctmaPrep.. \nGood luck for the next try!"
+          stop(ErrorMsg)
+        } #
+
         for (c1 in 1:dim(moderatorGroups)[2]) {
           if (c1 %in% modsToCompare) {
             maxModeratorGroups <- max(moderatorGroups[, c1]); maxModeratorGroups
