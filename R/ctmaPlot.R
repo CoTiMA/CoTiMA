@@ -525,10 +525,11 @@ ctmaPlot <- function(
               } else {
                 n.TIpreds <- n.studies[[g]]-1; n.TIpreds
               }
-              e <- ctExtract(ctmaFitObject[[g]]$studyFitList)
+              #e <- ctsem::ctExtract(ctmaFitObject[[g]]$studyFitList)
 
               if (ctmaFitObject[[g]]$mod.type == "cont") {
-                tmp2 <- apply(e$TIPREDEFFECT[,1:(n.latent^2),((n.TIpreds+1):(n.TIpreds+mod.number))], 2, mean); tmp2
+                #tmp2 <- apply(e$TIPREDEFFECT[,1:(n.latent^2),((n.TIpreds+1):(n.TIpreds+mod.number))], 2, mean); tmp2
+                tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,1:(n.latent^2),((n.TIpreds+1):(n.TIpreds+mod.number))]; tmp2
                 tmp3 <- rownames(ctmaFitObject[[g]]$modelResults$MOD); tmp3
                 tmp4 <- c()
                 for (l in 1:length(driftNames[[g]])) {
@@ -547,8 +548,10 @@ ctmaPlot <- function(
                   DRIFTCoeff[[g]][[counter]] <- tmp1 # copy main effects (= comparison group)
                 } else {
                   n.mod.tmp <- length(mod.values[[g]])-1; n.mod.tmp
-                  e$TIPREDEFFECT[ , 1:(n.latent^2), n.TIpreds+(n.mod.tmp*(mod.number-1)+counter-1)] # counter is >= 2
-                  tmp2 <- apply(e$TIPREDEFFECT[ , 1:(n.latent^2), n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1], 2, mean); tmp2
+                  #e$TIPREDEFFECT[ , 1:(n.latent^2), n.TIpreds+(n.mod.tmp*(mod.number-1)+counter-1)] # counter is >= 2
+                  #tmp2 <- apply(e$TIPREDEFFECT[ , 1:(n.latent^2), n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1], 2, mean); tmp2
+                  tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,1:(n.latent^2),
+                                                                                                   n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1]; tmp2
                   tmp2 <- matrix(tmp2, n.latent, n.latent, byrow=TRUE); tmp2
                   DRIFTCoeff[[g]][[counter]] <- tmp1 + tmp2; DRIFTCoeff[[g]][[counter]]
                 }
