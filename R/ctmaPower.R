@@ -183,8 +183,15 @@ ctmaPower <- function(
     # all parameter estimates
     tmp0 <- ctmaInitFit$studyFitList[[1]]$resultsSummary$parmatrices; tmp0
     driftRows <- which(rownames(tmp0) == "DRIFT"); driftRows
+    if (length(driftRows) == 0) driftRows <- which(tmp0[,1] =="DRIFT"); driftRows
+
     diffusionRows <- which(rownames(tmp0)  == "DIFFUSIONcov"); diffusionRows
+    if (length(diffusionRows) == 0) diffusionRows <- which(tmp0[,1] =="DIFFUSIONcov"); diffusionRows
+
     T0varRows <- which(rownames(tmp0) =="T0VAR"); T0varRows
+    if (length(T0varRows) == 0) T0varRows <- which(rownames(tmp0) =="T0cov"); T0varRows
+    if (length(T0varRows) == 0) T0varRows <- which(tmp0[,1] =="T0cov"); T0varRows
+
     {
       tmp1 <- lapply(ctmaInitFit$studyFitList, function(extract) c(extract$resultsSummary$parmatrices[driftRows, 3]) ); tmp1
       tmp1 <- matrix(unlist(tmp1), nrow=n.studies, byrow=TRUE); tmp1
@@ -304,7 +311,7 @@ ctmaPower <- function(
     targetCols <- which(colnames(dataTmp) == "groups"); targetCols
     dataTmp <- dataTmp[ ,-targetCols]
     dataTmp2 <- suppressMessages(ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1),
-                             manifestNames=manifestNames))
+                                              manifestNames=manifestNames))
     dataTmp3 <- suppressMessages(ctDeintervalise(dataTmp2))
     dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
     # eliminate rows where ALL latents are NA
@@ -371,8 +378,8 @@ ctmaPower <- function(
       tmp1 <- which(allInvDrift_Coeff[, "matrix"] == "DRIFT")
       driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=TRUE)); driftNamesTmp
       rownames(allInvDrift_Coeff) <- paste0(allInvDrift_Coeff[, c("matrix")], "_",
-                                              allInvDrift_Coeff[, c("row")], "_",
-                                              allInvDrift_Coeff[, c("col")])
+                                            allInvDrift_Coeff[, c("row")], "_",
+                                            allInvDrift_Coeff[, c("col")])
     } else {
       tmp1 <- which(rownames(allInvDrift_Coeff) == "DRIFT")
       driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); driftNamesTmp

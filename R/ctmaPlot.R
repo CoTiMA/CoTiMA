@@ -491,9 +491,10 @@ ctmaPlot <- function(
         }
 
         # discrete effects across time range
-        discreteDriftCoeff <- list()
+        discreteDriftCoeff <- linearizedTIpredEffect <- DRIFThi <- DRIFTlo <- list()
 
         for (g in 1:n.fitted.obj) {
+          #g <- 1
           toPlot <- n.studies[[g]]
 
           ########################## start dealing with possible moderator values #############################################
@@ -501,24 +502,24 @@ ctmaPlot <- function(
 
             toPlot <- length(unlist(mod.values[[1]]))
 
-            # augement usedTimeRange by time points (quantiles) where moderator values are plotted
+            # augment usedTimeRange by time points (quantiles) where moderator values are plotted
             xValueForModValue <- stats::quantile(usedTimeRange, probs = seq(0, 1, 1/(toPlot+1))); xValueForModValue # used for positioning of moderator value in plot
             usedTimeRange <- unique(sort(c(xValueForModValue, usedTimeRange))); usedTimeRange # correcting for added time points
             noOfSteps <- length(usedTimeRange); noOfSteps
 
-            DRIFTCoeff[[g]] <- list()
+            DRIFTCoeff[[g]] <- linearizedTIpredEffect[[g]] <- DRIFThi[[g]] <- DRIFTlo[[g]] <- list()
             counter <- 1
 
             for (i in mod.values[[g]]) {
               #i <- mod.values[[g]][2]; i
               ctmaFitObject[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
-              ctmaFitObject[[g]]$studyList[[counter]]$delta_t <- xValueForModValue[counter+1]; xValueForModValue[counter+1]
+              ctmaFitObject[[g]]$studyList[[counter]]$delta_t <- xValueForModValue[counter+1]
 
               ### compute moderated drift matrices
-              ### changed to: combine raw estimates and then use t-form
               # main effects
               tmp1 <- ctmaFitObject[[g]]$studyFitList$stanfit$rawest[1:(n.latent^2)]; tmp1
-              tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE); tmp1 # main effect
+              tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE)
+
               # moderator effects (could be partial)
               if (n.primary.studies[[g]] > n.studies[[g]]) {
                 n.TIpreds <- n.primary.studies[[g]]-1; n.TIpreds
@@ -541,11 +542,17 @@ ctmaPlot <- function(
                 tmp2 <- matrix(tmp4, n.latent[[g]], byrow=TRUE); tmp2 # raw moderator effect to be added to raw main effect (followed by tform)
                 DRIFTCoeff[[g]][[counter]] <- tmp1 + unlist(mod.values[[g]])[counter] * tmp2; DRIFTCoeff[[g]][[counter]]
                 names(DRIFTCoeff[[g]]) <- paste0("Moderator Value = ", mod.values, " SD from mean if standardized (default setting)")
+                # compute matrices required  for linearizedTIpredEffect (JUST AS A CHECK)
+                DRIFThi[[g]][[counter]] <- tmp1 + .01 * tmp2
+                DRIFTlo[[g]][[counter]] <- tmp1 - .01 * tmp2
               }
 
               if (ctmaFitObject[[g]]$mod.type == "cat") {
                 if (counter == 1) {
                   DRIFTCoeff[[g]][[counter]] <- tmp1 # copy main effects (= comparison group)
+                  #tmp2 <- matrix(0, n.latent, n.latent); tmp2
+                  DRIFThi[[g]][[counter]] <- tmp1 #+ .01 * tmp2
+                  DRIFTlo[[g]][[counter]] <- tmp1 #- .01 * tmp2
                 } else {
                   n.mod.tmp <- length(mod.values[[g]])-1; n.mod.tmp
                   #e$TIPREDEFFECT[ , 1:(n.latent^2), n.TIpreds+(n.mod.tmp*(mod.number-1)+counter-1)] # counter is >= 2
@@ -554,11 +561,15 @@ ctmaPlot <- function(
                                                                                                    n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1]; tmp2
                   tmp2 <- matrix(tmp2, n.latent, n.latent, byrow=TRUE); tmp2
                   DRIFTCoeff[[g]][[counter]] <- tmp1 + tmp2; DRIFTCoeff[[g]][[counter]]
+                  # compute matrices required  for linearizedTIpredEffect (JUST AS A CHECK)
+                  DRIFThi[[g]][[counter]] <- tmp1 + .01 * tmp2
+                  DRIFTlo[[g]][[counter]] <- tmp1 - .01 * tmp2
                 }
                 names(DRIFTCoeff[[g]][[counter]]) <- paste0("Moderator Value = ", mod.values[[g]][counter])
               }
               counter <- counter +1
             } # END for (i in mod.values[[g]])
+
 
             ## apply tform to drift elements that should be tformed (extracted into tansforms)
             tmp1a <- ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars[, "transform"]; tmp1a
@@ -566,15 +577,23 @@ ctmaPlot <- function(
             transforms <- tmp1a[grep("toV", tmp1b)]; transforms
 
             for (k in 1:(length(DRIFTCoeff[[g]]))) {
+              linearizedTIpredEffect[[g]][[k]] <- matrix(NA, n.latent, n.latent)
               counter <- 0
               for (l in 1:(n.latent)) {
                 for (m in 1:(n.latent)) {
                   counter <- counter + 1
                   param <- DRIFTCoeff[[g]][[k]][l,m]; param
                   DRIFTCoeff[[g]][[k]][l,m] <- eval(parse(text=transforms[counter]))
+                  # compute matrices required  for linearizedTIpredEffect (JUST AS A CHECK)
+                  param <- DRIFThi[[g]][[k]][l,m]; param
+                  DRIFThi[[g]][[k]][l,m] <- eval(parse(text=transforms[counter]))
+                  param <- DRIFTlo[[g]][[k]][l,m]; param
+                  DRIFTlo[[g]][[k]][l,m] <- eval(parse(text=transforms[counter]))
                 }
               }
+              linearizedTIpredEffect[[g]][[k]] <- t((DRIFThi[[g]][[k]] - DRIFTlo[[g]][[k]])/.02) # transpose to make same order as in summary report of TIPREDeffects
             }
+            #linearizedTIpredEffect
 
             # check all diags
             allDiags <- c()
@@ -584,7 +603,6 @@ ctmaPlot <- function(
               ErrorMsg <- "Some of the moderated drift matrices have values > 0 in their diagonals. \nThis is likely if the model used to create \"ctmaFitObject\" was not identified! \nYou may want to try smaller moderator values (e.g., \"mod.values=c(-.5, 0., .5)\")! \nSome of the moderated drift matrices have values > 0 in their diagonals. \nThis is likely if the model used to create \"ctmaFitObject\" was not identified! \nYou may want to try smaller moderator values (e.g., \"mod.values=c(-.5, 0., .5)\")! \nGood luck for the next try!"
               stop(ErrorMsg)
             }
-
           } ########################## end dealing with possible moderator values #############################################
 
           if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) {
@@ -981,5 +999,8 @@ ctmaPlot <- function(
     }
 
   } ### END  ("power" %in% unlist(plot.type))
+
+  invisible(round(unlist(linearizedTIpredEffect)[-(1:(nlatent^2))], 4)) # just as a check
+
 
 } ### END function definition
