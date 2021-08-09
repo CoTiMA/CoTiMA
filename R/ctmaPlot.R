@@ -1000,7 +1000,7 @@ ctmaPlot <- function(
 
   } ### END  ("power" %in% unlist(plot.type))
 
-  invisible(round(unlist(linearizedTIpredEffect)[-(1:(nlatent^2))], 4)) # just as a check
+  if (exists("linearizedTIpredEffect")) invisible(round(unlist(linearizedTIpredEffect)[-(1:(nlatent^2))], 4)) # just as a check
 
 
 } ### END function definition
