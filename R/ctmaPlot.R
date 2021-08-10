@@ -235,7 +235,6 @@ ctmaPlot <- function(
         statisticalPower <- ctmaFitObject[[i]]$summary$estimates$`Requested Statistical Power`
       }
     }
-
     nlatent <- unlist(n.latent[[1]]); nlatent  # nlatent used general specs; n.latent in special specs
 
   } ### END Extracting parameters
@@ -935,9 +934,9 @@ ctmaPlot <- function(
     if (is.null(ctmaFitObject[[g]]$pow.yMin)) pow.plot.yMax <- 2000 else pow.plot.lty <- ctmaFitObject[[g]]$pow.yMax
 
     #requiredSampleSizes
-    tmp1 <- suppressWarnings(as.numeric(rownames(requiredSampleSizes[[g]]))); tmp1
+    tmp1 <- suppressWarnings(as.numeric(rownames(requiredSampleSizes[[g]]))); tmp1          # time lags
     tmp1 <- tmp1[!(is.na(tmp1))]; tmp1
-    tmp1 <- round(tmp1, 0); tmp1
+    #####tmp1 <- round(tmp1, 0); tmp1.  # WHY?
     tmp2 <- !(duplicated(tmp1)); tmp2
     currentRequiredSamleSizes <- requiredSampleSizes[[g]][tmp2,]; currentRequiredSamleSizes
     tmp4 <- nrow(currentRequiredSamleSizes); tmp4
@@ -945,7 +944,9 @@ ctmaPlot <- function(
 
     xMax <- max(usedTimeRange); xMax
     xMin <- usedTimeRange[1]; xMin
-    currentRequiredSamleSizes <- currentRequiredSamleSizes[xMin:xMax , ]; currentRequiredSamleSizes
+    tmp5 <- as.numeric(rownames(currentRequiredSamleSizes)); tmp5
+    tmp6 <- which( (tmp5 >= xMin) & (tmp5 <=xMax) ); tmp6
+    currentRequiredSamleSizes <- currentRequiredSamleSizes[tmp6 , ]; currentRequiredSamleSizes
     #usedTimeRange <- min(tmp1):max(tmp1); usedTimeRange
     #xMax <- round(max(usedTimeRange), 0); xMax
     #xMin <- usedTimeRange[1]; xMin

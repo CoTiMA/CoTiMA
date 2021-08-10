@@ -9,7 +9,7 @@
 #' @param failSafeP  p-value used to determine across which time intervals effects become non-significant
 #' @param timeRange vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))
 #' @param useMBESS use 'MBESS' package to calculate statistical power (slower)
-#' @param coresToUse vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))
+#' @param coresToUse if negative, the value is subtracted from available cores, else value = cores to use
 #' @param indVarying Allows continuous time intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)
 #' @param activateRPB set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
 #' @param silentOverwrite overwrite old files without asking
@@ -258,7 +258,8 @@ ctmaPower <- function(
     maxTpoints <- max(allTpoints); maxTpoints # replacement
     allDeltas <- ctmaInitFit$statisticsList$allDeltas; allDeltas
     maxDelta <- max(allDeltas); maxDelta
-    if (is.null(timeRange)) usedTimeRange <- seq(0, 1.5*maxDelta, 1) else usedTimeRange <- timeRange
+    #if (is.null(timeRange)) usedTimeRange <- seq(0, 1.5*maxDelta, 1) else usedTimeRange <- timeRange
+    if (is.null(timeRange)) usedTimeRange <- seq(0, 1.5*maxDelta, 1) else usedTimeRange <- seq(timeRange[1], timeRange[2], timeRange[3])
     # augment by all existing time lags
     usedTimeRange <- sort(unique(c(usedTimeRange, allDeltas))); usedTimeRange
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
@@ -938,7 +939,6 @@ ctmaPower <- function(
   }
 
   allInvModelFit$resultsSummary <- allInvModelFitSummary
-  allInvModelFit$resultsSummary
 
   results <- list(activeDirectory=activeDirectory,
                   plot.type=c("power"), model.type="stanct", #model.type="mx",
