@@ -768,7 +768,7 @@ ctmaPlot <- function(
                   currentLabel <- aggregateLabel
                   currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
                   graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
-                  currentPlotPair
+                  #currentPlotPair
                 }
                 graphics::par(new=T)
               }
