@@ -182,9 +182,11 @@ ctmaPlot <- function(
 
     # detect possible categorical moderator values
     for (i in 1:n.fitted.obj) {
+      #i <- 1
       if (!(is.null(ctmaFitObject[[i]]$mod.type))) {
         if (ctmaFitObject[[i]]$mod.type == "cat") {
-          mod.values[[i]] <- c(1, unique(as.numeric(substr(rownames(ctmaFitObject[[i]]$summary$mod.effects), 1,2))))
+          #rownames(ctmaFitObject[[i]]$summary$mod.effects)
+          mod.values[[i]] <- c(-999, unique(as.numeric(substr(rownames(ctmaFitObject[[i]]$summary$mod.effects), 1,2))))
         }
       }
     }
@@ -493,7 +495,6 @@ ctmaPlot <- function(
         discreteDriftCoeff <- linearizedTIpredEffect <- DRIFThi <- DRIFTlo <- list()
 
         for (g in 1:n.fitted.obj) {
-          #g <- 1
           toPlot <- n.studies[[g]]
 
           ########################## start dealing with possible moderator values #############################################
@@ -510,7 +511,6 @@ ctmaPlot <- function(
             counter <- 1
 
             for (i in mod.values[[g]]) {
-              #i <- mod.values[[g]][2]; i
               ctmaFitObject[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
               ctmaFitObject[[g]]$studyList[[counter]]$delta_t <- xValueForModValue[counter+1]
 
@@ -708,6 +708,7 @@ ctmaPlot <- function(
 
         for (j in coeffSeq) { # diagonal elements only
           counter <- counter + 1
+          #j <- 1
           for (g in 1:n.fitted.obj) {
             if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
 
@@ -742,6 +743,7 @@ ctmaPlot <- function(
             if (is.null(ctmaFitObject[[g]]$dot.cex)) dot.plot.cex <- 2 else dot.plot.cex <- ctmaFitObject[[g]]$dot.cex; dot.plot.cex
 
             for (h in 1:toPlot) {
+              #h <- 1
               currentPlotPair <- cbind(plotPairs[[g]][h, , 1], plotPairs[[g]][h, , 1+j])
               plot(currentPlotPair, type=plot..type, col=plot.col, lwd=plot.lwd, lty=plot.lty,
                    xlim = c(plot.xMin, plot.xMax),
@@ -758,6 +760,7 @@ ctmaPlot <- function(
                 graphics::par(new=T)
                 if (toPlot > 1) {
                   currentLabel <- ctmaFitObject[[g]]$studyList[[h]]$originalStudyNo; currentLabel
+                  if (currentLabel == -999) currentLabel <- "R"
                   if (is.null(currentLabel)) currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
                   if (h < 10) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
                   if (h > 9) graphics::text(currentPlotPair, labels=currentLabel, cex=1/5*dot.plot.cex, col="white")
@@ -862,6 +865,7 @@ ctmaPlot <- function(
                 graphics::par(new=T)
                 if (toPlot > 1) {
                   currentLabel <- ctmaFitObject[[g]]$studyList[[h]]$originalStudyNo; currentLabel
+                  if (currentLabel == -999) currentLabel <- "R"
                   if (is.null(currentLabel)) currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
                   currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
                   if (h < 10) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")

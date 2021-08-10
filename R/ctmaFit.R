@@ -862,7 +862,8 @@ ctmaFit <- function(
             current.mod.names <- mod.names[modNameCounter]; current.mod.names
             targetNamePart <- paste0("tip_", modTIs[i]); targetNamePart
             tmp1 <- grep(targetNamePart, rownames(modTI_Coeff)); tmp1
-            rownames(modTI_Coeff) <- sub(targetNamePart, paste0(modCatOrder[counter+1], ". smallest value (category) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
+            #rownames(modTI_Coeff) <- sub(targetNamePart, paste0(modCatOrder[counter+1], ". smallest value (category) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
+            rownames(modTI_Coeff) <- sub(targetNamePart, paste0(modCatOrder[counter+1], "  (category value) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
           }
           counter <- 0
           modNameCounter <- modNameCounter + 1
