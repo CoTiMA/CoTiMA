@@ -995,6 +995,9 @@ ctmaFit <- function(
     clus.effects <- NULL
   }
 
+  if (is.null(primaryStudyList)) primaryStudies <- ctmaInitFit$primaryStudies else primaryStudies <- primaryStudyList
+
+
   results <- list(activeDirectory=activeDirectory,
                   plot.type="drift",  model.type="stanct",
                   coresToUse=coresToUse,
@@ -1003,6 +1006,7 @@ ctmaFit <- function(
                   n.moderators=length(mod.number),
                   mod.names=mod.names,
                   mod.type=mod.type,
+                  primaryStudyList=primaryStudies,
                   studyList=ctmaInitFit$studyList,
                   studyFitList=fitStanctModel,
                   data=datalong_all,
