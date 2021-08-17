@@ -995,7 +995,7 @@ ctmaFit <- function(
     clus.effects <- NULL
   }
 
-  if (is.null(primaryStudyList)) primaryStudies <- ctmaInitFit$primaryStudies else primaryStudies <- primaryStudyList
+  if (is.null(primaryStudyList)) primaryStudies <- ctmaInitFit$primaryStudyList else primaryStudies <- primaryStudyList
 
 
   results <- list(activeDirectory=activeDirectory,
