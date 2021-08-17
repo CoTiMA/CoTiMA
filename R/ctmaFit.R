@@ -32,7 +32,7 @@
 #' @param equalDrift Not enabled
 #' @param inits vector of start values
 #' @param modsToCompare when performing contrasts for categorical moderators, the moderator numbers (position in mod.number) that is used
-#' @param catsToCompare when performing contrasts for categorical moderators, the categories for which effects are set equal
+#' @param catsToCompare when performing contrasts for categorical moderators, the categories (values, not positions) for which effects are set equal
 #' @param driftsToCompare when performing contrasts for categorical moderators, the (subset of) drift effects analyzed
 #'
 #' @importFrom  RPushbullet pbPost
@@ -266,9 +266,12 @@ ctmaFit <- function(
     n.moderators <- length(mod.number); n.moderators
     if (n.moderators > 0) {
       currentModerators <- matrix(as.numeric(unlist(lapply(ctmaInitFit$studyList, function(extract) extract$moderators[mod.number]))), ncol=n.moderators); currentModerators
-      if (!is.null(primaryStudyList)) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE); currentModerators
+      if (!(is.null(primaryStudyList))) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE)
+      #currentModerators
+      #if (!is.null(primaryStudyList)) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE); currentModerators
       if (is.na((currentModerators[length(currentModerators)])[[1]][1])) currentModerators <- currentModerators[-dim(currentModerators)[1],]; currentModerators
       if (is.null(dim(currentModerators)[1])) currentModerators <- matrix(currentModerators, ncol=1); currentModerators
+      #table(currentModerators)
 
       if (any(is.na(currentModerators)) == TRUE) {
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
@@ -346,17 +349,19 @@ ctmaFit <- function(
 
         for (c1 in 1:dim(moderatorGroups)[2]) {
           if (c1 %in% modsToCompare) {
-            maxModeratorGroups <- max(moderatorGroups[, c1]); maxModeratorGroups
+            #maxModeratorGroups <- max(moderatorGroups[, c1]); maxModeratorGroups
+            maxAbsModeratorGroups <- max(abs(moderatorGroups[, c1])) ; maxAbsModeratorGroups
+            minAbsModeratorGroups <- min(abs(moderatorGroups[, c1])) ; minAbsModeratorGroups
+            moderatorGroupsOffset <- maxAbsModeratorGroups + minAbsModeratorGroups; moderatorGroupsOffset
             for (c2 in catsToCompare) {
               #moderatorGroups[moderatorGroups[ ,c1] == c2] <- moderatorGroups[moderatorGroups[ ,c1] == c2] + maxModeratorGroups
-              moderatorGroups[moderatorGroups[ ,c1] == c2] <- moderatorGroups[moderatorGroups[ ,c1] == c2] - maxModeratorGroups
+              moderatorGroups[moderatorGroups[ ,c1] == c2] <- moderatorGroups[moderatorGroups[ ,c1] == c2] - moderatorGroupsOffset
             }
           }
         }
       }  # END if (!(is.null(catsToCompare)))
 
     }
-    #table(moderatorGroups)
 
     # label group vectors
     names(groups) <- c("Study_No_"); groups
@@ -668,7 +673,7 @@ ctmaFit <- function(
       stanctModel$pars[ , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- FALSE
       stanctModel$pars[tmp1[tmp2] , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
 
-      # change model to allow for camparsion of categories (-2ll is the only important result)
+      # change model to allow for comparison of categories (-2ll is the only important result)
       if (!(is.null(catsToCompare))) {
         currentStartNumber <- modTIstartNum; currentStartNumber
         for (c1 in 1:modsToCompare) {
@@ -683,13 +688,10 @@ ctmaFit <- function(
             targetCols2 <- currentStartNumber:(currentStartNumber+length(catsToCompare)-2); targetCols2
           }
         }
-        targetCols2
         if (is.null(driftsToCompare)) driftsToCompare <- driftFullNames
         targetRows2 <- which(stanctModel$pars[, "param"] %in% driftsToCompare); targetRows2
-        #targetCols3 <- grep(targetCols2, colnames(stanctModel$pars)); targetCols3
         targetCols3 <- c()
         for (c4 in targetCols2) targetCols3 <- c(targetCols3, grep(c4, colnames(stanctModel$pars)))
-        #targetCols3
         stanctModel$pars[targetRows2, targetCols3] <- FALSE
       }
 
@@ -851,19 +853,31 @@ ctmaFit <- function(
         for (j in modTIs) {
           #j <- modTIs[1]; j
           if (n.moderators == 1) unique.mod.tmp <- unique.mod else unique.mod.tmp <- unique.mod[[counter+1]]
-          modCatOrder <- unique.mod.tmp; modCatOrder
+          #modCatOrder <- unique.mod.tmp; modCatOrder
           if (!(is.null(catsToCompare))) {
-            tmp1 <- which(1:length(unique.mod.tmp) %in% unique.mod.tmp); tmp1
-            tmp2 <- which(!(1:length(unique.mod.tmp) %in% unique.mod.tmp)); tmp2
-            modCatOrder <- c(tmp2, tmp1); modCatOrder
+            origCats <- c(unique.mod.tmp[1:2] + moderatorGroupsOffset, unique.mod.tmp[-c(1:2)]); origCats
+          } else {
+            origCats <- unique.mod.tmp
           }
+          #if (!(is.null(catsToCompare))) {
+          #  tmp1 <- which(1:length(unique.mod.tmp) %in% unique.mod.tmp); tmp1
+          #  tmp2 <- which(!(1:length(unique.mod.tmp) %in% unique.mod.tmp)); tmp2
+          #  modCatOrder <- c(tmp2, tmp1); modCatOrder
+          #}
+          #moderatorGroupsOffset
+          #modTI_Coeff
+          #unique.mod.tmp
           for (i in 1:(length(unique.mod.tmp)-1)) {
+            #i <- 1
             counter <- counter + 1; counter
             current.mod.names <- mod.names[modNameCounter]; current.mod.names
             targetNamePart <- paste0("tip_", modTIs[i]); targetNamePart
             tmp1 <- grep(targetNamePart, rownames(modTI_Coeff)); tmp1
             #rownames(modTI_Coeff) <- sub(targetNamePart, paste0(modCatOrder[counter+1], ". smallest value (category) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
-            rownames(modTI_Coeff) <- sub(targetNamePart, paste0(modCatOrder[counter+1], "  (category value) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
+            #rownames(modTI_Coeff) <- sub(targetNamePart, paste0(modCatOrder[counter+1], "  (category value) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
+            rownames(modTI_Coeff) <- sub(targetNamePart, paste0(origCats[counter+1], "  (category value) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
+            #origCats[counter+1]
+            #rownames(modTI_Coeff)
           }
           counter <- 0
           modNameCounter <- modNameCounter + 1
@@ -873,7 +887,7 @@ ctmaFit <- function(
     # eliminate z
     modTI_Coeff[, "z"] <- NULL; modTI_Coeff
   }
-  #modTI_Coeff
+  modTI_Coeff
 
   ## cluster effects
   if (!(is.null(cluster))) {
