@@ -97,7 +97,7 @@ ctmaFit(
 
 \item{modsToCompare}{when performing contrasts for categorical moderators, the moderator numbers (position in mod.number) that is used}
 
-\item{catsToCompare}{when performing contrasts for categorical moderators, the categories for which effects are set equal}
+\item{catsToCompare}{when performing contrasts for categorical moderators, the categories (values, not positions) for which effects are set equal}
 
 \item{driftsToCompare}{when performing contrasts for categorical moderators, the (subset of) drift effects analyzed}
 }
