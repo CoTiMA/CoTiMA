@@ -4,17 +4,27 @@
 \alias{ctmaSV}
 \title{ctmaSV}
 \usage{
-ctmaSV(ctmaInitFit = NULL, activeDirectory = NULL, coresToUse = 1)
+ctmaSV(
+  ctmaInitFit = NULL,
+  activeDirectory = NULL,
+  primaryStudies = NULL,
+  coresToUse = 1,
+  replaceSV = TRUE
+)
 }
 \arguments{
 \item{ctmaInitFit}{object to which all single 'ctsem' fits of primary studies has been assigned to (i.e., what has been returned by \code{\link{ctmaInit}})}
 
 \item{activeDirectory}{defines another active directory than the one used in \code{\link{ctmaInit}}}
 
+\item{primaryStudies}{if ctmaInitFit does not contain the primaryStudies object created with  \code{\link{ctmaPrep}} it could be added}
+
 \item{coresToUse}{if negative, the value is subtracted from available cores, else value = cores to use}
+
+\item{replaceSV}{if TRUE replaces startValues in primaryStudies, else it saves them as list element inits}
 }
 \value{
-returns a modifed list of primary studies with starting values added or replaced
+returns a modified list of primary studies with starting values added or replaced
 }
 \description{
 derives start values by average discrete time SEM effects, converting them to continuous time, and inversely apply transformations used by 'ctsem'

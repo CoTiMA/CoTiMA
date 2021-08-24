@@ -5,6 +5,8 @@
 #' @param ctmaInitFit object to which all single 'ctsem' fits of primary studies has been assigned to (i.e., what has been returned by \code{\link{ctmaInit}})
 #' @param activeDirectory defines another active directory than the one used in \code{\link{ctmaInit}}
 #' @param coresToUse if negative, the value is subtracted from available cores, else value = cores to use
+#' @param primaryStudies if ctmaInitFit does not contain the primaryStudies object created with  \code{\link{ctmaPrep}} it could be added
+#' @param replaceSV if TRUE replaces startValues in primaryStudies, else it saves them as list element inits
 #'
 #'
 #' @importFrom crayon red blue
@@ -19,13 +21,15 @@
 #'
 #' @export ctmaSV
 #'
-#' @return returns a modifed list of primary studies with starting values added or replaced
+#' @return returns a modified list of primary studies with starting values added or replaced
 
 #'
 ctmaSV <- function(
   ctmaInitFit=NULL,
   activeDirectory=NULL,
-  coresToUse=1)
+  primaryStudies=NULL,
+  coresToUse=1,
+  replaceSV=TRUE)
 
 {  # begin function definition (until end of file)
 
@@ -38,6 +42,8 @@ ctmaSV <- function(
       ErrorMsg <- "\nA fitted CoTiMA object (\"ctmaInitFit\") has to be supplied to analyse something. \nGood luck for the next try!"
       stop(ErrorMsg)
     }
+
+    if (!(is.null(primaryStudies))) ctmaInitFit$primaryStudyList <- primaryStudies
 
   } # END Checks
 
@@ -64,6 +70,9 @@ ctmaSV <- function(
   start.time <- Sys.time(); start.time
 
   {
+
+    if (is.null(ctmaInitFit$primaryStudyList)) ctmaInitFit$primaryStudyList <- ctmaInitFit$studyList # possible compatibility with earlier version
+
     n.latent <- ctmaInitFit$n.latent; n.latent
     n.manifest <- ctmaInitFit$n.manifest; n.manifest
     if (is.null(n.manifest)) n.manifest <- 0
@@ -129,9 +138,8 @@ ctmaSV <- function(
 
       model.full <- list()
       for (k in 1:n.studies) {
-        #k <- 1
+        #k <- 16
         model.full[[k]] <- model.2w
-        #(length(ctmaInitFit$primaryStudyList$deltas[[k]]))
         if (length(ctmaInitFit$primaryStudyList$deltas[[k]]) > 1 ) {
           for (l in length(ctmaInitFit$primaryStudyList$deltas[[k]]):2) {
             #l <- 2
@@ -151,7 +159,7 @@ ctmaSV <- function(
       driftSV <- diffSV <- array(NA, dim=c(n.studies, n.latent, n.latent) ); driftSV
       model.full.fit.summary <- list()
       for (k in 1:n.studies) {
-        #k <- 1
+        #k <- 16
         dataTmp <- ctmaInitFit$emprawList[[k]]
         colnames(dataTmp) <- gsub("_", "", colnames(dataTmp))
         model.full.fit <- suppressWarnings(lavaan::sem(model.full[[k]], # its okay to "duplicated elements in model syntax have been ignored":" - it was easier to leave them in
@@ -211,18 +219,28 @@ ctmaSV <- function(
 
       newInit <- list()
       for (k in 1:n.studies) {
-        #k <- 7
-        #ctmaInitFit$primaryStudyList$deltas[[k]]
-        #driftSV[1,,]
-        driftTmp  <- OpenMx::logm(driftSV[k,,]) / mean(ctmaInitFit$primaryStudyList$deltas[[k]]); driftTmp
+        #k <- 1
+        #driftTmp  <- OpenMx::logm(driftSV[k,,]) / mean(ctmaInitFit$primaryStudyList$deltas[[k]]); driftTmp
+        driftTmp  <- OpenMx::logm(driftSV[k,,]) / mean(ctmaInitFit$studyList[[k]]$delta_t); driftTmp
         driftTmpKron <- driftTmp %x% diag(1, n.latent, n.latent) + diag(1, n.latent, n.latent) %x% driftTmp; driftTmpKron
         driftTmpKronSolv <- solve(driftTmpKron); driftTmpKronSolv
         #diffTmp <- driftTmpKronSolv %*% (OpenMx::expm(driftTmpKron * 3.99) - diag(1, dim(driftTmpKron)[1], dim(driftTmpKron)[2])) %*% c(diffSV[k, , ]); diffTmp
         diffTmp <- driftTmpKronSolv %*% (OpenMx::expm(driftTmpKron * 1) - diag(1, dim(driftTmpKron)[1], dim(driftTmpKron)[2])) %*% c(diffSV[k, , ]); diffTmp
-        diffTmp <- solve(driftTmpKronSolv %*% ( OpenMx::expm(driftTmpKron * mean(ctmaInitFit$primaryStudyList$deltas[[k]])) -
+        #diffTmp <- solve(driftTmpKronSolv %*% ( OpenMx::expm(driftTmpKron * mean(ctmaInitFit$primaryStudyList$deltas[[k]])) -
+        #                                          diag(1, dim(driftTmpKron)[1], dim(driftTmpKron)[2]) )) %*% c(diffSV[k, , ]); diffTmp
+        diffTmp <- solve(driftTmpKronSolv %*% ( OpenMx::expm(driftTmpKron * mean(ctmaInitFit$studyList[[k]]$delta_t)) -
                                                   diag(1, dim(driftTmpKron)[1], dim(driftTmpKron)[2]) )) %*% c(diffSV[k, , ]); diffTmp
         diffTmp <- matrix(diffTmp, n.latent, n.latent); diffTmp
-        T0varTmp <- ctmaInitFit$primaryStudyList$empcovs[[k]][1:n.latent, 1:n.latent]; T0varTmp
+        #ctmaInitFit$primaryStudyList$empcovs[[k]]
+        if (!(is.na(ctmaInitFit$primaryStudyList$empcovs[[k]][1]))) {
+          T0varTmp <- ctmaInitFit$primaryStudyList$empcovs[[k]][1:n.latent, 1:n.latent]; T0varTmp
+        } else {
+          if ( length(ctmaInitFit$modelResults$T0VAR[[k]]) == n.latent^2) {
+            T0varTmp <- matrix(ctmaInitFit$modelResults$T0VAR[[k]], n.latent, n.latent)
+          } else {
+            T0varTmp <- OpenMx::vech2full(ctmaInitFit$modelResults$T0VAR[[k]])
+          }
+        }
         ## tform inv
         #
         T0varTmp <- t(chol(T0varTmp)); T0varTmp
@@ -233,13 +251,14 @@ ctmaSV <- function(
         diffTmp <- t(chol(diffTmp)); diffTmp
         diag(diffTmp) <- tformDiffInv(diag(diffTmp)); diffTmp
         #
-        c(diffTmp[lower.tri(diffTmp, diag=T)])
+        #c(diffTmp[lower.tri(diffTmp, diag=T)])
         newInit[[k]] <- c(c(driftTmp), c(diffTmp[lower.tri(diffTmp, diag=T)]), c(T0varTmp[lower.tri(T0varTmp, diag=T)])); newInit
       }
     }
 
     newPrimaryStudyList <- ctmaInitFit$primaryStudyList
-    newPrimaryStudyList$inits <- newInit
+    if (replaceSV == TRUE) newPrimaryStudyList$startValues <- newInit else newPrimaryStudyList$inits <- newInit
+    newPrimaryStudyList$emprawList <- ctmaInitFit$emprawList
 
     results <- newPrimaryStudyList
     class(results) <- "CoTiMAFit"

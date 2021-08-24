@@ -26,6 +26,7 @@
 #' @param digits Rounding used for summary function
 #' @param moderatorLabels character vector of names
 #' @param moderatorValues list of character vectors
+#' @param summary if TRUE (default) creates summary table and xlsx sheets. Could be set to FALSE in case of errors.
 #'
 #' @importFrom crayon red
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
@@ -94,7 +95,8 @@ ctmaPrep <- function(selectedStudies=NULL,
                      addElements=NULL,
                      digits=4,
                      moderatorLabels=NULL,
-                     moderatorValues=NULL
+                     moderatorValues=NULL,
+                     summary=TRUE
 ) {
 
   ctma <- globalenv()
@@ -258,6 +260,7 @@ ctmaPrep <- function(selectedStudies=NULL,
 
   primaryStudies$n.studies <- length(selectedStudies)
 
+  if (summary == TRUE) {
   # create summary
   # values required for printing matrix values in a single row
   primaryStudies2 <- primaryStudies
@@ -283,14 +286,13 @@ ctmaPrep <- function(selectedStudies=NULL,
   #studyListCategories
 
   summaryTable <- matrix(NA, nrow=n.studies, ncol=0); summaryTable
+  #length(studyListCategories)
   for (i in 1:length(studyListCategories)) {
     #i <- 1
     #(any(!(is.na(primaryStudies2[[i]]))))
     if (any(!(is.na(primaryStudies2[[i]])))) {
       # check max length of list elements across studies
       maxLength <- max(unlist(lapply(primaryStudies2[[i]], length))); maxLength
-      #primaryStudies2[[i]]
-      #studyListCategories[i]
       object <- "vector"
       if (names(studyListCategories)[i] %in% c("empcovs", "pairwiseNs")) object <- "matrix"
       if (names(studyListCategories)[i] %in% c("combineVariables")) object <- "list"
@@ -299,13 +301,11 @@ ctmaPrep <- function(selectedStudies=NULL,
         maxLength <- maxLength * (maxLength - 1) / 2; maxLength
       }
       if (names(studyListCategories)[i] %in% c("alphas")) maxLength <- maxWaves * n.variables
-      #object
-      #maxLength
 
       if (maxLength > 0) {
         tmpTable <- matrix(NA, nrow=n.studies, ncol=maxLength); tmpTable
         for (j in (1:n.studies)) {
-          #j <- 25
+         #j <- 18
           if (length(primaryStudies2[[i]][[j]]) > 0) {
             if (object == "matrix") {
               currentLength <- length(primaryStudies2[[i]][[j]])^.5; currentLength
@@ -487,6 +487,7 @@ ctmaPrep <- function(selectedStudies=NULL,
   openxlsx::writeData(wb, sheet9, primaryStudies$summary[c(tmp1, tmp2, tmp3)])
 
   primaryStudies$excelSheets <- wb
+  } # end if (summary == TRUE)
 
   primaryStudies$plot.type="none"
 

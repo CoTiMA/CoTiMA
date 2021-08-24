@@ -30,11 +30,11 @@
 #' @param doPar parallel and multiple fitting if single studies
 #' @param useSV if TRUE (default) start values will be used if provided in the list of primary studies
 #'
-#' @importFrom  RPushbullet pbPost
-#' @importFrom  crayon red blue
-#' @importFrom  parallel detectCores
-#' @importFrom  ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit
-#' @importFrom  utils read.table write.table
+#' @importFrom RPushbullet pbPost
+#' @importFrom crayon red blue
+#' @importFrom parallel detectCores
+#' @importFrom ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit
+#' @importFrom utils read.table write.table
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach %dopar%
@@ -98,8 +98,8 @@ ctmaInit <- function(
 {  # begin function definition (until end of file)
 
   if (doPar > 1) {
-  doParallel::registerDoParallel(detectCores()-1)
-  '%dopar%' <- foreach::'%dopar%'
+    doParallel::registerDoParallel(detectCores()-1)
+    '%dopar%' <- foreach::'%dopar%'
   }
 
   start.time <- Sys.time()
@@ -273,8 +273,11 @@ ctmaInit <- function(
     ### create pseudo raw data for all studies or load raw data if available & specified
     empraw <- lags <- moderators <- emprawMod <- allSampleSizes <- lostN <- overallNDiff <- relativeNDiff <- list()
     emprawLong <- list()
-    if (is.na(primaryStudies$deltas[length(primaryStudies$deltas)])) primaryStudies$deltas <- primaryStudies$deltas[-length(primaryStudies$deltas)]
-    allTpoints <-unlist(lapply(primaryStudies$deltas, function(extract) length(extract)+1)); allTpoints # more complicated thasn expected
+
+    if (n.studies > 1) {
+      if (is.na(primaryStudies$deltas[length(primaryStudies$deltas)])) primaryStudies$deltas <- primaryStudies$deltas[-length(primaryStudies$deltas)]
+    }
+    allTpoints <-unlist(lapply(primaryStudies$deltas, function(extract) length(extract)+1)); allTpoints # more complicated than expected
 
     # manifests
     if (n.manifest > n.latent) {
@@ -286,6 +289,7 @@ ctmaInit <- function(
     }
 
     for (i in 1:n.studies) {
+      #i <- 1
       if (!(i %in% loadRawDataStudyNumbers)) {
         currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
@@ -316,8 +320,6 @@ ctmaInit <- function(
         relativeNDiff[[i]] <- tmp$relativeLostN
         lags[[i]] <- matrix(currentLags, nrow=dim(empraw[[i]])[1], ncol=currentTpoints-1, byrow=TRUE)
         empraw[[i]] <- cbind(empraw[[i]], lags[[i]]);
-        empraw[[i]]
-        currentVarnames
         colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
         empraw[[i]] <- as.data.frame(empraw[[i]])
 
@@ -343,84 +345,138 @@ ctmaInit <- function(
 
       # load raw data on request
       if ( i %in% loadRawDataStudyNumbers ) {
-        tmp1 <- studyList[[i]]$rawData$fileName; tmp1
-        tmp2 <- studyList[[i]]$rawData$header; tmp2
-        tmp3 <- studyList[[i]]$rawData$dec; tmp3
-        tmp4 <- studyList[[i]]$rawData$sep; tmp4
-        tmpData <- utils::read.table(file=tmp1,
-                                     header=tmp2,
-                                     dec=tmp3,
-                                     sep=tmp4)
-        # replace missing values
-        tmpData <- as.matrix(tmpData) # important: line below will not work without having data as a matrix
-        tmpData[tmpData %in% studyList[[i]]$rawData$missingValues] <- NA
-        empraw[[i]] <- as.data.frame(tmpData)
-        ## START correction of current lags if entire time point is missing for a case
-        # change variable names
-        tmp1 <- dim(empraw[[i]])[2]; tmp1
-        currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
-        if (n.manifest > n.latent) {
-          colnames(empraw[[i]])[1:(currentTpoints * n.manifest)] <- paste0(paste0("x", 1:n.manifest), "_T", rep(0:(currentTpoints-1), each=n.manifest))
+        if ( (!(is.null(primaryStudies$emprawList[[i]]))) &
+             ((is.null(primaryStudies$empcovs[[i]]))) ) {  # if the function list of primary studies is already post-processed (ctmaSV) and called from ctmaOptimizeINit)
+          empraw[[i]] <- primaryStudies$emprawList[[i]]
+          if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
+          tmp1 <- dim(empraw[[i]])[2]; tmp1
+          currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
+          currentTpointsBackup <- currentTpoints # in case function is called from ctmaOptimizeInit
+          currentVarnames <- c()
+          for (j in 1:(currentTpoints)) {
+            if (n.manifest == 0) {
+              for (h in 1:n.latent) {
+                currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
+              }
+            } else {
+              for (h in 1:n.manifest) {
+                currentVarnames <- c(currentVarnames, paste0("y",h,"_T", (j-1)))
+              }
+            }
+          }
+          tmp1 <- empraw[[i]]
+          tmp2 <- tmp1[,grep("dT", colnames(tmp1))] == minInterval
+          tmp1[ ,grep("dT", colnames(tmp1))][tmp2] <- NA
+          for (h in 1:(currentTpoints-1)) studyList[[i]]$delta_t[h] <- mean(tmp1[, paste0("dT", h)], na.rm=TRUE)
+          studyList[[i]]$delta_t
         } else {
-          colnames(empraw[[i]])[1:(currentTpoints * n.latent)] <- paste0(paste0("V", 1:n.latent), "_T", rep(0:(currentTpoints-1), each=n.latent))
+          currentTpoints <- length((lapply(studyList, function(extract) extract$delta_t))[[i]])+1; currentTpoints
+
+          tmp1 <- studyList[[i]]$rawData$fileName; tmp1
+          tmp2 <- studyList[[i]]$rawData$header; tmp2
+          tmp3 <- studyList[[i]]$rawData$dec; tmp3
+          tmp4 <- studyList[[i]]$rawData$sep; tmp4
+          tmpData <- utils::read.table(file=tmp1,
+                                       header=tmp2,
+                                       dec=tmp3,
+                                       sep=tmp4)
+          currentVarnames <- c()
+          for (j in 1:(currentTpoints)) {
+            if (n.manifest == 0) {
+              for (h in 1:n.latent) {
+                currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
+              }
+            } else {
+              for (h in 1:n.manifest) {
+                currentVarnames <- c(currentVarnames, paste0("y",h,"_T", (j-1)))
+              }
+            }
+          }
+
+          # replace missing values
+          tmpData <- as.matrix(tmpData) # important: line below will not work without having data as a matrix
+          tmpData[tmpData %in% studyList[[i]]$rawData$missingValues] <- NA
+          empraw[[i]] <- as.data.frame(tmpData)
+
+          ## START correction of current lags if entire time point is missing for a case
+          # if called from ctmaOptimize
+          if (!(exists("n.var"))) n.var <- max(n.latent, n.manifest)
+          # change variable names
+          tmp1 <- dim(empraw[[i]])[2]; tmp1
+          currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
+          currentTpointsBackup <- currentTpoints # in case function is called from ctmaOptimizeInit
+          if (n.manifest > n.latent) {
+            colnames(empraw[[i]])[1:(currentTpoints * n.manifest)] <- paste0(paste0("x", 1:n.manifest), "_T", rep(0:(currentTpoints-1), each=n.manifest))
+          } else {
+            colnames(empraw[[i]])[1:(currentTpoints * n.latent)] <- paste0(paste0("V", 1:n.latent), "_T", rep(0:(currentTpoints-1), each=n.latent))
+          }
+
+          # wide to long
+          emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames)
+          emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
+
+          # eliminate rows where ALL latents are NA
+          if (n.manifest > n.latent) {
+            emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("x", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
+          } else {
+            emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+          }
+          # eliminate rows where time is NA
+          emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
+          # make wide format
+          emprawWide <- suppressMessages(ctsem::ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
+          # intervalise
+          emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide,
+                                                              Tpoints=currentTpoints,
+                                                              n.manifest=n.var,
+                                                              manifestNames=manifestNames,
+                                                              mininterval=minInterval))
+          # restore
+          empraw[[i]] <- as.data.frame(emprawWide)
+          #head(empraw[[i]])
+          # END correction
+          ###}
+
+          # Change the NAs provided for deltas if raw data are loaded
+          for (h in 1:(currentTpoints-1)) {
+            # temporarily replace dT = .001 by NA
+            tmp1 <- grep("dT", colnames(empraw[[i]])); tmp1
+            colnamesTmp <- colnames(empraw[[i]])[tmp1]; colnamesTmp
+            emprawTmp <- as.matrix(empraw[[i]][, tmp1])
+            colnames(emprawTmp) <- colnamesTmp
+            emprawTmp[emprawTmp == minInterval] <- NA
+            studyList[[i]]$delta_t[h] <- mean(emprawTmp[, paste0("dT", h)], na.rm=TRUE)
+          }
+          ##}
+          ##      }
+
+          # change sample size if entire cases were deleted
+          studyList[[i]]$sampleSize <- (dim(empraw[[i]]))[1]
+          allSampleSizes[[i]] <- dim(empraw[[i]])[1]; allSampleSizes[[i]]
+          currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
+          currentTpoints <- allTpoints[[i]]; currentTpoints
+          if (is.null(currentTpoints)) currentTpoints <- currentTpointsBackup
+
+          #currentVarnames
+          colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
+
+          # standardize (variables - not time lags) if option is chosen
+          if (studyList[[i]]$rawData$standardize == TRUE) empraw[[i]][, currentVarnames] <- scale(empraw[[i]][, currentVarnames])
+
+          # replace missing values for time lags dTi by minInterval (has to be so because dTi are definition variables)
+          tmpData <- empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))]
+          tmpData[is.na(tmpData)] <- minInterval
+          empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))] <- tmpData
+          #head(empraw[[i]])
+
+          # add moderators to loaded raw data
+          # Save raw data  on request
+          if ( i %in% saveRawData$studyNumbers ) {
+            x1 <- paste0(saveRawData$fileName, i, ".dat"); x1
+            utils::write.table(empraw[[i]], file=x1, row.names=saveRawData$row.names, col.names=saveRawData$col.names,
+                               sep=saveRawData$sep, dec=saveRawData$dec)
+          }
         }
-        # wide to long
-        emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames)
-        emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
-        # eliminate rows where ALL latents are NA
-        if (n.manifest > n.latent) {
-          emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("x", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
-        } else {
-          emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
-        }
-        # eliminate rows where time is NA
-        emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
-        # make wide format
-        emprawWide <- suppressMessages(ctsem::ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
-        # intervalise
-        emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide,
-                                                            Tpoints=currentTpoints,
-                                                            n.manifest=n.var,
-                                                            manifestNames=manifestNames,
-                                                            mininterval=minInterval))
-        # restore
-        empraw[[i]] <- as.data.frame(emprawWide)
-        # END correction
-
-        # Change the NAs provided for deltas if raw data are loaded
-        for (h in 1:(currentTpoints-1)) {
-          # temporarily replace dT = .001 by NA
-          tmp1 <- grep("dT", colnames(empraw[[i]])); tmp1
-          colnamesTmp <- colnames(empraw[[i]])[tmp1]; colnamesTmp
-          emprawTmp <- as.matrix(empraw[[i]][, tmp1])
-          colnames(emprawTmp) <- colnamesTmp
-          emprawTmp[emprawTmp == minInterval] <- NA
-          studyList[[i]]$delta_t[h] <- mean(emprawTmp[, paste0("dT", h)], na.rm=TRUE)
-        }
-      }
-
-      # change sample size if entire cases were deleted
-      studyList[[i]]$sampleSize <- (dim(empraw[[i]]))[1]
-      allSampleSizes[[i]] <- dim(empraw[[i]])[1]
-      currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
-      currentTpoints <- allTpoints[[i]]; currentTpoints
-
-      colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
-
-      # standardize (variables - not time lags) if option is chosen
-      if (studyList[[i]]$rawData$standardize == TRUE) empraw[[i]][, currentVarnames] <- scale(empraw[[i]][, currentVarnames])
-
-      # replace missing values for time lags dTi by minInterval (has to be so because dTi are definition variables)
-      tmpData <- empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))]
-      tmpData[is.na(tmpData)] <- minInterval
-      empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))] <- tmpData
-
-      # add moderators to loaded raw data
-      # Save raw data  on request
-      if ( i %in% saveRawData$studyNumbers ) {
-        x1 <- paste0(saveRawData$fileName, i, ".dat"); x1
-        utils::write.table(empraw[[i]], file=x1, row.names=saveRawData$row.names, col.names=saveRawData$col.names,
-                           sep=saveRawData$sep, dec=saveRawData$dec)
       }
 
       # augment pseudo raw data for stanct model
@@ -439,7 +495,8 @@ ctmaInit <- function(
         }
         emprawLong[[i]] <- dataTmp3
       }
-
+      #head(emprawLong[[i]], 40)
+      #}
     } ### END for i ...
   } ### END Read user provided data and create list with all study information ###
 
@@ -453,7 +510,7 @@ ctmaInit <- function(
     tmp2 <- unlist(primaryStudies$sampleSizes); tmp2
     if (!(any(is.na(tmp2)))) {   # check if mismatch is because >= 1 study used pairwise N
       Msg <- paste0("There is a possible mismatch between sample sizes specified in the primary study list
-    (created with the PREP R-file) and the cases pwovided in raw data files.\nN based on raw data: \n", tmp1)
+    (created with the PREP R-file) and the cases provided in raw data files.\nN based on raw data: \n", tmp1)
       message(Msg)
       Msg <- paste0("\nN as specified in list: \n", tmp2)
       message(Msg)
@@ -980,7 +1037,7 @@ ctmaInit <- function(
                                 n.parameters = round(allStudies_estimatedParameters, digits),
                                 message=message))
                   # excel workbook is added later
-                  )
+  )
   class(results) <- "CoTiMAFit"
 
   ### prepare Excel Workbook with several sheets ################################################################

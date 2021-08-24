@@ -14,6 +14,7 @@ ctmaPlot(
   timeUnit = "timeUnit (not specified)",
   timeRange = c(),
   yLimitsForEffects = c(),
+  mod.number = 1,
   mod.values = -2:2,
   aggregateLabel = "",
   xLabels = NULL,
@@ -38,6 +39,8 @@ ctmaPlot(
 \item{timeRange}{vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))}
 
 \item{yLimitsForEffects}{range for y-axis}
+
+\item{mod.number}{moderator number that should be used for plots}
 
 \item{mod.values}{moderator values that should be used for plots}
 

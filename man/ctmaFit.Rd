@@ -32,7 +32,10 @@ ctmaFit(
   verbose = NULL,
   allInvModel = FALSE,
   customPar = FALSE,
-  inits = NULL
+  inits = NULL,
+  modsToCompare = NULL,
+  catsToCompare = NULL,
+  driftsToCompare = NULL
 )
 }
 \arguments{
@@ -91,6 +94,12 @@ ctmaFit(
 \item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)}
 
 \item{inits}{vector of start values}
+
+\item{modsToCompare}{when performing contrasts for categorical moderators, the moderator numbers (position in mod.number) that is used}
+
+\item{catsToCompare}{when performing contrasts for categorical moderators, the categories (values, not positions) for which effects are set equal}
+
+\item{driftsToCompare}{when performing contrasts for categorical moderators, the (subset of) drift effects analyzed}
 }
 \value{
 ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,

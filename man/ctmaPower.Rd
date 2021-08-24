@@ -47,7 +47,7 @@ ctmaPower(
 
 \item{useMBESS}{use 'MBESS' package to calculate statistical power (slower)}
 
-\item{coresToUse}{vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))}
+\item{coresToUse}{if negative, the value is subtracted from available cores, else value = cores to use}
 
 \item{digits}{number of digits used for rounding (in outputs)}
 

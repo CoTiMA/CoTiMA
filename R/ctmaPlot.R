@@ -12,6 +12,7 @@
 #' @param timeRange vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))
 #' @param yLimitsForEffects range for y-axis
 #' @param mod.values moderator values that should be used for plots
+#' @param mod.number moderator number that should be used for plots
 #' @param aggregateLabel label to indicate aggregated discrete time effects
 #' @param xLabels labes used for x-axis
 #' @param ... arguments passed through to plot()
@@ -55,6 +56,7 @@ ctmaPlot <- function(
   timeUnit="timeUnit (not specified)",
   timeRange=c(),
   yLimitsForEffects=c(),
+  mod.number=1,
   mod.values=-2:2,
   aggregateLabel="",
   xLabels=NULL,
@@ -70,7 +72,10 @@ ctmaPlot <- function(
 
     # check if fit object is specified
     if (is.null(ctmaFitObject)){
-      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      if (activateRPB==TRUE) {
+        RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ),
+                            paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))
+      }
       ErrorMsg <- "A fitted ctma object has to be supplied to plot something. \nGood luck for the next try!"
       stop(ErrorMsg)
     }
@@ -78,7 +83,10 @@ ctmaPlot <- function(
     # check #1 if object can be plotted
     if (class(ctmaFitObject) == "list") testObject <- ctmaFitObject[[1]] else testObject <- ctmaFitObject
     if (class(testObject) != "CoTiMAFit")  {
-      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      if (activateRPB==TRUE) {
+        RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ),
+                            paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))
+      }
       ErrorMsg <- "This is nothing CoTiMA-related that I can plot. \nGood luck for the next try!"
       stop(ErrorMsg)
     }
@@ -89,9 +97,13 @@ ctmaPlot <- function(
       ctmaFitObject <- list()
       ctmaFitObject[[1]] <- tmp2
     }
+
     # check #2 if object can be plotted
     if ("none" %in% ctmaFitObject[[1]]$plot.type)  {
-      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      if (activateRPB==TRUE) {
+        RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ),
+                            paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))
+      }
       ErrorMsg <- "This is nothing CoTiMA-related that I can plot. \nGood luck for the next try!"
       stop(ErrorMsg)
     }
@@ -104,10 +116,13 @@ ctmaPlot <- function(
       plot.type[[1]] <- ctmaFitObject[[1]]$plot.type; plot.type[[1]]
       if (is.null(tmp)) {
         activeDirectory <- ctmaFitObject[[1]]$activeDirectory
+        if (is.null(activeDirectory)) activeDirectory <- ctmaFitObject$activeDirectory
       } else {
         activeDirectory <- tmp
       }
-    } else {
+    }
+
+    if (n.fitted.obj != 1) {
       for (i in 1:n.fitted.obj) {
         if (is.null(ctmaFitObject[[1]]$plot.type)) {
           plot.type[[i]] <- "drift"
@@ -120,24 +135,34 @@ ctmaPlot <- function(
 
     # check if fit object can be plotted
     if (length(unlist(plot.type))==0) {
-      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      if (activateRPB==TRUE) {
+        RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ),
+                            paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))
+      }
       ErrorMsg <- "The fitted CoTiMA object provided cannot be plotted. \nGood luck for the next try!"
       stop(ErrorMsg)
     }
 
     if (length(unique(unlist(plot.type))) > 1) {
       if (any(!(unique(unlist(plot.type)) %in% c("funnel", "forest")))) {
-        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+        if (activateRPB==TRUE) {
+          RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ),
+                              paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))
+        }
         ErrorMsg <- paste0("All fitted CoTiMA object to plot have to be of the same plot.type. \nThe following ploty.type arguments were found: \n", unique(unlist(plot.type)), "\nGood luck for the next try!")
         stop(ErrorMsg)
       }
     }
 
     if (length(unique(unlist(activeDirectory))) > 1) {
-      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      if (activateRPB==TRUE) {
+        RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ),
+                            paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))
+      }
       ErrorMsg <- paste0("More than a single active directors was sepcified, which does not work. \nThe following activeDirectory arguments were found: \n", unique(activeDirectory), "\nGood luck for the next try!")
       stop(ErrorMsg)
     }
+
   } # end some checks
 
   #######################################################################################################################
@@ -153,19 +178,21 @@ ctmaPlot <- function(
     requiredSampleSizes <- list()
     mod.values.backup <- mod.values; mod.values.backup
     mod.values <- list()
+    n.primary.studies <- c()
 
     # detect possible categorical moderator values
     for (i in 1:n.fitted.obj) {
+      #i <- 1
       if (!(is.null(ctmaFitObject[[i]]$mod.type))) {
         if (ctmaFitObject[[i]]$mod.type == "cat") {
-          mod.values[[i]] <- c(1, unique(as.numeric(substr(rownames(ctmaFitObject[[i]]$summary$mod.effects), 1,2))))
+          #rownames(ctmaFitObject[[i]]$summary$mod.effects)
+          mod.values[[i]] <- c(-999, unique(as.numeric(substr(rownames(ctmaFitObject[[i]]$summary$mod.effects), 1,2))))
         }
       }
     }
 
     tmp <- length(mod.values); tmp
     for (i in 1:n.fitted.obj) {
-      #i <- 2
       if (tmp != 0) {
         if (length(mod.values[[i]]) <= 1) mod.values[[i]] <- mod.values.backup; mod.values
       } else {
@@ -178,6 +205,7 @@ ctmaPlot <- function(
       n.latent[i] <- unlist(ctmaFitObject[[i]]$n.latent); n.latent[i]
       driftNames[[i]] <- ctmaFitObject[[i]]$parameterNames$DRIFT; driftNames[[i]]
       n.studies[i] <- ctmaFitObject[[i]]$n.studies; n.studies[i]
+      n.primary.studies[i] <- length(ctmaFitObject[[i]]$studyList); n.primary.studies[i]
       study.numbers[[i]] <- unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)); study.numbers[[i]]
       if (n.studies[i] == 1) {
         DRIFTCoeff[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFT); DRIFTCoeff[[i]]
@@ -196,19 +224,22 @@ ctmaPlot <- function(
         FixedEffect_DriftLow[[i]] <-  ctmaFitObject[[i]]$summary$estimates$`Fixed Effects of Drift Coefficients`["FixedEffect_DriftLowerLimit",]; FixedEffect_DriftLow[[i]]
         FixedEffect_DriftUp[[i]] <-  ctmaFitObject[[i]]$summary$estimates$`Fixed Effects of Drift Coefficients`["FixedEffect_DriftUpperLimit",]; FixedEffect_DriftUp[[i]]
       }
+
       if ("drift" %in% plot.type[[i]]) {
         allDeltas[[i]] <- ctmaFitObject[[i]]$statisticsList$allDeltas; allDeltas[[i]]
         maxDelta[i] <- max(allDeltas[[i]], na.rm=TRUE); maxDelta[i]
         minDelta[i] <- min(allDeltas[[i]], na.rm=TRUE); minDelta[i]
         meanDelta[i] <- mean(allDeltas[[i]], na.rm=TRUE); meanDelta[i]
       }
+
       if ("power" %in% plot.type[[i]]) {
         requiredSampleSizes[[i]] <- ctmaFitObject[[i]]$summary$estimates$`Required Sample Sizes`
         statisticalPower <- ctmaFitObject[[i]]$summary$estimates$`Requested Statistical Power`
       }
     }
     nlatent <- unlist(n.latent[[1]]); nlatent  # nlatent used general specs; n.latent in special specs
-  }
+
+  } ### END Extracting parameters
 
   #######################################################################################################################
   ################################################### funnel plots ######################################################
@@ -383,7 +414,7 @@ ctmaPlot <- function(
         # y-axis (original study numbers)
         atSeq <- seq(((n.studies+1)*heigthPerStudy- heigthPerStudy/2), 0, by = -heigthPerStudy); atSeq
         labelsSeq <- c(unlist(study.numbers), "SUM"); labelsSeq
-        graphics::axis(side=2, at = atSeq, labels=labelsSeq, las=1)
+        #graphics::axis(side=2, at = atSeq, labels=labelsSeq, las=1)
         graphics::axis(side=2, at = atSeq, labels=labelsSeq, las=1)
         # x-axis (effect size)
         #atSeq <- seq(0, xMax, by = 10); atSeq
@@ -447,7 +478,9 @@ ctmaPlot <- function(
           # add empirical lags not yet included in requested timeRage
           usedTimeRange <- sort(unique(c(usedTimeRange, unlist(allDeltas))))
           noOfSteps <- length(usedTimeRange); noOfSteps
-        } else {
+        }
+
+        if (length(timeRange) > 0) {
           stepWidth <- timeRange[3]
           usedTimeRange <- seq(timeRange[1], timeRange[2], stepWidth)
           if (stepWidth != 1) timeUnit <- paste0(timeUnit, " * ", stepWidth); timeUnit
@@ -459,64 +492,111 @@ ctmaPlot <- function(
         }
 
         # discrete effects across time range
-        discreteDriftCoeff <- list()
+        discreteDriftCoeff <- linearizedTIpredEffect <- DRIFThi <- DRIFTlo <- list()
+
         for (g in 1:n.fitted.obj) {
-          #g <- 1
+          toPlot <- n.studies[[g]]
+
           ########################## start dealing with possible moderator values #############################################
           if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
-            if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(unlist(mod.values[[1]]))
-            n.mod <- ctmaFitObject[[g]]$n.moderators; n.mod
 
-            # augement usedTimeRange by time points (quantiles) where moderator values are plotted
+            toPlot <- length(unlist(mod.values[[1]]))
+
+            # augment usedTimeRange by time points (quantiles) where moderator values are plotted
             xValueForModValue <- stats::quantile(usedTimeRange, probs = seq(0, 1, 1/(toPlot+1))); xValueForModValue # used for positioning of moderator value in plot
             usedTimeRange <- unique(sort(c(xValueForModValue, usedTimeRange))); usedTimeRange # correcting for added time points
             noOfSteps <- length(usedTimeRange); noOfSteps
 
-            DRIFTCoeff[[g]] <- list()
+            DRIFTCoeff[[g]] <- linearizedTIpredEffect[[g]] <- DRIFThi[[g]] <- DRIFTlo[[g]] <- list()
             counter <- 1
 
             for (i in mod.values[[g]]) {
-              #i <- -2
               ctmaFitObject[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
-              ctmaFitObject[[g]]$studyList[[counter]]$delta_t <- xValueForModValue[counter+1]; xValueForModValue[counter+1]
+              ctmaFitObject[[g]]$studyList[[counter]]$delta_t <- xValueForModValue[counter+1]
+
               ### compute moderated drift matrices
               # main effects
-              tmp1 <- ctmaFitObject[[g]]$modelResults$DRIFT; tmp1
-              tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE); tmp1 # main effect
-              # moderator effects (could be partial)
-              tmp2 <- ctmaFitObject[[g]]$modelResults$MOD[,1]; tmp2
-              tmp3 <- rownames(ctmaFitObject[[g]]$modelResults$MOD); tmp3
-              tmp4 <- c()
-              for (l in 1:length(driftNames[[g]])) {
-                tmp5 <- grep(unlist(driftNames[[g]][l]), tmp3); tmp4
-                if (length(tmp5) == 0) tmp4 <- c(tmp4, NA) else tmp4 <- c(tmp4, tmp5)
-              }
-              tmp4[!(is.na(tmp4))] <- tmp2
-              tmp4[(is.na(tmp4))] <- 0
-              tmp2 <- matrix(tmp4, n.latent[[g]], byrow=TRUE); tmp2 # moderator effect to be added to main effect
+              tmp1 <- ctmaFitObject[[g]]$studyFitList$stanfit$rawest[1:(n.latent^2)]; tmp1
+              tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE)
 
-              if (ctmaFitObject[[1]]$mod.type == "cont") {
+              # moderator effects (could be partial)
+              if (n.primary.studies[[g]] > n.studies[[g]]) {
+                n.TIpreds <- n.primary.studies[[g]]-1; n.TIpreds
+              } else {
+                n.TIpreds <- n.studies[[g]]-1; n.TIpreds
+              }
+              #e <- ctsem::ctExtract(ctmaFitObject[[g]]$studyFitList)
+
+              if (ctmaFitObject[[g]]$mod.type == "cont") {
+                #tmp2 <- apply(e$TIPREDEFFECT[,1:(n.latent^2),((n.TIpreds+1):(n.TIpreds+mod.number))], 2, mean); tmp2
+                tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,1:(n.latent^2),((n.TIpreds+1):(n.TIpreds+mod.number))]; tmp2
+                tmp3 <- rownames(ctmaFitObject[[g]]$modelResults$MOD); tmp3
+                tmp4 <- c()
+                for (l in 1:length(driftNames[[g]])) {
+                  tmp5 <- grep(unlist(driftNames[[g]][l]), tmp3); tmp5
+                  if (length(tmp5) == 0) tmp4 <- c(tmp4, NA) else tmp4 <- c(tmp4, tmp5)
+                }
+                tmp4[!(is.na(tmp4))] <- tmp2
+                tmp4[(is.na(tmp4))] <- 0
+                tmp2 <- matrix(tmp4, n.latent[[g]], byrow=TRUE); tmp2 # raw moderator effect to be added to raw main effect (followed by tform)
                 DRIFTCoeff[[g]][[counter]] <- tmp1 + unlist(mod.values[[g]])[counter] * tmp2; DRIFTCoeff[[g]][[counter]]
                 names(DRIFTCoeff[[g]]) <- paste0("Moderator Value = ", mod.values, " SD from mean if standardized (default setting)")
+                # compute matrices required  for linearizedTIpredEffect (JUST AS A CHECK)
+                DRIFThi[[g]][[counter]] <- tmp1 + .01 * tmp2
+                DRIFTlo[[g]][[counter]] <- tmp1 - .01 * tmp2
               }
-              if (ctmaFitObject[[1]]$mod.type == "cat") {
-                if (i == 1) {
+
+              if (ctmaFitObject[[g]]$mod.type == "cat") {
+                if (counter == 1) {
                   DRIFTCoeff[[g]][[counter]] <- tmp1 # copy main effects (= comparison group)
+                  #tmp2 <- matrix(0, n.latent, n.latent); tmp2
+                  DRIFThi[[g]][[counter]] <- tmp1 #+ .01 * tmp2
+                  DRIFTlo[[g]][[counter]] <- tmp1 #- .01 * tmp2
                 } else {
-                  tmp2 <- ctmaFitObject[[g]]$summary$mod.effects[,1]; tmp2
-                  #tmp2 <- tmp2[((i - 2) * n.latent^2 + 1): ((i - 2) * n.latent^2 + 0 + n.latent)]; tmp2
-                  tmp2 <- tmp2[((i - 2) * n.latent^2 + 1): ((i - 2) * n.latent^2 + 0 + n.latent^2)]; tmp2
+                  n.mod.tmp <- length(mod.values[[g]])-1; n.mod.tmp
+                  #e$TIPREDEFFECT[ , 1:(n.latent^2), n.TIpreds+(n.mod.tmp*(mod.number-1)+counter-1)] # counter is >= 2
+                  #tmp2 <- apply(e$TIPREDEFFECT[ , 1:(n.latent^2), n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1], 2, mean); tmp2
+                  tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,1:(n.latent^2),
+                                                                                                   n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1]; tmp2
                   tmp2 <- matrix(tmp2, n.latent, n.latent, byrow=TRUE); tmp2
-                  DRIFTCoeff[[g]][[counter]] <- tmp1 + (i-1) * tmp2; DRIFTCoeff[[g]][[counter]]
+                  DRIFTCoeff[[g]][[counter]] <- tmp1 + tmp2; DRIFTCoeff[[g]][[counter]]
+                  # compute matrices required  for linearizedTIpredEffect (JUST AS A CHECK)
+                  DRIFThi[[g]][[counter]] <- tmp1 + .01 * tmp2
+                  DRIFTlo[[g]][[counter]] <- tmp1 - .01 * tmp2
                 }
                 names(DRIFTCoeff[[g]][[counter]]) <- paste0("Moderator Value = ", mod.values[[g]][counter])
               }
               counter <- counter +1
+            } # END for (i in mod.values[[g]])
+
+
+            ## apply tform to drift elements that should be tformed (extracted into tansforms)
+            tmp1a <- ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars[, "transform"]; tmp1a
+            tmp1b <- ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars[, "param"]; tmp1b
+            transforms <- tmp1a[grep("toV", tmp1b)]; transforms
+
+            for (k in 1:(length(DRIFTCoeff[[g]]))) {
+              linearizedTIpredEffect[[g]][[k]] <- matrix(NA, n.latent, n.latent)
+              counter <- 0
+              for (l in 1:(n.latent)) {
+                for (m in 1:(n.latent)) {
+                  counter <- counter + 1
+                  param <- DRIFTCoeff[[g]][[k]][l,m]; param
+                  DRIFTCoeff[[g]][[k]][l,m] <- eval(parse(text=transforms[counter]))
+                  # compute matrices required  for linearizedTIpredEffect (JUST AS A CHECK)
+                  param <- DRIFThi[[g]][[k]][l,m]; param
+                  DRIFThi[[g]][[k]][l,m] <- eval(parse(text=transforms[counter]))
+                  param <- DRIFTlo[[g]][[k]][l,m]; param
+                  DRIFTlo[[g]][[k]][l,m] <- eval(parse(text=transforms[counter]))
+                }
+              }
+              linearizedTIpredEffect[[g]][[k]] <- t((DRIFThi[[g]][[k]] - DRIFTlo[[g]][[k]])/.02) # transpose to make same order as in summary report of TIPREDeffects
             }
-            #DRIFTCoeff
+            #linearizedTIpredEffect
+
+            # check all diags
             allDiags <- c()
             for (i in 1:length(DRIFTCoeff[[g]])) allDiags <- c(allDiags, diag(DRIFTCoeff[[g]][[i]]))
-
             if (!(all(allDiags < 0))) {
               if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
               ErrorMsg <- "Some of the moderated drift matrices have values > 0 in their diagonals. \nThis is likely if the model used to create \"ctmaFitObject\" was not identified! \nYou may want to try smaller moderator values (e.g., \"mod.values=c(-.5, 0., .5)\")! \nSome of the moderated drift matrices have values > 0 in their diagonals. \nThis is likely if the model used to create \"ctmaFitObject\" was not identified! \nYou may want to try smaller moderator values (e.g., \"mod.values=c(-.5, 0., .5)\")! \nGood luck for the next try!"
@@ -531,18 +611,21 @@ ctmaPlot <- function(
                 timeValue <- i * stepWidth; timeValue
                 discreteDriftCoeff[[g]][h, i, 1:(n.latent[[g]]^2)] <- c(discreteDrift(matrix(unlist(DRIFTCoeff[[g]][[h]]), n.latent[[g]], n.latent[[g]]), timeValue))
               }
-            } # end for (g in 1:n.fitted.obj)
-          } else {
+            }
+          }
+
+          if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
             discreteDriftCoeff[[g]] <- array(dim=c(length(mod.values[[g]]), noOfSteps-1, n.latent[[g]]^2))
             for (h in 1:length(mod.values[[g]])) {
-              for (i in usedTimeRange[1]:(noOfSteps-1)){
+              for (i in usedTimeRange[1]:(noOfSteps-1)) {
                 timeValue <- i * stepWidth; timeValue
                 discreteDriftCoeff[[g]][h, i, 1:(n.latent[[g]]^2)] <- c(discreteDrift(matrix(unlist(DRIFTCoeff[[g]][[h]]), n.latent[[g]], n.latent[[g]]), timeValue))
-              }
-            } # end for (g in 1:n.fitted.obj)
-          } # end if is.null(ctmaFitObject[[g]]$modelResults$MOD)) ... else ...
+              } # end for (i in usedTimeRange[1]:(noOfSteps-1))
+            } # end for (h in 1:length(mod.values[[g]])
+          } # end if !(is.null(ctmaFitObject[[g]]$modelResults$MOD)))
 
-        } # end computing discrete effects across time range
+        } # END for (g in 1:n.fitted.obj)
+
       } ### END Specification of Parameters for Plotting, Statistical Power, Optimal Lags ###
 
       Msg <- "################################################################################# \n################################### Plotting #################################### \n#################################################################################"
@@ -580,7 +663,6 @@ ctmaPlot <- function(
           } # END for (stepCounter in 0:noOfSteps)
         } # END for (h in 1:toPlot)
       } # END for (g in 1:n.fitted.obj)
-
 
       ##################################### PLOTTING PARAMETERS ##########################################
       {
@@ -625,10 +707,9 @@ ctmaPlot <- function(
         coeffSeq <- seq(1, nlatent^2, (nlatent+1)); coeffSeq
 
         for (j in coeffSeq) { # diagonal elements only
-          #j <- 1
           counter <- counter + 1
+          #j <- 1
           for (g in 1:n.fitted.obj) {
-            #g <- 1
             if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
 
             if (is.null(ctmaFitObject[[g]]$type)) plot..type <- "l" else plot..type <- ctmaFitObject[[g]]$type; plot..type
@@ -662,6 +743,7 @@ ctmaPlot <- function(
             if (is.null(ctmaFitObject[[g]]$dot.cex)) dot.plot.cex <- 2 else dot.plot.cex <- ctmaFitObject[[g]]$dot.cex; dot.plot.cex
 
             for (h in 1:toPlot) {
+              #h <- 1
               currentPlotPair <- cbind(plotPairs[[g]][h, , 1], plotPairs[[g]][h, , 1+j])
               plot(currentPlotPair, type=plot..type, col=plot.col, lwd=plot.lwd, lty=plot.lty,
                    xlim = c(plot.xMin, plot.xMax),
@@ -678,6 +760,7 @@ ctmaPlot <- function(
                 graphics::par(new=T)
                 if (toPlot > 1) {
                   currentLabel <- ctmaFitObject[[g]]$studyList[[h]]$originalStudyNo; currentLabel
+                  if (currentLabel == -999) currentLabel <- "R"
                   if (is.null(currentLabel)) currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
                   if (h < 10) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
                   if (h > 9) graphics::text(currentPlotPair, labels=currentLabel, cex=1/5*dot.plot.cex, col="white")
@@ -685,7 +768,7 @@ ctmaPlot <- function(
                   currentLabel <- aggregateLabel
                   currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
                   graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
-                  currentPlotPair
+                  #currentPlotPair
                 }
                 graphics::par(new=T)
               }
@@ -699,7 +782,8 @@ ctmaPlot <- function(
           xLabels <- xLabelsBckup; xLabels
           if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange+.4)),2), 1), 2); xLabels
           posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
-          if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
+          #if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
+          if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels
 
           graphics::axis(side=1, at = posForXLabel, labels=xLabels, las=2)
           # add labels and title
@@ -727,10 +811,8 @@ ctmaPlot <- function(
         nlatent <- n.latent[[1]]; n.latent
         coeffSeq <- seq(1, nlatent^2, 1)[!(seq(1, nlatent^2, 1) %in% seq(1, nlatent^2, (nlatent+1)))]; coeffSeq
         for (j in coeffSeq) {
-          #j <- 3
           counter <- counter + 1
           for (g in 1:n.fitted.obj) {
-            #g <- 1
             if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
             #
             if (is.null(ctmaFitObject[[g]]$type)) plot..type <- "l" else plot..type <- ctmaFitObject[[g]]$type; plot..type
@@ -783,6 +865,7 @@ ctmaPlot <- function(
                 graphics::par(new=T)
                 if (toPlot > 1) {
                   currentLabel <- ctmaFitObject[[g]]$studyList[[h]]$originalStudyNo; currentLabel
+                  if (currentLabel == -999) currentLabel <- "R"
                   if (is.null(currentLabel)) currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
                   currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
                   if (h < 10) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
@@ -804,7 +887,8 @@ ctmaPlot <- function(
           xLabels <- xLabelsBckup; xLabels
           if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange+.4)),2), 1), 2); xLabels
           posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
-          if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
+          #if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
+          if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels
 
           graphics::axis(side=1, at = posForXLabel, labels=xLabels, las=2)
 
@@ -814,6 +898,7 @@ ctmaPlot <- function(
           } else {
             driftNamesTmp <- driftNames[[1]]
           }
+
           if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
             graphics::title(main = paste0("Moderated Cross-lagged Effects of ", driftNamesTmp[j]), sub = NULL,
                             xlab=paste0("Time Interval in ", timeUnit), ylab = "Cross-lagged Beta")
@@ -853,9 +938,9 @@ ctmaPlot <- function(
     if (is.null(ctmaFitObject[[g]]$pow.yMin)) pow.plot.yMax <- 2000 else pow.plot.lty <- ctmaFitObject[[g]]$pow.yMax
 
     #requiredSampleSizes
-    tmp1 <- suppressWarnings(as.numeric(rownames(requiredSampleSizes[[g]]))); tmp1
+    tmp1 <- suppressWarnings(as.numeric(rownames(requiredSampleSizes[[g]]))); tmp1          # time lags
     tmp1 <- tmp1[!(is.na(tmp1))]; tmp1
-    tmp1 <- round(tmp1, 0); tmp1
+    #####tmp1 <- round(tmp1, 0); tmp1.  # WHY?
     tmp2 <- !(duplicated(tmp1)); tmp2
     currentRequiredSamleSizes <- requiredSampleSizes[[g]][tmp2,]; currentRequiredSamleSizes
     tmp4 <- nrow(currentRequiredSamleSizes); tmp4
@@ -863,7 +948,9 @@ ctmaPlot <- function(
 
     xMax <- max(usedTimeRange); xMax
     xMin <- usedTimeRange[1]; xMin
-    currentRequiredSamleSizes <- currentRequiredSamleSizes[xMin:xMax , ]; currentRequiredSamleSizes
+    tmp5 <- as.numeric(rownames(currentRequiredSamleSizes)); tmp5
+    tmp6 <- which( (tmp5 >= xMin) & (tmp5 <=xMax) ); tmp6
+    currentRequiredSamleSizes <- currentRequiredSamleSizes[tmp6 , ]; currentRequiredSamleSizes
     #usedTimeRange <- min(tmp1):max(tmp1); usedTimeRange
     #xMax <- round(max(usedTimeRange), 0); xMax
     #xMin <- usedTimeRange[1]; xMin
@@ -897,7 +984,8 @@ ctmaPlot <- function(
       xLabels <- xLabelsBckup; xLabels
       if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange)+1),2), 1), 2); xLabels
       posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
-      if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
+      #if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
+      if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels
 
       graphics::axis(side=1, at = posForXLabel, labels=xLabels, las=2)
 
@@ -915,6 +1003,11 @@ ctmaPlot <- function(
       grDevices::dev.off()
     }
 
-  } ### END Plotting ###
+  } ### END  ("power" %in% unlist(plot.type))
+
+  if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
+    invisible(round(unlist(linearizedTIpredEffect)[-(1:(nlatent^2))], 4)) # just as a check
+  }
+
 
 } ### END function definition
