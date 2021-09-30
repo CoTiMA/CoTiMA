@@ -2,7 +2,7 @@ Package: CoTiMA
 Type: Package
 Title: Continuous Time Meta-Analysis ('CoTiMA')
 Version: 0.4.3
-Date: 2021-07-07
+Date: 2021-08-24
 Authors@R: c(person("Christian", "Dormann", role = c("aut","cph")),
             person("Markus", "Homberg", email = "cotima@uni-mainz.de", role = c("aut", "com", "cre")),
             person("Christina", "Guthier", role = c("ctb")),
