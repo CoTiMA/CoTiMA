@@ -1005,7 +1005,8 @@ ctmaPlot <- function(
 
   } ### END  ("power" %in% unlist(plot.type))
 
-  if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
+  #if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
+  if (!(is.null(ctmaFitObject[[1]]$modelResults$MOD))) {
     invisible(round(unlist(linearizedTIpredEffect)[-(1:(nlatent^2))], 4)) # just as a check
   }
 

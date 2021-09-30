@@ -586,12 +586,11 @@ ctmaPower <- function(
 
     #for (t in 2:(length(usedTimeRange)-1)) {
     for (t in 2:(length(usedTimeRange))) {
-      #t <- 2
+      #t <- 13
       # compute the covariance matrix implied by the dt-coefficients across requested time intervals
       # for equations see Neudecker, H. & Satorra, A. (1991). Linear structural relations: Gradient and ...
       # ... Hessian of the fitting function. Statistics & Probability Letters 11 (1991) 57-61. North-Holland
       #
-
       beta <- discreteDriftFunction(DRIFT, usedTimeRange[t]); beta
       tmpMat <- matrix(0, n.latent, n.latent); tmpMat
       B <- diag(1, 2*n.latent) - cbind(rbind(tmpMat, beta), rbind(tmpMat, tmpMat)); B
@@ -629,6 +628,7 @@ ctmaPower <- function(
       #
     }
   }
+  pValues
 
   Msg <- "################################################################################# \n# Compute min and max discrete time intervals for which effects are significant # \n#################################################################################"
   message(Msg)

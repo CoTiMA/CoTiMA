@@ -948,13 +948,17 @@ ctmaInit <- function(
     allStudies_Minus2LogLikelihood <- sum(unlist(studyFit_Minus2LogLikelihood)); allStudies_Minus2LogLikelihood
     allStudies_estimatedParameters <- sum(unlist(studyFit_estimatedParameters)); allStudies_estimatedParameters
     allStudies_df <- "deprecated"
-    #model_Drift_Coef
-    #model_Drift_SE
     allStudiesDRIFT_effects <- matrix(t(cbind(unlist(model_Drift_Coef), unlist(model_Drift_SE)) ), n.studies, 2*n.latent^2, byrow=T)
-    #allStudiesDRIFT_effects
     tmp1 <- driftFullNames; tmp1
     tmp2 <- rep("SE", length(tmp1)); tmp2
     colnames(allStudiesDRIFT_effects) <- c(rbind(tmp1, tmp2)); allStudiesDRIFT_effects
+    if (!(is.null(scaleTime))) {
+      allStudiesDRIFT_effects_rescaledTime <- matrix(t(cbind(unlist(model_Drift_Coef) * scaleTime,
+                                                             unlist(model_Drift_SE) * scaleTime) ), n.studies, 2*n.latent^2, byrow=T)
+      colnames(allStudiesDRIFT_effects_rescaledTime) <- c(rbind(tmp1, tmp2)); allStudiesDRIFT_effects
+    } else {
+      allStudiesDRIFT_effects_rescaledTime <- NULL
+    }
 
     source <- lapply(primaryStudies$source, function(extract) paste(extract, collapse=", ")); source
     for (l in 1:length(source)) if ( source[[l]] == "NA") source[[l]] <- "Reference not provided"
@@ -962,9 +966,22 @@ ctmaInit <- function(
     tmp <- allStudiesDRIFT_effects_ext
     tmp[, 2:(ncol(tmp))] <- round(as.numeric(tmp[, 2:(ncol(tmp))]), digits)
     allStudiesDRIFT_effects_ext <- tmp
+    if (!(is.null(allStudiesDRIFT_effects_rescaledTime))) {
+      allStudiesDRIFT_effects_rescaledTime_ext <- cbind(unlist(source), allStudiesDRIFT_effects_rescaledTime)
+      tmp <- allStudiesDRIFT_effects_rescaledTime_ext
+      tmp[, 2:(ncol(tmp))] <- round(as.numeric(tmp[, 2:(ncol(tmp))]), digits)
+      allStudiesDRIFT_effects_rescaledTime_ext <- tmp
+    } else {
+      allStudiesDRIFT_effects_rescaledTime_ext <- NULL
+    }
 
     allStudiesDriftCI <- matrix(unlist(model_Drift_CI), nrow=n.studies, byrow=TRUE)
     colnames(allStudiesDriftCI) <- names(model_Drift_CI[[1]])
+    if (!(is.null(scaleTime))) {
+      allStudiesDriftCI_rescaledTime <- matrix(round(unlist(model_Drift_CI) * scaleTime, digits),
+                                               nrow=n.studies, byrow=TRUE)
+      colnames(allStudiesDriftCI_rescaledTime) <- names(model_Drift_CI[[1]])
+    }
     allStudiesDiffusionCI <- matrix(unlist(model_Diffusion_CI), nrow=n.studies, byrow=TRUE)
     colnames(allStudiesDiffusionCI) <- names(model_Diffusion_CI[[1]])
     allStudiesT0varCI <- matrix(unlist(model_T0var_CI), nrow=n.studies, byrow=TRUE)
@@ -976,6 +993,10 @@ ctmaInit <- function(
     # Label summary table
     rownames(allStudiesDRIFT_effects) <- paste0("Study No ", primaryStudies$studyNumbers)
     rownames(allStudiesDRIFT_effects_ext) <- paste0("Study No ", primaryStudies$studyNumbers)
+    if (!(is.null(scaleTime))) {
+      rownames(allStudiesDRIFT_effects_rescaledTime) <- paste0("Study No ", primaryStudies$studyNumbers)
+      rownames(allStudiesDRIFT_effects_rescaledTime_ext) <- paste0("Study No ", primaryStudies$studyNumbers)
+    }
 
     # check single study results
     if (checkSingleStudyResults == TRUE) {
@@ -1017,6 +1038,18 @@ ctmaInit <- function(
     message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using, e.g.,", tmp3, "in all subsequent models.", collapse="\n"); message
   }
 
+  if (!(is.null(scaleTime))) {
+    estimates_orig_timeScale <- allStudiesDRIFT_effects_rescaledTime
+    confidenceIntervals_orig_timeScale <- allStudiesCI
+    tmp1 <- as.numeric(confidenceIntervals_orig_timeScale[ , -1]) * scaleTime
+    tmp1 <- matrix(round(tmp1, digits), nrow=dim(confidenceIntervals_orig_timeScale)[1])
+    confidenceIntervals_orig_timeScale[ , -1] <- tmp1
+    tmp1 <- grep("to", colnames(confidenceIntervals_orig_timeScale))
+    confidenceIntervals_orig_timeScale <- confidenceIntervals_orig_timeScale[, 1:max(tmp1)]
+  } else {
+    estimates_orig_timeScale <- NULL
+    confidenceIntervals_orig_timeScale <- NULL
+  }
 
   results <- list(activeDirectory=activeDirectory,
                   plot.type="drift", model.type="stanct",
@@ -1035,7 +1068,9 @@ ctmaInit <- function(
                                 confidenceIntervals=allStudiesCI,
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),
-                                message=message))
+                                message=message,
+                                estimates_orig_timeScale=estimates_orig_timeScale,
+                                confidenceIntervals_orig_timeScale=confidenceIntervals_orig_timeScale))
                   # excel workbook is added later
   )
   class(results) <- "CoTiMAFit"
