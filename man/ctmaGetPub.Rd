@@ -32,7 +32,7 @@ pubList_8 <- ctmaGetPub(authorList = list( c("J; de Jonge",
               c("Claude; Fernet", "user=KwzjP4sAAAAJ"),
               c("Frederic; Guay", "user=99vnhX4AAAAJ"),
               c("Caroline; Senecal", "user=64ArFWQAAAAJ"),
-              c("StÃ©phanie; Austin", "user=PPyTI7EAAAAJ")),
+              c("Stéphanie; Austin", "user=PPyTI7EAAAAJ")),
               flush=FALSE)
 summary(pubList_8)
 }
