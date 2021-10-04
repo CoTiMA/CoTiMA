@@ -289,6 +289,7 @@ ctmaPlot <- function(
   #################################################### forest plots #####################################################
   #######################################################################################################################
   for (k in 1:n.fitted.obj) {
+    #k <- 1
     if ("forest" %in% plot.type[[k]]) {
       # extracting information
       {
@@ -320,10 +321,10 @@ ctmaPlot <- function(
       # try
       yMin <- 0
       xMin <- 0
-      if (is.null(ctmaFitObject[[k]]$xMin)) plot.xMin <- xMin else plot.xMin <- ctmaFitObject[[k]]$xMin; plot.xMin
-      if (is.null(ctmaFitObject[[k]]$xMax)) plot.xMax <- xMax else plot.xMax <- ctmaFitObject[[k]]$xMax; plot.xMax
-      if (is.null(ctmaFitObject[[k]]$yMin)) plot.yMin <- yMin else plot.yMin <- ctmaFitObject[[k]]$yMin; plot.yMin
-      if (is.null(ctmaFitObject[[k]]$yMax)) plot.yMax <- yMax else plot.yMax <- ctmaFitObject[[k]]$yMax; plot.yMax
+      if (is.null(ctmaFitObject[[k]]$forestPlot$xMin)) plot.xMin <- xMin else plot.xMin <- ctmaFitObject[[k]]$forestPlot$xMin; plot.xMin
+      if (is.null(ctmaFitObject[[k]]$forestPlot$xMax)) plot.xMax <- xMax else plot.xMax <- ctmaFitObject[[k]]$forestPlot$xMax; plot.xMax
+      if (is.null(ctmaFitObject[[k]]$forestPlot$yMin)) plot.yMin <- yMin else plot.yMin <- ctmaFitObject[[k]]$forestPlot$yMin; plot.yMin
+      if (is.null(ctmaFitObject[[k]]$forestPlot$yMax)) plot.yMax <- yMax else plot.yMax <- ctmaFitObject[[k]]$forestPlot$yMax; plot.yMax
 
 
       # adaptations based on figures size ('base' objects contained transformed coefficients and are used for plotting)
