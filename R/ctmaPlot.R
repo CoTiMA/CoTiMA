@@ -321,10 +321,10 @@ ctmaPlot <- function(
       # try
       yMin <- 0
       xMin <- 0
-      if (is.null(ctmaFitObject[[k]]$forestPlot$xMin)) plot.xMin <- xMin else plot.xMin <- ctmaFitObject[[k]]$forestPlot$xMin; plot.xMin
-      if (is.null(ctmaFitObject[[k]]$forestPlot$xMax)) plot.xMax <- xMax else plot.xMax <- ctmaFitObject[[k]]$forestPlot$xMax; plot.xMax
-      if (is.null(ctmaFitObject[[k]]$forestPlot$yMin)) plot.yMin <- yMin else plot.yMin <- ctmaFitObject[[k]]$forestPlot$yMin; plot.yMin
-      if (is.null(ctmaFitObject[[k]]$forestPlot$yMax)) plot.yMax <- yMax else plot.yMax <- ctmaFitObject[[k]]$forestPlot$yMax; plot.yMax
+      if (is.null(ctmaFitObject[[k]]$xMin)) plot.xMin <- xMin else plot.xMin <- ctmaFitObject[[k]]$xMin; plot.xMin
+      if (is.null(ctmaFitObject[[k]]$xMax)) plot.xMax <- xMax else plot.xMax <- ctmaFitObject[[k]]$xMax; plot.xMax
+      if (is.null(ctmaFitObject[[k]]$yMin)) plot.yMin <- yMin else plot.yMin <- ctmaFitObject[[k]]$yMin; plot.yMin
+      if (is.null(ctmaFitObject[[k]]$yMax)) plot.yMax <- yMax else plot.yMax <- ctmaFitObject[[k]]$yMax; plot.yMax
 
 
       # adaptations based on figures size ('base' objects contained transformed coefficients and are used for plotting)
@@ -367,7 +367,7 @@ ctmaPlot <- function(
         graphics::par(new=F)
         for (j in 1:n.studies) {
           #j <- 1
-          crossDRIFTCoeffBase
+          #crossDRIFTCoeffBase
           # sample size and effect size conditional on effect size (identical x-scale for all cross and auto effects, respectively)
           if (colnames(DRIFTCoeff[[k]])[i] %in% autoNames) {
             currentXPos <- autoDRIFTCoeffBase[j, colnames(DRIFTCoeff[[k]])[i]]
@@ -403,7 +403,7 @@ ctmaPlot <- function(
           xleft <- crossFixedEffect_DriftLowBase[colnames(DRIFTCoeff[[k]])[i]]
           xright <- crossFixedEffect_DriftUpBase[colnames(DRIFTCoeff[[k]])[i]]
         }
-        xmiddle; xleft; xright
+        #xmiddle; xleft; xright
         ytop <- currentYPos - maxSquareSize/2 ; ytop
         ymiddle <- ytop - maxSquareSize/2; ymiddle
         ybottom <- ymiddle - maxSquareSize/2; ybottom
@@ -475,7 +475,8 @@ ctmaPlot <- function(
         minDelta <- min(unlist(minDelta)); minDelta
         if (length(timeRange) < 1) {
           stepWidth <- 1
-          usedTimeRange <- seq(1, 1.5*maxDelta, stepWidth)
+          usedTimeRange <- seq(1, 1.5*round(maxDelta + 1), stepWidth)
+          #usedTimeRange <- seq(1, 1.5*maxDelta, stepWidth)
           # add empirical lags not yet included in requested timeRage
           usedTimeRange <- sort(unique(c(usedTimeRange, unlist(allDeltas))))
           noOfSteps <- length(usedTimeRange); noOfSteps
@@ -484,7 +485,8 @@ ctmaPlot <- function(
         if (length(timeRange) > 0) {
           stepWidth <- timeRange[3]
           usedTimeRange <- seq(timeRange[1], timeRange[2], stepWidth)
-          if (stepWidth != 1) timeUnit <- paste0(timeUnit, " * ", stepWidth); timeUnit
+          #if (stepWidth != 1) timeUnit <- paste0(timeUnit, " * ", stepWidth); timeUnit
+
           # add empirical lags not yet included in requested timeRage
           tmp1 <- sort(unlist(allDeltas)/stepWidth); tmp1
           tmp2 <- which(tmp1 >= min(usedTimeRange) & tmp1 <= max(usedTimeRange) ); tmp2
@@ -624,10 +626,12 @@ ctmaPlot <- function(
               } # end for (i in usedTimeRange[1]:(noOfSteps-1))
             } # end for (h in 1:length(mod.values[[g]])
           } # end if !(is.null(ctmaFitObject[[g]]$modelResults$MOD)))
+          #discreteDriftCoeff[[1]][, , 1]
 
         } # END for (g in 1:n.fitted.obj)
 
       } ### END Specification of Parameters for Plotting, Statistical Power, Optimal Lags ###
+
 
       Msg <- "################################################################################# \n################################### Plotting #################################### \n#################################################################################"
       message(Msg)
@@ -642,28 +646,49 @@ ctmaPlot <- function(
       dotPlotPairs <- list() # study symbol and (scaled) time point
 
       for (g in 1:n.fitted.obj) {
+        #g <- 1
         if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
+        # toPlot
         plotPairs[[g]] <- array(dim=c(toPlot, length(usedTimeRange), 1+n.latent[[g]]^2))
         dotPlotPairs[[g]] <- array(dim=c(toPlot, length(usedTimeRange), 1+n.latent[[g]]^2))
 
+        xValueForModValue2 <- xValueForModValue[-length(xValueForModValue)]; xValueForModValue2
+        xValueForModValue2 <- xValueForModValue[-1]; xValueForModValue2
+
         for (h in 1:toPlot) {
+          #h <- 1
+          #length(usedTimeRange); timeRange
           for (stepCounter in 1:length(usedTimeRange)){
+            #stepCounter <- 1
             timeValue <- usedTimeRange[stepCounter]; timeValue
             plotPairs[[g]][h,stepCounter,1] <- timeValue; plotPairs[[g]][h,stepCounter,1]
             for (j in 1:(n.latent[[g]]^2)) {
+              #j <- 1
               plotPairs[[g]][h,stepCounter,(1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
-              plotPairs[[g]][h,stepCounter,(1+j)]
+              #plotPairs[[g]][h,stepCounter,(1+j)]
               if (toPlot == 1) tmp <- round(meanDelta[[1]],0) else tmp <- mean(ctmaFitObject[[g]]$studyList[[h]]$delta_t)
-              tmp
-              timeValue
+              #tmp
+              #timeValue
+              #dotPlotPairs[[g]]
+              #tmp
+              #stepWidth
               if (timeValue %in% (tmp / stepWidth)) { # plot only if the (used) time range includes the current study's mean time lag
                 dotPlotPairs[[g]][h, stepCounter, 1] <- timeValue
                 dotPlotPairs[[g]][h, stepCounter, (1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
               }
+              if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD)))  { # set dots if moderator is plotted
+                if (timeValue == xValueForModValue2[h]) {
+                  tmp1 <- xValueForModValue[h+1]; tmp1
+                  dotPlotPairs[[g]][h, stepCounter, 1] <- tmp1
+                  dotPlotPairs[[g]][h, stepCounter, (1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
+                }
+                }
             }
           } # END for (stepCounter in 0:noOfSteps)
         } # END for (h in 1:toPlot)
       } # END for (g in 1:n.fitted.obj)
+      #plotPairs[[g]][h , ,]
+      #dotPlotPairs[[g]][2 , ,]
 
       ##################################### PLOTTING PARAMETERS ##########################################
       {
@@ -711,6 +736,7 @@ ctmaPlot <- function(
           counter <- counter + 1
           #j <- 1
           for (g in 1:n.fitted.obj) {
+            #g <- 1
             if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
 
             if (is.null(ctmaFitObject[[g]]$type)) plot..type <- "l" else plot..type <- ctmaFitObject[[g]]$type; plot..type
@@ -751,9 +777,10 @@ ctmaPlot <- function(
                    ylim = c(plot.yMin, plot.yMax),
                    xaxt='n', yaxt='n', ann=FALSE)
               graphics::par(new=T)
-              if ( (is.null(ctmaFitObject[[g]]$plotStudyNo)) || (ctmaFitObject[[g]]$plotStudyNo==TRUE) ) {
+                if ( (is.null(ctmaFitObject[[g]]$plotStudyNo)) || (ctmaFitObject[[g]]$plotStudyNo==TRUE) ) {
                 # black circle
                 currentPlotPair <-cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
+                #currentPlotPair
                 plot(currentPlotPair, type=dot.plot.type, col=dot.plot.col, lwd=dot.plot.lwd,
                      pch=dot.plot.pch, lty=dot.plot.lty, cex=dot.plot.cex,
                      xlim = c(xMin, xMax), ylim = c(yMinAuto, yMaxAuto),
