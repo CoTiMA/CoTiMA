@@ -182,10 +182,8 @@ ctmaPlot <- function(
 
     # detect possible categorical moderator values
     for (i in 1:n.fitted.obj) {
-      #i <- 1
       if (!(is.null(ctmaFitObject[[i]]$mod.type))) {
         if (ctmaFitObject[[i]]$mod.type == "cat") {
-          #rownames(ctmaFitObject[[i]]$summary$mod.effects)
           mod.values[[i]] <- c(-999, unique(as.numeric(substr(rownames(ctmaFitObject[[i]]$summary$mod.effects), 1,2))))
         }
       }
@@ -246,12 +244,10 @@ ctmaPlot <- function(
   #######################################################################################################################
 
   for (k in 1:n.fitted.obj) {
-    #k <- 1
     if ("funnel" %in% unlist(plot.type[[k]])) {
       stretch <- 1.2
       figureName <- c()
       for (i in 1:(n.latent[k]^2)) {
-        #i <- 1
         # Determine range of X- and Y-axes
         pairs <- cbind(DRIFTCoeff[[k]][,i], DRIFTSE[[k]][,i]); pairs
         minX <- min(DRIFTCoeff[[k]][,i]); minX
@@ -360,14 +356,11 @@ ctmaPlot <- function(
       # plot
       graphics::plot.new()
       for (i in 1:(n.latent^2)) {
-        #i <- 3
         # set frame by plotting invisible object
         plot(c(0,0), type="l", col="white", lwd=1.5, xlim = c(plot.xMin, plot.xMax), ylim = c(plot.yMin, plot.yMax),
              xaxt='n', yaxt='n', ann=FALSE)
         graphics::par(new=F)
         for (j in 1:n.studies) {
-          #j <- 1
-          #crossDRIFTCoeffBase
           # sample size and effect size conditional on effect size (identical x-scale for all cross and auto effects, respectively)
           if (colnames(DRIFTCoeff[[k]])[i] %in% autoNames) {
             currentXPos <- autoDRIFTCoeffBase[j, colnames(DRIFTCoeff[[k]])[i]]
@@ -403,7 +396,6 @@ ctmaPlot <- function(
           xleft <- crossFixedEffect_DriftLowBase[colnames(DRIFTCoeff[[k]])[i]]
           xright <- crossFixedEffect_DriftUpBase[colnames(DRIFTCoeff[[k]])[i]]
         }
-        #xmiddle; xleft; xright
         ytop <- currentYPos - maxSquareSize/2 ; ytop
         ymiddle <- ytop - maxSquareSize/2; ymiddle
         ybottom <- ymiddle - maxSquareSize/2; ybottom
@@ -418,7 +410,6 @@ ctmaPlot <- function(
         #graphics::axis(side=2, at = atSeq, labels=labelsSeq, las=1)
         graphics::axis(side=2, at = atSeq, labels=labelsSeq, las=1)
         # x-axis (effect size)
-        #atSeq <- seq(0, xMax, by = 10); atSeq
         atSeq <- seq(plot.xMin, plot.xMax, by = 10); atSeq
         if (colnames(DRIFTCoeff[[k]])[i] %in% autoNames) {
           currentMin <- min(autoDRIFTCoeffLow); currentMin
@@ -528,10 +519,8 @@ ctmaPlot <- function(
               } else {
                 n.TIpreds <- n.studies[[g]]-1; n.TIpreds
               }
-              #e <- ctsem::ctExtract(ctmaFitObject[[g]]$studyFitList)
 
               if (ctmaFitObject[[g]]$mod.type == "cont") {
-                #tmp2 <- apply(e$TIPREDEFFECT[,1:(n.latent^2),((n.TIpreds+1):(n.TIpreds+mod.number))], 2, mean); tmp2
                 tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,1:(n.latent^2),((n.TIpreds+1):(n.TIpreds+mod.number))]; tmp2
                 tmp3 <- rownames(ctmaFitObject[[g]]$modelResults$MOD); tmp3
                 tmp4 <- c()
@@ -552,13 +541,10 @@ ctmaPlot <- function(
               if (ctmaFitObject[[g]]$mod.type == "cat") {
                 if (counter == 1) {
                   DRIFTCoeff[[g]][[counter]] <- tmp1 # copy main effects (= comparison group)
-                  #tmp2 <- matrix(0, n.latent, n.latent); tmp2
                   DRIFThi[[g]][[counter]] <- tmp1 #+ .01 * tmp2
                   DRIFTlo[[g]][[counter]] <- tmp1 #- .01 * tmp2
                 } else {
                   n.mod.tmp <- length(mod.values[[g]])-1; n.mod.tmp
-                  #e$TIPREDEFFECT[ , 1:(n.latent^2), n.TIpreds+(n.mod.tmp*(mod.number-1)+counter-1)] # counter is >= 2
-                  #tmp2 <- apply(e$TIPREDEFFECT[ , 1:(n.latent^2), n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1], 2, mean); tmp2
                   tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,1:(n.latent^2),
                                                                                                    n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1]; tmp2
                   tmp2 <- matrix(tmp2, n.latent, n.latent, byrow=TRUE); tmp2
@@ -633,7 +619,10 @@ ctmaPlot <- function(
       } ### END Specification of Parameters for Plotting, Statistical Power, Optimal Lags ###
 
 
-      Msg <- "################################################################################# \n################################### Plotting #################################### \n#################################################################################"
+      #Msg <- "################################################################################# \n################################### Plotting #################################### \n#################################################################################"
+      Msg <- "      #################################################################################
+      ################################### Plotting ####################################
+      #################################################################################"
       message(Msg)
 
       ##################################### SELECT DRIFT MATRICES ########################################
@@ -646,33 +635,27 @@ ctmaPlot <- function(
       dotPlotPairs <- list() # study symbol and (scaled) time point
 
       for (g in 1:n.fitted.obj) {
-        #g <- 1
         if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
-        # toPlot
         plotPairs[[g]] <- array(dim=c(toPlot, length(usedTimeRange), 1+n.latent[[g]]^2))
         dotPlotPairs[[g]] <- array(dim=c(toPlot, length(usedTimeRange), 1+n.latent[[g]]^2))
 
-        xValueForModValue2 <- xValueForModValue[-length(xValueForModValue)]; xValueForModValue2
-        xValueForModValue2 <- xValueForModValue[-1]; xValueForModValue2
+        if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
+          xValueForModValue2 <- xValueForModValue[-length(xValueForModValue)]; xValueForModValue2
+          xValueForModValue2 <- xValueForModValue[-1]; xValueForModValue2
+        }
 
         for (h in 1:toPlot) {
           #h <- 1
-          #length(usedTimeRange); timeRange
           for (stepCounter in 1:length(usedTimeRange)){
             #stepCounter <- 1
             timeValue <- usedTimeRange[stepCounter]; timeValue
             plotPairs[[g]][h,stepCounter,1] <- timeValue; plotPairs[[g]][h,stepCounter,1]
             for (j in 1:(n.latent[[g]]^2)) {
-              #j <- 1
+              #j <- 2
               plotPairs[[g]][h,stepCounter,(1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
-              #plotPairs[[g]][h,stepCounter,(1+j)]
               if (toPlot == 1) tmp <- round(meanDelta[[1]],0) else tmp <- mean(ctmaFitObject[[g]]$studyList[[h]]$delta_t)
-              #tmp
-              #timeValue
-              #dotPlotPairs[[g]]
-              #tmp
-              #stepWidth
-              if (timeValue %in% (tmp / stepWidth)) { # plot only if the (used) time range includes the current study's mean time lag
+              #if (timeValue %in% (tmp / stepWidth)) { # plot only if the (used) time range includes the current study's mean time lag
+              if (timeValue == tmp) { # plot only if the (used) time range includes the current study's mean time lag
                 dotPlotPairs[[g]][h, stepCounter, 1] <- timeValue
                 dotPlotPairs[[g]][h, stepCounter, (1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
               }
@@ -682,13 +665,11 @@ ctmaPlot <- function(
                   dotPlotPairs[[g]][h, stepCounter, 1] <- tmp1
                   dotPlotPairs[[g]][h, stepCounter, (1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
                 }
-                }
+              }
             }
           } # END for (stepCounter in 0:noOfSteps)
         } # END for (h in 1:toPlot)
       } # END for (g in 1:n.fitted.obj)
-      #plotPairs[[g]][h , ,]
-      #dotPlotPairs[[g]][2 , ,]
 
       ##################################### PLOTTING PARAMETERS ##########################################
       {
@@ -718,7 +699,7 @@ ctmaPlot <- function(
         # x axis,
         xMax <- max(usedTimeRange); xMax
         xMin <- usedTimeRange[1]; xMin
-        targetRows <- max(usedTimeRange)/stepWidth; targetRows
+        #targetRows <- max(usedTimeRange)/stepWidth; targetRows
       }
 
       ############################################ PLOTTING ##############################################
@@ -734,9 +715,7 @@ ctmaPlot <- function(
 
         for (j in coeffSeq) { # diagonal elements only
           counter <- counter + 1
-          #j <- 1
           for (g in 1:n.fitted.obj) {
-            #g <- 1
             if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
 
             if (is.null(ctmaFitObject[[g]]$type)) plot..type <- "l" else plot..type <- ctmaFitObject[[g]]$type; plot..type
@@ -770,14 +749,13 @@ ctmaPlot <- function(
             if (is.null(ctmaFitObject[[g]]$dot.cex)) dot.plot.cex <- 2 else dot.plot.cex <- ctmaFitObject[[g]]$dot.cex; dot.plot.cex
 
             for (h in 1:toPlot) {
-              #h <- 1
               currentPlotPair <- cbind(plotPairs[[g]][h, , 1], plotPairs[[g]][h, , 1+j])
               plot(currentPlotPair, type=plot..type, col=plot.col, lwd=plot.lwd, lty=plot.lty,
                    xlim = c(plot.xMin, plot.xMax),
                    ylim = c(plot.yMin, plot.yMax),
                    xaxt='n', yaxt='n', ann=FALSE)
               graphics::par(new=T)
-                if ( (is.null(ctmaFitObject[[g]]$plotStudyNo)) || (ctmaFitObject[[g]]$plotStudyNo==TRUE) ) {
+              if ( (is.null(ctmaFitObject[[g]]$plotStudyNo)) || (ctmaFitObject[[g]]$plotStudyNo==TRUE) ) {
                 # black circle
                 currentPlotPair <-cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
                 #currentPlotPair
@@ -796,7 +774,6 @@ ctmaPlot <- function(
                   currentLabel <- aggregateLabel
                   currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
                   graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
-                  #currentPlotPair
                 }
                 graphics::par(new=T)
               }
@@ -805,15 +782,17 @@ ctmaPlot <- function(
 
           # plot y-axis
           graphics::par(new=T)
-          plot(c(0,0), type="l", col="white", lwd=1.5, xlim = c(xMin, xMax), ylim = c(yMinAuto, yMaxAuto), xaxt='n', ann=FALSE, las=1)
+          plot(c(0,0), type="l", col="white", lwd=1.5, xlim = c(xMin, xMax), ylim = c(yMinCross, yMaxCross), xaxt='n', ann=FALSE, las=1)
 
           xLabels <- xLabelsBckup; xLabels
           if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange+.4)),2), 1), 2); xLabels
-          posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
-          #if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
-          if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels
-
+          #posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
+          posForXLabel <- seq(xMin, xMax, abs(xMin-xMax)/(length(xLabels)-1)); posForXLabel
+          #posForXLabel <- posForXLabel[-c(length(posForXLabel))]; posForXLabel
+          #if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels; posForXLabel
+          if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels; posForXLabel
           graphics::axis(side=1, at = posForXLabel, labels=xLabels, las=2)
+
           # add labels and title
           if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
             graphics::title(main = paste0("Moderated Auto-regressive Effects of V", counter), sub = NULL,
@@ -839,6 +818,7 @@ ctmaPlot <- function(
         nlatent <- n.latent[[1]]; n.latent
         coeffSeq <- seq(1, nlatent^2, 1)[!(seq(1, nlatent^2, 1) %in% seq(1, nlatent^2, (nlatent+1)))]; coeffSeq
         for (j in coeffSeq) {
+          #j <- 2
           counter <- counter + 1
           for (g in 1:n.fitted.obj) {
             if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
@@ -875,9 +855,8 @@ ctmaPlot <- function(
 
             #if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
             for (h in 1:toPlot) {
-              #h <- 1
               currentPlotPair <- cbind(plotPairs[[g]][h, ,1], plotPairs[[g]][h, , 1+j])
-              currentPlotPair
+              #currentPlotPair
               plot(currentPlotPair, type=plot..type, col=plot.col, lwd=plot.lwd, lty=plot.lty,
                    xlim = c(plot.xMin, plot.xMax),
                    ylim = c(plot.yMin, plot.yMax),
@@ -914,10 +893,11 @@ ctmaPlot <- function(
 
           xLabels <- xLabelsBckup; xLabels
           if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange+.4)),2), 1), 2); xLabels
-          posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
-          #if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
-          if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels
-
+          #posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
+          posForXLabel <- seq(xMin, xMax, abs(xMin-xMax)/(length(xLabels)-1)); posForXLabel
+          #posForXLabel <- posForXLabel[-c(length(posForXLabel))]; posForXLabel
+          #if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels; posForXLabel
+          if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels; posForXLabel
           graphics::axis(side=1, at = posForXLabel, labels=xLabels, las=2)
 
           # Add labels and title
@@ -936,7 +916,6 @@ ctmaPlot <- function(
           }
 
           graphics::par(new=F)
-          #tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNamesTmp[[g]][j], ".png"); tmp
           tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNamesTmp[j], ".png"); tmp
           grDevices::dev.copy(grDevices::png, tmp, width = 8, height = 8, units = 'in', res = 300)
           grDevices::dev.off()
@@ -962,26 +941,57 @@ ctmaPlot <- function(
     }
     if (is.null(ctmaFitObject[[g]]$pow.lwd)) pow.plot.lwd <- .5 else pow.plot.lwd <- ctmaFitObject[[g]]$pow.lwd
     if (is.null(ctmaFitObject[[g]]$pow.lty)) pow.plot.lty <- 3 else pow.plot.lty <- ctmaFitObject[[g]]$pow.lty
-    if (is.null(ctmaFitObject[[g]]$pow.yMin)) pow.plot.yMin <- 0 else pow.plot.lty <- ctmaFitObject[[g]]$pow.yMin
-    if (is.null(ctmaFitObject[[g]]$pow.yMin)) pow.plot.yMax <- 2000 else pow.plot.lty <- ctmaFitObject[[g]]$pow.yMax
+    if (is.null(ctmaFitObject[[g]]$pow.yMin)) pow.plot.yMin <- 0 else pow.plot.yMin <- ctmaFitObject[[g]]$pow.yMin
+    if (is.null(ctmaFitObject[[g]]$pow.yMax)) pow.plot.yMax <- 2000 else pow.plot.yMax <- ctmaFitObject[[g]]$pow.yMax
 
     #requiredSampleSizes
     tmp1 <- suppressWarnings(as.numeric(rownames(requiredSampleSizes[[g]]))); tmp1          # time lags
-    tmp1 <- tmp1[!(is.na(tmp1))]; tmp1
-    #####tmp1 <- round(tmp1, 0); tmp1.  # WHY?
+    tmp1 <- previouslyUsedTimeRange <- tmp1[!(is.na(tmp1))]; tmp1
+    previousNoOfSteps <- length(previousUsedTimeRange); previousNoOfSteps
     tmp2 <- !(duplicated(tmp1)); tmp2
     currentRequiredSamleSizes <- requiredSampleSizes[[g]][tmp2,]; currentRequiredSamleSizes
     tmp4 <- nrow(currentRequiredSamleSizes); tmp4
     currentRequiredSamleSizes <- currentRequiredSamleSizes[-c((tmp4-2):tmp4),]; currentRequiredSamleSizes
+
+    # adaptation of time range
+    if (!(all(tmp1 %in% usedTimeRange) & all(usedTimeRange %in% tmp1))) {
+      Msg <- paste0("      Note that required sample sizes can only be plotted for those time intervals
+      that were provided in the \'timeRange\' argument of the ctmaPower function used before, and
+      which was ", previouslyUsedTimeRange[1], ":", previouslyUsedTimeRange[2], ":", previouslyUsedTimeRange[3],
+                    "..." , ":", previouslyUsedTimeRange[previousNoOfSteps-2], ":", previouslyUsedTimeRange[previousNoOfSteps-1],
+                    ":", previouslyUsedTimeRange[previousNoOfSteps], ".
+      => The \'timeRange\' argument was automatically adapted to the values used with ctmaPower <=
+      You may need to re-run the ctmaPower function to suit your needs. \n")
+      message(Msg)
+    }
+
+    if (min(tmp1) != min(usedTimeRange)) {
+      if (min(tmp1) < min(usedTimeRange)) tmpText <- " longer " else tmpText <- " shorter "
+      Msg <- paste0("      The shortest time interval provided in the \'timeRange\' argument
+      of the current plot flunction is ", min(usedTimeRange), ", and it is", tmpText, "than the shortest time interval
+      provided in \'timeRange\' argument of the ctmaPower function used before, which is ", min(tmp1), ".
+      => The \'timeRange\' argument was automatically shortened <=
+      You may need to re-run the ctmaPower function to suit your needs. \n")
+      message(Msg)
+    }
+    if (max(tmp1) != max(usedTimeRange)) {
+      if (max(tmp1) < max(usedTimeRange)) tmpText <- " longer " else tmpText <- " shorter "
+      Msg <- paste0("      The longest time interval provided in the \'timeRange\' argument
+      of the current plot flunction is ", max(usedTimeRange), ", and it is ", tmpText, "than the longest time interval
+      provided in \'timeRange\' argument of the ctmaPower function used before, which was ", max(tmp1), ".
+      => You might enlarge the \'timeRange\' argument of the current function, but this is no requirement <=
+      You have to re-run the ctmaPower function if this does not suit your needs. \n")
+      message(Msg)
+    }
+    tmp5 <- which(tmp1 >= min(usedTimeRange)); tmp5
+    tmp6 <- which(tmp1 <= max(usedTimeRange)); tmp6
+    usedTimeRange <- tmp1[tmp5 %in% tmp6]; usedTimeRange
 
     xMax <- max(usedTimeRange); xMax
     xMin <- usedTimeRange[1]; xMin
     tmp5 <- as.numeric(rownames(currentRequiredSamleSizes)); tmp5
     tmp6 <- which( (tmp5 >= xMin) & (tmp5 <=xMax) ); tmp6
     currentRequiredSamleSizes <- currentRequiredSamleSizes[tmp6 , ]; currentRequiredSamleSizes
-    #usedTimeRange <- min(tmp1):max(tmp1); usedTimeRange
-    #xMax <- round(max(usedTimeRange), 0); xMax
-    #xMin <- usedTimeRange[1]; xMin
 
     currentLWD <- c(3, 2, 1); currentLWD # line widths used later
 
@@ -1007,20 +1017,17 @@ ctmaPlot <- function(
         graphics::par(new=T)
       }
 
-      # plot y-axis
+      # plot y-axis (this is different compared to the discrete time plots)
       graphics::par(new=T)
       xLabels <- xLabelsBckup; xLabels
-      if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange)+1),2), 1), 2); xLabels
-      posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
-      #if ( length(xLabels) < length(posForXLabel) ) xLabels <- xLabels[round(posForXLabel, 0)]; xLabels
-      if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels
-
-      graphics::axis(side=1, at = posForXLabel, labels=xLabels, las=2)
-
-      #if ( length(xLabels) > length(posForXLabel) ) {
-      #  xLabels <- xLabels[1:length(posForXLabel)]
-      #}
-
+      #if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange)+1),2), 1), 2); xLabels
+      #posForXLabel <- (seq(1, noOfSteps, noOfSteps/length(xLabels))*stepWidth); posForXLabel
+      #if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels
+      #if (is.null(xLabels)) xLabels <- round(seq(round(xMin,1), round((max(usedTimeRange+.4)),1), 1), 2); xLabels
+      if (is.null(xLabels)) xLabels <- sort(seq(max(usedTimeRange), min(usedTimeRange))); xLabels
+      #posForXLabel <- seq(xMin, xMax, abs(xMin-xMax)/(length(xLabels)-1)); posForXLabel
+      posForXLabel <- xLabels; posForXLabel
+      if ( length(xLabels) != length(posForXLabel) ) posForXLabel <- posForXLabel[1:length(xLabels)]; xLabels; posForXLabel
       graphics::axis(side=1, at = posForXLabel, labels=xLabels, las=2)
 
       # legend
@@ -1033,7 +1040,6 @@ ctmaPlot <- function(
 
   } ### END  ("power" %in% unlist(plot.type))
 
-  #if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
   if (!(is.null(ctmaFitObject[[1]]$modelResults$MOD))) {
     invisible(round(unlist(linearizedTIpredEffect)[-(1:(nlatent^2))], 4)) # just as a check
   }
