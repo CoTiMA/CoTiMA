@@ -788,7 +788,7 @@ ctmaInit <- function(
             cores=coresToUse) )
         } else {
           # parallel re-fitting of problem study
-          Msg <- "Parallel fit attepts requested. Screen remains silent for a while.\n"
+          Msg <- "Parallel fit attmepts requested. Screen remains silent for a while.\n"
           message(Msg)
 
           allfits <- foreach::foreach(p=1:doPar) %dopar% {
