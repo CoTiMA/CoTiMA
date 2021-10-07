@@ -825,6 +825,8 @@ ctmaInit <- function(
           results <- allfits[[bestFit]]
         }
 
+        gc() # tryout garbage collector to avoid memory issues
+
         studyFit[[i]] <- results
         studyFit[[i]]$resultsSummary <- summary(studyFit[[i]])
 
