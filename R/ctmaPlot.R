@@ -947,7 +947,8 @@ ctmaPlot <- function(
     #requiredSampleSizes
     tmp1 <- suppressWarnings(as.numeric(rownames(requiredSampleSizes[[g]]))); tmp1          # time lags
     tmp1 <- previouslyUsedTimeRange <- tmp1[!(is.na(tmp1))]; tmp1
-    previousNoOfSteps <- length(previousUsedTimeRange); previousNoOfSteps
+    #previousNoOfSteps <- length(previousUsedTimeRange); previousNoOfSteps
+    previousNoOfSteps <- length(previouslyUsedTimeRange); previousNoOfSteps
     tmp2 <- !(duplicated(tmp1)); tmp2
     currentRequiredSamleSizes <- requiredSampleSizes[[g]][tmp2,]; currentRequiredSamleSizes
     tmp4 <- nrow(currentRequiredSamleSizes); tmp4
