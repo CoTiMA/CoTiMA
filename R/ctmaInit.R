@@ -1067,8 +1067,12 @@ ctmaInit <- function(
     tmp1 <- grep("T0", colnames(allStudiesCI_rescaledTime)); tmp1
     tmp2 <- allStudiesCI_rescaledTime[, -c(1, tmp1)]; tmp2
     if (!(is.null(scaleTime))) scaleTime2 <- scaleTime else scaleTime2 <- 1
-    tmp2 <- matrix(round(as.numeric(tmp2) * scaleTime2, digits), ncol=ncol(tmp2)); tmp2
-    tmp3 <- cbind(allStudiesCI_rescaledTime[, 1], tmp2, allStudiesCI_rescaledTime[, tmp1])
+    if (is.null(ncol(tmp2))) tmp2b <- length(tmp2) else tmp2b <- ncol(tmp2)
+    tmp3b <- matrix(round(as.numeric(tmp2) * scaleTime2, digits), ncol=tmp2b); tmp3b
+    if (!(is.matrix(allStudiesCI_rescaledTime[, 1]))) tmp3a <- matrix(allStudiesCI_rescaledTime[, 1], nrow=1) else tmp3a <- allStudiesCI_rescaledTime[, 1]
+    if (!(is.matrix(allStudiesCI_rescaledTime[, tmp1]))) tmp3c <- matrix(allStudiesCI_rescaledTime[, tmp1], nrow=1) else tmp3c <- allStudiesCI_rescaledTime[, tmp1]
+    #tmp3 <- cbind(allStudiesCI_rescaledTime[, 1], tmp2, allStudiesCI_rescaledTime[, tmp1])
+    tmp3 <- cbind(tmp3a, tmp3b, tmp3c)
     colnames(tmp3) <- colnames(allStudiesCI_rescaledTime); tmp3
     allStudiesCI_rescaledTime <- tmp3
 
