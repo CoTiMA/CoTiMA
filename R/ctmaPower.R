@@ -26,7 +26,7 @@
 #' @param iter number of iterations (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
-#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)
+#' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
@@ -87,7 +87,7 @@ ctmaPower <- function(
   iter=NULL,
   chains=NULL,
   verbose=NULL,
-  customPar=FALSE
+  customPar=TRUE
 )
 
 {  # begin function definition (until end of file)

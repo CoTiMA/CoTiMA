@@ -20,7 +20,7 @@
 #' @param loadAllInvFit loadAllInvFit
 #' @param saveAllInvFit saveAllInvFit
 #' @param silentOverwrite silentOverwrite
-#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannott easily go too negative (could help with ctsem > 3.4)
+#' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #'
 #' @return returns a fitted CoTiMA object, in which all drift parameters, Time 0 variances and covariances, and diffusion parameters were set invariant across primary studies
 #'

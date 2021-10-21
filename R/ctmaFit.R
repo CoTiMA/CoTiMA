@@ -28,7 +28,7 @@
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 #' @param allInvModel estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR) if set TRUE (defautl = FALSE)
-#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)
+#' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param equalDrift Not enabled
 #' @param inits vector of start values
 #' @param modsToCompare when performing contrasts for categorical moderators, the moderator numbers (position in mod.number) that is used
@@ -114,7 +114,7 @@ ctmaFit <- function(
   chains=NULL,
   verbose=NULL,
   allInvModel=FALSE,
-  customPar=FALSE,
+  customPar=TRUE,
   inits=NULL,
   modsToCompare=NULL,
   catsToCompare=NULL,

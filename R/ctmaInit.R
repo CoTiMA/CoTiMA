@@ -26,7 +26,7 @@
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param iter number of interation (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit - for debugging
-#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)
+#' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param doPar parallel and multiple fitting if single studies
 #' @param useSV if TRUE (default) start values will be used if provided in the list of primary studies
 #'
@@ -90,7 +90,7 @@ ctmaInit <- function(
   chains=NULL,
   iter=NULL,
   verbose=NULL,
-  customPar=FALSE,
+  customPar=TRUE,
   doPar=1,
   useSV=TRUE
 )
@@ -200,7 +200,6 @@ ctmaInit <- function(
       moderatedDrift <- NULL
 
       if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
-      #if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
       if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
       if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
@@ -1076,17 +1075,12 @@ ctmaInit <- function(
     #colnames(allStudiesCI_rescaledTime)
     tmp1 <- grep("T0", colnames(allStudiesCI_rescaledTime)); tmp1
     tmp2 <- allStudiesCI_rescaledTime[, -c(1, tmp1)]; tmp2
-    tmp2 <- matrix(round(as.numeric(tmp2) * scaleTime, digits), ncol=ncol(tmp2)); tmp2
+    if (!(is.null(scaleTime))) scaleTime2 <- scaleTime else scaleTime2 <- 1
+    #tmp2 <- matrix(round(as.numeric(tmp2) * scaleTime, digits), ncol=ncol(tmp2)); tmp2
+    tmp2 <- matrix(round(as.numeric(tmp2) * scaleTime2, digits), ncol=ncol(tmp2)); tmp2
     tmp3 <- cbind(allStudiesCI_rescaledTime[, 1], tmp2, allStudiesCI_rescaledTime[, tmp1])
     colnames(tmp3) <- colnames(allStudiesCI_rescaledTime); tmp3
     allStudiesCI_rescaledTime <- tmp3
-
-    #allStudiesCI
-    #allStudiesDRIFT_effects
-    #allStudiesDRIFT_effects_ext
-    #allStudiesCI <- cbind(allStudiesDRIFT_effects_ext, allStudiesCI)
-    #rownames(allStudiesCI) <- rownames(allStudiesDRIFT_effects_ext)
-    #allStudiesCI
 
     # Label summary table
     rownames(allStudiesDRIFT_effects) <- paste0("Study No ", primaryStudies$studyNumbers)
@@ -1143,16 +1137,24 @@ ctmaInit <- function(
   if (maxDeltas > 6) {
     tmp2 <- paste0("Maximum time interval was ", maxDeltas, "."); tmp2
     tmp3 <- paste0("timeScale=1/", suggestedScaleTime); tmp3
-    tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, " and customPar=FALSE. "); tmp4
+    if (suggestedScaleTime != scaleTime2) {
+      #tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, " and customPar=FALSE. "); tmp4
+      tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, ". "); tmp4
+    } else {
+      tmp4 <- paste0(""); tmp4
+    }
     message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using, e.g.,", tmp3, "in all subsequent models.", collapse="\n"); message
   }
 
   if (!(is.null(scaleTime))) {
     model_Drift_Coef_rescaled_time <- lapply(model_Drift_Coef, function(x) x * scaleTime)
-    model_Diffusiont_Coef_rescaled_time <- lapply(model_Diffusion_Coef, function(x) x * scaleTime)
+    model_Diffusion_Coef_rescaled_time <- lapply(model_Diffusion_Coef, function(x) x * scaleTime)
   } else {
-    model_Drift_Coef_rescaled_time <- NULL
-    model_Diffusiont_Coef_rescaled_time <- NULL
+    #model_Drift_Coef_rescaled_time <- NULL
+    #model_Diffusion_Coef_rescaled_time <- NULL
+    model_Drift_Coef_rescaled_time <- model_Drift_Coef
+    model_Diffusion_Coef_rescaled_time <- model_Diffusion_Coef
+    #allStudiesDRIFT_effects_rescaledTime_ext <- allStudiesDRIFT_effects_ext
   }
 
   results <- list(activeDirectory=activeDirectory,
@@ -1164,11 +1166,12 @@ ctmaInit <- function(
                   primaryStudyList=primaryStudies,
                   studyList=studyList, studyFitList=studyFit,
                   emprawList=empraw, statisticsList=statisticsList,
-                  modelResults=list(DRIFT=model_Drift_Coef_rescaled_time, DIFFUSION=model_Diffusiont_Coef_rescaled_time, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef,
+                  modelResults=list(DRIFT=model_Drift_Coef_rescaled_time, DIFFUSION=model_Diffusion_Coef_rescaled_time, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef,
                                     DRIFTrescaled=model_Drift_Coef, DIFFUSIONrescaled=model_Diffusion_Coef),
                   parameterNames=list(DRIFT=names(model_Drift_Coef[[1]]), DIFFUSION=names(model_Diffusion_Coef[[1]]), T0VAR=names(model_T0var_Coef[[1]])),
                   summary=(list(model="all drift free (het. model)",
-                                estimates=allStudiesDRIFT_effects_rescaledTime_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
+                                #estimates=allStudiesDRIFT_effects_rescaledTime_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
+                                estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
                                 randomEffects=model_popsd,
                                 confidenceIntervals=allStudiesCI_rescaledTime, # allStudiesCI_ext, = estimates that would be obtained without the scaleTime argument
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
