@@ -1058,25 +1058,15 @@ ctmaInit <- function(
       allStudiesDriftCI_rescaledTime <- NULL
       allStudiesDiffCI_rescaledTime <- NULL
     }
-    #allStudiesDiffCI_rescaledTime
-
-    #allStudiesDiffusionCI <- matrix(unlist(model_Diffusion_CI), nrow=n.studies, byrow=TRUE)
-    #colnames(allStudiesDiffusionCI) <- names(model_Diffusion_CI[[1]])
-    #allStudiesT0varCI <- matrix(unlist(model_T0var_CI), nrow=n.studies, byrow=TRUE)
-    #colnames(allStudiesT0varCI) <- names(model_T0var_CI[[1]]); allStudiesT0varCI
-
-    #allStudiesCI <- t(rbind(t(allStudiesDriftCI), t(allStudiesDiffusionCI), t(allStudiesT0varCI)))
 
 
     allStudiesCI <- cbind(allStudiesDriftCI, allStudiesDiffusionCI, allStudiesT0varCI); allStudiesCI
     allStudiesCI_ext <- cbind(allStudiesDRIFT_effects_ext[,1], allStudiesCI); allStudiesCI_ext
 
     allStudiesCI_rescaledTime <- allStudiesCI_ext
-    #colnames(allStudiesCI_rescaledTime)
     tmp1 <- grep("T0", colnames(allStudiesCI_rescaledTime)); tmp1
     tmp2 <- allStudiesCI_rescaledTime[, -c(1, tmp1)]; tmp2
     if (!(is.null(scaleTime))) scaleTime2 <- scaleTime else scaleTime2 <- 1
-    #tmp2 <- matrix(round(as.numeric(tmp2) * scaleTime, digits), ncol=ncol(tmp2)); tmp2
     tmp2 <- matrix(round(as.numeric(tmp2) * scaleTime2, digits), ncol=ncol(tmp2)); tmp2
     tmp3 <- cbind(allStudiesCI_rescaledTime[, 1], tmp2, allStudiesCI_rescaledTime[, tmp1])
     colnames(tmp3) <- colnames(allStudiesCI_rescaledTime); tmp3
