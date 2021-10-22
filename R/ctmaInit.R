@@ -1019,8 +1019,6 @@ ctmaInit <- function(
     tmp[, 2:(ncol(tmp))] <- round(as.numeric(tmp[, 2:(ncol(tmp))]), digits)
     allStudiesT0VAR_effects_ext <- tmp; allStudiesT0VAR_effects_ext
 
-    #allStudiesEffects <- cbind(DRIFTCoeff, DIFFCoeff, T0
-
     if (!(is.null(allStudiesDRIFT_effects_rescaledTime))) {
       #
       allStudiesDRIFT_effects_rescaledTime_ext <- cbind(unlist(source), allStudiesDRIFT_effects_rescaledTime)
@@ -1045,6 +1043,7 @@ ctmaInit <- function(
     colnames(allStudiesDiffusionCI) <- names(model_Diffusion_CI[[1]]); allStudiesDiffusionCI
     allStudiesT0varCI <- matrix(unlist(model_T0var_CI), nrow=n.studies, byrow=TRUE)
     colnames(allStudiesT0varCI) <- names(model_T0var_CI[[1]]); allStudiesT0varCI
+
     if (!(is.null(scaleTime))) {
       #
       allStudiesDriftCI_rescaledTime <- matrix(round(unlist(model_Drift_CI) * scaleTime, digits),
@@ -1069,8 +1068,19 @@ ctmaInit <- function(
     if (!(is.null(scaleTime))) scaleTime2 <- scaleTime else scaleTime2 <- 1
     if (is.null(ncol(tmp2))) tmp2b <- length(tmp2) else tmp2b <- ncol(tmp2)
     tmp3b <- matrix(round(as.numeric(tmp2) * scaleTime2, digits), ncol=tmp2b); tmp3b
-    if (!(is.matrix(allStudiesCI_rescaledTime[, 1]))) tmp3a <- matrix(allStudiesCI_rescaledTime[, 1], nrow=1) else tmp3a <- allStudiesCI_rescaledTime[, 1]
-    if (!(is.matrix(allStudiesCI_rescaledTime[, tmp1]))) tmp3c <- matrix(allStudiesCI_rescaledTime[, tmp1], nrow=1) else tmp3c <- allStudiesCI_rescaledTime[, tmp1]
+
+    #if (!(is.matrix(allStudiesCI_rescaledTime[, 1]))) tmp3a <- matrix(allStudiesCI_rescaledTime[, 1], nrow=1) else tmp3a <- allStudiesCI_rescaledTime[, 1]
+    if (!(is.matrix(allStudiesCI_rescaledTime[, 1]))) {
+      tmp3a <- matrix(allStudiesCI_rescaledTime[, 1], nrow=length(allStudiesCI_rescaledTime[, 1]))
+      } else {
+        tmp3a <- allStudiesCI_rescaledTime[, 1]
+      }
+    if (!(is.matrix(allStudiesCI_rescaledTime[, tmp1]))) {
+      tmp3c <- matrix(allStudiesCI_rescaledTime[, tmp1], nrow=length(allStudiesCI_rescaledTime[, tmp1]))
+      } else {
+        tmp3c <- allStudiesCI_rescaledTime[, tmp1]
+      }
+
     #tmp3 <- cbind(allStudiesCI_rescaledTime[, 1], tmp2, allStudiesCI_rescaledTime[, tmp1])
     tmp3 <- cbind(tmp3a, tmp3b, tmp3c)
     colnames(tmp3) <- colnames(allStudiesCI_rescaledTime); tmp3
