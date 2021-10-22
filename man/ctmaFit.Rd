@@ -31,7 +31,7 @@ ctmaFit(
   chains = NULL,
   verbose = NULL,
   allInvModel = FALSE,
-  customPar = FALSE,
+  customPar = TRUE,
   inits = NULL,
   modsToCompare = NULL,
   catsToCompare = NULL,
@@ -91,7 +91,7 @@ ctmaFit(
 
 \item{allInvModel}{estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR) if set TRUE (defautl = FALSE)}
 
-\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)}
+\item{customPar}{logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
 
 \item{inits}{vector of start values}
 
@@ -121,7 +121,7 @@ Fits a ctsem model with invariant drift effects across primary studies, possible
 the same type, either "cont" or "cat"), and possible cluster (e.g., countries where primary studies were conducted).
 }
 \examples{
-\donttest{
+\dontrun{
 # Example 1. Fit a CoTiMA to all primary studies previously fitted one by one
 # with the fits assigned to CoTiMAInitFit_6
 CoTiMAFullFit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6)

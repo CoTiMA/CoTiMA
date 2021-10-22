@@ -29,7 +29,7 @@ ctmaPower(
   iter = NULL,
   chains = NULL,
   verbose = NULL,
-  customPar = FALSE
+  customPar = TRUE
 )
 }
 \arguments{
@@ -81,7 +81,7 @@ ctmaPower(
 
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
 
-\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)}
+\item{customPar}{logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
 }
 \value{
 ctmaPower returns a list containing some arguments supplied, a fitted model with all (!) parameters invariant across primary

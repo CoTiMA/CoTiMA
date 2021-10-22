@@ -87,6 +87,14 @@
 "ageM313"
 
 
+#' ageM201 example vector
+#' @name ageM201
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"ageM201"
+
+
 #' ageSD2 example vector
 #' @name ageSD2
 #' @docType data
@@ -133,6 +141,14 @@
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
 "ageSD313"
+
+
+#' ageSD201 example vector
+#' @name ageSD201
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"ageSD201"
 
 
 #' alphas128 example vector
@@ -199,6 +215,14 @@
 "burnout313"
 
 
+#' burnout201 example vector
+#' @name burnout201
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"burnout201"
+
+
 #' combineVariables128 example vector
 #' @name combineVariables128
 #' @docType data
@@ -229,6 +253,14 @@
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
 "CoTiMAFullFit_6"
+
+
+#' ctmaFit-object with a 'full' CoTiMA of 6 studies
+#' @name CoTiMAFullFit_6_new
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"CoTiMAFullFit_6_new"
 
 
 #' ctmaFit-object with a 'full' CoTiMA of 3 studies
@@ -271,6 +303,14 @@
 "CoTiMAInitFit_6"
 
 
+#' ctmaInit-object with 6 primary studies
+#' @name CoTiMAInitFit_6_new
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"CoTiMAInitFit_6_new"
+
+
 #' ctmaInit-object created by Guthier et al. (2020) with 48 primary studies
 #' @name CoTiMAInitFit_D_BO
 #' @docType data
@@ -293,6 +333,14 @@
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
 "CoTiMAMod1onFullFit_6"
+
+
+#' ctmaFit-object with a categorical moderator of the full drift matrix
+#' @name CoTiMAMod1onFullFit_6_cats12
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"CoTiMAMod1onFullFit_6_cats12"
 
 
 #' ctmaFit-object with a continuous moderator of 2 cross effects
@@ -336,11 +384,11 @@
 
 
 #' ctmaPrep-object created with 6 primary studies
-#' @name CoTiMAstudyList_3
+#' @name CoTiMAstudyList_6_new
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"CoTiMAstudyList_3"
+"CoTiMAstudyList_6_new"
 
 
 #' country2 example vector
@@ -391,6 +439,14 @@
 "country313"
 
 
+#' country201 example vector
+#' @name country201
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"country201"
+
+
 #' delta_t2 example vector
 #' @name delta_t2
 #' @docType data
@@ -439,6 +495,14 @@
 "delta_t313"
 
 
+#' delta_t201 example vector
+#' @name delta_t201
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"delta_t201"
+
+
 #' demands2 example vector
 #' @name demands2
 #' @docType data
@@ -485,6 +549,14 @@
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
 "demands313"
+
+
+#' demands201 example vector
+#' @name demands201
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"demands201"
 
 
 #' dl_link example path
@@ -543,6 +615,14 @@
 "empcov313"
 
 
+#' empcov201 example matrix
+#' @name empcov201
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"empcov201"
+
+
 #' malePercent2 example vector
 #' @name malePercent2
 #' @docType data
@@ -591,6 +671,14 @@
 "malePercent313"
 
 
+#' malePercent201 example vector
+#' @name malePercent201
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"malePercent201"
+
+
 #' moderator2 example vector
 #' @name moderator2
 #' @docType data
@@ -637,6 +725,14 @@
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
 "moderator313"
+
+
+#' moderator201 example vector
+#' @name moderator201
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"moderator201"
 
 
 #' moderatorLabels example vector
@@ -703,20 +799,20 @@
 "occupation313"
 
 
-#' optimFit313 example vector
-#' @name optimFit313
+#' occupation201 example vector
+#' @name occupation201
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"optimFit313"
+"occupation201"
 
 
-#' pairwiseN128 example vector
-#' @name pairwiseN128
+#' CoTiMAoptimFit313 example vector
+#' @name CoTiMAoptimFit313
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"pairwiseN128"
+"CoTiMAoptimFit313"
 
 
 #' pubList_8 example list
@@ -727,12 +823,14 @@
 "pubList_8"
 
 
-#' pubResults_6 example list
-#' @name pubResults_6
+
+
+#' pairwiseN128 example vector
+#' @name pairwiseN128
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"pubResults_6"
+"pairwiseN128"
 
 
 #' rawData128 example list
@@ -807,6 +905,14 @@
 "sampleSize313"
 
 
+#' sampleSize201 example vector
+#' @name sampleSize201
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"sampleSize201"
+
+
 #' source2 example vector
 #' @name source2
 #' @docType data
@@ -837,6 +943,14 @@
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
 "source313"
+
+
+#' source201 example vector
+#' @name source201
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"source201"
 
 
 #' targetVariables2 example vector

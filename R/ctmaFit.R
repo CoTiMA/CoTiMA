@@ -44,7 +44,7 @@
 #' @export ctmaFit
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Example 1. Fit a CoTiMA to all primary studies previously fitted one by one
 #' # with the fits assigned to CoTiMAInitFit_6
 #' CoTiMAFullFit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6)

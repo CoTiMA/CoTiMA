@@ -6,22 +6,14 @@
 \title{ctmaPrep-object created with 3 primary studies}
 \format{
 An object of class \code{CoTiMAFit} of length 27.
-
-An object of class \code{CoTiMAFit} of length 27.
 }
 \usage{
-CoTiMAstudyList_3
-
 CoTiMAstudyList_3
 }
 \description{
 ctmaPrep-object created with 3 primary studies
-
-ctmaPrep-object created with 6 primary studies
 }
 \author{
 C. Guthier, C. Dormann & J. Cortina  \email{CoTiMA@uni-mainz.org}
-
-C. Dormann & M. Homburg \email{CoTiMA@uni-mainz.org}
 }
 \keyword{data}
