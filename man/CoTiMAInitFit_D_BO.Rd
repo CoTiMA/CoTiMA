@@ -5,7 +5,7 @@
 \alias{CoTiMAInitFit_D_BO}
 \title{ctmaInit-object created by Guthier et al. (2020) with 48 primary studies}
 \format{
-An object of class \code{CoTiMAFit} of length 13.
+An object of class \code{CoTiMAFit} of length 12.
 }
 \usage{
 CoTiMAInitFit_D_BO

@@ -5,7 +5,7 @@
 \alias{CoTiMAPower_D_BO}
 \title{ctmaPower-object reproducing results of Guthier et al. (2020)}
 \format{
-An object of class \code{CoTiMAFit} of length 11.
+An object of class \code{CoTiMAFit} of length 10.
 }
 \usage{
 CoTiMAPower_D_BO
