@@ -1132,8 +1132,11 @@ ctmaInit <- function(
   if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
 
   maxDeltas <- max(unlist(primaryStudies$deltas), na.rm=TRUE); maxDeltas
+  if (!(is.null(scaleTime))) maxDeltas <- maxDeltas * scaleTime
   largeDelta <- which(unlist(primaryStudies$deltas) >= maxDeltas); largeDelta
+  if (!(is.null(scaleTime))) largeDelta <- which(unlist(primaryStudies$deltas * scaleTime) >= maxDeltas)
   tmp1 <- table(unlist(primaryStudies$deltas)[largeDelta]); tmp1
+  if (!(is.null(scaleTime))) table(unlist(primaryStudies$deltas * scaleTime)[largeDelta])
   tmp2 <- which(tmp1 == (max(tmp1))); tmp2
   suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
   message <- c()
