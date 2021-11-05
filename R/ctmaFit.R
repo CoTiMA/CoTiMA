@@ -997,6 +997,22 @@ ctmaFit <- function(
 
   if (is.null(primaryStudyList)) primaryStudies <- ctmaInitFit$primaryStudyList else primaryStudies <- primaryStudyList
 
+  if (!(is.null(scaleTime))) {
+    model_Drift_Coef_original_time_scale <- model_Drift_Coef * scaleTime
+    model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef * scaleTime
+    tmp1<- invariantDrift_Coeff
+    tmp2 <- grep("toV", rownames(tmp1))
+    tmp3 <- grep("DIFFUSIONcov", rownames(tmp1))
+    tmp4 <- grep("asym", rownames(tmp1))
+    tmp3 <- tmp3[!(tmp3%in% tmp4)]
+    tmp1 <- tmp1[c(tmp2, tmp3),]
+    scaleTime <- 1/12
+    tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] <- tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] * scaleTime
+    estimates_original_time_scale <- tmp1
+  } else {
+    estimates_original_time_scale <- NULL
+  }
+
 
   results <- list(activeDirectory=activeDirectory,
                   plot.type="drift",  model.type="stanct",
@@ -1011,8 +1027,11 @@ ctmaFit <- function(
                   studyFitList=fitStanctModel,
                   data=datalong_all,
                   statisticsList=ctmaInitFit$statisticsList,
-                  modelResults=list(DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef,
-                                    CINT=model_Cint_Coef, MOD=modTI_Coeff, CLUS=clusTI_Coeff),
+                  modelResults=list(DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
+                                    DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale,
+                                    T0VAR=model_T0var_Coef,
+                                    CINT=model_Cint_Coef, MOD=modTI_Coeff, CLUS=clusTI_Coeff,
+                                    DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef),
                   parameterNames=ctmaInitFit$parameterNames,
                   CoTiMAStanctArgs=CoTiMAStanctArgs,
                   invariantDrift=invariantDrift,
@@ -1026,7 +1045,8 @@ ctmaFit <- function(
                                max.effects = maxCrossEffect,
                                clus.effects=clus.effects,
                                mod.effects=modTI_Coeff,
-                               message=message)
+                               message=message,
+                               estimates_original_time_scale =estimates_original_time_scale)
                   # excel workbook is added later
   )
 

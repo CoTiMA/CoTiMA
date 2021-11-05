@@ -986,19 +986,18 @@ ctmaInit <- function(
 
     #
     if (!(is.null(scaleTime))) {
-      allStudiesDRIFT_effects_rescaledTime <- matrix(t(cbind(unlist(model_Drift_Coef) * scaleTime,
-                                                             unlist(model_Drift_SE) * scaleTime) ), n.studies, 2*n.latent^2, byrow=T)
-      allStudiesDRIFT_effects_rescaledTime
-      colnames(allStudiesDRIFT_effects_rescaledTime) <- targetNames1
-      allStudiesDRIFT_effects_rescaledTime <- round(allStudiesDRIFT_effects_rescaledTime, digits); allStudiesDRIFT_effects_rescaledTime
+      allStudiesDRIFT_effects_original_time_scale <- matrix(t(cbind(unlist(model_Drift_Coef) * scaleTime,
+                                                                    unlist(model_Drift_SE) * scaleTime) ), n.studies, 2*n.latent^2, byrow=T)
+      colnames(allStudiesDRIFT_effects_original_time_scale) <- targetNames1
+      allStudiesDRIFT_effects_original_time_scale <- round(allStudiesDRIFT_effects_original_time_scale, digits)
       #
-      allStudiesDIFF_effects_rescaledTime <- matrix(t(cbind(unlist(model_Diffusion_Coef) * scaleTime,
-                                                            unlist(model_Diffusion_SE) * scaleTime) ), n.studies, 2*n.latent^2, byrow=T)
-      colnames(allStudiesDIFF_effects_rescaledTime) <- targetNames2
-      allStudiesDIFF_effects_rescaledTime <- round(allStudiesDIFF_effects_rescaledTime, digits); allStudiesDIFF_effects_rescaledTime
+      allStudiesDIFF_effects_original_time_scale <- matrix(t(cbind(unlist(model_Diffusion_Coef) * scaleTime,
+                                                                   unlist(model_Diffusion_SE) * scaleTime) ), n.studies, 2*n.latent^2, byrow=T)
+      colnames(allStudiesDIFF_effects_original_time_scale) <- targetNames2
+      allStudiesDIFF_effects_original_time_scale <- round(allStudiesDIFF_effects_original_time_scale, digits)
     } else {
-      allStudiesDRIFT_effects_rescaledTime <- NULL
-      allStudiesDIFFUSION_effects_rescaledTime <- NULL
+      allStudiesDRIFT_effects_original_time_scale <- NULL
+      allStudiesDIFFUSION_effects_original_time_scale <- NULL
     }
 
     source <- lapply(primaryStudies$source, function(extract) paste(extract, collapse=", ")); source
@@ -1019,22 +1018,22 @@ ctmaInit <- function(
     tmp[, 2:(ncol(tmp))] <- round(as.numeric(tmp[, 2:(ncol(tmp))]), digits)
     allStudiesT0VAR_effects_ext <- tmp; allStudiesT0VAR_effects_ext
 
-    if (!(is.null(allStudiesDRIFT_effects_rescaledTime))) {
+    if (!(is.null(allStudiesDRIFT_effects_original_time_scale))) {
       #
-      allStudiesDRIFT_effects_rescaledTime_ext <- cbind(unlist(source), allStudiesDRIFT_effects_rescaledTime)
-      tmp <- allStudiesDRIFT_effects_rescaledTime_ext
+      allStudiesDRIFT_effects_original_time_scale_ext <- cbind(unlist(source), allStudiesDRIFT_effects_original_time_scale)
+      tmp <- allStudiesDRIFT_effects_original_time_scale_ext
       tmp[, 2:(ncol(tmp))] <- round(as.numeric(tmp[, 2:(ncol(tmp))]), digits)
-      allStudiesDRIFT_effects_rescaledTime_ext <- tmp; allStudiesDRIFT_effects_rescaledTime_ext
+      allStudiesDRIFT_effects_original_time_scale_ext <- tmp; allStudiesDRIFT_effects_original_time_scale_ext
       #allStudiesDRIFT_effects_ext
       #
-      allStudiesDIFF_effects_rescaledTime_ext <- cbind(unlist(source), allStudiesDIFF_effects_rescaledTime)
-      tmp <- allStudiesDIFF_effects_rescaledTime_ext
+      allStudiesDIFF_effects_original_time_scale_ext <- cbind(unlist(source), allStudiesDIFF_effects_original_time_scale)
+      tmp <- allStudiesDIFF_effects_original_time_scale_ext
       tmp[, 2:(ncol(tmp))] <- round(as.numeric(tmp[, 2:(ncol(tmp))]), digits)
-      allStudiesDIFF_effects_rescaledTime_ext <- tmp; allStudiesDIFF_effects_rescaledTime_ext
+      allStudiesDIFF_effects_original_time_scale_ext <- tmp; allStudiesDIFF_effects_original_time_scale_ext
       #allStudiesDIFF_effects_ext
     } else {
-      allStudiesDRIFT_effects_rescaledTime_ext <- NULL
-      allStudiesDIFF_effects_rescaledTime_ext <- NULL
+      allStudiesDRIFT_effects_original_time_scale_ext <- NULL
+      allStudiesDIFF_effects_original_time_scale_ext <- NULL
     }
 
     allStudiesDriftCI <- matrix(unlist(model_Drift_CI), nrow=n.studies, byrow=TRUE)
@@ -1046,45 +1045,45 @@ ctmaInit <- function(
 
     if (!(is.null(scaleTime))) {
       #
-      allStudiesDriftCI_rescaledTime <- matrix(round(unlist(model_Drift_CI) * scaleTime, digits),
-                                               nrow=n.studies, byrow=TRUE)
-      colnames(allStudiesDriftCI_rescaledTime) <- names(model_Drift_CI[[1]]); allStudiesDriftCI_rescaledTime
+      allStudiesDriftCI_original_time_scale <- matrix(round(unlist(model_Drift_CI) * scaleTime, digits),
+                                                      nrow=n.studies, byrow=TRUE)
+      colnames(allStudiesDriftCI_original_time_scale) <- names(model_Drift_CI[[1]]); allStudiesDriftCI_original_time_scale
       #
-      allStudiesDiffCI_rescaledTime <- matrix(round(unlist(model_Diffusion_CI) * scaleTime, digits),
-                                              nrow=n.studies, byrow=TRUE)
-      colnames(allStudiesDiffCI_rescaledTime) <- names(model_Diffusion_CI[[1]]); allStudiesDiffCI_rescaledTime
+      allStudiesDiffCI_original_time_scale <- matrix(round(unlist(model_Diffusion_CI) * scaleTime, digits),
+                                                     nrow=n.studies, byrow=TRUE)
+      colnames(allStudiesDiffCI_original_time_scale) <- names(model_Diffusion_CI[[1]]); allStudiesDiffCI_original_time_scale
     } else {
-      allStudiesDriftCI_rescaledTime <- NULL
-      allStudiesDiffCI_rescaledTime <- NULL
+      allStudiesDriftCI_original_time_scale <- NULL
+      allStudiesDiffCI_original_time_scale <- NULL
     }
 
 
     allStudiesCI <- cbind(allStudiesDriftCI, allStudiesDiffusionCI, allStudiesT0varCI); allStudiesCI
     allStudiesCI_ext <- cbind(allStudiesDRIFT_effects_ext[,1], allStudiesCI); allStudiesCI_ext
 
-    allStudiesCI_rescaledTime <- allStudiesCI_ext
-    tmp1 <- grep("T0", colnames(allStudiesCI_rescaledTime)); tmp1
-    tmp2 <- allStudiesCI_rescaledTime[, -c(1, tmp1)]; tmp2
+    allStudiesCI_original_time_scale <- allStudiesCI_ext
+    tmp1 <- grep("T0", colnames(allStudiesCI_original_time_scale)); tmp1
+    tmp2 <- allStudiesCI_original_time_scale[, -c(1, tmp1)]; tmp2
     if (!(is.null(scaleTime))) scaleTime2 <- scaleTime else scaleTime2 <- 1
     if (is.null(ncol(tmp2))) tmp2b <- length(tmp2) else tmp2b <- ncol(tmp2)
     tmp3b <- matrix(round(as.numeric(tmp2) * scaleTime2, digits), ncol=tmp2b); tmp3b
 
-    #if (!(is.matrix(allStudiesCI_rescaledTime[, 1]))) tmp3a <- matrix(allStudiesCI_rescaledTime[, 1], nrow=1) else tmp3a <- allStudiesCI_rescaledTime[, 1]
-    if (!(is.matrix(allStudiesCI_rescaledTime[, 1]))) {
-      tmp3a <- matrix(allStudiesCI_rescaledTime[, 1], nrow=length(allStudiesCI_rescaledTime[, 1]))
-      } else {
-        tmp3a <- allStudiesCI_rescaledTime[, 1]
-      }
-    if (!(is.matrix(allStudiesCI_rescaledTime[, tmp1]))) {
-      tmp3c <- matrix(allStudiesCI_rescaledTime[, tmp1], nrow=length(allStudiesCI_rescaledTime[, tmp1]))
-      } else {
-        tmp3c <- allStudiesCI_rescaledTime[, tmp1]
-      }
+    #if (!(is.matrix(allStudiesCI_original_time_scale[, 1]))) tmp3a <- matrix(allStudiesCI_original_time_scale[, 1], nrow=1) else tmp3a <- allStudiesCI_original_time_scale[, 1]
+    if (!(is.matrix(allStudiesCI_original_time_scale[, 1]))) {
+      tmp3a <- matrix(allStudiesCI_original_time_scale[, 1], nrow=length(allStudiesCI_original_time_scale[, 1]))
+    } else {
+      tmp3a <- allStudiesCI_original_time_scale[, 1]
+    }
+    if (!(is.matrix(allStudiesCI_original_time_scale[, tmp1]))) {
+      tmp3c <- matrix(allStudiesCI_original_time_scale[, tmp1], nrow=length(allStudiesCI_original_time_scale[, tmp1]))
+    } else {
+      tmp3c <- allStudiesCI_original_time_scale[, tmp1]
+    }
 
-    #tmp3 <- cbind(allStudiesCI_rescaledTime[, 1], tmp2, allStudiesCI_rescaledTime[, tmp1])
+    #tmp3 <- cbind(allStudiesCI_original_time_scale[, 1], tmp2, allStudiesCI_original_time_scale[, tmp1])
     tmp3 <- cbind(tmp3a, tmp3b, tmp3c)
-    colnames(tmp3) <- colnames(allStudiesCI_rescaledTime); tmp3
-    allStudiesCI_rescaledTime <- tmp3
+    colnames(tmp3) <- colnames(allStudiesCI_original_time_scale); tmp3
+    allStudiesCI_original_time_scale <- tmp3
 
     # Label summary table
     rownames(allStudiesDRIFT_effects) <- paste0("Study No ", primaryStudies$studyNumbers)
@@ -1094,11 +1093,11 @@ ctmaInit <- function(
 
     if (!(is.null(scaleTime))) {
       #
-      rownames(allStudiesDRIFT_effects_rescaledTime) <- paste0("Study No ", primaryStudies$studyNumbers)
-      rownames(allStudiesDRIFT_effects_rescaledTime_ext) <- paste0("Study No ", primaryStudies$studyNumbers)
+      rownames(allStudiesDRIFT_effects_original_time_scale) <- paste0("Study No ", primaryStudies$studyNumbers)
+      rownames(allStudiesDRIFT_effects_original_time_scale_ext) <- paste0("Study No ", primaryStudies$studyNumbers)
       #
-      rownames(allStudiesDIFF_effects_rescaledTime) <- paste0("Study No ", primaryStudies$studyNumbers)
-      rownames(allStudiesDIFF_effects_rescaledTime_ext) <- paste0("Study No ", primaryStudies$studyNumbers)
+      rownames(allStudiesDIFF_effects_original_time_scale) <- paste0("Study No ", primaryStudies$studyNumbers)
+      rownames(allStudiesDIFF_effects_original_time_scale_ext) <- paste0("Study No ", primaryStudies$studyNumbers)
     }
 
     # check single study results
@@ -1158,7 +1157,7 @@ ctmaInit <- function(
     #model_Diffusion_Coef_rescaled_time <- NULL
     model_Drift_Coef_rescaled_time <- model_Drift_Coef
     model_Diffusion_Coef_rescaled_time <- model_Diffusion_Coef
-    #allStudiesDRIFT_effects_rescaledTime_ext <- allStudiesDRIFT_effects_ext
+    #allStudiesDRIFT_effects_original_time_scale_ext <- allStudiesDRIFT_effects_ext
   }
 
   results <- list(activeDirectory=activeDirectory,
@@ -1174,17 +1173,18 @@ ctmaInit <- function(
                                     DRIFTrescaled=model_Drift_Coef, DIFFUSIONrescaled=model_Diffusion_Coef),
                   parameterNames=list(DRIFT=names(model_Drift_Coef[[1]]), DIFFUSION=names(model_Diffusion_Coef[[1]]), T0VAR=names(model_T0var_Coef[[1]])),
                   summary=(list(model="all drift free (het. model)",
-                                #estimates=allStudiesDRIFT_effects_rescaledTime_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
+                                #estimates=allStudiesDRIFT_effects_original_time_scale_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
                                 estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
                                 randomEffects=model_popsd,
-                                confidenceIntervals=allStudiesCI_rescaledTime, # allStudiesCI_ext, = estimates that would be obtained without the scaleTime argument
+                                confidenceIntervals=allStudiesCI,
+                                #confidenceIntervals=allStudiesCI_original_time_scale, # allStudiesCI_ext, = estimates that would be obtained without the scaleTime argument
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),
                                 message=message,
-                                drift_estimates_rescaled_time =allStudiesDRIFT_effects_rescaledTime_ext,
-                                drift_CI_rescaled_time=allStudiesDriftCI_rescaledTime,
-                                diff_estimates_rescaled_time=allStudiesDIFF_effects_rescaledTime_ext,
-                                diff_CI_rescaled_time=allStudiesDiffCI_rescaledTime)))
+                                drift_estimates_rescaled_time =allStudiesDRIFT_effects_original_time_scale_ext,
+                                drift_CI_rescaled_time=allStudiesDriftCI_original_time_scale,
+                                diff_estimates_rescaled_time=allStudiesDIFF_effects_original_time_scale_ext,
+                                diff_CI_rescaled_time=allStudiesDiffCI_original_time_scale)))
   # excel workbook is added later
   class(results) <- "CoTiMAFit"
 
