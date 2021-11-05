@@ -1168,7 +1168,7 @@ ctmaInit <- function(
                   emprawList=empraw, statisticsList=statisticsList,
                   modelResults=list(DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef,
                                     DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
-                                    DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale, ),
+                                    DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale),
                   parameterNames=list(DRIFT=names(model_Drift_Coef[[1]]), DIFFUSION=names(model_Diffusion_Coef[[1]]), T0VAR=names(model_T0var_Coef[[1]])),
                   summary=(list(model="all drift free (het. model)",
                                 estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
