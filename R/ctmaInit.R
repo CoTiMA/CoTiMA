@@ -1150,14 +1150,11 @@ ctmaInit <- function(
   }
 
   if (!(is.null(scaleTime))) {
-    model_Drift_Coef_rescaled_time <- lapply(model_Drift_Coef, function(x) x * scaleTime)
-    model_Diffusion_Coef_rescaled_time <- lapply(model_Diffusion_Coef, function(x) x * scaleTime)
+    model_Drift_Coef_original_time_scale <- lapply(model_Drift_Coef, function(x) x * scaleTime)
+    model_Diffusion_Coef_original_time_scale <- lapply(model_Diffusion_Coef, function(x) x * scaleTime)
   } else {
-    #model_Drift_Coef_rescaled_time <- NULL
-    #model_Diffusion_Coef_rescaled_time <- NULL
-    model_Drift_Coef_rescaled_time <- model_Drift_Coef
-    model_Diffusion_Coef_rescaled_time <- model_Diffusion_Coef
-    #allStudiesDRIFT_effects_original_time_scale_ext <- allStudiesDRIFT_effects_ext
+    model_Drift_Coef_original_time_scale <- model_Drift_Coef
+    model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef
   }
 
   results <- list(activeDirectory=activeDirectory,
@@ -1169,22 +1166,21 @@ ctmaInit <- function(
                   primaryStudyList=primaryStudies,
                   studyList=studyList, studyFitList=studyFit,
                   emprawList=empraw, statisticsList=statisticsList,
-                  modelResults=list(DRIFT=model_Drift_Coef_rescaled_time, DIFFUSION=model_Diffusion_Coef_rescaled_time, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef,
-                                    DRIFTrescaled=model_Drift_Coef, DIFFUSIONrescaled=model_Diffusion_Coef),
+                  modelResults=list(DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef,
+                                    DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
+                                    DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale, ),
                   parameterNames=list(DRIFT=names(model_Drift_Coef[[1]]), DIFFUSION=names(model_Diffusion_Coef[[1]]), T0VAR=names(model_T0var_Coef[[1]])),
                   summary=(list(model="all drift free (het. model)",
-                                #estimates=allStudiesDRIFT_effects_original_time_scale_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
                                 estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
                                 randomEffects=model_popsd,
                                 confidenceIntervals=allStudiesCI,
-                                #confidenceIntervals=allStudiesCI_original_time_scale, # allStudiesCI_ext, = estimates that would be obtained without the scaleTime argument
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),
                                 message=message,
-                                drift_estimates_rescaled_time =allStudiesDRIFT_effects_original_time_scale_ext,
-                                drift_CI_rescaled_time=allStudiesDriftCI_original_time_scale,
-                                diff_estimates_rescaled_time=allStudiesDIFF_effects_original_time_scale_ext,
-                                diff_CI_rescaled_time=allStudiesDiffCI_original_time_scale)))
+                                drift_estimates_original_time_scale =allStudiesDRIFT_effects_original_time_scale_ext,
+                                drift_CI_original_time_scale=allStudiesDriftCI_original_time_scale,
+                                diff_estimates_original_time_scale=allStudiesDIFF_effects_original_time_scale_ext,
+                                diff_CI_original_time_scale=allStudiesDiffCI_original_time_scale)))
   # excel workbook is added later
   class(results) <- "CoTiMAFit"
 
