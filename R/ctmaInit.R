@@ -1134,9 +1134,16 @@ ctmaInit <- function(
   maxDeltas <- max(unlist(primaryStudies$deltas), na.rm=TRUE); maxDeltas
   if (!(is.null(scaleTime))) maxDeltas <- maxDeltas * scaleTime
   largeDelta <- which(unlist(primaryStudies$deltas) >= maxDeltas); largeDelta
-  if (!(is.null(scaleTime))) largeDelta <- which(unlist(primaryStudies$deltas * scaleTime) >= maxDeltas)
+  if (!(is.null(scaleTime))) {
+    tmp1 <- unlist(primaryStudies$deltas)
+    tmp1 <- tmp1[!(is.na(tmp1))]
+    largeDelta <- which( (tmp1 * scaleTime) >= maxDeltas)
+  }
   tmp1 <- table(unlist(primaryStudies$deltas)[largeDelta]); tmp1
-  if (!(is.null(scaleTime))) table(unlist(primaryStudies$deltas * scaleTime)[largeDelta])
+  if (!(is.null(scaleTime))) {
+    #table(unlist(primaryStudies$deltas * scaleTime)[largeDelta])
+    table((tmp1 * scaleTime)[largeDelta])
+  }
   tmp2 <- which(tmp1 == (max(tmp1))); tmp2
   suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
   message <- c()
