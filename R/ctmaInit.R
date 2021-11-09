@@ -1159,6 +1159,8 @@ ctmaInit <- function(
     message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using, e.g.,", tmp3, "in all subsequent models.", collapse="\n"); message
   }
 
+  if (is.null(scaleTime)) scaleTime2 <- 1 else scaleTime2 <- scaleTime
+
   if (!(is.null(scaleTime))) {
     model_Drift_Coef_original_time_scale <- lapply(model_Drift_Coef, function(x) x * scaleTime)
     model_Diffusion_Coef_original_time_scale <- lapply(model_Diffusion_Coef, function(x) x * scaleTime)
@@ -1182,6 +1184,7 @@ ctmaInit <- function(
                   parameterNames=list(DRIFT=names(model_Drift_Coef[[1]]), DIFFUSION=names(model_Diffusion_Coef[[1]]), T0VAR=names(model_T0var_Coef[[1]])),
                   summary=(list(model="all drift free (het. model)",
                                 estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
+                                scaleTime=scaleTime2,
                                 randomEffects=model_popsd,
                                 confidenceIntervals=allStudiesCI,
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),

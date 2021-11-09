@@ -997,6 +997,8 @@ ctmaFit <- function(
 
   if (is.null(primaryStudyList)) primaryStudies <- ctmaInitFit$primaryStudyList else primaryStudies <- primaryStudyList
 
+  if (is.null(scaleTime)) scaleTime2 <- 1 else scaleTime2 <- scaleTime
+
   if (!(is.null(scaleTime))) {
     model_Drift_Coef_original_time_scale <- model_Drift_Coef * scaleTime
     model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef * scaleTime
@@ -1036,6 +1038,7 @@ ctmaFit <- function(
                   CoTiMAStanctArgs=CoTiMAStanctArgs,
                   invariantDrift=invariantDrift,
                   summary=list(model="Model name not specified", # paste(invariantDrift, "unequal but invariant across samples", collapse=" "),
+                               scaledTime=scaleTime2,
                                estimates=invariantDrift_Coeff,
                                randomEffects=invariantDriftStanctFit$popsd,
                                minus2ll= invariantDrift_Minus2LogLikelihood,
