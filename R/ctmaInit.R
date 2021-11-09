@@ -26,7 +26,7 @@
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param iter number of interation (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit - for debugging
-#' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
+#' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param doPar parallel and multiple fitting if single studies
 #' @param useSV if TRUE (default) start values will be used if provided in the list of primary studies
 #'
@@ -90,7 +90,7 @@ ctmaInit <- function(
   chains=NULL,
   iter=NULL,
   verbose=NULL,
-  customPar=TRUE,
+  customPar=FALSE,
   doPar=1,
   useSV=TRUE
 )
