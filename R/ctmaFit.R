@@ -887,7 +887,7 @@ ctmaFit <- function(
     # eliminate z
     modTI_Coeff[, "z"] <- NULL; modTI_Coeff
   }
-  modTI_Coeff
+  #modTI_Coeff
 
   ## cluster effects
   if (!(is.null(cluster))) {
@@ -1002,6 +1002,16 @@ ctmaFit <- function(
   if (!(is.null(scaleTime))) {
     model_Drift_Coef_original_time_scale <- model_Drift_Coef * scaleTime
     model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef * scaleTime
+    if (!(is.null(modTI_Coeff))) {
+      modTI_Coeff_Coef_original_time_scale <- modTI_Coeff * scaleTime
+    } else {
+      modTI_Coeff_Coef_original_time_scale <- NULL
+    }
+   if (!(is.null(clusTI_Coeff))) {
+     clusTI_Coeff_Coef_original_time_scale <- clusTI_Coeff * scaleTime
+    } else {
+      clusTI_Coeff_Coef_original_time_scale <- NULL
+    }
     tmp1<- invariantDrift_Coeff
     tmp2 <- grep("toV", rownames(tmp1))
     tmp3 <- grep("DIFFUSIONcov", rownames(tmp1))
@@ -1011,7 +1021,11 @@ ctmaFit <- function(
     scaleTime <- 1/12
     tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] <- tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] * scaleTime
     estimates_original_time_scale <- tmp1
+    mod_effects_original_time_scale <- modTI_Coeff_Coef_original_time_scale
+    clus_effects_original_time_scale <- clusTI_Coeff_Coef_original_time_scale
   } else {
+    model_Drift_Coef_original_time_scale <- model_Drift_Coef
+    model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef
     estimates_original_time_scale <- NULL
   }
 
@@ -1032,7 +1046,9 @@ ctmaFit <- function(
                   modelResults=list(DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
                                     DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale,
                                     T0VAR=model_T0var_Coef,
-                                    CINT=model_Cint_Coef, MOD=modTI_Coeff, CLUS=clusTI_Coeff,
+                                    CINT=model_Cint_Coef,
+                                    MOD=modTI_Coeff_Coef_original_time_scale,
+                                    CLUS=clusTI_Coeff_original_time_scale,
                                     DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef),
                   parameterNames=ctmaInitFit$parameterNames,
                   CoTiMAStanctArgs=CoTiMAStanctArgs,
