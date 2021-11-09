@@ -1007,9 +1007,9 @@ ctmaFit <- function(
       modTI_Coeff_original_time_scale <- NULL
     }
     if (!(is.null(clusTI_Coeff))) {
-      clusTI_Coeff_Coef_original_time_scale <- clusTI_Coeff * scaleTime
+      clusTI_Coeff_original_time_scale <- clusTI_Coeff * scaleTime
     } else {
-      clusTI_Coeff_Coef_original_time_scale <- NULL
+      clusTI_Coeff_original_time_scale <- NULL
     }
     tmp1<- invariantDrift_Coeff
     tmp2 <- grep("toV", rownames(tmp1))
