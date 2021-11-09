@@ -887,7 +887,6 @@ ctmaFit <- function(
     # eliminate z
     modTI_Coeff[, "z"] <- NULL; modTI_Coeff
   }
-  #modTI_Coeff
 
   ## cluster effects
   if (!(is.null(cluster))) {
@@ -964,11 +963,11 @@ ctmaFit <- function(
   et <- paste0("Computation ended at: ", end.time); et
   tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
 
-
   meanDeltas <- mean(ctmaInitFit$statisticsList$allDeltas, na.rm=TRUE); meanDeltas
   largeDelta <- which(ctmaInitFit$statisticsList$allDeltas >= meanDeltas); largeDelta
   tmp1 <- table(ctmaInitFit$statisticsList$allDeltas[largeDelta]); tmp1
-  tmp2 <- which(tmp1 == (max(tmp1))); tmp2
+  max(names(tmp1))
+  tmp2 <- which(names(tmp1) == (max(as.numeric(names(tmp1))))); tmp2
   suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
   message <- c()
   if (meanDeltas > 3) {
@@ -1003,12 +1002,12 @@ ctmaFit <- function(
     model_Drift_Coef_original_time_scale <- model_Drift_Coef * scaleTime
     model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef * scaleTime
     if (!(is.null(modTI_Coeff))) {
-      modTI_Coeff_Coef_original_time_scale <- modTI_Coeff * scaleTime
+      modTI_Coeff_original_time_scale <- modTI_Coeff * scaleTime
     } else {
-      modTI_Coeff_Coef_original_time_scale <- NULL
+      modTI_Coeff_original_time_scale <- NULL
     }
-   if (!(is.null(clusTI_Coeff))) {
-     clusTI_Coeff_Coef_original_time_scale <- clusTI_Coeff * scaleTime
+    if (!(is.null(clusTI_Coeff))) {
+      clusTI_Coeff_Coef_original_time_scale <- clusTI_Coeff * scaleTime
     } else {
       clusTI_Coeff_Coef_original_time_scale <- NULL
     }
@@ -1021,13 +1020,15 @@ ctmaFit <- function(
     scaleTime <- 1/12
     tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] <- tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] * scaleTime
     estimates_original_time_scale <- tmp1
-    mod_effects_original_time_scale <- modTI_Coeff_Coef_original_time_scale
-    clus_effects_original_time_scale <- clusTI_Coeff_Coef_original_time_scale
+    mod_effects_original_time_scale <- modTI_Coeff_original_time_scale
+    clus_effects_original_time_scale <- clusTI_Coeff_original_time_scale
   } else {
     model_Drift_Coef_original_time_scale <- model_Drift_Coef
     model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef
-    mod_effects_original_time_scale <- modTI_Coeff
-    clus_effects_original_time_scale <- clusTI_Coeff
+    mod_effects_original_time_scale <- NULL
+    modTI_Coeff_original_time_scale <- modTI_Coeff
+    clus_effects_original_time_scale <- NULL
+    clusTI_Coeff_original_time_scale <- clusTI_Coeff
     estimates_original_time_scale <- NULL
   }
 
@@ -1049,7 +1050,7 @@ ctmaFit <- function(
                                     DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale,
                                     T0VAR=model_T0var_Coef,
                                     CINT=model_Cint_Coef,
-                                    MOD=modTI_Coeff_Coef_original_time_scale,
+                                    MOD=modTI_Coeff_original_time_scale,
                                     CLUS=clusTI_Coeff_original_time_scale,
                                     DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef),
                   parameterNames=ctmaInitFit$parameterNames,
@@ -1067,7 +1068,9 @@ ctmaFit <- function(
                                clus.effects=clus.effects,
                                mod.effects=modTI_Coeff,
                                message=message,
-                               estimates_original_time_scale =estimates_original_time_scale)
+                               estimates_original_time_scale =estimates_original_time_scale,
+                               mod_effects_original_time_scale=mod_effects_original_time_scale,
+                               clus_effects_original_time_scale=clus_effects_original_time_scale)
                   # excel workbook is added later
   )
 
