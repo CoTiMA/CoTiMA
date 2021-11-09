@@ -1021,14 +1021,22 @@ ctmaFit <- function(
     tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] <- tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] * scaleTime
     estimates_original_time_scale <- tmp1
     mod_effects_original_time_scale <- modTI_Coeff_original_time_scale
-    clus_effects_original_time_scale <- clusTI_Coeff_original_time_scale
+    if (!(is.null(clusTI_Coeff))) {
+      clus_effects_original_time_scale <- clusTI_Coeff_original_time_scale
+    } else {
+      clus_effects_original_time_scale <- NULL
+    }
   } else {
     model_Drift_Coef_original_time_scale <- model_Drift_Coef
     model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef
     mod_effects_original_time_scale <- NULL
     modTI_Coeff_original_time_scale <- modTI_Coeff
     clus_effects_original_time_scale <- NULL
-    clusTI_Coeff_original_time_scale <- clusTI_Coeff
+    if (!(is.null(clusTI_Coeff))) {
+      clusTI_Coeff_original_time_scale <- clusTI_Coeff
+    } else {
+      clusTI_Coeff_original_time_scale <- NULL
+    }
     estimates_original_time_scale <- NULL
   }
 
