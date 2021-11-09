@@ -1026,6 +1026,8 @@ ctmaFit <- function(
   } else {
     model_Drift_Coef_original_time_scale <- model_Drift_Coef
     model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef
+    mod_effects_original_time_scale <- modTI_Coeff
+    clus_effects_original_time_scale <- clusTI_Coeff
     estimates_original_time_scale <- NULL
   }
 
