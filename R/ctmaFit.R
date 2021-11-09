@@ -1003,11 +1003,13 @@ ctmaFit <- function(
     model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef * scaleTime
     if (!(is.null(modTI_Coeff))) {
       modTI_Coeff_original_time_scale <- modTI_Coeff * scaleTime
+      modTI_Coeff_original_time_scale[, "Tvalues"] <- modTI_Coeff[, "Tvalues"]
     } else {
       modTI_Coeff_original_time_scale <- NULL
     }
     if (!(is.null(clusTI_Coeff))) {
       clusTI_Coeff_original_time_scale <- clusTI_Coeff * scaleTime
+      clusTI_Coeff_original_time_scale[, "Tvalues"] <- clusTI_Coeff[, "Tvalues"]
     } else {
       clusTI_Coeff_original_time_scale <- NULL
     }
