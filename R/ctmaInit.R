@@ -377,7 +377,7 @@ ctmaInit <- function(
           tmp4 <- studyList[[i]]$rawData$sep; tmp4
           (activeDirectory != primaryStudies$activeDirectory)
           if (activeDirectory != primaryStudies$activeDirectory) {
-            tmp1 <- gsub(primaryStudies$activeDirectory, activeDirectory, tmp1)
+            tmp1 <- gsub(primaryStudies$activeDirectory, activeDirectory, tmp1, fixed=TRUE)
           }
           tmp1
           tmpData <- utils::read.table(file=tmp1,
