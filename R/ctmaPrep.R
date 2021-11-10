@@ -499,7 +499,7 @@ ctmaPrep <- function(selectedStudies=NULL,
 
   primaryStudies$plot.type="none"
 
-  primaryStudies$activeDirectory <-
+  primaryStudies$activeDirectory <- activeDirectory
 
   class(primaryStudies) <-  "CoTiMAFit"
 

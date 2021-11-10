@@ -375,9 +375,11 @@ ctmaInit <- function(
           tmp2 <- studyList[[i]]$rawData$header; tmp2
           tmp3 <- studyList[[i]]$rawData$dec; tmp3
           tmp4 <- studyList[[i]]$rawData$sep; tmp4
+          (activeDirectory != primaryStudies$activeDirectory)
           if (activeDirectory != primaryStudies$activeDirectory) {
-            gsub(primaryStudies$activeDirectory, activeDirectory, tmp1)
+            tmp1 <- gsub(primaryStudies$activeDirectory, activeDirectory, tmp1)
           }
+          tmp1
           tmpData <- utils::read.table(file=tmp1,
                                        header=tmp2,
                                        dec=tmp3,
@@ -501,6 +503,7 @@ ctmaInit <- function(
       #}
     } ### END for i ...
   } ### END Read user provided data and create list with all study information ###
+
 
   # Check if sample sizes specified in prep file deviate from cases provided in possible raw data files
   N1 <- (unlist((lapply(empraw, function(extract) dim(extract)[1])))); N1
