@@ -27,6 +27,8 @@
 #' @param moderatorLabels character vector of names
 #' @param moderatorValues list of character vectors
 #' @param summary if TRUE (default) creates summary table and xlsx sheets. Could be set to FALSE in case of errors.
+#' @param activeDirectory Mandatory. If subsequent fitting is done using different folders or on different computers, it can be
+#' changed so that raw data files can be loaded.
 #'
 #' @importFrom crayon red
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
