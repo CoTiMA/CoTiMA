@@ -96,7 +96,8 @@ ctmaPrep <- function(selectedStudies=NULL,
                      digits=4,
                      moderatorLabels=NULL,
                      moderatorValues=NULL,
-                     summary=TRUE
+                     summary=TRUE,
+                     activeDirectory=NULL
 ) {
 
   ctma <- globalenv()
@@ -113,6 +114,12 @@ ctmaPrep <- function(selectedStudies=NULL,
   if (!(is.null(addElements))) {
     addElementsList <- list()
     for (i in 1:length(addElements)) addElementsList[[addElements[i]]] <- list()
+  }
+
+  if (is.null(activeDirectory)) {
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    ErrorMsg <- "\nNo active directory has been specified! \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   insideRawData <- list(NULL, NULL, -99, TRUE, FALSE, ".", " ")
@@ -490,6 +497,8 @@ ctmaPrep <- function(selectedStudies=NULL,
   } # end if (summary == TRUE)
 
   primaryStudies$plot.type="none"
+
+  primaryStudies$activeDirectory <-
 
   class(primaryStudies) <-  "CoTiMAFit"
 
