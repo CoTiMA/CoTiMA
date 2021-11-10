@@ -31,7 +31,7 @@ ctmaFit(
   chains = NULL,
   verbose = NULL,
   allInvModel = FALSE,
-  customPar = TRUE,
+  customPar = FALSE,
   inits = NULL,
   modsToCompare = NULL,
   catsToCompare = NULL,
@@ -91,7 +91,7 @@ ctmaFit(
 
 \item{allInvModel}{estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR) if set TRUE (defautl = FALSE)}
 
-\item{customPar}{logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
+\item{customPar}{logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
 
 \item{inits}{vector of start values}
 

@@ -87,6 +87,7 @@
 #'                        "3 = medium", "4 = high", "5 = very high"))
 #'
 #' CoTiMAstudyList_3 <- ctmaPrep(selectedStudies = c(2, 3, 313),
+#'                               activeDirectory="/user/",
 #'                               excludedElements = "ageM",
 #'                               addElements = "addedByResearcher",
 #'                               moderatorLabels=moderatorLabels,

@@ -11,7 +11,8 @@ ctmaPrep(
   digits = 4,
   moderatorLabels = NULL,
   moderatorValues = NULL,
-  summary = TRUE
+  summary = TRUE,
+  activeDirectory = NULL
 )
 }
 \arguments{
@@ -42,6 +43,9 @@ a researcher regards as important.}
 \item{moderatorValues}{list of character vectors}
 
 \item{summary}{if TRUE (default) creates summary table and xlsx sheets. Could be set to FALSE in case of errors.}
+
+\item{activeDirectory}{Mandatory. If subsequent fitting is done using different folders or on different computers, it can be
+changed so that raw data files can be loaded.}
 }
 \value{
 List of primary studies and parameters for the following CoTiMA (plus StudyInformation which could be saved to Excel)
@@ -104,6 +108,7 @@ moderatorValues <- list("continuous", c("1 = very low", "2 = low",
                        "3 = medium", "4 = high", "5 = very high"))
 
 CoTiMAstudyList_3 <- ctmaPrep(selectedStudies = c(2, 3, 313),
+                              activeDirectory="/user/",
                               excludedElements = "ageM",
                               addElements = "addedByResearcher",
                               moderatorLabels=moderatorLabels,

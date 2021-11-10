@@ -14,6 +14,7 @@
 #' @importFrom ctsem ctModel ctWideToLong ctDeintervalise
 #' @importFrom OpenMx vech2full expm logm
 #' @importFrom lavaan sem inspect
+#' @importFrom stats uniroot
 #'
 #' @examples \dontrun{
 #' newPrimaryStudyList <- ctmaSV(ctmaInitFit=CoTiMAInitFit_6)
@@ -225,7 +226,7 @@ ctmaSV <- function(
     tformT0Var <- modStr[tmp3, "transform"] # not yet the inverse
     # see: https://stackoverflow.com/questions/10081479/solving-for-the-inverse-of-a-function-in-r
     inverse <- function (f, lower = -100, upper = 100) {
-      function (y) uniroot((function (x) f(x) - y), lower = lower, upper = upper)[1]
+      function (y) stats::uniroot((function (x) f(x) - y), lower = lower, upper = upper)[1]
     } # will be used further below (helps finding inverse of tform functions)
 
     newInit <- list()

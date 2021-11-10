@@ -1006,6 +1006,7 @@ ctmaInit <- function(
       allStudiesDIFFUSION_effects_original_time_scale <- NULL
     }
 
+
     source <- lapply(primaryStudies$source, function(extract) paste(extract, collapse=", ")); source
     for (l in 1:length(source)) if ( source[[l]] == "NA") source[[l]] <- "Reference not provided"
     #
@@ -1042,6 +1043,7 @@ ctmaInit <- function(
       allStudiesDIFF_effects_original_time_scale_ext <- NULL
     }
 
+    # confidence intervals
     allStudiesDriftCI <- matrix(unlist(model_Drift_CI), nrow=n.studies, byrow=TRUE)
     colnames(allStudiesDriftCI) <- names(model_Drift_CI[[1]]); allStudiesDriftCI
     allStudiesDiffusionCI <- matrix(unlist(model_Diffusion_CI), nrow=n.studies, byrow=TRUE)
