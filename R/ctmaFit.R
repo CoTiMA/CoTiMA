@@ -34,6 +34,8 @@
 #' @param modsToCompare when performing contrasts for categorical moderators, the moderator numbers (position in mod.number) that is used
 #' @param catsToCompare when performing contrasts for categorical moderators, the categories (values, not positions) for which effects are set equal
 #' @param driftsToCompare when performing contrasts for categorical moderators, the (subset of) drift effects analyzed
+#' @param useSampleFraction to speed up debugging. Provided as fraction (e.g., 1/10)
+
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  parallel detectCores
@@ -500,6 +502,16 @@ ctmaFit <- function(
       n.var <- max(n.manifest, n.latent); n.var
     }
 
+    # possible subsample selection
+    if (!(is.null(useSampleFraction))) {
+      N <- dim(dataTmp)[1]; N
+      stepwidth <- 100/useSampleFraction
+      targetCases <- round(seq(1, N, stepwidth), 0); targetCases
+      dataTmp <- dataTmp[targetCases, ]
+      #groups <- groups[targetCases]
+    }
+
+
     # make long data format
     {
       dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.var, n.TIpred = (n.studies-1+tmp1),
@@ -608,25 +620,23 @@ ctmaFit <- function(
         print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
         print(paste0("#################################################################################"))
 
-        #manifestNames <- paste0("y", 1:n.manifest); manifestNames
-        #latentNames <- paste0("V", 1:2); latentNames
-        #if (n.manifest == n.latent) manifestNames <- latentNames
         manifestmeansParams <- manifestNames; manifestmeansParams
-        #if (n.manifest == 0) n.manifestTmp <- n.latent else n.manifestTmp <- n.manifest
         manifestVarParams <- c()
         for (u in 1:n.var) {
           for (v in 1:n.var) {
             if ( v < u) manifestVarParams <- c(manifestVarParams, "0") else manifestVarParams <- c(manifestVarParams, paste0("var_", v, "_", u))
           }
         }
-        manifestVarParams
+        # make all 0 if only 1 manifest per latent
+        if (n.var == ncol(lambdaParams)) manifestVarParams <- 0
 
         stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
                                       DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
                                       DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
                                       LAMBDA=lambdaParams,
                                       CINT=matrix(0, nrow=n.latent, ncol=1),
-                                      T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                      #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                      T0MEANS = matrix(T0VARParams, nrow = n.latent, ncol = 1),
                                       MANIFESTMEANS = matrix(manifestmeansParams, nrow = n.var, ncol = 1),
                                       MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var),
                                       type = 'stanct',
@@ -634,7 +644,6 @@ ctmaFit <- function(
                                       TIpredNames = paste0("TI", 1:n.TIpred),
                                       #TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter+n.all.moderators))
                                       TIPREDEFFECT = matrix(0, n.latent, n.TIpred))
-
       } else {
         stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
                                       DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
@@ -697,12 +706,10 @@ ctmaFit <- function(
 
     }
 
-    #stanctModel$pars
     # the target effects
     tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
     tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftNames); tmp2
     stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
-    #stanctModel$pars
 
     if (!(optimize)) {
       customPar <- FALSE
@@ -741,6 +748,7 @@ ctmaFit <- function(
     ### resample in parcels to avoid memory crash and speed up
     if (!(is.null(CoTiMAStanctArgs$resample))) {
       fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel) #, CoTiMAStanctArgs=CoTiMAStanctArgs)
+      #saveRDS(fitStanctModel, paste0(activeDirectory, "fitStanctModel.rds"))
     }
     invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
   } # end if else (allInvModel)
