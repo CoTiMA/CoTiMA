@@ -120,7 +120,8 @@ ctmaFit <- function(
   inits=NULL,
   modsToCompare=NULL,
   catsToCompare=NULL,
-  driftsToCompare=NULL
+  driftsToCompare=NULL,
+  useSampleFraction=NULL
 )
 
 
