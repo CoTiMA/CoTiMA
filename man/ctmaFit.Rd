@@ -35,7 +35,8 @@ ctmaFit(
   inits = NULL,
   modsToCompare = NULL,
   catsToCompare = NULL,
-  driftsToCompare = NULL
+  driftsToCompare = NULL,
+  useSampleFraction = NULL
 )
 }
 \arguments{
@@ -100,6 +101,8 @@ ctmaFit(
 \item{catsToCompare}{when performing contrasts for categorical moderators, the categories (values, not positions) for which effects are set equal}
 
 \item{driftsToCompare}{when performing contrasts for categorical moderators, the (subset of) drift effects analyzed}
+
+\item{useSampleFraction}{to speed up debugging. Provided as fraction (e.g., 1/10).}
 }
 \value{
 ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,
