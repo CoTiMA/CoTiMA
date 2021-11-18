@@ -1005,6 +1005,8 @@ ctmaFit <- function(
 
   if (is.null(primaryStudyList)) primaryStudies <- ctmaInitFit$primaryStudyList else primaryStudies <- primaryStudyList
 
+  if (!(is.null(scaleTime))) invariantDriftStanctFit$popsd * scaleTime
+
   if (is.null(scaleTime)) scaleTime2 <- 1 else scaleTime2 <- scaleTime
 
   if (!(is.null(scaleTime))) {
