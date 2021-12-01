@@ -120,10 +120,9 @@ ctmaLabels <- function(
     }
   }
 
-  # manifest means (as interindividually varying params, which replaces error auto-correlations)
+  # manifest means
   MANIFESTMEANS <- 0
-  skip <- 0
-  if (skip == 1) {
+  if (invariantDrift == TRUE) {
     if ( (length(tmp1) + length(tmp2)) < n.var * n.latent ) {
       MANIFESTMEANS <- rep("0", n.manifest); MANIFESTMEANS
       targetVar <- which(is.na(rowSums(tmp3))); targetVar

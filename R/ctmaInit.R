@@ -195,8 +195,8 @@ ctmaInit <- function(
 
     { # fitting params
 
-      #drift
-      invariantDrift <- NULL
+      #invariantDrift <- NULL
+      invariantDrift <- FALSE
       moderatedDrift <- NULL
 
       if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
@@ -1089,7 +1089,8 @@ ctmaInit <- function(
     }
 
     #tmp3 <- cbind(allStudiesCI_original_time_scale[, 1], tmp2, allStudiesCI_original_time_scale[, tmp1])
-    tmp3 <- cbind(tmp3a, tmp3b, tmp3c)
+    # tmp3 <- cbind(tmp3a, tmp3b, t(tmp3c)
+    if (is.null(dim(tmp3c))) tmp3 <- cbind(tmp3a, tmp3b, tmp3c) else tmp3 <- cbind(tmp3a, tmp3b, t(tmp3c))
     colnames(tmp3) <- colnames(allStudiesCI_original_time_scale); tmp3
     allStudiesCI_original_time_scale <- tmp3
 

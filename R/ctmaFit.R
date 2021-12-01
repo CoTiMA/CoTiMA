@@ -601,7 +601,7 @@ ctmaFit <- function(
     driftParamsTmp <- driftParams; driftParamsTmp
     diffParamsTmp  <- diffParams
     meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
-    if ((meanLag > 6) & (customPar)) {
+    if ((meanLag > 6) | (customPar)) {
       counter <- 0
       for (h in 1:(n.latent)) {
         for (j in 1:(n.latent)) {
@@ -636,8 +636,7 @@ ctmaFit <- function(
                                       DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
                                       LAMBDA=lambdaParams,
                                       CINT=matrix(0, nrow=n.latent, ncol=1),
-                                      #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                      T0MEANS = matrix(T0VARParams, nrow = n.latent, ncol = 1),
+                                      T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
                                       MANIFESTMEANS = matrix(manifestmeansParams, nrow = n.var, ncol = 1),
                                       MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var),
                                       type = 'stanct',

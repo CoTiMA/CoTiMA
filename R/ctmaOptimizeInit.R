@@ -114,6 +114,7 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
   # parallel re-fitting of problem study
   allfits <- foreach::foreach(i=1:reFits) %dopar% {
     #head(newStudyList$emprawList[[1]])
+    #newStudyList
     fits <- ctmaInit(newStudyList, coresToUse = 1, n.latent=n.latent,
                      activeDirectory = activeDirectory,
                      checkSingleStudyResults=checkSingleStudyResults,
