@@ -122,7 +122,7 @@ ctmaLabels <- function(
 
   # manifest means
   MANIFESTMEANS <- 0
-  if (invariantDrift == TRUE) {
+  if (!(is.null(invariantDrift))) {
     if ( (length(tmp1) + length(tmp2)) < n.var * n.latent ) {
       MANIFESTMEANS <- rep("0", n.manifest); MANIFESTMEANS
       targetVar <- which(is.na(rowSums(tmp3))); targetVar
