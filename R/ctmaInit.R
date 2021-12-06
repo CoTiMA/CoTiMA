@@ -1089,7 +1089,7 @@ ctmaInit <- function(
     }
 
     #tmp3 <- cbind(allStudiesCI_original_time_scale[, 1], tmp2, allStudiesCI_original_time_scale[, tmp1])
-    if (is.null(dim(tmp3c))) tmp3 <- cbind(tmp3a, tmp3b, t(tmp3c)) else tmp3 <- cbind(tmp3a, tmp3b, tmp3c)
+    if (is.null(dim(tmp3c))) tmp3 <- cbind(tmp3a, tmp3b, t(tmp3c)) else tmp3 <- cbind(tmp3a, tmp3b,   tmp3c)
     colnames(tmp3) <- colnames(allStudiesCI_original_time_scale); tmp3
     allStudiesCI_original_time_scale <- tmp3
 
