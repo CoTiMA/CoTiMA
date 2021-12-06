@@ -100,7 +100,7 @@ ctmaLabels <- function(
 
   # T0 variance
   T0VAR <- "auto"
-  skip <- 0
+  skip <- 1
   if (skip == 1) {
     tmp1 <- which(LAMBDA == "0")
     tmp2 <- which(LAMBDA == "1")
