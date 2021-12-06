@@ -50,7 +50,8 @@ ctmaLabels <- function(
     driftNames <- driftNames[-tmp1]
   }
 
-  # backup full names for labelling output later
+  # backup full names for labeling output later
+  tmp1 <- tmp2 <- c()
   if (!(is.null(drift))) {
     # check validity of user-provided drift names
     tmp1 <- which(c(driftParams) %in% driftNames); tmp1
