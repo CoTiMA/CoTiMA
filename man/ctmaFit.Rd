@@ -35,7 +35,8 @@ ctmaFit(
   inits = NULL,
   modsToCompare = NULL,
   catsToCompare = NULL,
-  driftsToCompare = NULL
+  driftsToCompare = NULL,
+  useSampleFraction = NULL
 )
 }
 \arguments{
@@ -91,7 +92,7 @@ ctmaFit(
 
 \item{allInvModel}{estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR) if set TRUE (defautl = FALSE)}
 
-\item{customPar}{logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)}
+\item{customPar}{logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
 
 \item{inits}{vector of start values}
 
@@ -100,6 +101,8 @@ ctmaFit(
 \item{catsToCompare}{when performing contrasts for categorical moderators, the categories (values, not positions) for which effects are set equal}
 
 \item{driftsToCompare}{when performing contrasts for categorical moderators, the (subset of) drift effects analyzed}
+
+\item{useSampleFraction}{to speed up debugging. Provided as fraction (e.g., 1/10).}
 }
 \value{
 ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,
@@ -121,7 +124,7 @@ Fits a ctsem model with invariant drift effects across primary studies, possible
 the same type, either "cont" or "cat"), and possible cluster (e.g., countries where primary studies were conducted).
 }
 \examples{
-\donttest{
+\dontrun{
 # Example 1. Fit a CoTiMA to all primary studies previously fitted one by one
 # with the fits assigned to CoTiMAInitFit_6
 CoTiMAFullFit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6)

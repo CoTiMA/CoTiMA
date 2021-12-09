@@ -489,12 +489,12 @@ ctmaPlot <- function(
         discreteDriftCoeff <- linearizedTIpredEffect <- DRIFThi <- DRIFTlo <- list()
 
         for (g in 1:n.fitted.obj) {
-          toPlot <- n.studies[[g]]
+          toPlot <- n.studies[[g]]; toPlot
 
           ########################## start dealing with possible moderator values #############################################
           if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
 
-            toPlot <- length(unlist(mod.values[[1]]))
+            toPlot <- length(unlist(mod.values[[1]])); toPlot
 
             # augment usedTimeRange by time points (quantiles) where moderator values are plotted
             xValueForModValue <- stats::quantile(usedTimeRange, probs = seq(0, 1, 1/(toPlot+1))); xValueForModValue # used for positioning of moderator value in plot
@@ -503,10 +503,14 @@ ctmaPlot <- function(
 
             DRIFTCoeff[[g]] <- linearizedTIpredEffect[[g]] <- DRIFThi[[g]] <- DRIFTlo[[g]] <- list()
             counter <- 1
+            originalStudyNo <- delta_t <- c()
 
             for (i in mod.values[[g]]) {
-              ctmaFitObject[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
-              ctmaFitObject[[g]]$studyList[[counter]]$delta_t <- xValueForModValue[counter+1]
+              #i <- -1
+              #ctmaFitObject[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
+              #ctmaFitObject[[g]]$studyList[[counter]]$delta_t <- xValueForModValue[counter+1]
+              originalStudyNo[counter] <- i # used for labeling in plot
+              delta_t[counter] <- xValueForModValue[counter+1]
 
               ### compute moderated drift matrices
               # main effects
@@ -528,7 +532,9 @@ ctmaPlot <- function(
                   tmp5 <- grep(unlist(driftNames[[g]][l]), tmp3); tmp5
                   if (length(tmp5) == 0) tmp4 <- c(tmp4, NA) else tmp4 <- c(tmp4, tmp5)
                 }
-                tmp4[!(is.na(tmp4))] <- tmp2
+                tmp4
+                #tmp4[!(is.na(tmp4))] <- tmp2
+                tmp4[!(is.na(tmp4))] <- tmp2[!(is.na(tmp4))]
                 tmp4[(is.na(tmp4))] <- 0
                 tmp2 <- matrix(tmp4, n.latent[[g]], byrow=TRUE); tmp2 # raw moderator effect to be added to raw main effect (followed by tform)
                 DRIFTCoeff[[g]][[counter]] <- tmp1 + unlist(mod.values[[g]])[counter] * tmp2; DRIFTCoeff[[g]][[counter]]
@@ -565,6 +571,7 @@ ctmaPlot <- function(
             transforms <- tmp1a[grep("toV", tmp1b)]; transforms
 
             for (k in 1:(length(DRIFTCoeff[[g]]))) {
+              #k <- 1
               linearizedTIpredEffect[[g]][[k]] <- matrix(NA, n.latent, n.latent)
               counter <- 0
               for (l in 1:(n.latent)) {
@@ -612,7 +619,6 @@ ctmaPlot <- function(
               } # end for (i in usedTimeRange[1]:(noOfSteps-1))
             } # end for (h in 1:length(mod.values[[g]])
           } # end if !(is.null(ctmaFitObject[[g]]$modelResults$MOD)))
-          #discreteDriftCoeff[[1]][, , 1]
 
         } # END for (g in 1:n.fitted.obj)
 
@@ -636,6 +642,7 @@ ctmaPlot <- function(
 
       for (g in 1:n.fitted.obj) {
         if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
+        #toPlot
         plotPairs[[g]] <- array(dim=c(toPlot, length(usedTimeRange), 1+n.latent[[g]]^2))
         dotPlotPairs[[g]] <- array(dim=c(toPlot, length(usedTimeRange), 1+n.latent[[g]]^2))
 
@@ -645,15 +652,22 @@ ctmaPlot <- function(
         }
 
         for (h in 1:toPlot) {
-          #h <- 1
+          #h <- 5
           for (stepCounter in 1:length(usedTimeRange)){
             #stepCounter <- 1
             timeValue <- usedTimeRange[stepCounter]; timeValue
             plotPairs[[g]][h,stepCounter,1] <- timeValue; plotPairs[[g]][h,stepCounter,1]
             for (j in 1:(n.latent[[g]]^2)) {
-              #j <- 2
+              #j <- 1
+              #DriftForPlot
               plotPairs[[g]][h,stepCounter,(1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
-              if (toPlot == 1) tmp <- round(meanDelta[[1]],0) else tmp <- mean(ctmaFitObject[[g]]$studyList[[h]]$delta_t)
+              if (toPlot == 1) tmp <- round(meanDelta[[1]],0) else {
+                if (exists("delta_t")) {
+                  tmp <- delta_t[h]
+                } else {
+                tmp <- mean(ctmaFitObject[[g]]$studyList[[h]]$delta_t)
+                }
+              }
               #if (timeValue %in% (tmp / stepWidth)) { # plot only if the (used) time range includes the current study's mean time lag
               if (timeValue == tmp) { # plot only if the (used) time range includes the current study's mean time lag
                 dotPlotPairs[[g]][h, stepCounter, 1] <- timeValue
@@ -670,6 +684,7 @@ ctmaPlot <- function(
           } # END for (stepCounter in 0:noOfSteps)
         } # END for (h in 1:toPlot)
       } # END for (g in 1:n.fitted.obj)
+
 
       ##################################### PLOTTING PARAMETERS ##########################################
       {
@@ -765,9 +780,19 @@ ctmaPlot <- function(
                      xaxt='n', yaxt='n', ann=FALSE)
                 graphics::par(new=T)
                 if (toPlot > 1) {
-                  currentLabel <- ctmaFitObject[[g]]$studyList[[h]]$originalStudyNo; currentLabel
+                  if (exists("originalStudyNo")) {
+                    currentLabel <- originalStudyNo[h]
+                  } else {
+                    currentLabel <- ctmaFitObject[[g]]$studyList[[h]]$originalStudyNo; currentLabel
+                  }
                   if (currentLabel == -999) currentLabel <- "R"
-                  if (is.null(currentLabel)) currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
+                  if (is.null(currentLabel)) {
+                    if (exists("originalStudyNo")) {
+                      currentLabel <- originalStudyNo[h]
+                    } else {
+                      currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
+                    }
+                  }
                   if (h < 10) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
                   if (h > 9) graphics::text(currentPlotPair, labels=currentLabel, cex=1/5*dot.plot.cex, col="white")
                 } else {
@@ -871,13 +896,22 @@ ctmaPlot <- function(
                      xaxt='n', yaxt='n', ann=FALSE)
                 graphics::par(new=T)
                 if (toPlot > 1) {
-                  currentLabel <- ctmaFitObject[[g]]$studyList[[h]]$originalStudyNo; currentLabel
+                  if (exists("originalStudyNo")) {
+                    currentLabel <- originalStudyNo[h]
+                  } else {
+                    currentLabel <- ctmaFitObject[[g]]$studyList[[h]]$originalStudyNo; currentLabel
+                  }
                   if (currentLabel == -999) currentLabel <- "R"
-                  if (is.null(currentLabel)) currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
+                  if (is.null(currentLabel)) {
+                    if (exists("originalStudyNo")) {
+                      currentLabel <- originalStudyNo[h]
+                    } else {
+                      currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
+                    }
+                  }
                   currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
                   if (h < 10) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
                   if (h > 9) graphics::text(currentPlotPair, labels=currentLabel, cex=1/5*dot.plot.cex, col="white")
-                } else {
                   currentLabel <- aggregateLabel
                   currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
                   graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")

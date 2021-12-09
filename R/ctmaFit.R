@@ -28,12 +28,14 @@
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 #' @param allInvModel estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR) if set TRUE (defautl = FALSE)
-#' @param customPar logical. Leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (could help with ctsem > 3.4)
+#' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param equalDrift Not enabled
 #' @param inits vector of start values
 #' @param modsToCompare when performing contrasts for categorical moderators, the moderator numbers (position in mod.number) that is used
 #' @param catsToCompare when performing contrasts for categorical moderators, the categories (values, not positions) for which effects are set equal
 #' @param driftsToCompare when performing contrasts for categorical moderators, the (subset of) drift effects analyzed
+#' @param useSampleFraction to speed up debugging. Provided as fraction (e.g., 1/10).
+
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  parallel detectCores
@@ -44,7 +46,7 @@
 #' @export ctmaFit
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Example 1. Fit a CoTiMA to all primary studies previously fitted one by one
 #' # with the fits assigned to CoTiMAInitFit_6
 #' CoTiMAFullFit_6 <- ctmaFit(ctmaInitFit=CoTiMAInitFit_6)
@@ -118,7 +120,8 @@ ctmaFit <- function(
   inits=NULL,
   modsToCompare=NULL,
   catsToCompare=NULL,
-  driftsToCompare=NULL
+  driftsToCompare=NULL,
+  useSampleFraction=NULL
 )
 
 
@@ -500,6 +503,16 @@ ctmaFit <- function(
       n.var <- max(n.manifest, n.latent); n.var
     }
 
+    # possible subsample selection
+    if (!(is.null(useSampleFraction))) {
+      N <- dim(dataTmp)[1]; N
+      stepwidth <- 100/useSampleFraction
+      targetCases <- round(seq(1, N, stepwidth), 0); targetCases
+      dataTmp <- dataTmp[targetCases, ]
+      #groups <- groups[targetCases]
+    }
+
+
     # make long data format
     {
       dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.var, n.TIpred = (n.studies-1+tmp1),
@@ -588,7 +601,7 @@ ctmaFit <- function(
     driftParamsTmp <- driftParams; driftParamsTmp
     diffParamsTmp  <- diffParams
     meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
-    if ((meanLag > 6) & (customPar)) {
+    if ((meanLag > 6) | (customPar)) {
       counter <- 0
       for (h in 1:(n.latent)) {
         for (j in 1:(n.latent)) {
@@ -608,18 +621,15 @@ ctmaFit <- function(
         print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
         print(paste0("#################################################################################"))
 
-        #manifestNames <- paste0("y", 1:n.manifest); manifestNames
-        #latentNames <- paste0("V", 1:2); latentNames
-        #if (n.manifest == n.latent) manifestNames <- latentNames
         manifestmeansParams <- manifestNames; manifestmeansParams
-        #if (n.manifest == 0) n.manifestTmp <- n.latent else n.manifestTmp <- n.manifest
         manifestVarParams <- c()
         for (u in 1:n.var) {
           for (v in 1:n.var) {
             if ( v < u) manifestVarParams <- c(manifestVarParams, "0") else manifestVarParams <- c(manifestVarParams, paste0("var_", v, "_", u))
           }
         }
-        manifestVarParams
+        # make all 0 if only 1 manifest per latent
+        if (n.var == ncol(lambdaParams)) manifestVarParams <- 0
 
         stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
                                       DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
@@ -634,7 +644,6 @@ ctmaFit <- function(
                                       TIpredNames = paste0("TI", 1:n.TIpred),
                                       #TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter+n.all.moderators))
                                       TIPREDEFFECT = matrix(0, n.latent, n.TIpred))
-
       } else {
         stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
                                       DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
@@ -697,12 +706,10 @@ ctmaFit <- function(
 
     }
 
-    #stanctModel$pars
     # the target effects
     tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
     tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftNames); tmp2
     stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
-    #stanctModel$pars
 
     if (!(optimize)) {
       customPar <- FALSE
@@ -741,6 +748,7 @@ ctmaFit <- function(
     ### resample in parcels to avoid memory crash and speed up
     if (!(is.null(CoTiMAStanctArgs$resample))) {
       fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel) #, CoTiMAStanctArgs=CoTiMAStanctArgs)
+      #saveRDS(fitStanctModel, paste0(activeDirectory, "fitStanctModel.rds"))
     }
     invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
   } # end if else (allInvModel)
@@ -887,7 +895,6 @@ ctmaFit <- function(
     # eliminate z
     modTI_Coeff[, "z"] <- NULL; modTI_Coeff
   }
-  modTI_Coeff
 
   ## cluster effects
   if (!(is.null(cluster))) {
@@ -964,11 +971,11 @@ ctmaFit <- function(
   et <- paste0("Computation ended at: ", end.time); et
   tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
 
-
   meanDeltas <- mean(ctmaInitFit$statisticsList$allDeltas, na.rm=TRUE); meanDeltas
   largeDelta <- which(ctmaInitFit$statisticsList$allDeltas >= meanDeltas); largeDelta
   tmp1 <- table(ctmaInitFit$statisticsList$allDeltas[largeDelta]); tmp1
-  tmp2 <- which(tmp1 == (max(tmp1))); tmp2
+  max(names(tmp1))
+  tmp2 <- which(names(tmp1) == (max(as.numeric(names(tmp1))))); tmp2
   suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
   message <- c()
   if (meanDeltas > 3) {
@@ -997,6 +1004,54 @@ ctmaFit <- function(
 
   if (is.null(primaryStudyList)) primaryStudies <- ctmaInitFit$primaryStudyList else primaryStudies <- primaryStudyList
 
+  if (!(is.null(scaleTime))) invariantDriftStanctFit$popsd * scaleTime
+
+  if (is.null(scaleTime)) scaleTime2 <- 1 else scaleTime2 <- scaleTime
+
+  if (!(is.null(scaleTime))) {
+    model_Drift_Coef_original_time_scale <- model_Drift_Coef * scaleTime
+    model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef * scaleTime
+    if (!(is.null(modTI_Coeff))) {
+      modTI_Coeff_original_time_scale <- modTI_Coeff * scaleTime
+      modTI_Coeff_original_time_scale[, "Tvalues"] <- modTI_Coeff[, "Tvalues"]
+    } else {
+      modTI_Coeff_original_time_scale <- NULL
+    }
+    if (!(is.null(clusTI_Coeff))) {
+      clusTI_Coeff_original_time_scale <- clusTI_Coeff * scaleTime
+      clusTI_Coeff_original_time_scale[, "Tvalues"] <- clusTI_Coeff[, "Tvalues"]
+    } else {
+      clusTI_Coeff_original_time_scale <- NULL
+    }
+    tmp1<- invariantDrift_Coeff
+    tmp2 <- grep("toV", rownames(tmp1))
+    tmp3 <- grep("DIFFUSIONcov", rownames(tmp1))
+    tmp4 <- grep("asym", rownames(tmp1))
+    tmp3 <- tmp3[!(tmp3%in% tmp4)]
+    tmp1 <- tmp1[c(tmp2, tmp3),]
+    scaleTime <- 1/12
+    tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] <- tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] * scaleTime
+    estimates_original_time_scale <- tmp1
+    mod_effects_original_time_scale <- modTI_Coeff_original_time_scale
+    if (!(is.null(clusTI_Coeff))) {
+      clus_effects_original_time_scale <- clusTI_Coeff_original_time_scale
+    } else {
+      clus_effects_original_time_scale <- NULL
+    }
+  } else {
+    model_Drift_Coef_original_time_scale <- model_Drift_Coef
+    model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef
+    mod_effects_original_time_scale <- NULL
+    modTI_Coeff_original_time_scale <- modTI_Coeff
+    clus_effects_original_time_scale <- NULL
+    if (!(is.null(clusTI_Coeff))) {
+      clusTI_Coeff_original_time_scale <- clusTI_Coeff
+    } else {
+      clusTI_Coeff_original_time_scale <- NULL
+    }
+    estimates_original_time_scale <- NULL
+  }
+
 
   results <- list(activeDirectory=activeDirectory,
                   plot.type="drift",  model.type="stanct",
@@ -1011,12 +1066,18 @@ ctmaFit <- function(
                   studyFitList=fitStanctModel,
                   data=datalong_all,
                   statisticsList=ctmaInitFit$statisticsList,
-                  modelResults=list(DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef,
-                                    CINT=model_Cint_Coef, MOD=modTI_Coeff, CLUS=clusTI_Coeff),
+                  modelResults=list(DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
+                                    DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale,
+                                    T0VAR=model_T0var_Coef,
+                                    CINT=model_Cint_Coef,
+                                    MOD=modTI_Coeff_original_time_scale,
+                                    CLUS=clusTI_Coeff_original_time_scale,
+                                    DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef),
                   parameterNames=ctmaInitFit$parameterNames,
                   CoTiMAStanctArgs=CoTiMAStanctArgs,
                   invariantDrift=invariantDrift,
                   summary=list(model="Model name not specified", # paste(invariantDrift, "unequal but invariant across samples", collapse=" "),
+                               scaledTime=scaleTime2,
                                estimates=invariantDrift_Coeff,
                                randomEffects=invariantDriftStanctFit$popsd,
                                minus2ll= invariantDrift_Minus2LogLikelihood,
@@ -1026,7 +1087,10 @@ ctmaFit <- function(
                                max.effects = maxCrossEffect,
                                clus.effects=clus.effects,
                                mod.effects=modTI_Coeff,
-                               message=message)
+                               message=message,
+                               estimates_original_time_scale =estimates_original_time_scale,
+                               mod_effects_original_time_scale=mod_effects_original_time_scale,
+                               clus_effects_original_time_scale=clus_effects_original_time_scale)
                   # excel workbook is added later
   )
 

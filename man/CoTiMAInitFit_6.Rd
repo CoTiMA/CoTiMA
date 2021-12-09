@@ -5,7 +5,7 @@
 \alias{CoTiMAInitFit_6}
 \title{ctmaInit-object with 6 primary studies}
 \format{
-An object of class \code{CoTiMAFit} of length 18.
+An object of class \code{CoTiMAFit} of length 17.
 }
 \usage{
 CoTiMAInitFit_6

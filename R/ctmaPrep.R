@@ -27,6 +27,8 @@
 #' @param moderatorLabels character vector of names
 #' @param moderatorValues list of character vectors
 #' @param summary if TRUE (default) creates summary table and xlsx sheets. Could be set to FALSE in case of errors.
+#' @param activeDirectory Mandatory. If subsequent fitting is done using different folders or on different computers, it can be
+#' changed so that raw data files can be loaded.
 #'
 #' @importFrom crayon red
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
@@ -85,6 +87,7 @@
 #'                        "3 = medium", "4 = high", "5 = very high"))
 #'
 #' CoTiMAstudyList_3 <- ctmaPrep(selectedStudies = c(2, 3, 313),
+#'                               activeDirectory="/user/",
 #'                               excludedElements = "ageM",
 #'                               addElements = "addedByResearcher",
 #'                               moderatorLabels=moderatorLabels,
@@ -96,7 +99,8 @@ ctmaPrep <- function(selectedStudies=NULL,
                      digits=4,
                      moderatorLabels=NULL,
                      moderatorValues=NULL,
-                     summary=TRUE
+                     summary=TRUE,
+                     activeDirectory=NULL
 ) {
 
   ctma <- globalenv()
@@ -113,6 +117,11 @@ ctmaPrep <- function(selectedStudies=NULL,
   if (!(is.null(addElements))) {
     addElementsList <- list()
     for (i in 1:length(addElements)) addElementsList[[addElements[i]]] <- list()
+  }
+
+  if (is.null(activeDirectory)) {
+    ErrorMsg <- "\nNo active directory has been specified! \nGood luck for the next try!"
+    stop(ErrorMsg)
   }
 
   insideRawData <- list(NULL, NULL, -99, TRUE, FALSE, ".", " ")
@@ -490,6 +499,8 @@ ctmaPrep <- function(selectedStudies=NULL,
   } # end if (summary == TRUE)
 
   primaryStudies$plot.type="none"
+
+  primaryStudies$activeDirectory <- activeDirectory
 
   class(primaryStudies) <-  "CoTiMAFit"
 

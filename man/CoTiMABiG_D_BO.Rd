@@ -5,7 +5,7 @@
 \alias{CoTiMABiG_D_BO}
 \title{ctmaBiG-object reproducing results of Guthier et al. (2020)}
 \format{
-An object of class \code{CoTiMAFit} of length 11.
+An object of class \code{CoTiMAFit} of length 10.
 }
 \usage{
 CoTiMABiG_D_BO

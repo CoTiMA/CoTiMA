@@ -50,7 +50,8 @@ ctmaLabels <- function(
     driftNames <- driftNames[-tmp1]
   }
 
-  # backup full names for labelling output later
+  # backup full names for labeling output later
+  tmp1 <- tmp2 <- c()
   if (!(is.null(drift))) {
     # check validity of user-provided drift names
     tmp1 <- which(c(driftParams) %in% driftNames); tmp1
@@ -99,7 +100,7 @@ ctmaLabels <- function(
 
   # T0 variance
   T0VAR <- "auto"
-  skip <- 0
+  skip <- 1
   if (skip == 1) {
     tmp1 <- which(LAMBDA == "0")
     tmp2 <- which(LAMBDA == "1")
@@ -120,10 +121,9 @@ ctmaLabels <- function(
     }
   }
 
-  # manifest means (as interindividually varying params, which replaces error auto-correlations)
+  # manifest means
   MANIFESTMEANS <- 0
-  skip <- 0
-  if (skip == 1) {
+  if (!(is.null(invariantDrift))) {
     if ( (length(tmp1) + length(tmp2)) < n.var * n.latent ) {
       MANIFESTMEANS <- rep("0", n.manifest); MANIFESTMEANS
       targetVar <- which(is.na(rowSums(tmp3))); targetVar

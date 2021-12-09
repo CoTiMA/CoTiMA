@@ -5,7 +5,7 @@
 \alias{pubList_8}
 \title{pubList_8 example list}
 \format{
-An object of class \code{CoTiMAFit} of length 10.
+An object of class \code{CoTiMAFit} of length 9.
 }
 \usage{
 pubList_8
