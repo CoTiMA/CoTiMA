@@ -152,12 +152,12 @@ ctmaBiG <- function(
 
     # undo time scaling
     if (undoTimeScaling) {
-      if (exists(ctmaInitFit$summary$scaleTime)) {
+      #if (exists(ctmaInitFit$summary$scaleTime)) {
         if(!(is.null(ctmaInitFit$summary$scaleTime))) {
           all_Coeff <- all_Coeff * ctmaInitFit$summary$scaleTime
           all_SE <- all_SE * ctmaInitFit$summary$scaleTime
         }
-      }
+      #}
     }
 
     #######################################################################################################################
