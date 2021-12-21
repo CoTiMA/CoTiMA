@@ -54,7 +54,7 @@ ctmaBiG <- function(
   activateRPB=FALSE,
   digits=4,
   zcurve=FALSE,
-  undoTimeScaling=TRUE,
+  undoTimeScaling=TRUE
 )
 
 
