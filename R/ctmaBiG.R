@@ -11,6 +11,7 @@
 #' @param activateRPB if TRUE, messages (warning, finished) could be send to smart phone (default = FALSE)
 #' @param digits rounding (default = 4)
 #' @param zcurve performs z-curve analysis. Could fail if too few studies (e.g. around 10) are supplied. default=FALSE
+#' @param undoTimeScaling if TRUE, the original time scale is used (timeScale argument possibly used in \code{\link{ctmaInit}} is undone )
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom stats var lm pnorm
@@ -52,7 +53,8 @@ ctmaBiG <- function(
   PETPEESEalpha=.10,
   activateRPB=FALSE,
   digits=4,
-  zcurve=FALSE
+  zcurve=FALSE,
+  undoTimeScaling=TRUE,
 )
 
 
@@ -146,6 +148,17 @@ ctmaBiG <- function(
       colnames(all_SE) <- colnames(all_Coeff) <- c(names1, names2, names3)
       allSampleSizes <- ctmaInitFit$statisticsList$allSampleSizes; allSampleSizes
     } # end extracting
+
+
+    # undo time scaling
+    if (undoTimeScaling) {
+      if (exists(ctmaInitFit$summary$scaleTime)) {
+        if(!(is.null(ctmaInitFit$summary$scaleTime))) {
+          all_Coeff <- all_Coeff * ctmaInitFit$summary$scaleTime
+          all_SE <- all_SE * ctmaInitFit$summary$scaleTime
+        }
+      }
+    }
 
     #######################################################################################################################
     ##################################### Analyses of Publication Bias ####################################################
