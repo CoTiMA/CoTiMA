@@ -15,6 +15,7 @@
 #' @param mod.number moderator number that should be used for plots
 #' @param aggregateLabel label to indicate aggregated discrete time effects
 #' @param xLabels labes used for x-axis
+#' @param undoTimeScaling if TRUE, the original time scale is used (timeScale argument possibly used in \code{\link{ctmaInit}} is undone )
 #' @param ... arguments passed through to plot()
 #'
 #' @importFrom RPushbullet pbPost
@@ -60,6 +61,7 @@ ctmaPlot <- function(
   mod.values=-2:2,
   aggregateLabel="",
   xLabels=NULL,
+  undoTimeScaling=TRUE,
   ...
 )
 {  # begin function definition (until end of file)
@@ -205,18 +207,34 @@ ctmaPlot <- function(
       n.studies[i] <- ctmaFitObject[[i]]$n.studies; n.studies[i]
       n.primary.studies[i] <- length(ctmaFitObject[[i]]$studyList); n.primary.studies[i]
       study.numbers[[i]] <- unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)); study.numbers[[i]]
+
       if (n.studies[i] == 1) {
         DRIFTCoeff[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFT); DRIFTCoeff[[i]]
-      } else {
-        DRIFTCoeff[[i]] <- ctmaFitObject[[i]]$modelResults$DRIFT; DRIFTCoeff[[i]]
+        if (undoTimeScaling) {
+          if (!(is.null(ctmaFitObject[[i]]$summary$scaleTime))) DRIFTCoeff[[i]] <- DRIFTCoeff[[i]] * ctmaFitObject[[i]]$summary$scaleTime
+          }
+        } else {
+          DRIFTCoeff[[i]] <- ctmaFitObject[[i]]$modelResults$DRIFT; DRIFTCoeff[[i]]
+          if (undoTimeScaling) {
+            if (!(is.null(ctmaFitObject[[i]]$summary$scaleTime))) DRIFTCoeff[[i]] <- DRIFTCoeff[[i]] * ctmaFitObject[[i]]$summary$scaleTime
+          }
       }
+
       sampleSize[[i]] <- ctmaFitObject[[i]]$statisticsList$allSampleSizes; sampleSize[[i]]
 
       if ( ("funnel" %in% plot.type[[i]]) || ("forest" %in% plot.type[[i]]) ) {
         if (n.studies[i] == 1) {
-          DRIFTSE[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFTSE); DRIFTSE[[i]]
+          if (undoTimeScaling) {
+            DRIFTSE[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFTSE); DRIFTSE[[i]]
+          } else {
+          DRIFTSE[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFTSE_timeScaled); DRIFTSE[[i]]
+          }
         } else {
-          DRIFTSE[[i]] <- ctmaFitObject[[i]]$modelResults$DRIFTSE; DRIFTSE[[i]]
+          if (undoTimeScaling) {
+            DRIFTSE[[i]] <- ctmaFitObject[[i]]$modelResults$DRIFTSE; DRIFTSE[[i]]
+          } else {
+            DRIFTSE[[i]] <- ctmaFitObject[[i]]$modelResults$DRIFTSE_timeScaled; DRIFTSE[[i]]
+          }
         }
         FixedEffect_Drift[[i]] <-  ctmaFitObject[[i]]$summary$estimates$`Fixed Effects of Drift Coefficients`[2,]; FixedEffect_Drift[[i]]
         FixedEffect_DriftLow[[i]] <-  ctmaFitObject[[i]]$summary$estimates$`Fixed Effects of Drift Coefficients`["FixedEffect_DriftLowerLimit",]; FixedEffect_DriftLow[[i]]

@@ -151,13 +151,13 @@ ctmaBiG <- function(
 
 
     # undo time scaling
+    all_Coeff_timeScaled <- all_Coeff
+    all_SE_timeScaled <- all_SE
     if (undoTimeScaling) {
-      #if (exists(ctmaInitFit$summary$scaleTime)) {
         if(!(is.null(ctmaInitFit$summary$scaleTime))) {
           all_Coeff <- all_Coeff * ctmaInitFit$summary$scaleTime
           all_SE <- all_SE * ctmaInitFit$summary$scaleTime
         }
-      #}
     }
 
     #######################################################################################################################
@@ -171,14 +171,19 @@ ctmaBiG <- function(
 
     DRIFTCoeff <- DIFFUSIONCoeff <- T0VARCoeff <- DRIFTSE <- DIFFUSIONSE <- T0VARSE <- matrix(NA, n.studies, n.latent^2)
 
-    #all_Coeff
-
     DRIFTCoeff <- all_Coeff[, grep("toV", colnames(all_Coeff))]; DRIFTCoeff
     DRIFTSE <- all_SE[, grep("toV", colnames(all_SE))]; DRIFTSE
     DIFFUSIONCoeff <- all_Coeff[, grep("diff", colnames(all_Coeff))]; DIFFUSIONCoeff
     DIFFUSIONSE <- all_SE[, grep("diff", colnames(all_SE))]; DIFFUSIONSE
     T0VARCoeff <- all_Coeff[, grep("T0var", colnames(all_Coeff))]; T0VARCoeff
     T0VARSE <- all_SE[, grep("T0var", colnames(all_SE))]; T0VARSE
+
+    # just added in case time scaled funnel and forest plots should be done with ctmaPlot
+    DRIFTCoeff_timeScaled <- all_Coeff_timeScaled[, grep("toV", colnames(all_Coeff))]; DRIFTCoeff_timeScaled
+    DRIFTSE_timeScaled <- all_SE_timeScaled[, grep("toV", colnames(all_SE))]; DRIFTSE_timeScaled
+    DIFFUSIONCoeff_timeScaled <- all_Coeff_timeScaled[, grep("diff", colnames(all_Coeff))]; DIFFUSIONCoeff_timeScaled
+    DIFFUSIONSE_timeScaled <- all_SE_timeScaled[, grep("diff", colnames(all_SE))]; DIFFUSIONSE_timeScaled
+
 
     DRIFTCoeffSND <- DRIFTCoeff / DRIFTSE; DRIFTCoeffSND
     DRIFTPrecision <- c(rep(1, n.latent^2))/(DRIFTSE); DRIFTPrecision
@@ -427,7 +432,9 @@ ctmaBiG <- function(
                     emprawList=NULL,
                     statisticsList=ctmaInitFit$statisticsList,
                     modelResults=list(DRIFT=DRIFTCoeff, DIFFUSION=DIFFUSIONCoeff, T0VAR=T0VARCoeff, CINT=NULL,
-                                      DRIFTSE=DRIFTSE, DIFFUSIONSE=DIFFUSIONSE, T0VARSE=T0VARSE),
+                                      DRIFTSE=DRIFTSE, DIFFUSIONSE=DIFFUSIONSE, T0VARSE=T0VARSE,
+                                      DRIFT_timeScaled=DRIFTCoeff_timeScaled, DIFFUSION_timeScaled=DIFFUSIONCoeff_timeScaled,
+                                      DRIFTSE_timeScaled=DRIFTSE_timeScaled, DIFFUSIONSE_timeScaled=DIFFUSIONSE_timeScaled),
                     parameterNames=ctmaInitFit$parameterNames,
                     summary=list(model="Analysis of Publication Bias & Generalizability",
                                  estimates=list("Fixed Effects of Drift Coefficients"=round(fixedEffectDriftResults, digits),
