@@ -201,22 +201,26 @@ ctmaPlot <- function(
     }
 
     for (i in 1:n.fitted.obj) {
+      #i <- 1
       if ("power" %in% plot.type[[i]]) plot.type[[i]] <- c("power", "drift")
       n.latent[i] <- unlist(ctmaFitObject[[i]]$n.latent); n.latent[i]
       driftNames[[i]] <- ctmaFitObject[[i]]$parameterNames$DRIFT; driftNames[[i]]
       n.studies[i] <- ctmaFitObject[[i]]$n.studies; n.studies[i]
       n.primary.studies[i] <- length(ctmaFitObject[[i]]$studyList); n.primary.studies[i]
       study.numbers[[i]] <- unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)); study.numbers[[i]]
-
       if (n.studies[i] == 1) {
         DRIFTCoeff[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFT); DRIFTCoeff[[i]]
         if (undoTimeScaling) {
-          if (!(is.null(ctmaFitObject[[i]]$summary$scaleTime))) DRIFTCoeff[[i]] <- DRIFTCoeff[[i]] * ctmaFitObject[[i]]$summary$scaleTime
+          if (!(is.null(ctmaFitObject[[i]]$summary$scaleTime))) {
+            DRIFTCoeff[[i]] <- lapply(DRIFTCoeff[[i]], function(x) x * ctmaFitObject[[i]]$summary$scaleTime)
           }
+        }
         } else {
           DRIFTCoeff[[i]] <- ctmaFitObject[[i]]$modelResults$DRIFT; DRIFTCoeff[[i]]
           if (undoTimeScaling) {
-            if (!(is.null(ctmaFitObject[[i]]$summary$scaleTime))) DRIFTCoeff[[i]] <- DRIFTCoeff[[i]] * ctmaFitObject[[i]]$summary$scaleTime
+            if (!(is.null(ctmaFitObject[[i]]$summary$scaleTime))) {
+              DRIFTCoeff[[i]] <- lapply(DRIFTCoeff[[i]], function(x) x * ctmaFitObject[[i]]$summary$scaleTime)
+            }
           }
       }
 
