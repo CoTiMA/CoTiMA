@@ -1091,7 +1091,7 @@ ctmaFit <- function(
                                minus2ll= invariantDrift_Minus2LogLikelihood,
                                n.parameters = invariantDrift_estimatedParameters,
                                #df= invariantDrift_df,
-                               optimalLagInfo = "Optimal lag and effect was calculated for original time scale (if scaleTime argument wass used).",
+                               optimalLagInfo = "Optimal lag and effect was calculated for original time scale (i.e., ignoring possible scaleTime argument).",
                                opt.lag = optimalCrossLag,
                                max.effects = maxCrossEffect,
                                clus.effects=clus.effects,
