@@ -940,9 +940,9 @@ ctmaFit <- function(
       OpenMx::expm(tmpDriftMatrix * timeRange)[targetRow, targetCol]}
   # use original time scale
     if (!(is.null(scaleTime))) {
-      tmpDriftMatrix <- model_Drift_Coef * scaleTime
+      tmpDriftMatrix <- driftMatrix * scaleTime
     } else {
-      tmpDriftMatrix <- model_Drift_Coef
+      tmpDriftMatrix <- driftMatrix
     }
     # loop through all cross effects
     optimalCrossLag <- matrix(NA, n.latent, n.latent)
