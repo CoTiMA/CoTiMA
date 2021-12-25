@@ -936,7 +936,14 @@ ctmaFit <- function(
 
   if (length(invariantDriftNames) == length(driftNames)) {
     OTL <- function(timeRange) {
-      OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]}
+      #OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]
+      OpenMx::expm(tmpDriftMatrix * timeRange)[targetRow, targetCol]}
+  # use original time scale
+    if (!(is.null(scaleTime))) {
+      tmpDriftMatrix <- model_Drift_Coef * scaleTime
+    } else {
+      tmpDriftMatrix <- model_Drift_Coef
+    }
     # loop through all cross effects
     optimalCrossLag <- matrix(NA, n.latent, n.latent)
     maxCrossEffect <- matrix(NA, n.latent, n.latent)
@@ -945,7 +952,8 @@ ctmaFit <- function(
         if (j != h) {
           targetRow <- j
           targetCol <- h
-          if (driftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
+          #if (driftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
+          if (tmpDriftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
             targetParameters <- sapply(usedTimeRange, OTL)
             maxCrossEffect[j,h] <- max(abs(targetParameters))
             optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])*1+0
@@ -1083,6 +1091,7 @@ ctmaFit <- function(
                                minus2ll= invariantDrift_Minus2LogLikelihood,
                                n.parameters = invariantDrift_estimatedParameters,
                                #df= invariantDrift_df,
+                               optimalLagInfo = "Optimal lag and effect was calculated for original time scale (if scaleTime argument wass used).",
                                opt.lag = optimalCrossLag,
                                max.effects = maxCrossEffect,
                                clus.effects=clus.effects,
