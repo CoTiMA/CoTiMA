@@ -470,7 +470,7 @@ ctmaFit <- function(
         cluster.weights[l,] <- round(as.numeric(names(table(tmpTI[ , l]))), digits)
         cluster.sizes[l,] <- table(tmpTI[ , l])
       }
-      rownames(cluster.weights) <- paste0(1:ncol(tmpTI), "_on__")
+      rownames(cluster.weights) <- paste0(1:ncol(tmpTI), "_on_")
       colnames(cluster.weights) <- c("non Members", "Cluster Member")
       rownames(cluster.sizes) <- rep("N", ncol(tmpTI))
       colnames(cluster.sizes) <- c("non Members", "Cluster Member")
