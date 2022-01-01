@@ -186,7 +186,7 @@ ctmaPlot <- function(
     for (i in 1:n.fitted.obj) {
       if (!(is.null(ctmaFitObject[[i]]$mod.type))) {
         if (ctmaFitObject[[i]]$mod.type == "cat") {
-          mod.values[[i]] <- c(-999, unique(as.numeric(substr(rownames(ctmaFitObject[[i]]$summary$mod.effects), 1,2))))
+              mod.values[[i]] <- c(-999, unique(as.numeric(substr(rownames(ctmaFitObject[[i]]$summary$mod.effects), 1,2))))
         }
       }
     }
@@ -209,7 +209,7 @@ ctmaPlot <- function(
       study.numbers[[i]] <- unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)); study.numbers[[i]]
 
       if (n.studies[i] == 1) {
-        ctmaFitObject[[i]]$modelResults$DRIFToriginal_time_scale
+        #ctmaFitObject[[i]]$modelResults$DRIFToriginal_time_scale
         DRIFTCoeff[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFT); DRIFTCoeff[[i]]
         if (undoTimeScaling) {
           if (!(is.null(ctmaFitObject[[i]]$modelResults$DRIFToriginal_time_scale))) {
@@ -251,7 +251,8 @@ ctmaPlot <- function(
       if ("drift" %in% plot.type[[i]]) {
         allDeltas[[i]] <- ctmaFitObject[[i]]$statisticsList$allDeltas; allDeltas[[i]]
         if (undoTimeScaling == FALSE) {
-          if (!(is.null(ctmaFitObject[[i]]$summary$scaleTime)))  allDeltas[[i]] <- unlist(lapply(allDeltas[[i]], function(x) x * ctmaFitObject[[i]]$summary$scaleTime))
+          #if (!(is.null(ctmaFitObject[[i]]$summary$scaleTime)))  allDeltas[[i]] <- unlist(lapply(allDeltas[[i]], function(x) x * ctmaFitObject[[i]]$summary$scaleTime))
+          if (!(is.null(ctmaFitObject[[i]]$summary$scaledTime)))  allDeltas[[i]] <- unlist(lapply(allDeltas[[i]], function(x) x * ctmaFitObject[[i]]$summary$scaledTime))
         }
         maxDelta[i] <- max(allDeltas[[i]], na.rm=TRUE); maxDelta[i]
         minDelta[i] <- min(allDeltas[[i]], na.rm=TRUE); minDelta[i]
@@ -267,8 +268,6 @@ ctmaPlot <- function(
 
   } ### END Extracting parameters
 
-  DRIFTCoeff
-  allDeltas
 
   #######################################################################################################################
   ################################################### funnel plots ######################################################
@@ -537,17 +536,19 @@ ctmaPlot <- function(
             counter <- 1
             originalStudyNo <- delta_t <- c()
 
-            for (i in mod.values[[g]]) {
-              #i <- -1
-              #ctmaFitObject[[g]]$studyList[[counter]]$originalStudyNo <- i # used for labeling in plot
-              #ctmaFitObject[[g]]$studyList[[counter]]$delta_t <- xValueForModValue[counter+1]
+            #for (i in mod.values[[g]]) {
+            for (i in unlist(mod.values[[g]]) ) {
+              #i <- -2; mod.values[[g]]
+
               originalStudyNo[counter] <- i # used for labeling in plot
               delta_t[counter] <- xValueForModValue[counter+1]
 
               ### compute moderated drift matrices
               # main effects
               tmp1 <- ctmaFitObject[[g]]$studyFitList$stanfit$rawest[1:(n.latent^2)]; tmp1
-              tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE)
+              # undoTimeScaling befor tform
+              #if (undoTimeScaling & (!(is.null(ctmaFitObject[[g]]$summary$scaledTime)) ) ) tmp1 <- tmp1 * ctmaFitObject[[g]]$summary$scaledTime; tmp1
+              tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE); tmp1
 
               # moderator effects (could be partial)
               if (n.primary.studies[[g]] > n.studies[[g]]) {
@@ -564,10 +565,14 @@ ctmaPlot <- function(
                   tmp5 <- grep(unlist(driftNames[[g]][l]), tmp3); tmp5
                   if (length(tmp5) == 0) tmp4 <- c(tmp4, NA) else tmp4 <- c(tmp4, tmp5)
                 }
-                tmp4
+                #tmp4
                 #tmp4[!(is.na(tmp4))] <- tmp2
                 tmp4[!(is.na(tmp4))] <- tmp2[!(is.na(tmp4))]
                 tmp4[(is.na(tmp4))] <- 0
+
+                #undoTimeScaling before tform
+                #if (undoTimeScaling & (!(is.null(ctmaFitObject[[g]]$summary$scaledTime)) ) ) tmp4 <- tmp4 * ctmaFitObject[[g]]$summary$scaledTime; tmp4
+
                 tmp2 <- matrix(tmp4, n.latent[[g]], byrow=TRUE); tmp2 # raw moderator effect to be added to raw main effect (followed by tform)
                 DRIFTCoeff[[g]][[counter]] <- tmp1 + unlist(mod.values[[g]])[counter] * tmp2; DRIFTCoeff[[g]][[counter]]
                 names(DRIFTCoeff[[g]]) <- paste0("Moderator Value = ", mod.values, " SD from mean if standardized (default setting)")
@@ -595,7 +600,7 @@ ctmaPlot <- function(
               }
               counter <- counter +1
             } # END for (i in mod.values[[g]])
-
+            #DRIFTCoeff
 
             ## apply tform to drift elements that should be tformed (extracted into tansforms)
             tmp1a <- ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars[, "transform"]; tmp1a
@@ -616,6 +621,12 @@ ctmaPlot <- function(
                   DRIFThi[[g]][[k]][l,m] <- eval(parse(text=transforms[counter]))
                   param <- DRIFTlo[[g]][[k]][l,m]; param
                   DRIFTlo[[g]][[k]][l,m] <- eval(parse(text=transforms[counter]))
+                  # undoTimScaling after tform
+                  if (undoTimeScaling & (!(is.null(ctmaFitObject[[g]]$summary$scaledTime)) ) ) {
+                    DRIFTCoeff[[g]][[k]][l,m] <- DRIFTCoeff[[g]][[k]][l,m] * ctmaFitObject[[g]]$summary$scaledTime
+                    DRIFThi[[g]][[k]][l,m] <- DRIFThi[[g]][[k]][l,m] * ctmaFitObject[[g]]$summary$scaledTime
+                    DRIFTlo[[g]][[k]][l,m] <- DRIFTlo[[g]][[k]][l,m] * ctmaFitObject[[g]]$summary$scaledTime
+                  }
                 }
               }
               linearizedTIpredEffect[[g]][[k]] <- t((DRIFThi[[g]][[k]] - DRIFTlo[[g]][[k]])/.02) # transpose to make same order as in summary report of TIPREDeffects
@@ -642,10 +653,6 @@ ctmaPlot <- function(
               }
             }
           }
-          #ctmaFitObject[[1]]$modelResults$DRIFT[[2]]
-          #ctmaFitObject[[1]]$modelResults$DRIFToriginal_time_scale[[2]]
-          #ctmaFitObject[[1]]$primaryStudyList$deltas[[2]]
-          #DRIFTCoeff[[1]][[2]]
 
           if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
             discreteDriftCoeff[[g]] <- array(dim=c(length(mod.values[[g]]), noOfSteps-1, n.latent[[g]]^2))
