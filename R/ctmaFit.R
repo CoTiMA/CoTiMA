@@ -243,7 +243,7 @@ ctmaFit <- function(
     } else {
       n.latent <- ctmaInitFit$n.latent
     }
-    if (!(is.null(ctmaInitFit$n.manifest))) n.manifest <- ctmaInitFit$n.manifest
+    if (!(is.null(ctmaInitFit$n.manifest))) n.manifest <- ctmaInitFit$n.manifest else n.manifest <- n.latent
     if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
     n.studies <- unlist(ctmaInitFit$n.studies); n.studies
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
