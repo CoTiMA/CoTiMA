@@ -956,7 +956,7 @@ ctmaFit <- function(
           if (tmpDriftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
             targetParameters <- sapply(usedTimeRange, OTL)
             maxCrossEffect[j,h] <- max(abs(targetParameters))
-            optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])*1+0
+            optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])*1 - 1 # first targetParam is calculated for lag=0
           } else {
             optimalCrossLag[j,h] <- NA
           }
