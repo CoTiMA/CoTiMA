@@ -201,6 +201,9 @@ ctmaBiG <- function(
       tmp2 <- summary(tmp1)
       eggerDrift[[j]] <- list()
       eggerDrift[[j]]$summary <- tmp2
+      eggerDrift[[j]]$summary$terms <- NULL
+      #eggerDrift[[j]]$summary$aliased <- NULL
+      eggerDrift[[j]]$summary$cov.unscaled <- NULL
       eggerDrift[[j]]$message <- "No sign. evidence for publication bias."
       #if (summary(eggerDrift[[j]])$coefficients[1,1] > 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
       if (tmp2$coefficients[1,1] > 0 & tmp2$coefficients[1,4] < .05) {
@@ -211,7 +214,6 @@ ctmaBiG <- function(
         eggerDrift[[j]]$message <- message2
       }
     }
-    eggerDrift
 
     FREAResults <- list()
 
