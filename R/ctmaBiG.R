@@ -195,19 +195,11 @@ ctmaBiG <- function(
 
     eggerDrift <- list()
     for (j in 1:(n.latent^2)) {
-      #j <- 1
-      #eggerDrift[[j]] <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
       tmp1 <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
       tmp2 <- summary(tmp1)
-      tmp3 <- (unlist(tmp2)) # trx to avoid huge rds summary file
-      #tmp3
       eggerDrift[[j]] <- list()
       eggerDrift[[j]]$message <- "No sign. evidence for publication bias."
-      #eggerDrift[[j]]$summary <- tmp2
-      eggerDrift[[j]]$summary <- tmp3
-      #eggerDrift[[j]]$summary$terms <- NULL
-      #eggerDrift[[j]]$summary$aliased <- NULL
-      #eggerDrift[[j]]$summary$cov.unscaled <- NULL
+      eggerDrift[[j]]$summary <- tmp2[[4]]
       #if (summary(eggerDrift[[j]])$coefficients[1,1] > 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
       if (tmp2$coefficients[1,1] > 0 & tmp2$coefficients[1,4] < .05) {
         eggerDrift[[j]]$message <- message1
@@ -217,10 +209,8 @@ ctmaBiG <- function(
         eggerDrift[[j]]$message <- message2
       }
     }
-    #eggerDrift
 
     FREAResults <- list()
-
     FREAResults[[1]] <- "############# Eggers Test for DRIFT Parameter Estimates  ###############################"
     FREACounter <- 1
     for (j in 1:(n.latent^2)) {
@@ -234,7 +224,7 @@ ctmaBiG <- function(
       #FREAResults[[FREACounter]] <- summary(eggerDrift[[j]])
       FREAResults[[FREACounter]] <- eggerDrift[[j]]$summary
     }
-    FREAResults
+    #str(FREAResults)
 
     ################################### Fixed & Random Effects Analyses ###################################################
 
