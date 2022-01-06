@@ -195,12 +195,17 @@ ctmaBiG <- function(
 
     eggerDrift <- list()
     for (j in 1:(n.latent^2)) {
-      eggerDrift[[j]] <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
+      #eggerDrift[[j]] <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
+      tmp1 <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
+      tmp2 <- summary(tmp1)
+      eggerDrift[[j]] <- tmp2
       eggerDrift[[j]]$message <- "No sign. evidence for publication bias."
-      if (summary(eggerDrift[[j]])$coefficients[1,1] > 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
+      #if (summary(eggerDrift[[j]])$coefficients[1,1] > 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
+      if (tmp2$coefficients[1,1] > 0 & tmp2$coefficients[1,4] < .05) {
         eggerDrift[[j]]$message <- message1
       }
-      if (summary(eggerDrift[[j]])$coefficients[1,1] < 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
+      #if (summary(eggerDrift[[j]])$coefficients[1,1] < 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
+      if (tmp2$coefficients[1,1] < 0 & tmp2$coefficients[1,4] < .05) {
         eggerDrift[[j]]$message <- message2
       }
     }
@@ -216,7 +221,8 @@ ctmaBiG <- function(
       FREACounter <- FREACounter + 1
       FREAResults[[FREACounter]] <- eggerDrift[[j]]$message
       FREACounter <- FREACounter + 1
-      FREAResults[[FREACounter]] <- summary(eggerDrift[[j]])
+      #FREAResults[[FREACounter]] <- summary(eggerDrift[[j]])
+      FREAResults[[FREACounter]] <- eggerDrift[[j]]
     }
 
 
