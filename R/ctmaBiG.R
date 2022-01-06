@@ -198,7 +198,7 @@ ctmaBiG <- function(
       #eggerDrift[[j]] <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
       tmp1 <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
       tmp2 <- summary(tmp1)
-      eggerDrift[[j]]$summary <- tmp2
+      eggerDrift[[j]]$summary <- tmp1
       eggerDrift[[j]]$message <- "No sign. evidence for publication bias."
       #if (summary(eggerDrift[[j]])$coefficients[1,1] > 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
       if (tmp2$coefficients[1,1] > 0 & tmp2$coefficients[1,4] < .05) {
