@@ -199,7 +199,7 @@ ctmaBiG <- function(
       #eggerDrift[[j]] <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
       tmp1 <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
       tmp2 <- summary(tmp1)
-      tmp3 <- print(tmp2) # trx to avoid huge rds summary file
+      tmp3 <- (unlist(tmp2)) # trx to avoid huge rds summary file
       #tmp3
       eggerDrift[[j]] <- list()
       eggerDrift[[j]]$message <- "No sign. evidence for publication bias."
