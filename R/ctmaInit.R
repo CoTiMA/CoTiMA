@@ -503,7 +503,7 @@ ctmaInit <- function(
         }
         emprawLong[[i]] <- dataTmp3
       }
-      print(i)
+      #print(i)
       #}
     } ### END for i ...
   } ### END Read user provided data and create list with all study information ###
