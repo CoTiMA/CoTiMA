@@ -288,7 +288,7 @@ ctmaInit <- function(
     }
 
     for (i in 1:n.studies) {
-      #i <- 1
+      #i <- 13
       if (!(i %in% loadRawDataStudyNumbers)) {
         currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
@@ -311,6 +311,10 @@ ctmaInit <- function(
         }
 
         # Create Pseudo Raw Data
+        #Msg <- "################################################################################# \n###### Read user provided data and create list with all study information ####### \n#################################################################################"
+        Msg <- paste0("################################################################################# \n###### Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ####### \n#################################################################################")
+        message(Msg)
+
         tmp <- suppressWarnings(ctmaPRaw(empCovMat=currentEmpcov, empN=currentSampleSize, empNMat=currentPairwiseN))
 
         empraw[[i]] <- tmp$data
@@ -499,7 +503,7 @@ ctmaInit <- function(
         }
         emprawLong[[i]] <- dataTmp3
       }
-      #head(emprawLong[[i]], 40)
+      print(i)
       #}
     } ### END for i ...
   } ### END Read user provided data and create list with all study information ###
