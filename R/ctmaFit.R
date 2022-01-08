@@ -20,6 +20,7 @@
 #' @param scaleTI scale TI predictors - not recommended if TI are dummies representing primary studies, which would be the usual case
 #' @param scaleClus scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster
 #' @param scaleMod scale moderator variables - FALSE (default) highly recommended for categorical moderators, TRUE highly recommended for continuous moderators
+#' @param transfMod more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
@@ -107,6 +108,7 @@ ctmaFit <- function(
   coresToUse=c(1),
   scaleTI=NULL,
   scaleMod=NULL,
+  transfMod=NULL,
   scaleClus=NULL,
   scaleTime=NULL,
   optimize=TRUE,
@@ -159,6 +161,14 @@ ctmaFit <- function(
     }
   }
   if ( (!(is.null(catsToCompare))) & (is.null(modsToCompare)) ) modsToCompare <- 1
+
+  { # check if scaleMod is not used in combination with transfMod
+    if ( (!(is.null(scaleMod))) & (!(is.null(transfMod))) ) {
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+      ErrorMsg <- "The arguments scaleMod and transfMod cannot be used in combination. Set one of them NULL (leave out)."
+      stop(ErrorMsg)
+    }
+    }
 
 
   #######################################################################################################################
@@ -267,6 +277,15 @@ ctmaFit <- function(
   # check moderator information
   {
     n.moderators <- length(mod.number); n.moderators
+    { # check if transfMod is as long as n.moderators
+      if ( (!(is.null(transfMod))) ) {
+        if ( length(transfMod) != n.moderators ) {
+        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+        ErrorMsg <- "More transformations for moderators (transfMod) provided than moderators."
+        stop(ErrorMsg)
+        }
+      }
+    }
     if (n.moderators > 0) {
       currentModerators <- matrix(as.numeric(unlist(lapply(ctmaInitFit$studyList, function(extract) extract$moderators[mod.number]))), ncol=n.moderators); currentModerators
       if (!(is.null(primaryStudyList))) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE)
@@ -398,6 +417,14 @@ ctmaFit <- function(
         tmp1 <- paste0("mod", 1:n.moderators); tmp1; dim(tmp1)
         if (length(tmp1) == 1) tmp <- matrix(dataTmp[ , tmp1], ncol=length(tmp1)) else tmp <- dataTmp[ , tmp1]
         if (CoTiMAStanctArgs$scaleMod == TRUE) tmp[ , 1:ncol(tmp)] <- scale(tmp[ , 1:ncol(tmp)])
+        if (!(is.null(transfMod))) {
+          tmp2 <- tmp #[ , 1:ncol(tmp)]
+          for (t in 1:length(transfMod)) {
+            x <- tmp2[, t]
+            tmp2[, t] <- as.numeric(eval(parse(text=transfMod[t])))
+            }
+          tmp[ , 1:ncol(tmp)] <- tmp2
+        }
         currentStartNumber <- modTIstartNum; currentStartNumber
         currentEndNumber <- currentStartNumber + n.moderators-1; currentEndNumber
         colnames(tmp) <- paste0("TI", currentStartNumber:currentEndNumber); tmp

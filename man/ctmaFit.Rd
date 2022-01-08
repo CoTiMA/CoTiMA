@@ -22,6 +22,7 @@ ctmaFit(
   coresToUse = c(1),
   scaleTI = NULL,
   scaleMod = NULL,
+  transfMod = NULL,
   scaleClus = NULL,
   scaleTime = NULL,
   optimize = TRUE,
@@ -73,6 +74,8 @@ ctmaFit(
 \item{scaleTI}{scale TI predictors - not recommended if TI are dummies representing primary studies, which would be the usual case}
 
 \item{scaleMod}{scale moderator variables - FALSE (default) highly recommended for categorical moderators, TRUE highly recommended for continuous moderators}
+
+\item{transfMod}{more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))}
 
 \item{scaleClus}{scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster}
 
