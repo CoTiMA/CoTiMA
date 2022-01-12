@@ -159,7 +159,17 @@ ctmaPrep <- function(selectedStudies=NULL,
     if (exists(paste0("moderator", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) moderators[[i]] <- get(paste0("moderator", selectedStudies[i]))
     if (exists(paste0("startValues", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) startValues[[i]] <- get(paste0("startValues", selectedStudies[i]))
     if (exists(paste0("studyNumber", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) studyNumbers[[i]] <- get(paste0("studyNumber", selectedStudies[i]))
-    if (exists(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) sampleSizes[[i]] <- get(paste0("sampleSize", selectedStudies[i]))
+    #if (exists(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) sampleSizes[[i]] <- get(paste0("sampleSize", selectedStudies[i]))
+
+    if (exists(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
+      tmp1 <- get(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE); tmp1
+      if (!(is.null(tmp1))) sampleSizes[[i]] <- get(paste0("sampleSize", selectedStudies[i]),
+                                                         envir =parent.frame(), inherits=FALSE) else sampleSizes[[i]] <- NA
+    } else {
+      sampleSizes[[i]] <- NA
+    }
+
+
     if (exists(paste0("empMeans", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) empMeans[[i]] <- get(paste0("empMeans", selectedStudies[i]))
     if (exists(paste0("empVars", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) empVars[[i]] <- get(paste0("empVars", selectedStudies[i]))
     if (exists(paste0("source", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) source[[i]] <- get(paste0("source", selectedStudies[i]))
