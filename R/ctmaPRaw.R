@@ -209,7 +209,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
     if (nDiff[i,i] <= -1) {
       counter <- counter +1
       currentData[[counter]] <- MASS::mvrnorm(n=-nDiff[i,i], mu=rep(0), Sigma=matrix(currentR[i,i], 1, 1), empirical = TRUE)
-      colnames(currentData[[counter]]) <- i; currentData[[counter]]
+      #colnames(currentData[[counter]]) <- i; currentData[[counter]]
     } else {
       counter <- counter +1
       currentData[[counter]] <- matrix(NA, 1, 1)
@@ -221,7 +221,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
     for (i in 1:counter) {
       if (!(is.null(dim(currentData[[i]])[1]))) tmpN <- dim(currentData[[i]])[1] else tmpN <- 1
       currentRows <- rowCounter:(rowCounter+tmpN-1); currentRows
-      currentNames <- colnames(currentData[[i]]); currentNames
+      #currentNames <- colnames(currentData[[i]]); currentNames
       tmpMat <- as.data.frame(matrix(NA, tmpN, dim(newData)[2])); tmpMat
       colnames(tmpMat) <- colnames(newData)
       newData <- rbind(newData, tmpMat)
