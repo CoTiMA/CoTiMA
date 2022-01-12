@@ -206,10 +206,13 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
   currentData <- list()
   counter <- 0
   for (i in 1:(dim(nDiff)[1])) {
-    if (nDiff[i,i] < -1) {
+    if (nDiff[i,i] <= -1) {
       counter <- counter +1
       currentData[[counter]] <- MASS::mvrnorm(n=-nDiff[i,i], mu=rep(0), Sigma=matrix(currentR[i,i], 1, 1), empirical = TRUE)
       colnames(currentData[[counter]]) <- i; currentData[[counter]]
+    } else {
+      counter <- counter +1
+      currentData[[counter]] <- matrix(NA, 1, 1)
     }
   }
   # add data
@@ -222,7 +225,8 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
       tmpMat <- as.data.frame(matrix(NA, tmpN, dim(newData)[2])); tmpMat
       colnames(tmpMat) <- colnames(newData)
       newData <- rbind(newData, tmpMat)
-      newData[currentRows, currentNames] <- currentData[[i]]
+      #newData[currentRows, currentNames] <- currentData[[i]]
+      newData[currentRows, i] <- currentData[[i]] # inserted
       rowCounter <- max(currentRows) + 1; rowCounter
     }
   }
