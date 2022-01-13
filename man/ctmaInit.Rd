@@ -31,7 +31,8 @@ ctmaInit(
   verbose = NULL,
   customPar = FALSE,
   doPar = 1,
-  useSV = TRUE
+  useSV = TRUE,
+  experimental = FALSE
 )
 }
 \arguments{
@@ -88,6 +89,8 @@ ctmaInit(
 \item{doPar}{parallel and multiple fitting if single studies}
 
 \item{useSV}{if TRUE (default) start values will be used if provided in the list of primary studies}
+
+\item{experimental}{set TRUE to try new pairwise N function}
 }
 \value{
 ctmaFit returns a list containing some arguments supplied, the fitted models, different elements summarizing the main results,

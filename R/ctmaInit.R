@@ -29,6 +29,7 @@
 #' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param doPar parallel and multiple fitting if single studies
 #' @param useSV if TRUE (default) start values will be used if provided in the list of primary studies
+#' @param experimental set TRUE to try new pairwise N function
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
@@ -92,7 +93,8 @@ ctmaInit <- function(
   verbose=NULL,
   customPar=FALSE,
   doPar=1,
-  useSV=TRUE
+  useSV=TRUE,
+  experimental=FALSE
 )
 
 {  # begin function definition (until end of file)
@@ -315,7 +317,8 @@ ctmaInit <- function(
         Msg <- paste0("################################################################################# \n###### Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ####### \n#################################################################################")
         message(Msg)
 
-        tmp <- suppressWarnings(ctmaPRaw(empCovMat=currentEmpcov, empN=currentSampleSize, empNMat=currentPairwiseN))
+        tmp <- suppressWarnings(ctmaPRaw(empCovMat=currentEmpcov, empN=currentSampleSize, empNMat=currentPairwiseN,
+                                         experimental=experimental))
 
         empraw[[i]] <- tmp$data
         lostN[[i]] <- tmp$lostN
