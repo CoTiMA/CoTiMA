@@ -254,9 +254,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
     # currently disabled # NSaver <- list()
     # currently disabled #for (i in 1:dim(newData)[2]) NSaver[[i]] <- 0
     counter <- 0
-    while (any(tmpNMat > 1, na.rm=T)) {
-      if (!(is.matrix(tmpNMat))) tmpNMat <- array(tmpNMat, dim=c(1, 1))
-      if (!(is.matrix(tmpRMat))) tmpRMat <- array(tmpRMat, dim=c(1, 1))
+    while (any(tmpNMat > 1, na.rm=T) & dim(tmpRMat)[1] >1 & dim(tmpNMat)[1] > 1) {
       counter <- counter + 1
       min1 <- unique(which(tmpNMat == min(tmpNMat, na.rm=T), arr.ind = TRUE)); min1      # which matrix index is currenlty min(N)
       pos1 <- unique(which(tmpNMat == min(tmpNMat, na.rm=T), arr.ind = TRUE))[1,]; pos1  # take the first index (if multiple exist)
@@ -279,6 +277,9 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
 
       currentStartCol <- currentStartCol + currentN2; currentStartCol
       tmpRMat <- tmpRMat[-toDelete, -toDelete]; tmpRMat
+
+      if (!(is.matrix(tmpNMat))) tmpNMat <- array(tmpNMat, dim=c(1, 1))
+      if (!(is.matrix(tmpRMat))) tmpRMat <- array(tmpRMat, dim=c(1, 1))
 
     }
   } # END if (experimental == TRUE)
