@@ -301,6 +301,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
         collectorCounter <- collectorCounter + 1
         if (is.null(dim(collector[[r]]))) collector[[r]] <- matrix(collector[[r]], ncol=2, nrow=1)
         allCollectors[[collectorCounter]] <- c(collector[[r]][1,1], collector[[r]][ ,2])
+        }
       }
     } # END if (experimental == TRUE)
 
