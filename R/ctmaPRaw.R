@@ -241,48 +241,68 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
     tmpRMat <- currentR; tmpRMat
     tmpNMat <- currentN
     tmpNMat[upper.tri(tmpNMat)] <- NA; tmpNMat
-    if (is.null(colnames(tmpRMat))) colnames(tmpRMat) <- seq(1, dim(tmpRMat)[1], 1)
+    colnames(tmpRMat) <- seq(1, dim(tmpRMat)[1], 1)
 
     # d
     newData <- matrix(NA, ncol=dim(tmpRMat)[1], nrow=max(tmpNMat, na.rm=T)); newData  # all variables have 0
-    colnames(newData) <- colnames(tmpRMat)
+    colnames(newData) <- tmpColNames <- colnames(tmpRMat)
 
     #
-    currentN2 <- 0
+    counter <- 0
+    currentN2 <- 0          # currentN already in use in ctmaPRaw
     currentStartCol <- 1 # where start inserting praw data
 
-    # currently disabled # NSaver <- list()
-    # currently disabled #for (i in 1:dim(newData)[2]) NSaver[[i]] <- 0
-    counter <- 0
-    while (any(tmpNMat > 1, na.rm=T) & dim(tmpRMat)[1] >1 & dim(tmpNMat)[1] > 1) {
-      counter <- counter + 1
-      min1 <- unique(which(tmpNMat == min(tmpNMat, na.rm=T), arr.ind = TRUE)); min1      # which matrix index is currenlty min(N)
-      pos1 <- unique(which(tmpNMat == min(tmpNMat, na.rm=T), arr.ind = TRUE))[1,]; pos1  # take the first index (if multiple exist)
-      currentN2 <- tmpNMat[pos1[1], pos1[2]]; currentN2                                    # what is the current min(N)
-      toDelete <- unique(which(tmpNMat == currentN2, arr.ind = T)[,1]); toDelete
-      tmpNMat[tmpNMat == currentN2] <- NA; tmpNMat                                    # "delete" the min N where it existed
-      # correction
-      tmp1 <- which(!(is.na(diag(tmpNMat)))); tmp1
-      tmp2 <- which(tmp1 %in% toDelete); tmp2
-      # currently disabled #  if (length(tmp2) > 0) NSaver[[tmp2]] <- NSaver[[tmp2]] + (tmpNMat[tmp2, tmp2] - currentN2)
+    # try making positive definite by adding .01 to diag if necessary
+    while (any(eigen(tmpRMat)$values < 0)) {
+      print("Adding .01 to diagonal of correlation matrix to make it positive definite (ridge constant)")
+      tmpRMat <- tmpRMat + diag(.01, dim(tmpRMat)[1])
+    }
 
-      tmpNMat <- tmpNMat - currentN2; tmpNMat
-      if (length(tmp2) > 0) tmpNMat <- tmpNMat[-tmp2, -tmp2]; tmpNMat
+    while (any(tmpNMat > 1, na.rm=T) & dim(tmpRMat)[1] >1 & dim(tmpNMat)[1] > 1) {
+      counter <- counter + 1; counter
+      collectorCounter <- 0
+      min1 <- unique(which(tmpNMat == min(tmpNMat, na.rm=T), arr.ind = TRUE)); min1      # which matrix index is currenlty min(N)
+      currentN2 <- tmpNMat[min1[1,1], min1[1,2]]; currentN2                                    # what is the current min(N)
+
+      if (counter > 1) {
+        for (i in length(allCollectors):1) {
+          if (allCollectors[[i]][1] == length(allCollectors[[i]])-1) {
+            tmpRMat <- tmpRMat[-allCollectors[[i]][1], -allCollectors[[i]][1]]
+            tmpColNames <- tmpColNames[tmpColNames != allCollectors[[i]][1]]; tmpColNames
+          }
+        }
+      }
 
       if (currentN2 >= dim(tmpRMat)[1]) {                                                  # if not, some cases are lost
         data <- MASS::mvrnorm(n=currentN2, mu=rep(0, dim(tmpRMat)[1]),
                               Sigma=tmpRMat, empirical = TRUE)                            # create praw
-        newData[currentStartCol:(currentStartCol+dim(data)[1]-1) , colnames(tmpRMat)] <-  data; dim(newData)  # insert in in newData
+        newData[currentStartCol:(currentStartCol+dim(data)[1]-1) , tmpColNames] <-  data  # insert in in newData
       }
 
       currentStartCol <- currentStartCol + currentN2; currentStartCol
-      tmpRMat <- tmpRMat[-toDelete, -toDelete]; tmpRMat
 
-      if (!(is.matrix(tmpNMat))) tmpNMat <- array(tmpNMat, dim=c(1, 1))
-      if (!(is.matrix(tmpRMat))) tmpRMat <- array(tmpRMat, dim=c(1, 1))
+      # correction
+      tmpNMat[!(is.na(tmpNMat))] <- tmpNMat[!(is.na(tmpNMat))] - currentN2
+      tmpNMat[tmpNMat == 0] <- NA
+      tmpNMat
 
-    }
-  } # END if (experimental == TRUE)
+      ## collect fully filled rows and columns (per row)
+      collector <- list()
+      counter2 <- 0
+      # collect
+      for (r in unique(min1[ ,1])) {
+        counter2 <- counter2 + 1
+        collector[[counter2]] <- min1[min1[,1]==r , ]
+      }
+
+      # create vector in which the first value is a critical row and all subsequent ones are the forbidden columns
+      allCollectors <- list() # collects lists of variable sets for which the remaining N is 0 after previous data computation
+      for (r in 1:length(collector)) {
+        collectorCounter <- collectorCounter + 1
+        if (is.null(dim(collector[[r]]))) collector[[r]] <- matrix(collector[[r]], ncol=2, nrow=1)
+        allCollectors[[collectorCounter]] <- c(collector[[r]][1,1], collector[[r]][ ,2])
+      }
+    } # END if (experimental == TRUE)
 
 
   # replace values which cannot exist
