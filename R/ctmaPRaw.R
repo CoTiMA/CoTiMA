@@ -241,7 +241,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
     tmpRMat <- currentR; tmpRMat
     tmpNMat <- currentN
     tmpNMat[upper.tri(tmpNMat)] <- NA; tmpNMat
-    colnames(tmpRMat) <- seq(1, dim(tmpRMat)[1], 1)
+    colnames(tmpRMat) <- rownames(tmpRMat) <- seq(1, dim(tmpRMat)[1], 1)
 
     # d
     newData <- matrix(NA, ncol=dim(tmpRMat)[1], nrow=max(tmpNMat, na.rm=T)); newData  # all variables have 0
@@ -250,7 +250,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
     #
     counter <- 0
     currentN2 <- 0          # currentN already in use in ctmaPRaw
-    currentStartCol <- 1 # where start inserting praw data
+    currentStartCol <- 1   # where start inserting praw data
 
     # try making positive definite by adding .01 to diag if necessary
     while (any(eigen(tmpRMat)$values < 0)) {
@@ -258,6 +258,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
       tmpRMat <- tmpRMat + diag(.01, dim(tmpRMat)[1])
     }
 
+    allCollectors <- list()
     while (any(tmpNMat > 1, na.rm=T) & dim(tmpRMat)[1] >1 & dim(tmpNMat)[1] > 1) {
       counter <- counter + 1; counter
       collectorCounter <- 0
@@ -269,9 +270,14 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
           if (allCollectors[[i]][1] == length(allCollectors[[i]])-1) {
             tmpRMat <- tmpRMat[-allCollectors[[i]][1], -allCollectors[[i]][1]]
             tmpColNames <- tmpColNames[tmpColNames != allCollectors[[i]][1]]; tmpColNames
+          } else {
+            remove <- c()
+            if (allCollectors[[i]][1] == allCollectors[[i]][length(allCollectors[[i]])]) remove <- allCollectors[[i]][1]
+            tmpRMat <- tmpRMat[!(rownames(tmpRMat) %in% remove), !(colnames(tmpRMat) %in% remove)]
+            tmpColNames <- tmpColNames[!(tmpColNames %in% remove)]; tmpColNames
           }
         }
-      }
+        }
 
       if (currentN2 >= dim(tmpRMat)[1]) {                                                  # if not, some cases are lost
         data <- MASS::mvrnorm(n=currentN2, mu=rep(0, dim(tmpRMat)[1]),
@@ -282,9 +288,10 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
       currentStartCol <- currentStartCol + currentN2; currentStartCol
 
       # correction
+      psych::corr.test(newData)
       tmpNMat[!(is.na(tmpNMat))] <- tmpNMat[!(is.na(tmpNMat))] - currentN2
       tmpNMat[tmpNMat == 0] <- NA
-      tmpNMat
+      #tmpNMat
 
       ## collect fully filled rows and columns (per row)
       collector <- list()
@@ -293,6 +300,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
       for (r in unique(min1[ ,1])) {
         counter2 <- counter2 + 1
         collector[[counter2]] <- min1[min1[,1]==r , ]
+        collector[[counter2]]
       }
 
       # create vector in which the first value is a critical row and all subsequent ones are the forbidden columns
@@ -301,7 +309,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
         collectorCounter <- collectorCounter + 1
         if (is.null(dim(collector[[r]]))) collector[[r]] <- matrix(collector[[r]], ncol=2, nrow=1)
         allCollectors[[collectorCounter]] <- c(collector[[r]][1,1], collector[[r]][ ,2])
-        }
+      }
       }
     if (all(diag(currentR) == 1)) newData <- scale(newData)
   } # END if (experimental == TRUE)
