@@ -303,7 +303,8 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
         allCollectors[[collectorCounter]] <- c(collector[[r]][1,1], collector[[r]][ ,2])
         }
       }
-    } # END if (experimental == TRUE)
+    if (all(diag(currentR) == 1)) newData <- scale(newData)
+  } # END if (experimental == TRUE)
 
 
   # replace values which cannot exist
