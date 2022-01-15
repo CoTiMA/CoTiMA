@@ -250,7 +250,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
     #
     counter <- 0
     currentN2 <- 0          # currentN already in use in ctmaPRaw
-    currentStartCol <- 1   # where start inserting praw data
+    currentStartCol <- 1 # where start inserting praw data
 
     # try making positive definite by adding .01 to diag if necessary
     while (any(eigen(tmpRMat)$values < 0)) {
@@ -277,11 +277,16 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
             tmpColNames <- tmpColNames[!(tmpColNames %in% remove)]; tmpColNames
           }
         }
-        }
-
+      }
+      if (is.null(dim(tmpRMat))) tmpRMat <- matrix(tmpRMat, 1, 1)
       if (currentN2 >= dim(tmpRMat)[1]) {                                                  # if not, some cases are lost
         data <- MASS::mvrnorm(n=currentN2, mu=rep(0, dim(tmpRMat)[1]),
                               Sigma=tmpRMat, empirical = TRUE)                            # create praw
+        if (dim(newData)[1] < currentStartCol+dim(data)[1]) {
+          tmpData <- newData[1:dim(data)[1] , ]
+          tmpData[!(is.null(tmpData))] <- NA
+          newData <- rbind(newData, tmpData)
+        }
         newData[currentStartCol:(currentStartCol+dim(data)[1]-1) , tmpColNames] <-  data  # insert in in newData
       }
 
@@ -291,7 +296,6 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
       psych::corr.test(newData)
       tmpNMat[!(is.na(tmpNMat))] <- tmpNMat[!(is.na(tmpNMat))] - currentN2
       tmpNMat[tmpNMat == 0] <- NA
-      #tmpNMat
 
       ## collect fully filled rows and columns (per row)
       collector <- list()
@@ -300,9 +304,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
       for (r in unique(min1[ ,1])) {
         counter2 <- counter2 + 1
         collector[[counter2]] <- min1[min1[,1]==r , ]
-        collector[[counter2]]
       }
-
       # create vector in which the first value is a critical row and all subsequent ones are the forbidden columns
       allCollectors <- list() # collects lists of variable sets for which the remaining N is 0 after previous data computation
       for (r in 1:length(collector)) {
@@ -310,7 +312,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
         if (is.null(dim(collector[[r]]))) collector[[r]] <- matrix(collector[[r]], ncol=2, nrow=1)
         allCollectors[[collectorCounter]] <- c(collector[[r]][1,1], collector[[r]][ ,2])
       }
-      }
+    }
     if (all(diag(currentR) == 1)) newData <- scale(newData)
   } # END if (experimental == TRUE)
 
