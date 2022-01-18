@@ -628,7 +628,8 @@ ctmaFit <- function(
     driftParamsTmp <- driftParams; driftParamsTmp
     diffParamsTmp  <- diffParams
     meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
-    if ((meanLag > 6) | (customPar)) {
+    #if ((meanLag > 6) | (customPar)) {
+    if (customPar) {
       counter <- 0
       for (h in 1:(n.latent)) {
         for (j in 1:(n.latent)) {
