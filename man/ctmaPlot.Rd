@@ -18,6 +18,7 @@ ctmaPlot(
   mod.values = -2:2,
   aggregateLabel = "",
   xLabels = NULL,
+  undoTimeScaling = TRUE,
   ...
 )
 }
@@ -47,6 +48,8 @@ ctmaPlot(
 \item{aggregateLabel}{label to indicate aggregated discrete time effects}
 
 \item{xLabels}{labes used for x-axis}
+
+\item{undoTimeScaling}{if TRUE, the original time scale is used (timeScale argument possibly used in \code{\link{ctmaInit}} is undone )}
 
 \item{...}{arguments passed through to plot()}
 }

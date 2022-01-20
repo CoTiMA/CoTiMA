@@ -11,6 +11,7 @@
 #' @param activateRPB if TRUE, messages (warning, finished) could be send to smart phone (default = FALSE)
 #' @param digits rounding (default = 4)
 #' @param zcurve performs z-curve analysis. Could fail if too few studies (e.g. around 10) are supplied. default=FALSE
+#' @param undoTimeScaling if TRUE, the original time scale is used (timeScale argument possibly used in \code{\link{ctmaInit}} is undone )
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom stats var lm pnorm
@@ -52,7 +53,8 @@ ctmaBiG <- function(
   PETPEESEalpha=.10,
   activateRPB=FALSE,
   digits=4,
-  zcurve=FALSE
+  zcurve=FALSE,
+  undoTimeScaling=TRUE
 )
 
 
@@ -147,6 +149,17 @@ ctmaBiG <- function(
       allSampleSizes <- ctmaInitFit$statisticsList$allSampleSizes; allSampleSizes
     } # end extracting
 
+
+    # undo time scaling
+    all_Coeff_timeScaled <- all_Coeff
+    all_SE_timeScaled <- all_SE
+    if (undoTimeScaling) {
+        if(!(is.null(ctmaInitFit$summary$scaleTime))) {
+          all_Coeff <- all_Coeff * ctmaInitFit$summary$scaleTime
+          all_SE <- all_SE * ctmaInitFit$summary$scaleTime
+        }
+    }
+
     #######################################################################################################################
     ##################################### Analyses of Publication Bias ####################################################
     #######################################################################################################################
@@ -158,14 +171,19 @@ ctmaBiG <- function(
 
     DRIFTCoeff <- DIFFUSIONCoeff <- T0VARCoeff <- DRIFTSE <- DIFFUSIONSE <- T0VARSE <- matrix(NA, n.studies, n.latent^2)
 
-    #all_Coeff
-
     DRIFTCoeff <- all_Coeff[, grep("toV", colnames(all_Coeff))]; DRIFTCoeff
     DRIFTSE <- all_SE[, grep("toV", colnames(all_SE))]; DRIFTSE
     DIFFUSIONCoeff <- all_Coeff[, grep("diff", colnames(all_Coeff))]; DIFFUSIONCoeff
     DIFFUSIONSE <- all_SE[, grep("diff", colnames(all_SE))]; DIFFUSIONSE
     T0VARCoeff <- all_Coeff[, grep("T0var", colnames(all_Coeff))]; T0VARCoeff
     T0VARSE <- all_SE[, grep("T0var", colnames(all_SE))]; T0VARSE
+
+    # just added in case time scaled funnel and forest plots should be done with ctmaPlot
+    DRIFTCoeff_timeScaled <- all_Coeff_timeScaled[, grep("toV", colnames(all_Coeff))]; DRIFTCoeff_timeScaled
+    DRIFTSE_timeScaled <- all_SE_timeScaled[, grep("toV", colnames(all_SE))]; DRIFTSE_timeScaled
+    DIFFUSIONCoeff_timeScaled <- all_Coeff_timeScaled[, grep("diff", colnames(all_Coeff))]; DIFFUSIONCoeff_timeScaled
+    DIFFUSIONSE_timeScaled <- all_SE_timeScaled[, grep("diff", colnames(all_SE))]; DIFFUSIONSE_timeScaled
+
 
     DRIFTCoeffSND <- DRIFTCoeff / DRIFTSE; DRIFTCoeffSND
     DRIFTPrecision <- c(rep(1, n.latent^2))/(DRIFTSE); DRIFTPrecision
@@ -177,30 +195,36 @@ ctmaBiG <- function(
 
     eggerDrift <- list()
     for (j in 1:(n.latent^2)) {
-      eggerDrift[[j]] <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
+      tmp1 <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
+      tmp2 <- summary(tmp1)
+      eggerDrift[[j]] <- list()
       eggerDrift[[j]]$message <- "No sign. evidence for publication bias."
-      if (summary(eggerDrift[[j]])$coefficients[1,1] > 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
+      eggerDrift[[j]]$summary <- tmp2[[4]]
+      #if (summary(eggerDrift[[j]])$coefficients[1,1] > 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
+      if (tmp2$coefficients[1,1] > 0 & tmp2$coefficients[1,4] < .05) {
         eggerDrift[[j]]$message <- message1
       }
-      if (summary(eggerDrift[[j]])$coefficients[1,1] < 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
+      #if (summary(eggerDrift[[j]])$coefficients[1,1] < 0 & summary(eggerDrift[[j]])$coefficients[1,4] < .05) {
+      if (tmp2$coefficients[1,1] < 0 & tmp2$coefficients[1,4] < .05) {
         eggerDrift[[j]]$message <- message2
       }
     }
 
     FREAResults <- list()
-
     FREAResults[[1]] <- "############# Eggers Test for DRIFT Parameter Estimates  ###############################"
     FREACounter <- 1
     for (j in 1:(n.latent^2)) {
+      #j <- 1
       FREACounter <- FREACounter + 1
       FREAResults[[FREACounter]] <- paste0("-------------------------------- Eggers Test for ",
                                            colnames(DRIFTCoeff)[j], "--------------------------------")
       FREACounter <- FREACounter + 1
       FREAResults[[FREACounter]] <- eggerDrift[[j]]$message
       FREACounter <- FREACounter + 1
-      FREAResults[[FREACounter]] <- summary(eggerDrift[[j]])
+      #FREAResults[[FREACounter]] <- summary(eggerDrift[[j]])
+      FREAResults[[FREACounter]] <- eggerDrift[[j]]$summary
     }
-
+    #str(FREAResults)
 
     ################################### Fixed & Random Effects Analyses ###################################################
 
@@ -414,7 +438,9 @@ ctmaBiG <- function(
                     emprawList=NULL,
                     statisticsList=ctmaInitFit$statisticsList,
                     modelResults=list(DRIFT=DRIFTCoeff, DIFFUSION=DIFFUSIONCoeff, T0VAR=T0VARCoeff, CINT=NULL,
-                                      DRIFTSE=DRIFTSE, DIFFUSIONSE=DIFFUSIONSE, T0VARSE=T0VARSE),
+                                      DRIFTSE=DRIFTSE, DIFFUSIONSE=DIFFUSIONSE, T0VARSE=T0VARSE,
+                                      DRIFT_timeScaled=DRIFTCoeff_timeScaled, DIFFUSION_timeScaled=DIFFUSIONCoeff_timeScaled,
+                                      DRIFTSE_timeScaled=DRIFTSE_timeScaled, DIFFUSIONSE_timeScaled=DIFFUSIONSE_timeScaled),
                     parameterNames=ctmaInitFit$parameterNames,
                     summary=list(model="Analysis of Publication Bias & Generalizability",
                                  estimates=list("Fixed Effects of Drift Coefficients"=round(fixedEffectDriftResults, digits),

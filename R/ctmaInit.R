@@ -29,6 +29,7 @@
 #' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param doPar parallel and multiple fitting if single studies
 #' @param useSV if TRUE (default) start values will be used if provided in the list of primary studies
+#' @param experimental set TRUE to try new pairwise N function
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
@@ -92,7 +93,8 @@ ctmaInit <- function(
   verbose=NULL,
   customPar=FALSE,
   doPar=1,
-  useSV=TRUE
+  useSV=TRUE,
+  experimental=FALSE
 )
 
 {  # begin function definition (until end of file)
@@ -288,7 +290,7 @@ ctmaInit <- function(
     }
 
     for (i in 1:n.studies) {
-      #i <- 1
+      #i <- 13
       if (!(i %in% loadRawDataStudyNumbers)) {
         currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
@@ -311,7 +313,12 @@ ctmaInit <- function(
         }
 
         # Create Pseudo Raw Data
-        tmp <- suppressWarnings(ctmaPRaw(empCovMat=currentEmpcov, empN=currentSampleSize, empNMat=currentPairwiseN))
+        #Msg <- "################################################################################# \n###### Read user provided data and create list with all study information ####### \n#################################################################################"
+        Msg <- paste0("################################################################################# \n###### Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ####### \n#################################################################################")
+        message(Msg)
+
+        tmp <- suppressWarnings(ctmaPRaw(empCovMat=currentEmpcov, empN=currentSampleSize, empNMat=currentPairwiseN,
+                                         experimental=experimental))
 
         empraw[[i]] <- tmp$data
         lostN[[i]] <- tmp$lostN
@@ -499,7 +506,7 @@ ctmaInit <- function(
         }
         emprawLong[[i]] <- dataTmp3
       }
-      #head(emprawLong[[i]], 40)
+      #print(i)
       #}
     } ### END for i ...
   } ### END Read user provided data and create list with all study information ###

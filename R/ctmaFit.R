@@ -20,6 +20,7 @@
 #' @param scaleTI scale TI predictors - not recommended if TI are dummies representing primary studies, which would be the usual case
 #' @param scaleClus scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster
 #' @param scaleMod scale moderator variables - FALSE (default) highly recommended for categorical moderators, TRUE highly recommended for continuous moderators
+#' @param transfMod more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
@@ -107,6 +108,7 @@ ctmaFit <- function(
   coresToUse=c(1),
   scaleTI=NULL,
   scaleMod=NULL,
+  transfMod=NULL,
   scaleClus=NULL,
   scaleTime=NULL,
   optimize=TRUE,
@@ -159,6 +161,14 @@ ctmaFit <- function(
     }
   }
   if ( (!(is.null(catsToCompare))) & (is.null(modsToCompare)) ) modsToCompare <- 1
+
+  { # check if scaleMod is not used in combination with transfMod
+    if ( (!(is.null(scaleMod))) & (!(is.null(transfMod))) ) {
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+      ErrorMsg <- "The arguments scaleMod and transfMod cannot be used in combination. Set one of them NULL (leave out)."
+      stop(ErrorMsg)
+    }
+    }
 
 
   #######################################################################################################################
@@ -243,7 +253,7 @@ ctmaFit <- function(
     } else {
       n.latent <- ctmaInitFit$n.latent
     }
-    if (!(is.null(ctmaInitFit$n.manifest))) n.manifest <- ctmaInitFit$n.manifest
+    if (!(is.null(ctmaInitFit$n.manifest))) n.manifest <- ctmaInitFit$n.manifest else n.manifest <- n.latent
     if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
     n.studies <- unlist(ctmaInitFit$n.studies); n.studies
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
@@ -267,6 +277,15 @@ ctmaFit <- function(
   # check moderator information
   {
     n.moderators <- length(mod.number); n.moderators
+    { # check if transfMod is as long as n.moderators
+      if ( (!(is.null(transfMod))) ) {
+        if ( length(transfMod) != n.moderators ) {
+        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+        ErrorMsg <- "More transformations for moderators (transfMod) provided than moderators."
+        stop(ErrorMsg)
+        }
+      }
+    }
     if (n.moderators > 0) {
       currentModerators <- matrix(as.numeric(unlist(lapply(ctmaInitFit$studyList, function(extract) extract$moderators[mod.number]))), ncol=n.moderators); currentModerators
       if (!(is.null(primaryStudyList))) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE)
@@ -398,6 +417,14 @@ ctmaFit <- function(
         tmp1 <- paste0("mod", 1:n.moderators); tmp1; dim(tmp1)
         if (length(tmp1) == 1) tmp <- matrix(dataTmp[ , tmp1], ncol=length(tmp1)) else tmp <- dataTmp[ , tmp1]
         if (CoTiMAStanctArgs$scaleMod == TRUE) tmp[ , 1:ncol(tmp)] <- scale(tmp[ , 1:ncol(tmp)])
+        if (!(is.null(transfMod))) {
+          tmp2 <- tmp #[ , 1:ncol(tmp)]
+          for (t in 1:length(transfMod)) {
+            x <- tmp2[, t]
+            tmp2[, t] <- as.numeric(eval(parse(text=transfMod[t])))
+            }
+          tmp[ , 1:ncol(tmp)] <- tmp2
+        }
         currentStartNumber <- modTIstartNum; currentStartNumber
         currentEndNumber <- currentStartNumber + n.moderators-1; currentEndNumber
         colnames(tmp) <- paste0("TI", currentStartNumber:currentEndNumber); tmp
@@ -470,7 +497,7 @@ ctmaFit <- function(
         cluster.weights[l,] <- round(as.numeric(names(table(tmpTI[ , l]))), digits)
         cluster.sizes[l,] <- table(tmpTI[ , l])
       }
-      rownames(cluster.weights) <- paste0(1:ncol(tmpTI), "_on__")
+      rownames(cluster.weights) <- paste0(1:ncol(tmpTI), "_on_")
       colnames(cluster.weights) <- c("non Members", "Cluster Member")
       rownames(cluster.sizes) <- rep("N", ncol(tmpTI))
       colnames(cluster.sizes) <- c("non Members", "Cluster Member")
@@ -601,7 +628,8 @@ ctmaFit <- function(
     driftParamsTmp <- driftParams; driftParamsTmp
     diffParamsTmp  <- diffParams
     meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
-    if ((meanLag > 6) | (customPar)) {
+    #if ((meanLag > 6) | (customPar)) {
+    if (customPar) {
       counter <- 0
       for (h in 1:(n.latent)) {
         for (j in 1:(n.latent)) {
@@ -936,8 +964,17 @@ ctmaFit <- function(
 
   if (length(invariantDriftNames) == length(driftNames)) {
     OTL <- function(timeRange) {
-      OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]}
+      #OpenMx::expm(driftMatrix * timeRange)[targetRow, targetCol]
+      OpenMx::expm(tmpDriftMatrix * timeRange)[targetRow, targetCol]}
+  # use original time scale
+    if (!(is.null(scaleTime))) {
+      tmpDriftMatrix <- driftMatrix * scaleTime
+    } else {
+      tmpDriftMatrix <- driftMatrix
+    }
     # loop through all cross effects
+    tmp1 <- 0
+    if (0 %in% usedTimeRange) tmp1 <- 1
     optimalCrossLag <- matrix(NA, n.latent, n.latent)
     maxCrossEffect <- matrix(NA, n.latent, n.latent)
     for (j in 1:n.latent) {
@@ -945,10 +982,11 @@ ctmaFit <- function(
         if (j != h) {
           targetRow <- j
           targetCol <- h
-          if (driftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
+          #if (driftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
+          if (tmpDriftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
             targetParameters <- sapply(usedTimeRange, OTL)
             maxCrossEffect[j,h] <- max(abs(targetParameters))
-            optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])*1+0
+            optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])*1 - tmp1 # first targetParam is calculated for lag=0
           } else {
             optimalCrossLag[j,h] <- NA
           }
@@ -1083,6 +1121,7 @@ ctmaFit <- function(
                                minus2ll= invariantDrift_Minus2LogLikelihood,
                                n.parameters = invariantDrift_estimatedParameters,
                                #df= invariantDrift_df,
+                               optimalLagInfo = "Optimal lag and effect was calculated for original time scale (i.e., ignoring possible scaleTime argument).",
                                opt.lag = optimalCrossLag,
                                max.effects = maxCrossEffect,
                                clus.effects=clus.effects,

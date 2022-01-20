@@ -10,7 +10,8 @@ ctmaBiG(
   PETPEESEalpha = 0.1,
   activateRPB = FALSE,
   digits = 4,
-  zcurve = FALSE
+  zcurve = FALSE,
+  undoTimeScaling = TRUE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ ctmaBiG(
 \item{digits}{rounding (default = 4)}
 
 \item{zcurve}{performs z-curve analysis. Could fail if too few studies (e.g. around 10) are supplied. default=FALSE}
+
+\item{undoTimeScaling}{if TRUE, the original time scale is used (timeScale argument possibly used in \code{\link{ctmaInit}} is undone )}
 }
 \value{
 ctmaBiG returns a list containing some arguments supplied, the results of analyses of publication bias and generalizability,
