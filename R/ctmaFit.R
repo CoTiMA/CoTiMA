@@ -17,9 +17,9 @@
 #' @param mod.names vector of names for moderators used in output
 #' @param coresToUse if negative, the value is subtracted from available cores, else value = cores to use
 #' @param indVarying allows continuous time intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)
-#' @param scaleTI scale TI predictors - not recommended if TI are dummies representing primary studies, which would be the usual case
+#' @param scaleTI scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dimmies representing primary studies.
 #' @param scaleClus scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster
-#' @param scaleMod scale moderator variables - FALSE (default) highly recommended for categorical moderators, TRUE highly recommended for continuous moderators
+#' @param scaleMod scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts
 #' @param transfMod more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
@@ -106,8 +106,8 @@ ctmaFit <- function(
   #n.manifest=0,
   indVarying=FALSE,
   coresToUse=c(1),
-  scaleTI=NULL,
-  scaleMod=NULL,
+  scaleTI=TRUE,
+  scaleMod=TRUE,
   transfMod=NULL,
   scaleClus=NULL,
   scaleTime=NULL,

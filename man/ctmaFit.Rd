@@ -20,8 +20,8 @@ ctmaFit(
   mod.names = NULL,
   indVarying = FALSE,
   coresToUse = c(1),
-  scaleTI = NULL,
-  scaleMod = NULL,
+  scaleTI = TRUE,
+  scaleMod = TRUE,
   transfMod = NULL,
   scaleClus = NULL,
   scaleTime = NULL,
@@ -71,9 +71,9 @@ ctmaFit(
 
 \item{coresToUse}{if negative, the value is subtracted from available cores, else value = cores to use}
 
-\item{scaleTI}{scale TI predictors - not recommended if TI are dummies representing primary studies, which would be the usual case}
+\item{scaleTI}{scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dimmies representing primary studies.}
 
-\item{scaleMod}{scale moderator variables - FALSE (default) highly recommended for categorical moderators, TRUE highly recommended for continuous moderators}
+\item{scaleMod}{scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts}
 
 \item{transfMod}{more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))}
 
