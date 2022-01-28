@@ -21,7 +21,7 @@ ctmaFit(
   indVarying = FALSE,
   coresToUse = c(1),
   scaleTI = TRUE,
-  scaleMod = TRUE,
+  scaleMod = NULL,
   transfMod = NULL,
   scaleClus = NULL,
   scaleTime = NULL,

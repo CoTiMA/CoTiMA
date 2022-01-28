@@ -4,7 +4,7 @@
 #' @export CoTiMAStanctArgs
 #'
 CoTiMAStanctArgs<-list(test=TRUE,
-                       scaleTI=TRUE, scaleMod=TRUE, scaleClus=TRUE,
+                       scaleTI=TRUE, scaleMod=FALSE, scaleClus=FALSE,
                        scaleTD=FALSE, scaleLongData=FALSE, scaleTime=1/1,
                        scaleTimeAuto=NULL,
                        savesubjectmatrices=FALSE, verbose=1,

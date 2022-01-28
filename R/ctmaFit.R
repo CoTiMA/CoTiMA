@@ -107,7 +107,7 @@ ctmaFit <- function(
   indVarying=FALSE,
   coresToUse=c(1),
   scaleTI=TRUE,
-  scaleMod=TRUE,
+  scaleMod=NULL,
   transfMod=NULL,
   scaleClus=NULL,
   scaleTime=NULL,
@@ -468,7 +468,7 @@ ctmaFit <- function(
           }
         }
 
-        if (CoTiMAStanctArgs$scaleMod == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)])
+        if (CoTiMAStanctArgs$scaleMod == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)], scale=FALSE)
         currentStartNumber <- modTIstartNum; currentStartNumber
         currentEndNumber <- currentStartNumber + ncol(tmpTI)-1; currentEndNumber
         colnames(tmpTI) <- paste0("TI", currentStartNumber:currentEndNumber)
@@ -484,6 +484,7 @@ ctmaFit <- function(
       targetCluster <- which(table(cluster) > 1); targetCluster  # no cluster if only one study is included
       targetCluster <- names(targetCluster); targetCluster
       clusCounter <- length(targetCluster); clusCounter
+      if (clusCounter == length(table(cluster))) clusCounter <- clusCounter -1 # if all cluster exits leave the last one as reference cluster
       # create dummies
       tmpTI <- matrix(0, dim(dataTmp)[1], clusCounter)
       for (i in 1:clusCounter) {
@@ -491,7 +492,7 @@ ctmaFit <- function(
         tmp2 <- which(groups %in% targetGroups); length(tmp2)
         tmpTI[tmp2, i] <- 1
       }
-      if (CoTiMAStanctArgs$scaleClus == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)])
+      if (CoTiMAStanctArgs$scaleClus == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)], scale=FALSE)
       cluster.weights <- cluster.sizes <- matrix(NA, nrow=ncol(tmpTI), ncol=2)
       for (l in 1:ncol(tmpTI)) {
         cluster.weights[l,] <- round(as.numeric(names(table(tmpTI[ , l]))), digits)
