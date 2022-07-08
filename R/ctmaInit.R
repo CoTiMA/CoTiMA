@@ -288,10 +288,10 @@ ctmaInit <- function(
       manifestNames <- paste0("V", 1:n.latent); manifestNames
       latentNames <- paste0("V", 1:n.latent); latentNames
     }
-
     for (i in 1:n.studies) {
-      #i <- 13
-      if (!(i %in% loadRawDataStudyNumbers)) {
+      #i <- 1
+      #if (!(i %in% loadRawDataStudyNumbers)) {
+      if (!(studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers)) {
         currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
         currentEmpcov <- (lapply(studyList, function(extract) extract$empcov))[[i]]; currentEmpcov
@@ -348,9 +348,9 @@ ctmaInit <- function(
         # END correction
         # add potential moderators
       }
-
       # load raw data on request
-      if ( i %in% loadRawDataStudyNumbers ) {
+      #if ( i %in% loadRawDataStudyNumbers ) {
+      if (studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers) {
         if ( (!(is.null(primaryStudies$emprawList[[i]]))) &
              ((is.null(primaryStudies$empcovs[[i]]))) ) {  # if the function list of primary studies is already post-processed (ctmaSV) and called from ctmaOptimizeINit)
           empraw[[i]] <- primaryStudies$emprawList[[i]]
@@ -382,15 +382,14 @@ ctmaInit <- function(
           tmp2 <- studyList[[i]]$rawData$header; tmp2
           tmp3 <- studyList[[i]]$rawData$dec; tmp3
           tmp4 <- studyList[[i]]$rawData$sep; tmp4
-          (activeDirectory != primaryStudies$activeDirectory)
           if (activeDirectory != primaryStudies$activeDirectory) {
             tmp1 <- gsub(primaryStudies$activeDirectory, activeDirectory, tmp1, fixed=TRUE)
           }
-          tmp1
           tmpData <- utils::read.table(file=tmp1,
                                        header=tmp2,
                                        dec=tmp3,
                                        sep=tmp4)
+
           currentVarnames <- c()
           for (j in 1:(currentTpoints)) {
             if (n.manifest == 0) {
@@ -408,6 +407,7 @@ ctmaInit <- function(
           tmpData <- as.matrix(tmpData) # important: line below will not work without having data as a matrix
           tmpData[tmpData %in% studyList[[i]]$rawData$missingValues] <- NA
           empraw[[i]] <- as.data.frame(tmpData)
+          #View(empraw[[i]])
 
           ## START correction of current lags if entire time point is missing for a case
           # if called from ctmaOptimize
@@ -444,9 +444,6 @@ ctmaInit <- function(
                                                               mininterval=minInterval))
           # restore
           empraw[[i]] <- as.data.frame(emprawWide)
-          #head(empraw[[i]])
-          # END correction
-          ###}
 
           # Change the NAs provided for deltas if raw data are loaded
           for (h in 1:(currentTpoints-1)) {
@@ -458,8 +455,7 @@ ctmaInit <- function(
             emprawTmp[emprawTmp == minInterval] <- NA
             studyList[[i]]$delta_t[h] <- mean(emprawTmp[, paste0("dT", h)], na.rm=TRUE)
           }
-          ##}
-          ##      }
+
 
           # change sample size if entire cases were deleted
           studyList[[i]]$sampleSize <- (dim(empraw[[i]]))[1]
@@ -474,11 +470,11 @@ ctmaInit <- function(
           # standardize (variables - not time lags) if option is chosen
           if (studyList[[i]]$rawData$standardize == TRUE) empraw[[i]][, currentVarnames] <- scale(empraw[[i]][, currentVarnames])
 
+
           # replace missing values for time lags dTi by minInterval (has to be so because dTi are definition variables)
           tmpData <- empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))]
           tmpData[is.na(tmpData)] <- minInterval
           empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))] <- tmpData
-          #head(empraw[[i]])
 
           # add moderators to loaded raw data
           # Save raw data  on request
@@ -506,11 +502,8 @@ ctmaInit <- function(
         }
         emprawLong[[i]] <- dataTmp3
       }
-      #print(i)
-      #}
-    } ### END for i ...
+      } ### END for i ...
   } ### END Read user provided data and create list with all study information ###
-
 
   # Check if sample sizes specified in prep file deviate from cases provided in possible raw data files
   N1 <- (unlist((lapply(empraw, function(extract) dim(extract)[1])))); N1
@@ -528,6 +521,7 @@ ctmaInit <- function(
       message(Msg)
     }
   }
+
 
   #######################################################################################################################
   ################################################### Some Statistics ###################################################
@@ -683,7 +677,7 @@ ctmaInit <- function(
     model_popsd <- list()
     resultsSummary <- list()
     for (i in 1:n.studies) {
-      #i <- 1
+      #i <- 6
       notLoadable <- TRUE
       if ( (length(loadSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit[-1]) ) {
         tmp1 <- paste0(" LOADING SingleStudyFit ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ")
@@ -836,6 +830,7 @@ ctmaInit <- function(
           bestFit <- which(abs(all_minus2ll) == min(abs(all_minus2ll)))[1]; bestFit
           results <- allfits[[bestFit]]
         }
+
 
         gc() # tryout garbage collector to avoid memory issues
 
@@ -1013,8 +1008,8 @@ ctmaInit <- function(
       allStudiesDIFFUSION_effects_original_time_scale <- NULL
     }
 
-
     source <- lapply(primaryStudies$source, function(extract) paste(extract, collapse=", ")); source
+    if (length(source) > n.studies) source[n.studies +1] <- NULL # new 6. July< 2022
     for (l in 1:length(source)) if ( source[[l]] == "NA") source[[l]] <- "Reference not provided"
     #
     allStudiesDRIFT_effects_ext <- cbind(unlist(source), allStudiesDRIFT_effects)
@@ -1046,8 +1041,8 @@ ctmaInit <- function(
       allStudiesDIFF_effects_original_time_scale_ext <- tmp; allStudiesDIFF_effects_original_time_scale_ext
       #allStudiesDIFF_effects_ext
     } else {
-      allStudiesDRIFT_effects_original_time_scale_ext <- NULL
-      allStudiesDIFF_effects_original_time_scale_ext <- NULL
+      allStudiesDRIFT_effects_original_time_scale_ext <- allStudiesDRIFT_effects_ext # new 8.7.2022
+      allStudiesDIFF_effects_original_time_scale_ext <- allStudiesDIFF_effects_ext # new 8.7.2022
     }
 
     # confidence intervals
@@ -1068,8 +1063,8 @@ ctmaInit <- function(
                                                      nrow=n.studies, byrow=TRUE)
       colnames(allStudiesDiffCI_original_time_scale) <- names(model_Diffusion_CI[[1]]); allStudiesDiffCI_original_time_scale
     } else {
-      allStudiesDriftCI_original_time_scale <- NULL
-      allStudiesDiffCI_original_time_scale <- NULL
+      allStudiesDriftCI_original_time_scale <- allStudiesDriftCI  # new 8.7.2022
+      allStudiesDiffCI_original_time_scale <- allStudiesDiffusionCI  # new 8.7.2022
     }
 
 
@@ -1096,6 +1091,7 @@ ctmaInit <- function(
     }
 
     #tmp3 <- cbind(allStudiesCI_original_time_scale[, 1], tmp2, allStudiesCI_original_time_scale[, tmp1])
+    if (dim(tmp3c)[2] == 1) tmp3c <- c(tmp3c) # new 6.7.2022
     if (is.null(dim(tmp3c))) tmp3 <- cbind(tmp3a, tmp3b, t(tmp3c)) else tmp3 <- cbind(tmp3a, tmp3b,   tmp3c)
     colnames(tmp3) <- colnames(allStudiesCI_original_time_scale); tmp3
     allStudiesCI_original_time_scale <- tmp3
