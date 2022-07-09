@@ -260,7 +260,8 @@ ctmaFit <- function(
     maxTpoints <- max(allTpoints); maxTpoints
     allDeltas <- ctmaInitFit$statisticsList$allDeltas; allDeltas
     maxDelta <- max(allDeltas, na.rm=TRUE); maxDelta
-    usedTimeRange <- seq(0, 1.5*maxDelta, 1)
+    #usedTimeRange <- seq(0, 1.5*maxDelta, 1); usedTimeRange
+    usedTimeRange <- seq(0, 3*maxDelta, 1); usedTimeRange # new 8.7.2022
     lambda <- ctmaInitFit$statisticsList$lambda; lambda
   }
 
@@ -981,6 +982,7 @@ ctmaFit <- function(
     for (j in 1:n.latent) {
       for (h in 1:n.latent) {
         if (j != h) {
+          #j<-1;h<-2
           targetRow <- j
           targetCol <- h
           #if (driftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
@@ -1001,7 +1003,6 @@ ctmaFit <- function(
   }
   #} ## END  fit stanct model
 
-
   #######################################################################################################################
 
   end.time <- Sys.time()
@@ -1013,7 +1014,6 @@ ctmaFit <- function(
   meanDeltas <- mean(ctmaInitFit$statisticsList$allDeltas, na.rm=TRUE); meanDeltas
   largeDelta <- which(ctmaInitFit$statisticsList$allDeltas >= meanDeltas); largeDelta
   tmp1 <- table(ctmaInitFit$statisticsList$allDeltas[largeDelta]); tmp1
-  max(names(tmp1))
   tmp2 <- which(names(tmp1) == (max(as.numeric(names(tmp1))))); tmp2
   suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
   message <- c()
@@ -1027,12 +1027,19 @@ ctmaFit <- function(
 
   if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
 
-
-  tmp1 <- grep("CINT", rownames(invariantDriftStanctFit$parmatrices)); tmp1
-  tmp2 <- grep("asym", rownames(invariantDriftStanctFit$parmatrices)); tmp2
-  tmp3 <- grep("dt", rownames(invariantDriftStanctFit$parmatrices)); tmp3
-  tmp4 <- tmp1[(tmp1 %in% c(tmp2, tmp3)) == FALSE]; tmp4
-  model_Cint_Coef <- invariantDriftStanctFit$parmatrices[tmp4, 3]; model_Cint_Coef
+  if (ctsem341) { # new 8.7.2022
+    tmp1 <- grep("CINT", invariantDriftStanctFit$parmatrices[,"matrix"]); tmp1
+    tmp2 <- grep("asym", invariantDriftStanctFit$parmatrices[,"matrix"]); tmp2
+    tmp3 <- grep("dt", invariantDriftStanctFit$parmatrices[,"matrix"]); tmp3
+    tmp4 <- tmp1[(tmp1 %in% c(tmp2, tmp3)) == FALSE]; tmp4
+    model_Cint_Coef <- invariantDriftStanctFit$parmatrices[tmp4, 4]; model_Cint_Coef
+  } else {
+    tmp1 <- grep("CINT", rownames(invariantDriftStanctFit$parmatrices)); tmp1
+    tmp2 <- grep("asym", rownames(invariantDriftStanctFit$parmatrices)); tmp2
+    tmp3 <- grep("dt", rownames(invariantDriftStanctFit$parmatrices)); tmp3
+    tmp4 <- tmp1[(tmp1 %in% c(tmp2, tmp3)) == FALSE]; tmp4
+    model_Cint_Coef <- invariantDriftStanctFit$parmatrices[tmp4, 3]; model_Cint_Coef
+  }
 
   if (!(is.null(cluster))) {
     clus.effects=list(effects=clusTI_Coeff, weights=cluster.weights, sizes=cluster.sizes,
@@ -1043,7 +1050,7 @@ ctmaFit <- function(
 
   if (is.null(primaryStudyList)) primaryStudies <- ctmaInitFit$primaryStudyList else primaryStudies <- primaryStudyList
 
-  if (!(is.null(scaleTime))) invariantDriftStanctFit$popsd * scaleTime
+  #if (!(is.null(scaleTime))) invariantDriftStanctFit$popsd * scaleTime
 
   if (is.null(scaleTime)) scaleTime2 <- 1 else scaleTime2 <- scaleTime
 
@@ -1068,7 +1075,6 @@ ctmaFit <- function(
     tmp4 <- grep("asym", rownames(tmp1))
     tmp3 <- tmp3[!(tmp3%in% tmp4)]
     tmp1 <- tmp1[c(tmp2, tmp3),]
-    scaleTime <- 1/12
     tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] <- tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] * scaleTime
     estimates_original_time_scale <- tmp1
     mod_effects_original_time_scale <- modTI_Coeff_original_time_scale
@@ -1078,8 +1084,18 @@ ctmaFit <- function(
       clus_effects_original_time_scale <- NULL
     }
   } else {
-    model_Drift_Coef_original_time_scale <- model_Drift_Coef
-    model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef
+    model_Drift_Coef_original_time_scale <- model_Drift_Coef; model_Drift_Coef_original_time_scale
+    model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef; model_Diffusion_Coef_original_time_scale
+    { # new 8.7.2022
+      tmp1<- invariantDrift_Coeff
+      tmp2 <- grep("toV", rownames(tmp1))
+      tmp3 <- grep("DIFFUSIONcov", rownames(tmp1))
+      tmp4 <- grep("asym", rownames(tmp1))
+      tmp3 <- tmp3[!(tmp3%in% tmp4)]
+      tmp1 <- tmp1[c(tmp2, tmp3),]
+      tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] <- tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] * 1
+      estimates_original_time_scale <- tmp1
+    }
     mod_effects_original_time_scale <- NULL
     modTI_Coeff_original_time_scale <- modTI_Coeff
     clus_effects_original_time_scale <- NULL
@@ -1090,7 +1106,6 @@ ctmaFit <- function(
     }
     estimates_original_time_scale <- NULL
   }
-
 
   results <- list(activeDirectory=activeDirectory,
                   plot.type="drift",  model.type="stanct",
