@@ -1050,8 +1050,6 @@ ctmaFit <- function(
 
   if (is.null(primaryStudyList)) primaryStudies <- ctmaInitFit$primaryStudyList else primaryStudies <- primaryStudyList
 
-  #if (!(is.null(scaleTime))) invariantDriftStanctFit$popsd * scaleTime
-
   if (is.null(scaleTime)) scaleTime2 <- 1 else scaleTime2 <- scaleTime
 
   if (!(is.null(scaleTime))) {
@@ -1086,6 +1084,14 @@ ctmaFit <- function(
   } else {
     model_Drift_Coef_original_time_scale <- model_Drift_Coef; model_Drift_Coef_original_time_scale
     model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef; model_Diffusion_Coef_original_time_scale
+    if (!(is.null(modTI_Coeff))) { # new 9.7.20222
+      modTI_Coeff_original_time_scale <- modTI_Coeff
+      mod_effects_original_time_scale <- modTI_Coeff # doubled (why?)
+    } else {
+      modTI_Coeff_original_time_scale <- NULL
+      mod_effects_original_time_scale <- NULL
+    }
+
     { # new 8.7.2022
       tmp1<- invariantDrift_Coeff
       tmp2 <- grep("toV", rownames(tmp1))
@@ -1096,15 +1102,17 @@ ctmaFit <- function(
       tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] <- tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] * 1
       estimates_original_time_scale <- tmp1
     }
-    mod_effects_original_time_scale <- NULL
-    modTI_Coeff_original_time_scale <- modTI_Coeff
+    #mod_effects_original_time_scale <- NULL         # new 9.7.2022
+    #modTI_Coeff_original_time_scale <- modTI_Coeff  # new 9.7.2022
     clus_effects_original_time_scale <- NULL
     if (!(is.null(clusTI_Coeff))) {
       clusTI_Coeff_original_time_scale <- clusTI_Coeff
     } else {
       clusTI_Coeff_original_time_scale <- NULL
     }
-    estimates_original_time_scale <- NULL
+    #estimates_original_time_scale <- NULL
+    #estimates_original_time_scale
+    #modTI_Coeff_original_time_scale
   }
 
   results <- list(activeDirectory=activeDirectory,
