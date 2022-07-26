@@ -205,7 +205,7 @@ ctmaPlot <- function(
       n.latent[i] <- unlist(ctmaFitObject[[i]]$n.latent); n.latent[i]
       driftNames[[i]] <- ctmaFitObject[[i]]$parameterNames$DRIFT; driftNames[[i]]
       n.studies[i] <- ctmaFitObject[[i]]$n.studies; n.studies[i]
-      length(ctmaFitObject[[1]]$studyList)
+      #length(ctmaFitObject[[1]]$studyList)
 
       study.numbers[[i]] <- unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)); study.numbers[[i]]
       tmp1 <- 0
@@ -216,7 +216,6 @@ ctmaPlot <- function(
 
       n.primary.studies[i] <- length(ctmaFitObject[[i]]$studyList); n.primary.studies[i]
       if (tmp1 == 1) n.primary.studies[i] <- n.primary.studies[i] - 1
-      n.primary.studies[i]
 
       if (n.studies[i] == 1) {
         DRIFTCoeff[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFT); DRIFTCoeff[[i]]
@@ -276,7 +275,6 @@ ctmaPlot <- function(
     nlatent <- unlist(n.latent[[1]]); nlatent  # nlatent used general specs; n.latent in special specs
 
   } ### END Extracting parameters
-
 
   #######################################################################################################################
   ################################################### funnel plots ######################################################
@@ -539,9 +537,7 @@ ctmaPlot <- function(
             counter <- 1
             originalStudyNo <- delta_t <- c()
 
-            #for (i in mod.values[[g]]) {
             for (i in unlist(mod.values[[g]]) ) {
-              #i <- -2; mod.values[[g]]
 
               originalStudyNo[counter] <- i # used for labeling in plot
               delta_t[counter] <- xValueForModValue[counter+1]
@@ -552,7 +548,6 @@ ctmaPlot <- function(
               tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE); tmp1
 
               # moderator effects (could be partial)
-              n.primary.studies[[g]]
               if (n.primary.studies[[g]] > n.studies[[g]]) {
                 n.TIpreds <- n.primary.studies[[g]]-1; n.TIpreds
               } else {
@@ -560,6 +555,10 @@ ctmaPlot <- function(
               }
 
               if (ctmaFitObject[[g]]$mod.type == "cont") {
+                ctmaFitObject[[g]]$studyFitList$stanfit$transformedpars$TIPREDEFFECT
+                # could become necessary in newest ctsem version (look at ctsem 2022 workshop for getting moderated drift matrces)
+                #tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedpars$TIPREDEFFECT[,1:(n.latent^2),
+                #                                                                                 ((n.TIpreds+1):(n.TIpreds+mod.number))]; tmp2
                 tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,1:(n.latent^2),
                                                                                                  ((n.TIpreds+1):(n.TIpreds+mod.number))]; tmp2
                 tmp3 <- rownames(ctmaFitObject[[g]]$modelResults$MOD); tmp3
@@ -586,9 +585,15 @@ ctmaPlot <- function(
                   DRIFTlo[[g]][[counter]] <- tmp1 #- .01 * tmp2
                 } else {
                   n.mod.tmp <- length(mod.values[[g]])-1; n.mod.tmp
-                  tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,1:(n.latent^2),
-                                                                                                   n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1]; tmp2
-                  tmp2 <- matrix(tmp2, n.latent, n.latent, byrow=TRUE); tmp2
+                  if (!(is.null(ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull))) {
+                    tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,1:(n.latent^2),
+                                                                                                     n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1]; tmp2
+                  } else {
+                    tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedpars$TIPREDEFFECT[,1:(n.latent^2),
+                                                                                                 n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1]; tmp2
+                  }
+                  #tmp2 <- matrix(tmp2, n.latent, n.latent, byrow=TRUE); tmp2
+                  tmp2 <- matrix(apply(tmp2, 2, mean), n.latent, n.latent, byrow=TRUE); tmp2 # new 18.7. 2022
                   DRIFTCoeff[[g]][[counter]] <- tmp1 + tmp2; DRIFTCoeff[[g]][[counter]]
                   # compute matrices required  for linearizedTIpredEffect (JUST AS A CHECK)
                   DRIFThi[[g]][[counter]] <- tmp1 + .01 * tmp2
@@ -690,16 +695,30 @@ ctmaPlot <- function(
         }
 
         for (h in 1:toPlot) {
+          #h <- 2
           for (stepCounter in 1:length(usedTimeRange)){
+            #stepCounter <-1
             timeValue <- usedTimeRange[stepCounter]; timeValue
             plotPairs[[g]][h,stepCounter,1] <- timeValue; plotPairs[[g]][h,stepCounter,1]
             for (j in 1:(n.latent[[g]]^2)) {
+              #j
               plotPairs[[g]][h,stepCounter,(1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
               if (toPlot == 1) {
                 tmp <- round(meanDelta[[1]],0)
               } else {
                 if (exists("delta_t")) {
+                  #delta_t
+                  #exists("delta_t")
+                  if (!(is.null(delta_t))) {
                   tmp <- delta_t[h]
+                  } else {
+                    tmp <- mean(ctmaFitObject[[g]]$studyList[[h]]$delta_t)
+                    if (undoTimeScaling == FALSE) {
+                      if (!(is.null(ctmaFitObject[[g]]$summary$scaleTime))) {
+                        tmp <- tmp * ctmaFitObject[[g]]$summary$scaleTime
+                      }
+                    }
+                  }
                 } else {
                   tmp <- mean(ctmaFitObject[[g]]$studyList[[h]]$delta_t)
                   if (undoTimeScaling == FALSE) {
@@ -709,6 +728,8 @@ ctmaPlot <- function(
                   }
                 }
               }
+              timeValue
+              tmp
                 if (timeValue == tmp) { # plot only if the (used) time range includes the current study's mean time lag
                   dotPlotPairs[[g]][h, stepCounter, 1] <- timeValue
                   dotPlotPairs[[g]][h, stepCounter, (1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
@@ -821,14 +842,22 @@ ctmaPlot <- function(
                   graphics::par(new=T)
                   if (toPlot > 1) {
                     if (exists("originalStudyNo")) {
+                      if (!(is.null(originalStudyNo))) {
                       currentLabel <- originalStudyNo[h]
+                      } else {
+                        currentLabel <- ctmaFitObject[[g]]$studyList[[h]]$originalStudyNo; currentLabel
+                      }
                     } else {
                       currentLabel <- ctmaFitObject[[g]]$studyList[[h]]$originalStudyNo; currentLabel
                     }
                     if (currentLabel == -999) currentLabel <- "R"
                     if (is.null(currentLabel)) {
                       if (exists("originalStudyNo")) {
-                        currentLabel <- originalStudyNo[h]
+                        if (!(is.null(originalStudyNo))) {
+                          currentLabel <- originalStudyNo[h]
+                        } else {
+                          currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
+                        }
                       } else {
                         currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
                       }
@@ -933,14 +962,22 @@ ctmaPlot <- function(
                   graphics::par(new=T)
                   if (toPlot > 1) {
                     if (exists("originalStudyNo")) {
-                      currentLabel <- originalStudyNo[h]
+                      if (!(is.null(originalStudyNo))) {
+                        currentLabel <- originalStudyNo[h]
+                      } else {
+                        currentLabel <- ctmaFitObject[[g]]$studyList[[h]]$originalStudyNo; currentLabel
+                      }
                     } else {
                       currentLabel <- ctmaFitObject[[g]]$studyList[[h]]$originalStudyNo; currentLabel
                     }
                     if (currentLabel == -999) currentLabel <- "R"
                     if (is.null(currentLabel)) {
                       if (exists("originalStudyNo")) {
-                        currentLabel <- originalStudyNo[h]
+                        if (!(is.null(originalStudyNo))) {
+                          currentLabel <- originalStudyNo[h]
+                        } else {
+                          currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
+                        }
                       } else {
                         currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
                       }
