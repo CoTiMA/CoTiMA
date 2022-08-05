@@ -289,8 +289,6 @@ ctmaInit <- function(
       latentNames <- paste0("V", 1:n.latent); latentNames
     }
     for (i in 1:n.studies) {
-      #i <- 1
-      #if (!(i %in% loadRawDataStudyNumbers)) {
       if (!(studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers)) {
         currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
@@ -349,7 +347,6 @@ ctmaInit <- function(
         # add potential moderators
       }
       # load raw data on request
-      #if ( i %in% loadRawDataStudyNumbers ) {
       if (studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers) {
         if ( (!(is.null(primaryStudies$emprawList[[i]]))) &
              ((is.null(primaryStudies$empcovs[[i]]))) ) {  # if the function list of primary studies is already post-processed (ctmaSV) and called from ctmaOptimizeINit)
