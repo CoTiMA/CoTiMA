@@ -231,7 +231,9 @@ ctmaInit <- function(
     if (!(exists("moderatorNumber"))) moderatorNumber <- 1; moderatorNumber
     # determine number of studies (if list is created by ctmaInit.R it is 1 element too long)
     # Option 1: Applies for older versions of ctmaPrep
-    tmp <- length(unlist(primaryStudies$studyNumbers)); tmp
+    #tmp <- length(unlist(primaryStudies$studyNumbers)); tmp
+    tmp <- unlist(primaryStudies$studyNumbers); tmp
+    tmp <- length(tmp[!(is.na(tmp))]); tmp
     if  ( is.na(primaryStudies$deltas[tmp]) &
           is.na(primaryStudies$sampleSizes[tmp]) &
           is.na(primaryStudies$deltas[tmp]) &
@@ -256,7 +258,7 @@ ctmaInit <- function(
     }
 
     for (i in 1:n.studies) {
-      studyList[[i]]$originalStudyNo
+      #i <- 1
       studyList[[i]] <- list(studyNumber=i, empcov=primaryStudies$empcovs[[i]], delta_t=primaryStudies$deltas[[i]],
                              sampleSize=primaryStudies$sampleSizes[[i]], originalStudyNo=primaryStudies$studyNumber[[i]],
                              timePoints=sum(length(primaryStudies$deltas[[i]]), 1), moderators=primaryStudies$moderators[[i]],
