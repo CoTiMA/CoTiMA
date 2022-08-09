@@ -1228,7 +1228,7 @@ ctmaInit <- function(
                                 confidenceIntervals=allStudiesCI,
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),
-                                message=message1,
+                                note=message1,
                                 drift_estimates_original_time_scale =allStudiesDRIFT_effects_original_time_scale_ext,
                                 drift_CI_original_time_scale=allStudiesDriftCI_original_time_scale,
                                 diff_estimates_original_time_scale=allStudiesDIFF_effects_original_time_scale_ext,
