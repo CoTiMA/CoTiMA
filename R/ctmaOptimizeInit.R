@@ -13,6 +13,8 @@
 #' @param n.latent number of latent variables of the model (hast to be specified)!
 #' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
 #' @param activateRPB  set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
+#' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
+#' @param randomScaleTime lower and upper limit of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)
 #' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param checkSingleStudyResults displays estimates from single study 'ctsem' models and waits for user input to continue.
 #' Useful to check estimates before they are saved.
@@ -20,6 +22,7 @@
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach %dopar%
 #' @importFrom RPushbullet pbPost
+#' @importFrom stats runif
 #'
 #' @note All but one of multiple cores are used on unix-type machines for parallel fitting
 #' @note During fitting, not output is generated. Be patient.
@@ -46,6 +49,8 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
                              reFits=NULL,
                              n.latent=NULL,
                              coresToUse=c(1),
+                             indVarying=FALSE,
+                             randomScaleTime=c(1,1),
                              activateRPB=FALSE,
                              checkSingleStudyResults=FALSE,
                              customPar=TRUE)
@@ -105,17 +110,22 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
 
   #
   # adaptations for dealing with raw data
-  if (!(is.null(newStudyList$rawData[[1]]$studyNumbers))) {
-    newStudyList$rawData[[1]]$studyNumbers <- 1
-    newStudyList$studyNumbers <- 1 # otherwise raw data will not be loaded
-    newStudyList$deltas <- unlist(newStudyList$deltas)
-  }
+  # taken out 9. Aug. 2022
+  #if (!(is.null(newStudyList$rawData[[1]]$studyNumbers))) {
+  #  newStudyList$rawData[[1]]$studyNumbers <- 1
+  #  newStudyList$studyNumbers <- 1 # otherwise raw data will not be loaded
+  #  newStudyList$deltas <- unlist(newStudyList$deltas)
+  #}
+  #newStudyList
 
   # parallel re-fitting of problem study
   allfits <- foreach::foreach(i=1:reFits) %dopar% {
     #head(newStudyList$emprawList[[1]])
     #newStudyList
+    scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
     fits <- ctmaInit(newStudyList, coresToUse = 1, n.latent=n.latent,
+                     indVarying = indVarying,
+                     scaleTime = scaleTime,
                      activeDirectory = activeDirectory,
                      checkSingleStudyResults=checkSingleStudyResults,
                      customPar=customPar)

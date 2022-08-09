@@ -21,11 +21,13 @@
 #' @param outputTimeVariablesNames "time" (default)
 #' @param outputTimeFormat "time" (default) or "delta"
 #' @param scaleTime  A scalar that is used to multiply the time variable. Typical use is to rescale primary study time to the time scale use in other primary studies
+#' @param mininterval param supplied to ctIntervalise. Set to lower than any possible observed measurement interval, but above 0 - this is used for filling NA values where necessary and has no impact on estimates when set in the correct range.
 #' @param minTolDelta Set, e.g. to 1/24, to delete variables from time points that are too close (1hr; or even before) after another time point.
 #' @param maxTolDelta Set, e.g., to 7, to delete variables from time points that are too far after another time point (e.g., 7 days, if all cases should have responed within a week)
 #' @param negTolDelta FALSE (default) or TRUE. Delete entire cases that have at least one negative delta ('unreliable responding'; use minTolDelta to delete certain variables only)
 #'
 #' @examples
+#' \dontrun{
 #' tmpData <- data.frame(matrix(c(1,  2,  1, 2,  1, 2,  11, 26, 1,
 #'                                NA, NA, 3, NA, 3, NA, 12, 27, 1,
 #'                                1,  2,  1, 2,  1, 2,  NA, 24, 0 ),
@@ -47,6 +49,7 @@
 #'                                scaleTime=1/12,
 #'                                maxTolDelta=1.2)
 #' head(shapedData)
+#' }
 #'
 #' @importFrom  ctsem ctWideToLong ctDeintervalise
 #' @importFrom  utils head
@@ -79,6 +82,7 @@ ctmaShapeRawData <- function(
     outputTimeFormat="time",
 
     scaleTime=1,
+    mininterval=0.0001,
     minTolDelta=NULL,
     maxTolDelta=NULL,
     negTolDelta=FALSE
@@ -170,6 +174,11 @@ ctmaShapeRawData <- function(
         ErrorMsg <- "\nThe number of variables specified in targetInputTDpredNames has to be a multifold of Tpoints! \nGood luck for the next try!"
         stop(ErrorMsg)
       }
+    }
+
+    if (minTolDelta < mininterval) {
+        ErrorMsg <- "\nThe argument minTolDelta has been set to a smaller value than mininterval (= indicator for missing)! \nGood luck for the next try!"
+        stop(ErrorMsg)
     }
 
 
@@ -333,7 +342,7 @@ ctmaShapeRawData <- function(
     tmpData2[tmp1, allOutputTimeVariablesNames[1:(Tpoints-t)]] <-  tmpData2[tmp1, allOutputTimeVariablesNames[(2):(Tpoints-t+1)]]
     tmpData2[tmp1, allOutputTimeVariablesNames[Tpoints+1-t]] <- NA
   }
-  #tmpData <- tmpData2
+  tmpData <- tmpData2
   #head(tmpData)
 
   ### Step 6d - Determine possible lags that
@@ -380,30 +389,63 @@ ctmaShapeRawData <- function(
       }
     }
   }
+  #tmpDataBackup <- tmpData
   #head(tmpData)
 
   # Step 7: ctIntervalise: Make time intervals out of time points if not already done.
   tmpData <- ctsem::ctIntervalise(tmpData, Tpoints = Tpoints, n.manifest = n.manifest,
                                   manifestNames =  newOutputVariablesNames,
+                                  mininterval = mininterval,
                                   n.TDpred = n.TDpred, n.TIpred = n.TIpred,
                                   TDpredNames = generalTDpredNames, TIpredNames = outputTIpredNames)
-  #View(tmpData)
 
-  # Step 8 (make long format again)
-  tmpDataLong <- ctsem::ctWideToLong(tmpData, Tpoints = Tpoints, n.manifest = n.manifest,
-                              n.TDpred = n.TDpred, n.TIpred = n.TIpred,
-                              manifestNames =  newOutputVariablesNames,
-                              TDpredNames = generalTDpredNames, TIpredNames = outputTIpredNames)
-  tmpDataLong <- data.frame(tmpDataLong)
-  #head(tmpDataLong)
+  if ( (!(outputDataFrameFormat == "wide")) & (!(outputTimeFormat == "delta")) ) {
+    # Step 8 (make long format again)
+    tmpDataLong <- ctsem::ctWideToLong(tmpData, Tpoints = Tpoints, n.manifest = n.manifest,
+                                       n.TDpred = n.TDpred, n.TIpred = n.TIpred,
+                                       manifestNames =  newOutputVariablesNames,
+                                       TDpredNames = generalTDpredNames, TIpredNames = outputTIpredNames)
+    tmpDataLong <- data.frame(tmpDataLong)
+    #head(tmpDataLong)
 
-  #### Step 10 - (Round time intervals to reasonable fine-graded but not overly graded values )
+    #### Step 10 - (Round time intervals to reasonable fine-graded but not overly graded values )
 
-  # Step 11 (ctsem::ctDeintervalise:)
-  tmpData <- ctsem::ctDeintervalise(tmpDataLong)
-  #head(tmpData)
+    # Step 11 (ctsem::ctDeintervalise:)
+    if (outputTimeFormat == "time") {
+      tmpData <- ctsem::ctDeintervalise(tmpDataLong)
+    }
+    #head(tmpData)
 
-  # Step 12 (delete Tpoints with all process variables missing)
+    # Step 12 (delete Tpoints with all process variables missing)
+
+  }
+
+
+  ### make wide if required
+  skip <- 0
+  if (skip == 1) {
+    if (outputDataFrameFormat == "wide") {
+      tmpData <- ctsem::ctLongToWide(datalong = tmpData, id = "id", time = "time",
+                                     manifestNames =  newOutputVariablesNames,
+                                     TDpredNames = generalTDpredNames, TIpredNames = outputTIpredNames)
+      if (outputTimeFormat == "delta") {
+        tmpData <- ctIntervalise(datawide=tmpData,
+                                 Tpoints=Tpoints,
+                                 n.manifest=n.manifest,
+                                 n.TDpred = n.TDpred,
+                                 n.TIpred = n.TIpred,
+                                 manifestNames = newOutputVariablesNames,
+                                 TDpredNames = generalTDpredNames,
+                                 TIpredNames = outputTIpredNames)#,
+        #digits = 5,
+        #mininterval = 0.001,
+        #individualRelativeTime = TRUE,
+        #startoffset = 0)
+      }
+    }
+    #head(tmpData)
+  }
+
 
   return(tmpData)
 }

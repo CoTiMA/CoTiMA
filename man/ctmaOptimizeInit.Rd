@@ -11,6 +11,8 @@ ctmaOptimizeInit(
   reFits = NULL,
   n.latent = NULL,
   coresToUse = c(1),
+  indVarying = FALSE,
+  randomScaleTime = c(1, 1),
   activateRPB = FALSE,
   checkSingleStudyResults = FALSE,
   customPar = TRUE
@@ -28,6 +30,10 @@ ctmaOptimizeInit(
 \item{n.latent}{number of latent variables of the model (hast to be specified)!}
 
 \item{coresToUse}{if neg., the value is subtracted from available cores, else value = cores to use}
+
+\item{indVarying}{control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
+
+\item{randomScaleTime}{lower and upper limit of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)}
 
 \item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 

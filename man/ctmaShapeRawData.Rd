@@ -24,6 +24,7 @@ ctmaShapeRawData(
   outputTimeVariablesNames = "time",
   outputTimeFormat = "time",
   scaleTime = 1,
+  mininterval = 1e-04,
   minTolDelta = NULL,
   maxTolDelta = NULL,
   negTolDelta = FALSE
@@ -68,6 +69,8 @@ ctmaShapeRawData(
 
 \item{scaleTime}{A scalar that is used to multiply the time variable. Typical use is to rescale primary study time to the time scale use in other primary studies}
 
+\item{mininterval}{param supplied to ctIntervalise. Set to lower than any possible observed measurement interval, but above 0 - this is used for filling NA values where necessary and has no impact on estimates when set in the correct range.}
+
 \item{minTolDelta}{Set, e.g. to 1/24, to delete variables from time points that are too close (1hr; or even before) after another time point.}
 
 \item{maxTolDelta}{Set, e.g., to 7, to delete variables from time points that are too far after another time point (e.g., 7 days, if all cases should have responed within a week)}
@@ -81,6 +84,7 @@ A reshaped raw data file
 Raw data objects are re-shaped (dealing with missing time points, wrong time intervals etc)
 }
 \examples{
+\dontrun{
 tmpData <- data.frame(matrix(c(1,  2,  1, 2,  1, 2,  11, 26, 1,
                                NA, NA, 3, NA, 3, NA, 12, 27, 1,
                                1,  2,  1, 2,  1, 2,  NA, 24, 0 ),
@@ -102,5 +106,6 @@ shapedData <- ctmaShapeRawData(dataFrame=tmpData,
                                scaleTime=1/12,
                                maxTolDelta=1.2)
 head(shapedData)
+}
 
 }

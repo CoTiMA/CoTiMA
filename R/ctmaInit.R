@@ -238,8 +238,10 @@ ctmaInit <- function(
           is.null(dim(primaryStudies$pairwiseNs[tmp])) &
           is.null(dim(primaryStudies$emcovs[tmp])) &
           all(is.na(unlist(primaryStudies$moderators[tmp]))) &
-          is.null(primaryStudies$rawData$fileName[tmp]) ) {
-      n.studies <- tmp-1
+          is.null(primaryStudies$rawData$fileName[tmp])
+          # 9. Aug. 2022:
+          & (length(tmp) > 1) ) {
+      if (tmp != 1) n.studies <- tmp-1 else n.studies <- 1
       primaryStudies$studyNumbers[[tmp]] <- NULL
     } else {
       n.studies <- tmp
@@ -254,6 +256,7 @@ ctmaInit <- function(
     }
 
     for (i in 1:n.studies) {
+      studyList[[i]]$originalStudyNo
       studyList[[i]] <- list(studyNumber=i, empcov=primaryStudies$empcovs[[i]], delta_t=primaryStudies$deltas[[i]],
                              sampleSize=primaryStudies$sampleSizes[[i]], originalStudyNo=primaryStudies$studyNumber[[i]],
                              timePoints=sum(length(primaryStudies$deltas[[i]]), 1), moderators=primaryStudies$moderators[[i]],
@@ -404,7 +407,6 @@ ctmaInit <- function(
           tmpData <- as.matrix(tmpData) # important: line below will not work without having data as a matrix
           tmpData[tmpData %in% studyList[[i]]$rawData$missingValues] <- NA
           empraw[[i]] <- as.data.frame(tmpData)
-          #View(empraw[[i]])
 
           ## START correction of current lags if entire time point is missing for a case
           # if called from ctmaOptimize
@@ -431,6 +433,9 @@ ctmaInit <- function(
           }
           # eliminate rows where time is NA
           emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
+          # 9. Aug. 2022: handle possibly reduced Tpoints (if some rows were eliminated for all cases)
+          currentTpoints <- max(table(emprawLongTmp[,1])); currentTpoints
+
           # make wide format
           emprawWide <- suppressMessages(ctsem::ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
           # intervalise
@@ -674,7 +679,7 @@ ctmaInit <- function(
     model_popsd <- list()
     resultsSummary <- list()
     for (i in 1:n.studies) {
-      #i <- 6
+      #i <- 1
       notLoadable <- TRUE
       if ( (length(loadSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit[-1]) ) {
         tmp1 <- paste0(" LOADING SingleStudyFit ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ")
@@ -838,7 +843,6 @@ ctmaInit <- function(
         studyFit[[i]]$resultsSummary$'df (CoTiMA)' <- df
       } # END if (!(studyList[[i]]$originalStudyNo %in% ...
 
-
       # SAVE
       if ( (length(saveSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% saveSingleStudyModelFit[-1]) ) {
         x1 <- paste0(saveSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
@@ -887,8 +891,6 @@ ctmaInit <- function(
         model_Diffusion_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "Mean"])
         names(model_Diffusion_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
       }
-      #resultsSummary
-      #model_Diffusion_Coef[[i]]
 
       if (!(is.null(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Sd"]))) {
         model_Diffusion_SE[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Sd"]) #; model_Diffusion_SE[[i]]
@@ -897,7 +899,6 @@ ctmaInit <- function(
         model_Diffusion_SE[[i]] <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "sd"] #; model_Diffusion_SE[[i]]
         names(model_Diffusion_SE[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
       }
-      #model_Diffusion_SE[[i]]
 
       if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "2.5%"])) == 0) {
         tmp1 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "2.5%"]; tmp1
@@ -914,7 +915,6 @@ ctmaInit <- function(
                         paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
         names(model_Diffusion_CI[[i]]) <- tmp3; model_Diffusion_CI[[i]]
       }
-      #model_Diffusion_CI[[i]]
 
       tmp <- grep("0var", rownames(resultsSummary$popmeans)); tmp
       if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"])) == 0 ) {
@@ -948,11 +948,9 @@ ctmaInit <- function(
                         paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
         names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
       }
-
       if (indVarying == TRUE) model_popsd[[i]] <- resultsSummary$popsd
 
     } # END     for (i in 1:n.studies)
-
 
     # Combine summary information and fit statistics
     allStudies_Minus2LogLikelihood <- sum(unlist(studyFit_Minus2LogLikelihood)); allStudies_Minus2LogLikelihood
@@ -1075,7 +1073,6 @@ ctmaInit <- function(
     if (is.null(ncol(tmp2))) tmp2b <- length(tmp2) else tmp2b <- ncol(tmp2)
     tmp3b <- matrix(round(as.numeric(tmp2) * scaleTime2, digits), ncol=tmp2b); tmp3b
 
-    #if (!(is.matrix(allStudiesCI_original_time_scale[, 1]))) tmp3a <- matrix(allStudiesCI_original_time_scale[, 1], nrow=1) else tmp3a <- allStudiesCI_original_time_scale[, 1]
     if (!(is.matrix(allStudiesCI_original_time_scale[, 1]))) {
       tmp3a <- matrix(allStudiesCI_original_time_scale[, 1], nrow=length(allStudiesCI_original_time_scale[, 1]))
     } else {
@@ -1087,7 +1084,6 @@ ctmaInit <- function(
       tmp3c <- allStudiesCI_original_time_scale[, tmp1]
     }
 
-    #tmp3 <- cbind(allStudiesCI_original_time_scale[, 1], tmp2, allStudiesCI_original_time_scale[, tmp1])
     if (dim(tmp3c)[2] == 1) tmp3c <- c(tmp3c) # new 6.7.2022
     if (is.null(dim(tmp3c))) tmp3 <- cbind(tmp3a, tmp3b, t(tmp3c)) else tmp3 <- cbind(tmp3a, tmp3b,   tmp3c)
     colnames(tmp3) <- colnames(allStudiesCI_original_time_scale); tmp3
@@ -1139,33 +1135,39 @@ ctmaInit <- function(
 
   if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
 
-  maxDeltas <- max(unlist(primaryStudies$deltas), na.rm=TRUE); maxDeltas
-  if (!(is.null(scaleTime))) maxDeltas <- maxDeltas * scaleTime
-  largeDelta <- which(unlist(primaryStudies$deltas) >= maxDeltas); largeDelta
-  if (!(is.null(scaleTime))) {
-    tmp1 <- unlist(primaryStudies$deltas)
-    tmp1 <- tmp1[!(is.na(tmp1))]
-    largeDelta <- which( (tmp1 * scaleTime) >= maxDeltas)
-  }
-  tmp1 <- table(unlist(primaryStudies$deltas)[largeDelta]); tmp1
-  if (!(is.null(scaleTime))) {
-    #table(unlist(primaryStudies$deltas * scaleTime)[largeDelta])
-    table((tmp1 * scaleTime)[largeDelta])
-  }
-  tmp2 <- which(tmp1 == (max(tmp1))); tmp2
-  suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
-  message <- c()
-  if (maxDeltas > 6) {
-    tmp2 <- paste0("Maximum time interval was ", maxDeltas, "."); tmp2
-    tmp3 <- paste0("timeScale=1/", suggestedScaleTime); tmp3
-    if (suggestedScaleTime != scaleTime2) {
-      #tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, " and customPar=FALSE. "); tmp4
-      tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, ". "); tmp4
-    } else {
-      tmp4 <- paste0(""); tmp4
+  if (!(all(is.na(unlist(primaryStudies$deltas))))) {
+    maxDeltas <- max(unlist(primaryStudies$deltas), na.rm=TRUE)
+
+    if (!(is.null(scaleTime))) maxDeltas <- maxDeltas * scaleTime
+    largeDelta <- which(unlist(primaryStudies$deltas) >= maxDeltas); largeDelta
+
+    if (!(is.null(scaleTime))) {
+      tmp1 <- unlist(primaryStudies$deltas)
+      tmp1 <- tmp1[!(is.na(tmp1))]
+      largeDelta <- which( (tmp1 * scaleTime) >= maxDeltas)
     }
-    message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using, e.g.,", tmp3, "in all subsequent models.", collapse="\n"); message
-  }
+    tmp1 <- table(unlist(primaryStudies$deltas)[largeDelta]); tmp1
+    if (!(is.null(scaleTime))) {
+      #table(unlist(primaryStudies$deltas * scaleTime)[largeDelta])
+      table((tmp1 * scaleTime)[largeDelta])
+    }
+    tmp2 <- which(tmp1 == (max(tmp1))); tmp2
+    suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
+    message <- c()
+    if (maxDeltas > 6) {
+      tmp2 <- paste0("Maximum time interval was ", maxDeltas, "."); tmp2
+      tmp3 <- paste0("timeScale=1/", suggestedScaleTime); tmp3
+      if (suggestedScaleTime != scaleTime2) {
+        #tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, " and customPar=FALSE. "); tmp4
+        tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, ". "); tmp4
+      } else {
+        tmp4 <- paste0(""); tmp4
+      }
+      message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using, e.g.,", tmp3, "in all subsequent models.", collapse="\n"); message
+    }
+  } else {
+    maxDeltas <- NA
+  }; maxDeltas
 
   if (is.null(scaleTime)) scaleTime2 <- 1 else scaleTime2 <- scaleTime
 
@@ -1193,7 +1195,7 @@ ctmaInit <- function(
                   summary=(list(model="all drift free (het. model)",
                                 estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
                                 scaleTime=scaleTime2,
-                                randomEffects=model_popsd,
+                                randomEffects=resultsSummary$popsd,
                                 confidenceIntervals=allStudiesCI,
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),
