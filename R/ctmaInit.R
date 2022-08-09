@@ -233,6 +233,8 @@ ctmaInit <- function(
     # Option 1: Applies for older versions of ctmaPrep
     #tmp <- length(unlist(primaryStudies$studyNumbers)); tmp
     tmp <- unlist(primaryStudies$studyNumbers); tmp
+    tmp2 <- which(is.na(tmp)); tmp2
+    for (i in tmp2) primaryStudies$studyNumbers[[i]] <- NULL
     tmp <- length(tmp[!(is.na(tmp))]); tmp
     if  ( is.na(primaryStudies$deltas[tmp]) &
           is.na(primaryStudies$sampleSizes[tmp]) &
