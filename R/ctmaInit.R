@@ -756,6 +756,8 @@ ctmaInit <- function(
           Msg <- "################################################################################# \n######## Just a note: Individually varying intercepts model requested.  ######### \n#################################################################################"
           message(Msg)
           MANIFESTMEANS <- paste0("mean_", manifestNames); MANIFESTMEANS # if provided, indVarying is the default
+          # added 9. Aug. 2022
+          T0MEANS <- paste0("T0mean_", manifestNames); MANIFESTMEANS # if provided, indVarying is the default
 
           currentModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
                                          DIFFUSION=matrix(diffParams, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
@@ -764,7 +766,9 @@ ctmaInit <- function(
                                          T0VAR=T0VARParams,
                                          type='stanct',
                                          CINT=matrix(0, nrow=n.latent, ncol=1),
-                                         T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                         # changed 9. Aug. 2022
+                                         #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                         T0MEANS = matrix(c(T0MEANS), nrow = n.latent, ncol = 1),
                                          MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.var, ncol = 1),
                                          MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var)
           )
@@ -921,12 +925,24 @@ ctmaInit <- function(
       }
 
       tmp <- grep("0var", rownames(resultsSummary$popmeans)); tmp
+      # added 9. Aug. 2022. Next one become neccesary because ctsem labeling changed from "var" to "cov"
+      if (length(tmp) == 0) {
+        tmp <- grep("0cov", resultsSummary$parmatrices$matrix)
+        tmp2 <- (resultsSummary$parmatrices[tmp, c("matrix", "row", "col")]); tmp2
+        T0covNames <- c()
+        for (m in 1:nrow(tmp2)) T0covNames[m] <- paste0(tmp2[m, 1], tmp2[m, 2], tmp2[m, 3])
+      }
       if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"])) == 0 ) {
         model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"])
         names(model_T0var_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_T0var_Coef[[i]]
       }  else {
         model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "Mean"])
-        names(model_T0var_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+        # added 9. Aug. 2022
+        if (length(model_T0var_Coef[[i]]) != n.latent^2) {
+          names(model_T0var_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+        } else {
+          names(model_T0var_Coef[[i]]) <- T0covNames
+        }
       }
 
       if (!(is.null(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Sd"]))) {
@@ -934,7 +950,11 @@ ctmaInit <- function(
         names(model_T0var_SE[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_T0var_SE[[i]]
       } else {
         model_T0var_SE[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "sd"])
-        names(model_T0var_SE[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+        if (length(model_T0var_SE[[i]]) != n.latent^2) {
+          names(model_T0var_SE[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+        } else {
+          names(model_T0var_SE[[i]]) <- T0covNames
+        }
       }
 
       if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "2.5%"]) == 0)) {
@@ -948,9 +968,15 @@ ctmaInit <- function(
         tmp1 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "2.5%"]; tmp1
         tmp2 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "97.5%"]; tmp2
         model_T0var_CI[[i]] <- c(rbind(tmp1, tmp2)); model_T0var_CI[[i]]
-        tmp3 <- c(rbind(paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "LL"),
+        if (length(tmp1) != n.latent^2) {
+          tmp3 <- c(rbind(paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "LL"),
                         paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
-        names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
+          names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
+        } else {
+          tmp3 <- c(rbind(paste0(T0covNames, "LL"),
+                          paste0(T0covNames, "UL"))); tmp3
+          names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
+        }
       }
       if (indVarying == TRUE) model_popsd[[i]] <- resultsSummary$popsd
 
