@@ -651,7 +651,13 @@ ctmaFit <- function(
         print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
         print(paste0("#################################################################################"))
 
-        manifestmeansParams <- manifestNames; manifestmeansParams
+        # change 9. Aug. 2022
+        #manifestmeansParams <- manifestNames; manifestmeansParams
+        manifestmeansParams <- paste0("mean", manifestNames); manifestmeansParams
+
+        ### added 9. Aug. 2022
+        T0meansParams <-  paste0("T0mean", manifestNames); T0meansParams
+
         manifestVarParams <- c()
         for (u in 1:n.var) {
           for (v in 1:n.var) {
@@ -666,7 +672,9 @@ ctmaFit <- function(
                                       DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
                                       LAMBDA=lambdaParams,
                                       CINT=matrix(0, nrow=n.latent, ncol=1),
-                                      T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                      # change 9. Aug. 2022
+                                      #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                      T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
                                       MANIFESTMEANS = matrix(manifestmeansParams, nrow = n.var, ncol = 1),
                                       MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var),
                                       type = 'stanct',
@@ -680,7 +688,9 @@ ctmaFit <- function(
                                       DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
                                       LAMBDA=lambdaParams,
                                       CINT=matrix(0, nrow=n.latent, ncol=1),
-                                      T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                      # changed 9. Aug. 2022
+                                      #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                      T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
                                       MANIFESTMEANS = matrix(manifestmeansParams, nrow = n.var, ncol = 1),
                                       MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var),
                                       type = 'stanct',
