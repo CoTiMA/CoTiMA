@@ -1182,7 +1182,7 @@ ctmaInit <- function(
     }
     tmp2 <- which(tmp1 == (max(tmp1))); tmp2
     suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
-    message <- c()
+    message1 <- c()
     if (maxDeltas > 6) {
       tmp2 <- paste0("Maximum time interval was ", maxDeltas, "."); tmp2
       tmp3 <- paste0("timeScale=1/", suggestedScaleTime); tmp3
@@ -1192,7 +1192,7 @@ ctmaInit <- function(
       } else {
         tmp4 <- paste0(""); tmp4
       }
-      message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using, e.g.,", tmp3, "in all subsequent models.", collapse="\n"); message
+      message1 <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using, e.g.,", tmp3, "in all subsequent models.", collapse="\n"); message1
     }
   } else {
     maxDeltas <- NA
@@ -1228,7 +1228,7 @@ ctmaInit <- function(
                                 confidenceIntervals=allStudiesCI,
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),
-                                message=message,
+                                message=message1,
                                 drift_estimates_original_time_scale =allStudiesDRIFT_effects_original_time_scale_ext,
                                 drift_CI_original_time_scale=allStudiesDriftCI_original_time_scale,
                                 diff_estimates_original_time_scale=allStudiesDIFF_effects_original_time_scale_ext,
