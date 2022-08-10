@@ -1161,6 +1161,7 @@ ctmaInit <- function(
   ##############################################################################################################
   end.time <- Sys.time()
   time.taken <- end.time - start.time
+  message1 <- c()
 
   if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
 
@@ -1182,7 +1183,7 @@ ctmaInit <- function(
     }
     tmp2 <- which(tmp1 == (max(tmp1))); tmp2
     suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
-    message1 <- c()
+    #message1 <- c()
     if (maxDeltas > 6) {
       tmp2 <- paste0("Maximum time interval was ", maxDeltas, "."); tmp2
       tmp3 <- paste0("timeScale=1/", suggestedScaleTime); tmp3
