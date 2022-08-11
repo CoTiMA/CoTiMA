@@ -7,6 +7,7 @@
 #' @param lambda lambda
 #' @param manifestVar manifestVar
 #' @param drift drift
+#' @param diff diffusion
 #' @param invariantDrift invariantDrift
 #' @param moderatedDrift moderatedDrift
 #' @param equalDrift equalDrift
@@ -20,6 +21,7 @@ ctmaLabels <- function(
   lambda=NULL,
   manifestVar=NULL,
   drift=NULL,
+  diff=NULL,
   invariantDrift=NULL,
   moderatedDrift=NULL,
   equalDrift=NULL)
@@ -46,20 +48,32 @@ ctmaLabels <- function(
 
   if (!(is.null(drift))) {
     tmp1 <- which(!(driftParams %in% drift)); tmp1
-    driftParams[tmp1] <- "0"
-    driftNames <- driftNames[-tmp1]
+    # changed 11. Aug. 2022
+    #driftParams[tmp1] <- "0"
+    driftParams[tmp1] <- drift; driftParams
+    tmp1 <- which(drift == 0); tmp1
+    if (length(tmp1) > 0) driftNames <- driftNames[-tmp1]
+  }
+
+  # added 11. Aug. 2022
+  if (!(is.null(diff))) {
+    tmp1 <- which(!(diffParams %in% drift)); tmp1
+    diffParamsParams[tmp1] <- diff; driftParams
+    tmp1 <- which(diff == 0); tmp1
+    if (length(tmp1) > 0) diffNames <- diffNames[-tmp1]
   }
 
   # backup full names for labeling output later
   tmp1 <- tmp2 <- c()
   if (!(is.null(drift))) {
     # check validity of user-provided drift names
-    tmp1 <- which(c(driftParams) %in% driftNames); tmp1
-    tmp2 <- which(c(driftParams) == "0"); tmp2
-    if ( (length(tmp1)+length(tmp2)) != length(driftParams) ) {
-    ErrorMsg <- "\nDrift names provided by user do not match requirements.\nThey should be of the type V1toV2 or just 0. \nGood luck for the next try!"
-    stop(ErrorMsg)
-    }
+    # taken out on 11. Aug 2022
+    #tmp1 <- which(c(driftParams) %in% driftNames); tmp1
+    #tmp2 <- which(c(driftParams) == "0"); tmp2
+    #if ( (length(tmp1)+length(tmp2)) != length(driftParams) ) {
+    #ErrorMsg <- "\nDrift names provided by user do not match requirements.\nThey should be of the type V1toV2 or just 0. \nGood luck for the next try!"
+    #stop(ErrorMsg)
+    #}
     driftNames <- drift # replace
   }
 
