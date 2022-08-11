@@ -925,12 +925,14 @@ ctmaInit <- function(
       }
 
       tmp <- grep("0var", rownames(resultsSummary$popmeans)); tmp
-      # added 9. Aug. 2022. Next one become neccesary because ctsem labeling changed from "var" to "cov"
+      # added 9. Aug. 2022. Next one become neccessary because ctsem labeling changed from "var" to "cov"
       if (length(tmp) == 0) {
         tmp <- grep("0cov", resultsSummary$parmatrices$matrix)
         tmp2 <- (resultsSummary$parmatrices[tmp, c("matrix", "row", "col")]); tmp2
         T0covNames <- c()
         for (m in 1:nrow(tmp2)) T0covNames[m] <- paste0(tmp2[m, 1], tmp2[m, 2], tmp2[m, 3])
+      } else {
+        T0covNames <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
       }
       if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"])) == 0 ) {
         model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"])
