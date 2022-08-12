@@ -13,6 +13,7 @@
 #' @param n.latent number of latent variables of the model (hast to be specified)!
 #' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
 #' @param activateRPB  set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
+#' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
 #' @param randomScaleTime lower and upper limit of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)
 #' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
@@ -47,6 +48,7 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
                              activeDirectory=NULL,
                              problemStudy=NULL,
                              reFits=NULL,
+                             finishsamples=NULL,
                              n.latent=NULL,
                              coresToUse=c(1),
                              indVarying=FALSE,
@@ -78,6 +80,9 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
   } else {
     doParallel::registerDoParallel(1)
   }
+
+  if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
+
 
   ########################################################################################################################
 
