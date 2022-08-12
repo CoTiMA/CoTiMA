@@ -126,6 +126,10 @@ ctmaShapeRawData <- function(
       }
     }
 
+    if (mininterval < .00001) {
+      ErrorMsg <- "\nThe argument \"mininterval\" has been set to a value < .00001, which is currently not allowed! \nGood luck for the next try!"
+      stop(ErrorMsg)
+    }
 
     if (any(is.na(missingValues))) {
       Msg <- "Note: I assume that the missing values indicator in the dataFrame or dataFile is \"NA\" \n"
@@ -352,12 +356,9 @@ ctmaShapeRawData <- function(
   # - are negative
   # and delete this cases (if negTolDelta is not set to TRUE)
 
-  # all possible lags (last valkue in name indicates the time point (0, 1, ... involved))
-  #minTolDelta
-  #maxTolDelta
+  # all possible lags (last value in name indicates the time point (0, 1, ... involved))
   tmp1 <- grep("time", colnames(tmpData)); tmp1
   timeMat <- tmpData[, tmp1]
-  #head(timeMat)
   # test 1 wave lags first, then 2 wave lags, ... The first hit is the critical time point
   lagWidth <- 0
   for (j in 1:(Tpoints-1)) {
@@ -390,7 +391,8 @@ ctmaShapeRawData <- function(
     }
   }
   #tmpDataBackup <- tmpData
-  #head(tmpData)
+  #tmpData <- tmpDataBackup
+  head(tmpData)
 
   # Step 7: ctIntervalise: Make time intervals out of time points if not already done.
   tmpData <- ctsem::ctIntervalise(tmpData, Tpoints = Tpoints, n.manifest = n.manifest,
