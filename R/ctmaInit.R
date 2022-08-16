@@ -782,8 +782,10 @@ ctmaInit <- function(
                                          #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
                                          #T0MEANS = matrix(c(T0MEANS), nrow = n.latent, ncol = 1),
                                          #MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.var, ncol = 1),
-                                         T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
-                                         MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
+                                         #T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
+                                         #MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
+                                         T0MEANS = "auto",
+                                         MANIFESTMEANS = "auto",
                                          MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var)
           )
         }

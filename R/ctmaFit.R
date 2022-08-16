@@ -652,8 +652,6 @@ ctmaFit <- function(
 
     # Make model with max time points
     {
-      allInvModel
-      indVarying
       if ((allInvModel == FALSE) & (indVarying == TRUE)) {
         print(paste0("#################################################################################"))
         print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
@@ -682,8 +680,10 @@ ctmaFit <- function(
                                       CINT=matrix(0, nrow=n.latent, ncol=1),
                                       # change 9. Aug. 2022/16. Aug
                                       #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                      T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
-                                      MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
+                                      #T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
+                                      #MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
+                                      T0MEANS = "auto",
+                                      MANIFESTMEANS = "auto",
                                       MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var),
                                       type = 'stanct',
                                       n.TIpred = n.TIpred,
