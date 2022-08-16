@@ -37,7 +37,9 @@ ctmaFit(
   modsToCompare = NULL,
   catsToCompare = NULL,
   driftsToCompare = NULL,
-  useSampleFraction = NULL
+  useSampleFraction = NULL,
+  T0means = 0,
+  manifestMeans = 0
 )
 }
 \arguments{
@@ -106,6 +108,10 @@ ctmaFit(
 \item{driftsToCompare}{when performing contrasts for categorical moderators, the (subset of) drift effects analyzed}
 
 \item{useSampleFraction}{to speed up debugging. Provided as fraction (e.g., 1/10).}
+
+\item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
+\item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 }
 \value{
 ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,

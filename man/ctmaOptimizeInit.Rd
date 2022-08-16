@@ -9,6 +9,7 @@ ctmaOptimizeInit(
   activeDirectory = NULL,
   problemStudy = NULL,
   reFits = NULL,
+  finishsamples = NULL,
   n.latent = NULL,
   coresToUse = c(1),
   indVarying = FALSE,
@@ -27,6 +28,8 @@ ctmaOptimizeInit(
 
 \item{reFits}{how many reFits should be done}
 
+\item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
+
 \item{n.latent}{number of latent variables of the model (hast to be specified)!}
 
 \item{coresToUse}{if neg., the value is subtracted from available cores, else value = cores to use}
@@ -41,6 +44,10 @@ ctmaOptimizeInit(
 Useful to check estimates before they are saved.}
 
 \item{customPar}{logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
+
+\item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
+\item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 }
 \value{
 returns a list with bestFit (= the best fit achieved), all_minus2ll (= all -2ll values for all fitted models), and summary, which

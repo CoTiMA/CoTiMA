@@ -11,8 +11,8 @@
 #' @param invariantDrift invariantDrift
 #' @param moderatedDrift moderatedDrift
 #' @param equalDrift equalDrift
-#' @param T0means,
-#' @param manifestMeans
+#' @param T0means T0means
+#' @param manifestMeans manifestMeans
 #'
 #' @return returns consistently named parameters (e.g., "V1toV2") as well es their symbolic values, which are used to fix or free
 #' parameters when fitting a 'CoTiMA' model

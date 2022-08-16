@@ -19,6 +19,9 @@
 #' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param checkSingleStudyResults displays estimates from single study 'ctsem' models and waits for user input to continue.
 #' Useful to check estimates before they are saved.
+#' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
+#' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
+
 #'
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach %dopar%
@@ -133,7 +136,9 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
                      scaleTime = scaleTime,
                      activeDirectory = activeDirectory,
                      checkSingleStudyResults=checkSingleStudyResults,
-                     customPar=customPar)
+                     customPar=customPar,
+                     T0means=0,
+                     manifestMeans=0)
     return(fits)
   }
 
