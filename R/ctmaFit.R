@@ -646,6 +646,8 @@ ctmaFit <- function(
 
     # Make model with max time points
     {
+      allInvModel
+      indVarying
       if ((allInvModel == FALSE) & (indVarying == TRUE)) {
         print(paste0("#################################################################################"))
         print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
@@ -683,6 +685,10 @@ ctmaFit <- function(
                                       #TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter+n.all.moderators))
                                       TIPREDEFFECT = matrix(0, n.latent, n.TIpred))
       } else {
+        ### added 16. Aug. 2022
+        manifestmeansParams <- 0; manifestmeansParams
+        T0meansParams <-  0; T0meansParams
+
         stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
                                       DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
                                       DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),

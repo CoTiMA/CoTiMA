@@ -324,7 +324,13 @@ ctmaShapeRawData <- function(
   if (length(tmp2) > 0) tmpData <- tmpData[-tmp2, ]
   #head(tmpData)
 
-  # Step 6d - Shift data left if 1st time point is missing (otherwise lags will be not computed correctly later)
+  # Step 6d - Delete all cases where all process variables are missing
+  tmp1 <- apply(tmpData[, allOutputVariablesNames], 1, sum, na.rm=TRUE)
+  tmp2 <- which(tmp1 == 0)
+  if (length(tmp2) > 0) tmpData <- tmpData[-tmp2, ]
+  #head(tmpData)
+
+    # Step 6e - Shift data left if 1st time point is missing (otherwise lags will be not computed correctly later)
   tmpData2 <- tmpData
   n.TDpredPerWave <- length(targetInputTDpredNames)/Tpoints; n.TDpredPerWave
   for (t in 1:(Tpoints-1)) {
@@ -349,13 +355,13 @@ ctmaShapeRawData <- function(
   tmpData <- tmpData2
   #head(tmpData)
 
-  ### Step 6d - Determine possible lags that
+  ### Step 6f - Determine possible lags that
   # - are longer than maxTolDelta
   # - are shorter than minTolDelta
   # and delete time points. Further, determine possible lags that
   # - are negative
   # and delete this cases (if negTolDelta is not set to TRUE)
-
+  #
   # all possible lags (last value in name indicates the time point (0, 1, ... involved))
   tmp1 <- grep("time", colnames(tmpData)); tmp1
   timeMat <- tmpData[, tmp1]
@@ -438,11 +444,7 @@ ctmaShapeRawData <- function(
                                  n.TIpred = n.TIpred,
                                  manifestNames = newOutputVariablesNames,
                                  TDpredNames = generalTDpredNames,
-                                 TIpredNames = outputTIpredNames)#,
-        #digits = 5,
-        #mininterval = 0.001,
-        #individualRelativeTime = TRUE,
-        #startoffset = 0)
+                                 TIpredNames = outputTIpredNames)
       }
     }
     #head(tmpData)
