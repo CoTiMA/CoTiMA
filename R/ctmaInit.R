@@ -31,6 +31,9 @@
 #' @param doPar parallel and multiple fitting if single studies
 #' @param useSV if TRUE (default) start values will be used if provided in the list of primary studies
 #' @param experimental set TRUE to try new pairwise N function
+#' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
+#' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
+
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
@@ -96,7 +99,9 @@ ctmaInit <- function(
   customPar=FALSE,
   doPar=1,
   useSV=TRUE,
-  experimental=FALSE
+  experimental=FALSE,
+  T0means=0,
+  manifestMeans=0
 )
 
 {  # begin function definition (until end of file)
@@ -581,7 +586,9 @@ ctmaInit <- function(
       drift=drift,
       invariantDrift=invariantDrift,
       moderatedDrift=NULL,
-      equalDrift=NULL
+      equalDrift=NULL,
+      T0means=T0means,
+      manifestMeans=manifestMeans
     )
     driftNames <- namesAndParams$driftNames; driftNames
     driftFullNames <- namesAndParams$driftFullNames; driftFullNames
@@ -593,7 +600,9 @@ ctmaInit <- function(
     invariantDriftParams <- namesAndParams$invariantDriftParams; invariantDriftParams
     lambdaParams <- namesAndParams$lambdaParams; lambdaParams
     T0VARParams <- namesAndParams$T0VARParams; T0VARParams
-    manifestmeansParams <- namesAndParams$manifestMeansParams; manifestmeansParams
+    #manifestmeansParams <- namesAndParams$manifestMeansParams; manifestmeansParams
+    manifestMeansParams <- namesAndParams$manifestMeansParams; manifestMeansParams
+    T0meansParams=namesAndParams$T0meansParams
     manifestVarParams <- namesAndParams$manifestVarParams; manifestVarParams
 
 
@@ -746,8 +755,10 @@ ctmaInit <- function(
                                        T0VAR=T0VARParams,
                                        type='stanct',
                                        CINT=matrix(0, nrow=n.latent, ncol=1),
-                                       T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                       MANIFESTMEANS = matrix(manifestmeansParams, nrow = n.var, ncol = 1),
+                                       #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                       #MANIFESTMEANS = matrix(manifestmeansParams, nrow = n.var, ncol = 1),
+                                       T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
+                                       MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
                                        MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var)
         )
         #currentModel$pars
@@ -767,10 +778,12 @@ ctmaInit <- function(
                                          T0VAR=T0VARParams,
                                          type='stanct',
                                          CINT=matrix(0, nrow=n.latent, ncol=1),
-                                         # changed 9. Aug. 2022
+                                         # changed 9. Aug. 2022/16. Aug
                                          #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                         T0MEANS = matrix(c(T0MEANS), nrow = n.latent, ncol = 1),
-                                         MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.var, ncol = 1),
+                                         #T0MEANS = matrix(c(T0MEANS), nrow = n.latent, ncol = 1),
+                                         #MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.var, ncol = 1),
+                                         T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
+                                         MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
                                          MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var)
           )
         }

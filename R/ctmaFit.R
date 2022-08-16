@@ -36,6 +36,8 @@
 #' @param catsToCompare when performing contrasts for categorical moderators, the categories (values, not positions) for which effects are set equal
 #' @param driftsToCompare when performing contrasts for categorical moderators, the (subset of) drift effects analyzed
 #' @param useSampleFraction to speed up debugging. Provided as fraction (e.g., 1/10).
+#' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
+#' @param manifestmeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 
 #'
 #' @importFrom  RPushbullet pbPost
@@ -123,7 +125,9 @@ ctmaFit <- function(
   modsToCompare=NULL,
   catsToCompare=NULL,
   driftsToCompare=NULL,
-  useSampleFraction=NULL
+  useSampleFraction=NULL,
+  T0means=0,
+  manifestmeans=0
 )
 
 
@@ -585,7 +589,9 @@ ctmaFit <- function(
     drift=drift,
     invariantDrift=invariantDrift,
     moderatedDrift=moderatedDrift,
-    equalDrift=equalDrift
+    equalDrift=equalDrift,
+    T0means=T0means,
+    manifestmeans=manifestmeans
   )
   driftNames <- namesAndParams$driftNames; driftNames
   driftFullNames <- namesAndParams$driftFullNames; driftFullNames

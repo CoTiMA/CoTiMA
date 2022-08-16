@@ -11,6 +11,8 @@
 #' @param invariantDrift invariantDrift
 #' @param moderatedDrift moderatedDrift
 #' @param equalDrift equalDrift
+#' @param T0means,
+#' @param manifestMeans
 #'
 #' @return returns consistently named parameters (e.g., "V1toV2") as well es their symbolic values, which are used to fix or free
 #' parameters when fitting a 'CoTiMA' model
@@ -24,7 +26,9 @@ ctmaLabels <- function(
   diff=NULL,
   invariantDrift=NULL,
   moderatedDrift=NULL,
-  equalDrift=NULL)
+  equalDrift=NULL,
+  T0means=0,
+  manifestMeans=0)
   {
 
   n.var <- max(c(n.manifest, n.latent)); n.var
@@ -94,8 +98,6 @@ ctmaLabels <- function(
   equalDriftParams <- equalDriftNames <- equalDrift; equalDriftParams
   tmp1 <- which(driftNames %in% equalDriftNames); tmp1
   driftNames[tmp1] <- paste0(driftNames[tmp1], " (equal)"); driftNames
-  #driftParams <- c(t(matrix(driftParams, n.latent))); driftParams
-  #driftNames <- c(t(matrix(driftNames, n.latent))); driftNames
 
   tmp0 <- matrix(diffParams, n.latent); tmp0
   tmp0[upper.tri(tmp0, diag=FALSE)] <- 0; tmp0
@@ -139,12 +141,26 @@ ctmaLabels <- function(
   MANIFESTMEANS <- 0
   if (!(is.null(invariantDrift))) {
     if ( (length(tmp1) + length(tmp2)) < n.var * n.latent ) {
-      MANIFESTMEANS <- rep("0", n.manifest); MANIFESTMEANS
-      targetVar <- which(is.na(rowSums(tmp3))); targetVar
-      MANIFESTMEANS[targetVar] <- paste0("mean_", targetVar); MANIFESTMEANS
+      # added 16. Aug 2022 (if else)
+      if (manifestMeans == 0) {
+        MANIFESTMEANS <- rep("0", n.manifest); MANIFESTMEANS
+        targetVar <- which(is.na(rowSums(tmp3))); targetVar
+        MANIFESTMEANS[targetVar] <- paste0("mean_", targetVar); MANIFESTMEANS
+      } #else {
+      #  MANIFESTMEANS <- manifestMeans
+      #}
     } else {
-      MANIFESTMEANS <- 0
+      # changed 16. Aug 2022
+      #MANIFESTMEANS <- 0
+      MANIFESTMEANS <- manifestMeans
+    #}
     }
+  }
+  manifestMeans
+
+  #T0Means
+  if (!(is.null(invariantDrift))) {
+    T0meansParams <- T0means
   }
 
   results <- list(driftNames=driftNames,
@@ -161,6 +177,7 @@ ctmaLabels <- function(
                   lambdaParams=LAMBDA,
                   T0VARParams=T0VAR,
                   manifestMeansParams=MANIFESTMEANS,
+                  T0meansParams=T0meansParams,
                   manifestVarParams=manifestVarParams)
 
   invisible(results)
