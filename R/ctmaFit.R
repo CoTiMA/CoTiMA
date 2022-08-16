@@ -37,7 +37,7 @@
 #' @param driftsToCompare when performing contrasts for categorical moderators, the (subset of) drift effects analyzed
 #' @param useSampleFraction to speed up debugging. Provided as fraction (e.g., 1/10).
 #' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
-#' @param manifestmeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
+#' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 
 #'
 #' @importFrom  RPushbullet pbPost
@@ -127,7 +127,7 @@ ctmaFit <- function(
   driftsToCompare=NULL,
   useSampleFraction=NULL,
   T0means=0,
-  manifestmeans=0
+  manifestMeans=0
 )
 
 
@@ -414,7 +414,6 @@ ctmaFit <- function(
     dataTmp <- dataTmp[ ,-targetCols]
 
     # make TI out of moderators
-    #modTIstartNum <- n.studies+1; modTIstartNum
     modTIstartNum <- n.studies; modTIstartNum
     if (n.moderators > 0) {
       # make TI predictors as replacements for each moderator
@@ -591,7 +590,7 @@ ctmaFit <- function(
     moderatedDrift=moderatedDrift,
     equalDrift=equalDrift,
     T0means=T0means,
-    manifestmeans=manifestmeans
+    manifestMeans=manifestMeans
   )
   driftNames <- namesAndParams$driftNames; driftNames
   driftFullNames <- namesAndParams$driftFullNames; driftFullNames
@@ -606,7 +605,8 @@ ctmaFit <- function(
   equalDriftParams <- namesAndParams$equalDriftParams; equalDriftParams
   lambdaParams <- namesAndParams$lambdaParams; lambdaParams
   T0VARParams <- namesAndParams$T0VARParams; T0VARParams
-  manifestmeansParams <- namesAndParams$manifestMeansParams; manifestmeansParams
+  manifestMeansParams <- namesAndParams$manifestMeansParams; manifestMeansParams
+  T0meansParams=namesAndParams$T0meansParams
   manifestVarParams <- namesAndParams$manifestVarParams; manifestVarParams
 
   if (is.null(invariantDriftNames)) invariantDriftNames <- driftNames
@@ -659,12 +659,12 @@ ctmaFit <- function(
         print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
         print(paste0("#################################################################################"))
 
-        # change 9. Aug. 2022
-        #manifestmeansParams <- manifestNames; manifestmeansParams
-        manifestmeansParams <- paste0("mean", manifestNames); manifestmeansParams
+        # change 9. Aug. 2022/16. Aug
+        #manifestMeansParams <- manifestNames; manifestMeansParams
+        #manifestMeansParams <- paste0("mean", manifestNames); manifestMeansParams
 
-        ### added 9. Aug. 2022
-        T0meansParams <-  paste0("T0mean", manifestNames); T0meansParams
+        ### added 9. Aug. 2022/16 Aug
+        #T0meansParams <-  paste0("T0mean", manifestNames); T0meansParams
 
         manifestVarParams <- c()
         for (u in 1:n.var) {
@@ -680,10 +680,10 @@ ctmaFit <- function(
                                       DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
                                       LAMBDA=lambdaParams,
                                       CINT=matrix(0, nrow=n.latent, ncol=1),
-                                      # change 9. Aug. 2022
+                                      # change 9. Aug. 2022/16. Aug
                                       #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
                                       T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
-                                      MANIFESTMEANS = matrix(manifestmeansParams, nrow = n.var, ncol = 1),
+                                      MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
                                       MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var),
                                       type = 'stanct',
                                       n.TIpred = n.TIpred,
@@ -691,9 +691,9 @@ ctmaFit <- function(
                                       #TIPREDEFFECT = matrix(0, n.latent, (n.studies-1+clusCounter+n.all.moderators))
                                       TIPREDEFFECT = matrix(0, n.latent, n.TIpred))
       } else {
-        ### added 16. Aug. 2022
-        manifestmeansParams <- 0; manifestmeansParams
-        T0meansParams <-  0; T0meansParams
+        ### added 16. Aug. 2022/16 Aug
+        #manifestMeansParams <- 0; manifestMeansParams
+        #T0meansParams <-  0; T0meansParams
 
         stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
                                       DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
@@ -703,7 +703,7 @@ ctmaFit <- function(
                                       # changed 9. Aug. 2022
                                       #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
                                       T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
-                                      MANIFESTMEANS = matrix(manifestmeansParams, nrow = n.var, ncol = 1),
+                                      MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
                                       MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var),
                                       type = 'stanct',
                                       n.TIpred = n.TIpred,
