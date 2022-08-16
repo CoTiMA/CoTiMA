@@ -58,7 +58,9 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
                              randomScaleTime=c(1,1),
                              activateRPB=FALSE,
                              checkSingleStudyResults=FALSE,
-                             customPar=TRUE)
+                             customPar=TRUE,
+                             T0means=0,
+                             manifestMeans=0)
 {
 
   #######################################################################################################################
