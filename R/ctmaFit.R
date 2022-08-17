@@ -816,14 +816,13 @@ ctmaFit <- function(
 
   # Extract estimates & statistics
   # added 17. Aug. 2022
+  model_popsd <- model_popcov <- model_popcor <- list()
   if (indVarying == TRUE) {
-    model_popsd <- model_popcov <- model_popcor <- list()
     model_popsd <- invariantDriftStanctFit$popsd
     e <- ctsem::ctExtract(fitStanctModel)
     model_popcov <- round(ctCollapse(e$popcov, 1, mean), digits = digits)
     model_popcor <- cov2cor(model_popcov)
   }
-
   # account for changes in ctsem 3.4.1
   if ("matrix" %in% colnames(invariantDriftStanctFit$parmatrices)) ctsem341 <- TRUE else ctsem341 <- FALSE
   tmpMean <- grep("ean", colnames(invariantDriftStanctFit$parmatrices)); tmpMean
