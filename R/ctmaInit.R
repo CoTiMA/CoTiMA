@@ -222,6 +222,10 @@ ctmaInit <- function(
       if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
     }
 
+    # correction of misspecified user input
+    if (is.null(T0means)) T0means <- 0
+    if (is.null(manifestMeans)) manifestMeans <- 0
+
   } ### END Check Model Specification ###
 
 
@@ -766,7 +770,7 @@ ctmaInit <- function(
                                        MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
                                        MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var)
         )
-        #currentModel$pars
+        currentModel$pars
         currentModel$pars[, "indvarying"] <- FALSE
 
         if (indVarying == TRUE) {
