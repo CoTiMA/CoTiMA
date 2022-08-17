@@ -39,7 +39,7 @@
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
 #' @importFrom parallel detectCores
-#' @importFrom ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit ctExtract
+#' @importFrom ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit ctExtract ctCollapse
 #' @importFrom utils read.table write.table
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
 #' @importFrom doParallel registerDoParallel
@@ -1013,7 +1013,7 @@ ctmaInit <- function(
         model_popsd[[i]] <- resultsSummary$popsd
         e <- ctsem::ctExtract(studyFit[[i]])
         model_popcov[[i]] <- list()
-        model_popcov[[i]] <- round(ctCollapse(e$popcov, 1, mean), digits = digits)
+        model_popcov[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
         model_popcor[[i]] <- list()
         model_popcor[[i]] <- cov2cor(model_popcov[[i]])
       }

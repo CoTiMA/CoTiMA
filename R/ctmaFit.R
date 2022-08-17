@@ -43,7 +43,7 @@
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  parallel detectCores
-#' @importFrom  ctsem ctWideToLong ctDeintervalise ctModel ctStanFit
+#' @importFrom  ctsem ctWideToLong ctDeintervalise ctModel ctStanFit ctCollapse
 #' @importFrom  OpenMx vech2full expm
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
 #'
@@ -820,7 +820,7 @@ ctmaFit <- function(
     model_popsd <- model_popcov <- model_popcor <- list()
     model_popsd <- invariantDriftStanctFit$popsd
     e <- ctsem::ctExtract(fitStanctModel)
-    model_popcov <- round(ctCollapse(e$popcov, 1, mean), digits = digits)
+    model_popcov <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
     model_popcor <- cov2cor(model_popcov)
   } else {
     model_popsd <- model_popcov <- model_popcor <- "no random effects estimated"
