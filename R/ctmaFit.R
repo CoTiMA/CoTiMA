@@ -146,6 +146,12 @@ ctmaFit <- function(
   }
 
   { # set fitting params
+    # Added 17. Aug 2022
+    tmp1 <- names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs); tmp1
+    tmp2 <- CoTiMA::CoTiMAStanctArgs
+    if (!(is.null(CoTiMAStanctArgs))) tmp2[tmp1] <- CoTiMAStanctArgs
+    CoTiMAStanctArgs <- tmp2
+
     if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
     if (!(is.null(scaleClus))) CoTiMAStanctArgs$scaleClus <- scaleClus
     if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
@@ -168,8 +174,6 @@ ctmaFit <- function(
   }
   if ( (!(is.null(catsToCompare))) & (is.null(modsToCompare)) ) modsToCompare <- 1
 
-  # added 17. Aug 2022
-  if (is.null(CoTiMAStanctArgs)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
 
   { # check if scaleMod is not used in combination with transfMod
     if ( (!(is.null(scaleMod))) & (!(is.null(transfMod))) ) {

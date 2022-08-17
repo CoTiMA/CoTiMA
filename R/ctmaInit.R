@@ -127,7 +127,7 @@ ctmaInit <- function(
     Msg <- "################################################################################# \n########################## Check Model Specification ############################ \n#################################################################################"
     message(Msg)
 
-    if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMAStanctArgs$verbose}
+    if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMA::CoTiMAStanctArgs$verbose}
 
     if (is.null(primaryStudies)) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
@@ -180,9 +180,6 @@ ctmaInit <- function(
       if (coresToUse < 1)  coresToUse <- parallel::detectCores() + coresToUse
     }
 
-    # added 17. Aug 2022
-    if (is.null(CoTiMAStanctArgs)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
-
     if (coresToUse >= parallel::detectCores()) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
       coresToUse <- parallel::detectCores() - 1
@@ -211,6 +208,12 @@ ctmaInit <- function(
 
       invariantDrift <- FALSE
       moderatedDrift <- NULL
+
+      # Added 17. Aug 2022
+      tmp1 <- names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs); tmp1
+      tmp2 <- CoTiMA::CoTiMAStanctArgs
+      if (!(is.null(CoTiMAStanctArgs))) tmp2[tmp1] <- CoTiMAStanctArgs
+      CoTiMAStanctArgs <- tmp2
 
       if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
       if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime

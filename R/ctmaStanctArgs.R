@@ -20,5 +20,7 @@ CoTiMAStanctArgs<-list(test=TRUE,
                        cores=1,
                        warmup=500,
                        inits=NULL, forcerecompile=FALSE,
+                       savesCompile=TRUE,
                        savescores=FALSE, gendata=FALSE,
-                       control=list(adapt_delta = .8, adapt_window=2, max_treedepth=10, adapt_init_buffer=2, stepsize = .001))
+                       control=list(adapt_delta = .8, adapt_window=2, max_treedepth=10, adapt_init_buffer=2, stepsize = .001),
+                       verbose=2, vb=FALSE)
