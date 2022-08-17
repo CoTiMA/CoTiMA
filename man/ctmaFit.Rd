@@ -39,7 +39,8 @@ ctmaFit(
   driftsToCompare = NULL,
   useSampleFraction = NULL,
   T0means = 0,
-  manifestMeans = 0
+  manifestMeans = 0,
+  CoTiMAStanctArgs = NULL
 )
 }
 \arguments{
@@ -112,6 +113,8 @@ ctmaFit(
 \item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 
 \item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
+\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
 }
 \value{
 ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,

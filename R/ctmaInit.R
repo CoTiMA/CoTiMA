@@ -33,6 +33,7 @@
 #' @param experimental set TRUE to try new pairwise N function
 #' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
+#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
 
 #'
 #' @importFrom RPushbullet pbPost
@@ -101,7 +102,8 @@ ctmaInit <- function(
   useSV=TRUE,
   experimental=FALSE,
   T0means=0,
-  manifestMeans=0
+  manifestMeans=0,
+  CoTiMAStanctArgs=NULL
 )
 
 {  # begin function definition (until end of file)
@@ -177,6 +179,9 @@ ctmaInit <- function(
     if  (length(coresToUse) > 0) {
       if (coresToUse < 1)  coresToUse <- parallel::detectCores() + coresToUse
     }
+
+    # added 17. Aug 2022
+    if (is.null(CoTiMAStanctArgs)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
 
     if (coresToUse >= parallel::detectCores()) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}

@@ -18,7 +18,8 @@ ctmaOptimizeInit(
   checkSingleStudyResults = FALSE,
   customPar = TRUE,
   T0means = 0,
-  manifestMeans = 0
+  manifestMeans = 0,
+  CoTiMAStanctArgs = NULL
 )
 }
 \arguments{
@@ -50,6 +51,8 @@ Useful to check estimates before they are saved.}
 \item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 
 \item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
+\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
 }
 \value{
 returns a list with bestFit (= the best fit achieved), all_minus2ll (= all -2ll values for all fitted models), and summary, which

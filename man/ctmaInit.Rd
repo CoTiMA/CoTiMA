@@ -35,7 +35,8 @@ ctmaInit(
   useSV = TRUE,
   experimental = FALSE,
   T0means = 0,
-  manifestMeans = 0
+  manifestMeans = 0,
+  CoTiMAStanctArgs = NULL
 )
 }
 \arguments{
@@ -100,6 +101,8 @@ ctmaInit(
 \item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 
 \item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
+\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
 }
 \value{
 ctmaFit returns a list containing some arguments supplied, the fitted models, different elements summarizing the main results,

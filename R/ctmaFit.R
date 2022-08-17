@@ -38,7 +38,8 @@
 #' @param useSampleFraction to speed up debugging. Provided as fraction (e.g., 1/10).
 #' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
-
+#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
+#'
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  parallel detectCores
@@ -127,7 +128,8 @@ ctmaFit <- function(
   driftsToCompare=NULL,
   useSampleFraction=NULL,
   T0means=0,
-  manifestMeans=0
+  manifestMeans=0,
+  CoTiMAStanctArgs=NULL
 )
 
 
@@ -165,6 +167,9 @@ ctmaFit <- function(
     }
   }
   if ( (!(is.null(catsToCompare))) & (is.null(modsToCompare)) ) modsToCompare <- 1
+
+  # added 17. Aug 2022
+  if (is.null(CoTiMAStanctArgs)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
 
   { # check if scaleMod is not used in combination with transfMod
     if ( (!(is.null(scaleMod))) & (!(is.null(transfMod))) ) {

@@ -19,8 +19,10 @@
 #' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
+#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
 #' @param checkSingleStudyResults displays estimates from single study 'ctsem' models and waits for user input to continue.
 #' Useful to check estimates before they are saved.
+
 
 #'
 #' @importFrom doParallel registerDoParallel
@@ -60,7 +62,8 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
                              checkSingleStudyResults=FALSE,
                              customPar=TRUE,
                              T0means=0,
-                             manifestMeans=0)
+                             manifestMeans=0,
+                             CoTiMAStanctArgs=NULL)
 {
 
   #######################################################################################################################
@@ -79,6 +82,9 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
       message(Msg)
     }
   }
+
+  # added 17. Aug 2022
+  if (is.null(CoTiMAStanctArgs)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
 
   if (.Platform$OS.type == "unix") {
     doParallel::registerDoParallel(coresToUse)
