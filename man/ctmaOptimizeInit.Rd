@@ -19,7 +19,7 @@ ctmaOptimizeInit(
   customPar = TRUE,
   T0means = 0,
   manifestMeans = 0,
-  CoTiMAStanctArgs = CoTiMAStanctArgs
+  CoTiMAStanctArgs = NULL
 )
 }
 \arguments{

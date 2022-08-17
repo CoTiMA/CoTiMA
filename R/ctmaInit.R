@@ -39,11 +39,12 @@
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
 #' @importFrom parallel detectCores
-#' @importFrom ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit
+#' @importFrom ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit ctExtract
 #' @importFrom utils read.table write.table
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach %dopar%
+#' @importFrom stats cov2cor
 #'
 #' @export ctmaInit
 #'
@@ -702,7 +703,7 @@ ctmaInit <- function(
     model_Diffusion_Coef <- model_Diffusion_SE <- model_Diffusion_CI <- list()
     model_T0var_Coef <- model_T0var_SE <- model_T0var_CI <- list()
     model_Cint_Coef <- model_Cint_SE <- model_Cint_CI <- list()
-    model_popsd <- list()
+    model_popsd <- model_popcov <- model_popcor <- list()
     resultsSummary <- list()
     for (i in 1:n.studies) {
       #i <- 1
@@ -1007,7 +1008,15 @@ ctmaInit <- function(
           names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
         }
       }
-      if (indVarying == TRUE) model_popsd[[i]] <- resultsSummary$popsd
+      # changed 17. Aug. 2022
+      if (indVarying == TRUE) {
+        model_popsd[[i]] <- resultsSummary$popsd
+        e <- ctsem::ctExtract(studyFit[[i]])
+        model_popcov[[i]] <- list()
+        model_popcov[[i]] <- round(ctCollapse(e$popcov, 1, mean), digits = digits)
+        model_popcor[[i]] <- list()
+        model_popcor[[i]] <- cov2cor(model_popcov[[i]])
+      }
 
     } # END     for (i in 1:n.studies)
 
@@ -1255,7 +1264,9 @@ ctmaInit <- function(
                   summary=(list(model="all drift free (het. model)",
                                 estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
                                 scaleTime=scaleTime2,
-                                randomEffects=resultsSummary$popsd,
+                                # changed 17. Aug. 20200
+                                #randomEffects=resultsSummary$popsd,
+                                randomEffects=list(popsd=model_popsd, popcov=model_popcov, popcor=model_popcor),
                                 confidenceIntervals=allStudiesCI,
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),
