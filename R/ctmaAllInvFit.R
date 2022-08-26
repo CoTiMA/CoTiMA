@@ -191,7 +191,7 @@ ctmaAllInvFit <- function(
 
   if (indVarying == TRUE) {
     T0MEANS <- "auto"
-    T0MEANS <- matrix(0, nrow=n.latent, ncol=1)
+    #T0MEANS <- matrix(0, nrow=n.latent, ncol=1)
     MANIFESTMEANS <- "auto"
     #MANIFESTVAR <- "auto"
     MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent)
