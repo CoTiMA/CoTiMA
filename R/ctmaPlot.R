@@ -538,7 +538,7 @@ ctmaPlot <- function(
             originalStudyNo <- delta_t <- c()
 
             for (i in unlist(mod.values[[g]]) ) {
-
+              #i <- unlist(mod.values[[g]])[2]; i
               originalStudyNo[counter] <- i # used for labeling in plot
               delta_t[counter] <- xValueForModValue[counter+1]
 
@@ -592,8 +592,11 @@ ctmaPlot <- function(
                     tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedpars$TIPREDEFFECT[,1:(n.latent^2),
                                                                                                  n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1]; tmp2
                   }
-                  #tmp2 <- matrix(tmp2, n.latent, n.latent, byrow=TRUE); tmp2
-                  tmp2 <- matrix(apply(tmp2, 2, mean), n.latent, n.latent, byrow=TRUE); tmp2 # new 18.7. 2022
+                  if (!(is.matrix(tmp2))) { # 29. Aug. 2022
+                    tmp2 <- matrix(tmp2, n.latent, n.latent, byrow=TRUE); tmp2
+                  } else {
+                    tmp2 <- matrix(apply(tmp2, 2, mean), n.latent, n.latent, byrow=TRUE); tmp2 # new 18.7. 2022
+                  }
                   DRIFTCoeff[[g]][[counter]] <- tmp1 + tmp2; DRIFTCoeff[[g]][[counter]]
                   # compute matrices required  for linearizedTIpredEffect (JUST AS A CHECK)
                   DRIFThi[[g]][[counter]] <- tmp1 + .01 * tmp2
@@ -633,7 +636,6 @@ ctmaPlot <- function(
               }
               linearizedTIpredEffect[[g]][[k]] <- t((DRIFThi[[g]][[k]] - DRIFTlo[[g]][[k]])/.02) # transpose to make same order as in summary report of TIPREDeffects
             }
-
             # check all diags
             allDiags <- c()
             for (i in 1:length(DRIFTCoeff[[g]])) allDiags <- c(allDiags, diag(DRIFTCoeff[[g]][[i]]))
