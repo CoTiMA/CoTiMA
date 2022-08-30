@@ -833,7 +833,7 @@ ctmaFit <- function(
     e$popcor <- array(unlist(e$popcor), dim=c(n.latent*2, n.latent*2, length(e$popcor)))
     model_popcor_m <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
     model_popcor_sd <- round(ctsem::ctCollapse(e$popcor, 3, sd), digits = digits)
-    model_popcor_T <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 1, sd), digits)
+    model_popcor_T <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, sd), digits)
     model_popcor_05 <- ctsem::ctCollapse(e$popcor, 3, function(x) quantile(x, .05))
     model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) quantile(x, .50))
     model_popcor_95 <- ctsem::ctCollapse(e$popcor, 3, function(x) quantile(x, .95))
