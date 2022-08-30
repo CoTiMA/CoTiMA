@@ -1010,13 +1010,37 @@ ctmaInit <- function(
       }
       # changed 17. Aug. 2022
       if (indVarying == TRUE) {
+        #e <- ctsem::ctExtract(studyFit[[i]])
+        #model_popcov[[i]] <- list()
+        #model_popcov[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
+        #model_popcor[[i]] <- list()
+        #model_popcor[[i]] <- cov2cor(model_popcov[[i]])
+        model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_05 <- model_popcov_50 <- model_popcov_95 <- list()
+        model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_05 <- model_popcor_50 <- model_popcor_95 <- list()
         model_popsd[[i]] <- resultsSummary$popsd
         e <- ctsem::ctExtract(studyFit[[i]])
-        model_popcov[[i]] <- list()
-        model_popcov[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
-        model_popcor[[i]] <- list()
-        model_popcor[[i]] <- cov2cor(model_popcov[[i]])
+        model_popcov_m[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
+        model_popcov_sd[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
+        model_popcov_T[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
+        model_popcov_05[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .05))
+        model_popcov_50[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
+        model_popcov_95[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .95))
+        # convert to correlations and do the same (array to list then list to array)
+        e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
+        e$popcor <- lapply(e$popcor, stats::cov2cor)
+        e$popcor <- array(unlist(e$popcor), dim=c(n.latent*2, n.latent*2, length(e$popcor)))
+        model_popcor_m[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
+        model_popcor_sd[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
+        model_popcor_T[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
+        model_popcor_05[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .05))
+        model_popcor_50[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
+        model_popcor_95[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .95))
+      } else {
+        model_popsd <- "no random effects estimated"
+        model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_05 <- model_popcov_50 <- model_popcov_95 <- "no random effects estimated"
+        model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_05 <- model_popcor_50 <- model_popcor_95 <- "no random effects estimated"
       }
+      #}
 
     } # END     for (i in 1:n.studies)
 
@@ -1264,9 +1288,15 @@ ctmaInit <- function(
                   summary=(list(model="all drift free (het. model)",
                                 estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
                                 scaleTime=scaleTime2,
-                                # changed 17. Aug. 20200
-                                #randomEffects=resultsSummary$popsd,
-                                randomEffects=list(popsd=model_popsd, popcov=model_popcov, popcor=model_popcor),
+                                # changed 17. Aug. 2022
+                                #randomEffects=list(popsd=model_popsd, popcov=model_popcov, popcor=model_popcor),
+                                randomEffects=list(popsd=model_popsd,
+                                                   popcov_mean=model_popcov_m, model_popcov_sd=model_popcov_sd,
+                                                   model_popcov_T=model_popcov_T, model_popcov_05=model_popcov_05,
+                                                   model_popcov_50=model_popcov_50, model_popcov_95=model_popcov_95,
+                                                   popcor_mean=model_popcor_m, model_popcor_sd=model_popcor_sd,
+                                                   model_popcor_T=model_popcor_T, model_popcor_05=model_popcor_05,
+                                                   model_popcor_50=model_popcor_50, model_popcor_95=model_popcor_95),
                                 confidenceIntervals=allStudiesCI,
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),

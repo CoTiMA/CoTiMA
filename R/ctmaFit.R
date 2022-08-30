@@ -46,7 +46,7 @@
 #' @importFrom  ctsem ctWideToLong ctDeintervalise ctModel ctStanFit ctCollapse
 #' @importFrom  OpenMx vech2full expm
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
-#' @importFrom  stats cov2cor
+#' @importFrom  stats cov2cor quantile sd
 #'
 #' @export ctmaFit
 #'
@@ -822,21 +822,21 @@ ctmaFit <- function(
     model_popsd <- invariantDriftStanctFit$popsd
     e <- ctsem::ctExtract(fitStanctModel)
     model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
-    model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, sd), digits = digits)
-    model_popcov_T <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, sd), digits)
-    model_popcov_05 <- ctsem::ctCollapse(e$popcov, 1, function(x) quantile(x, .05))
-    model_popcov_50 <- ctsem::ctCollapse(e$popcov, 1, function(x) quantile(x, .50))
-    model_popcov_95 <- ctsem::ctCollapse(e$popcov, 1, function(x) quantile(x, .95))
+    model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
+    model_popcov_T <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
+    model_popcov_05 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .05))
+    model_popcov_50 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
+    model_popcov_95 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .95))
     # convert to correlations and do the same (array to list then list to array)
     e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
     e$popcor <- lapply(e$popcor, stats::cov2cor)
     e$popcor <- array(unlist(e$popcor), dim=c(n.latent*2, n.latent*2, length(e$popcor)))
     model_popcor_m <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
-    model_popcor_sd <- round(ctsem::ctCollapse(e$popcor, 3, sd), digits = digits)
-    model_popcor_T <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, sd), digits)
-    model_popcor_05 <- ctsem::ctCollapse(e$popcor, 3, function(x) quantile(x, .05))
-    model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) quantile(x, .50))
-    model_popcor_95 <- ctsem::ctCollapse(e$popcor, 3, function(x) quantile(x, .95))
+    model_popcor_sd <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
+    model_popcor_T <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
+    model_popcor_05 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .05))
+    model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
+    model_popcor_95 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .95))
     #model_popcor <- stats::cov2cor(model_popcov_m)
   } else {
     model_popsd <- model_popcov_m <- model_popcor_m <- "no random effects estimated"
