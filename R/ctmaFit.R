@@ -820,10 +820,15 @@ ctmaFit <- function(
     model_popsd <- model_popcov <- model_popcor <- list()
     model_popsd <- invariantDriftStanctFit$popsd
     e <- ctsem::ctExtract(fitStanctModel)
-    model_popcov <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
-    model_popcor <- cov2cor(model_popcov)
+    model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
+    model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, sd), digits = digits)
+    model_popcov_T <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, sd), digits)
+    model_popcov_05 <- ctsem::ctCollapse(e$popcov, 1, function(x) quantile(x, .05))
+    model_popcov_50 <- ctsem::ctCollapse(e$popcov, 1, function(x) quantile(x, .50))
+    model_popcov_95 <- ctsem::ctCollapse(e$popcov, 1, function(x) quantile(x, .95))
+    model_popcor <- cov2cor(model_popcov_m)
   } else {
-    model_popsd <- model_popcov <- model_popcor <- "no random effects estimated"
+    model_popsd <- model_popcov_m <- model_popcor <- "no random effects estimated"
   }
 
   # account for changes in ctsem 3.4.1
@@ -1185,7 +1190,11 @@ ctmaFit <- function(
                                estimates=invariantDrift_Coeff,
                                # changed 17. Aug. 2022
                                #randomEffects=invariantDriftStanctFit$popsd,
-                               randomEffects=list(popsd=model_popsd, popcov=model_popcov, popcor=model_popcor),
+                               randomEffects=list(popsd=model_popsd, popcov_mean=model_popcov_m,
+                                                  model_popcov_sd=model_popcov_sd, model_popcov_T=model_popcov_T,
+                                                  model_popcov_05=model_popcov_05, model_popcov_50=model_popcov_50,
+                                                  model_popcov_95=model_popcov_95,
+                                                  popcor=model_popcor),
                                minus2ll= invariantDrift_Minus2LogLikelihood,
                                n.parameters = invariantDrift_estimatedParameters,
                                #df= invariantDrift_df,
