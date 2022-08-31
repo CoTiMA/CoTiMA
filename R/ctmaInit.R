@@ -45,6 +45,7 @@
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach %dopar%
 #' @importFrom stats cov2cor
+#' @importFrom expm expm
 #'
 #' @export ctmaInit
 #'
@@ -1199,6 +1200,21 @@ ctmaInit <- function(
     # check single study results
     if (checkSingleStudyResults == TRUE) {
       print(allStudiesDRIFT_effects_ext)
+      #
+      allStudiesDRIFT_effects_ext_dt <- allStudiesDRIFT_effects_ext
+      tmp1 <- grep("toV", colnames(allStudiesDRIFT_effects_ext_dt))
+      tmp2 <- (allStudiesDRIFT_effects_ext[, tmp1])
+      for (l in 1:dim(tmp2)[1]) {
+        tmp3 <- matrix(as.numeric(tmp2[l, ]), n.latent, n.latent, byrow=TRUE)
+        tmp4 <- c(t(expm::expm(tmp3)))
+        allStudiesDRIFT_effects_ext_dt[l, tmp1]
+        allStudiesDRIFT_effects_ext_dt[l, tmp1] <- round(tmp4, digits)
+      }
+      tmp1 <- grep("SE", colnames(allStudiesDRIFT_effects_ext_dt))
+      allStudiesDRIFT_effects_ext_dt <- allStudiesDRIFT_effects_ext_dt[, -tmp1]
+      colnames(allStudiesDRIFT_effects_ext_dt) <- paste0(colnames(allStudiesDRIFT_effects_ext_dt), " discrete time")
+      print(allStudiesDRIFT_effects_ext_dt)
+      #
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat(crayon::blue(" Press 'q' to quit or any other key to continue. Press ENTER afterwards."))
       char <- readline(" ")
@@ -1287,6 +1303,7 @@ ctmaInit <- function(
                   parameterNames=list(DRIFT=names(model_Drift_Coef[[1]]), DIFFUSION=names(model_Diffusion_Coef[[1]]), T0VAR=names(model_T0var_Coef[[1]])),
                   summary=(list(model="all drift free (het. model)",
                                 estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
+                                estimates_discrete=allStudiesDRIFT_effects_ext_dt,
                                 scaleTime=scaleTime2,
                                 # changed 17. Aug. 2022
                                 #randomEffects=list(popsd=model_popsd, popcov=model_popcov, popcor=model_popcor),

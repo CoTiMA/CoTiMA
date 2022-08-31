@@ -818,7 +818,7 @@ ctmaFit <- function(
   # Extract estimates & statistics
   # added 17. Aug. 2022
   if (indVarying == TRUE) {
-    model_popsd <- model_popcov <- model_popcor <- list()
+    #model_popsd <- model_popcov <- model_popcor <- list()
     model_popsd <- invariantDriftStanctFit$popsd
     e <- ctsem::ctExtract(fitStanctModel)
     model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
@@ -839,7 +839,9 @@ ctmaFit <- function(
     model_popcor_95 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .95))
     #model_popcor <- stats::cov2cor(model_popcov_m)
   } else {
-    model_popsd <- model_popcov_m <- model_popcor_m <- "no random effects estimated"
+    model_popsd <- "no random effects estimated"
+    model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_05 <- model_popcov_50 <- model_popcov_95 <- "no random effects estimated"
+    model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_05 <- model_popcor_50 <- model_popcor_95 <- "no random effects estimated"
   }
 
   # account for changes in ctsem 3.4.1
