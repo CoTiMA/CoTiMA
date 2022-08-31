@@ -45,7 +45,7 @@
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach %dopar%
 #' @importFrom stats cov2cor
-#' @importFrom expm expm
+#' @importFrom OpenMx expm
 #'
 #' @export ctmaInit
 #'
@@ -1211,13 +1211,13 @@ ctmaInit <- function(
       if (!(is.null(dim(tmp2)))) {
         for (l in 1:dim(tmp2)[1]) {
           tmp3 <- matrix(as.numeric(tmp2[l, ]), n.latent, n.latent, byrow=TRUE)
-          tmp4 <- c(t(expm::expm(tmp3)))
+          tmp4 <- c(t(OpenMx::expm(tmp3)))
           allStudiesDRIFT_effects_ext_dt[l, tmp1] <- round(tmp4, digits)
         }
       } else {
         tmp3 <- matrix(as.numeric(tmp2), n.latent, n.latent, byrow=TRUE)
         tmp3
-        tmp4 <- c(t(expm::expm(tmp3)))
+        tmp4 <- c(t(OpenMx::expm(tmp3)))
         allStudiesDRIFT_effects_ext_dt[tmp1]
         allStudiesDRIFT_effects_ext_dt[tmp1] <- round(tmp4, digits)
       }
