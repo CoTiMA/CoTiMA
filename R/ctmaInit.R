@@ -316,6 +316,7 @@ ctmaInit <- function(
       latentNames <- paste0("V", 1:n.latent); latentNames
     }
     for (i in 1:n.studies) {
+      #i <- 1
       if (!(studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers)) {
         currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
@@ -398,7 +399,7 @@ ctmaInit <- function(
           tmp2 <- tmp1[,grep("dT", colnames(tmp1))] == minInterval
           tmp1[ ,grep("dT", colnames(tmp1))][tmp2] <- NA
           for (h in 1:(currentTpoints-1)) studyList[[i]]$delta_t[h] <- mean(tmp1[, paste0("dT", h)], na.rm=TRUE)
-          studyList[[i]]$delta_t
+          #studyList[[i]]$delta_t
         } else {
           currentTpoints <- length((lapply(studyList, function(extract) extract$delta_t))[[i]])+1; currentTpoints
 
@@ -432,6 +433,7 @@ ctmaInit <- function(
           tmpData[tmpData %in% studyList[[i]]$rawData$missingValues] <- NA
           empraw[[i]] <- as.data.frame(tmpData)
 
+
           ## START correction of current lags if entire time point is missing for a case
           # if called from ctmaOptimize
           if (!(exists("n.var"))) n.var <- max(n.latent, n.manifest)
@@ -450,11 +452,13 @@ ctmaInit <- function(
           emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
 
           # eliminate rows where ALL latents are NA
-          if (n.manifest > n.latent) {
-            emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("x", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
-          } else {
-            emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
-          }
+          ## skipped on 31. Aug. 2022
+          #if (n.manifest > n.latent) {
+          #  emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("x", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
+          #} else {
+          #  emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+          #}
+
           # eliminate rows where time is NA
           emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
           # 9. Aug. 2022: handle possibly reduced Tpoints (if some rows were eliminated for all cases)
@@ -1204,15 +1208,26 @@ ctmaInit <- function(
       allStudiesDRIFT_effects_ext_dt <- allStudiesDRIFT_effects_ext
       tmp1 <- grep("toV", colnames(allStudiesDRIFT_effects_ext_dt))
       tmp2 <- (allStudiesDRIFT_effects_ext[, tmp1])
-      for (l in 1:dim(tmp2)[1]) {
-        tmp3 <- matrix(as.numeric(tmp2[l, ]), n.latent, n.latent, byrow=TRUE)
+      if (!(is.null(dim(tmp2)))) {
+        for (l in 1:dim(tmp2)[1]) {
+          tmp3 <- matrix(as.numeric(tmp2[l, ]), n.latent, n.latent, byrow=TRUE)
+          tmp4 <- c(t(expm::expm(tmp3)))
+          allStudiesDRIFT_effects_ext_dt[l, tmp1] <- round(tmp4, digits)
+        }
+      } else {
+        tmp3 <- matrix(as.numeric(tmp2), n.latent, n.latent, byrow=TRUE)
+        tmp3
         tmp4 <- c(t(expm::expm(tmp3)))
-        allStudiesDRIFT_effects_ext_dt[l, tmp1]
-        allStudiesDRIFT_effects_ext_dt[l, tmp1] <- round(tmp4, digits)
+        allStudiesDRIFT_effects_ext_dt[tmp1]
+        allStudiesDRIFT_effects_ext_dt[tmp1] <- round(tmp4, digits)
       }
       tmp1 <- grep("SE", colnames(allStudiesDRIFT_effects_ext_dt))
       allStudiesDRIFT_effects_ext_dt <- allStudiesDRIFT_effects_ext_dt[, -tmp1]
-      colnames(allStudiesDRIFT_effects_ext_dt) <- paste0(colnames(allStudiesDRIFT_effects_ext_dt), " discrete time")
+      if (!(is.null(dim(allStudiesDRIFT_effects_ext_dt)))) {
+        colnames(allStudiesDRIFT_effects_ext_dt) <- paste0(colnames(allStudiesDRIFT_effects_ext_dt), " discrete time")
+      } else {
+        names(allStudiesDRIFT_effects_ext_dt)  <- paste0(names(allStudiesDRIFT_effects_ext_dt), " discrete time")
+      }
       print(allStudiesDRIFT_effects_ext_dt)
       #
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
@@ -1230,7 +1245,7 @@ ctmaInit <- function(
 
     if (n.studies < 2) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      Msg <- "Only a single primary study was handed over to ctmaInitFit. No further (meta-) analyses can be conducted. \nI guess this stop is intended! You could ignore further warning messages such as sqrt(n-2): NaNs produced"
+      Msg <- "Only a single primary study was handed over to ctmaInitFit. No further (meta-) analyses can be conducted. \nI guess this stop is intended!"
       message(Msg)
     }
 
