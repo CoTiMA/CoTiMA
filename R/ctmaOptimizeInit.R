@@ -145,8 +145,6 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
 
   # parallel re-fitting of problem study
   allfits <- foreach::foreach(i=1:reFits) %dopar% {
-    #head(newStudyList$emprawList[[1]])
-    #newStudyList
     scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
     fits <- ctmaInit(newStudyList, coresToUse = 1, n.latent=n.latent,
                      indVarying = indVarying,
@@ -158,7 +156,6 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
                      manifestMeans=0)
     return(fits)
   }
-
   all_minus2ll <- lapply(allfits, function(x) x$summary$minus2ll)
   bestFit <- which(unlist(all_minus2ll) == min(unlist(all_minus2ll)))[1]; bestFit
   bestFit <- allfits[[bestFit]]

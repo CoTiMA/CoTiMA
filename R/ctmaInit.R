@@ -1201,33 +1201,34 @@ ctmaInit <- function(
       rownames(allStudiesDIFF_effects_original_time_scale_ext) <- paste0("Study No ", primaryStudies$studyNumbers)
     }
 
+    # dt effects
+    allStudiesDRIFT_effects_ext_dt <- allStudiesDRIFT_effects_ext
+    tmp1 <- grep("toV", colnames(allStudiesDRIFT_effects_ext_dt))
+    tmp2 <- (allStudiesDRIFT_effects_ext[, tmp1])
+    if (!(is.null(dim(tmp2)))) {
+      for (l in 1:dim(tmp2)[1]) {
+        tmp3 <- matrix(as.numeric(tmp2[l, ]), n.latent, n.latent, byrow=TRUE)
+        tmp4 <- c(t(OpenMx::expm(tmp3)))
+        allStudiesDRIFT_effects_ext_dt[l, tmp1] <- round(tmp4, digits)
+      }
+    } else {
+      tmp3 <- matrix(as.numeric(tmp2), n.latent, n.latent, byrow=TRUE)
+      tmp3
+      tmp4 <- c(t(OpenMx::expm(tmp3)))
+      allStudiesDRIFT_effects_ext_dt[tmp1]
+      allStudiesDRIFT_effects_ext_dt[tmp1] <- round(tmp4, digits)
+    }
+    tmp1 <- grep("SE", colnames(allStudiesDRIFT_effects_ext_dt))
+    allStudiesDRIFT_effects_ext_dt <- allStudiesDRIFT_effects_ext_dt[, -tmp1]
+    if (!(is.null(dim(allStudiesDRIFT_effects_ext_dt)))) {
+      colnames(allStudiesDRIFT_effects_ext_dt) <- paste0(colnames(allStudiesDRIFT_effects_ext_dt), " discrete time")
+    } else {
+      names(allStudiesDRIFT_effects_ext_dt)  <- paste0(names(allStudiesDRIFT_effects_ext_dt), " discrete time")
+    }
+
     # check single study results
     if (checkSingleStudyResults == TRUE) {
       print(allStudiesDRIFT_effects_ext)
-      #
-      allStudiesDRIFT_effects_ext_dt <- allStudiesDRIFT_effects_ext
-      tmp1 <- grep("toV", colnames(allStudiesDRIFT_effects_ext_dt))
-      tmp2 <- (allStudiesDRIFT_effects_ext[, tmp1])
-      if (!(is.null(dim(tmp2)))) {
-        for (l in 1:dim(tmp2)[1]) {
-          tmp3 <- matrix(as.numeric(tmp2[l, ]), n.latent, n.latent, byrow=TRUE)
-          tmp4 <- c(t(OpenMx::expm(tmp3)))
-          allStudiesDRIFT_effects_ext_dt[l, tmp1] <- round(tmp4, digits)
-        }
-      } else {
-        tmp3 <- matrix(as.numeric(tmp2), n.latent, n.latent, byrow=TRUE)
-        tmp3
-        tmp4 <- c(t(OpenMx::expm(tmp3)))
-        allStudiesDRIFT_effects_ext_dt[tmp1]
-        allStudiesDRIFT_effects_ext_dt[tmp1] <- round(tmp4, digits)
-      }
-      tmp1 <- grep("SE", colnames(allStudiesDRIFT_effects_ext_dt))
-      allStudiesDRIFT_effects_ext_dt <- allStudiesDRIFT_effects_ext_dt[, -tmp1]
-      if (!(is.null(dim(allStudiesDRIFT_effects_ext_dt)))) {
-        colnames(allStudiesDRIFT_effects_ext_dt) <- paste0(colnames(allStudiesDRIFT_effects_ext_dt), " discrete time")
-      } else {
-        names(allStudiesDRIFT_effects_ext_dt)  <- paste0(names(allStudiesDRIFT_effects_ext_dt), " discrete time")
-      }
       print(allStudiesDRIFT_effects_ext_dt)
       #
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
