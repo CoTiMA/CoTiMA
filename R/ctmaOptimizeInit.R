@@ -103,6 +103,13 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
   ErrorMsg <- "arguments are missing"
   if (is.null(primaryStudies) | is.null(problemStudy) | is.null(reFits) | is.null(activeDirectory) | is.null(n.latent)  ) stop(ErrorMsg)
 
+  if (randomScaleTime[2] < randomScaleTime[1]) {
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+    ErrorMsg <- "\nrandomScaleTime[1] has to be <= randomScaleTime[2]! \nGood luck for the next try!"
+    stop(ErrorMsg)
+  }
+
+
   # create new study list with a single problem study only
   listElements <- names(primaryStudies); listElements
   newStudyList <- as.list(listElements)
