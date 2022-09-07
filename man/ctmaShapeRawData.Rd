@@ -24,7 +24,7 @@ ctmaShapeRawData(
   outputTimeVariablesNames = "time",
   outputTimeFormat = "time",
   scaleTime = 1,
-  mininterval = 0.0001,
+  mininterval = 1e-04,
   minTolDelta = NULL,
   maxTolDelta = NULL,
   negTolDelta = FALSE

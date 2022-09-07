@@ -16,7 +16,7 @@ ctmaOptimizeInit(
   randomScaleTime = c(1, 1),
   activateRPB = FALSE,
   checkSingleStudyResults = FALSE,
-  customPar = TRUE,
+  customPar = FALSE,
   T0means = 0,
   manifestMeans = 0,
   CoTiMAStanctArgs = NULL
