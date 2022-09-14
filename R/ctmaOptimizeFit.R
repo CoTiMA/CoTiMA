@@ -122,7 +122,7 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
   }
 
   if( (!(is.null(CoTiMAFit))) & ((is.null(CoTiMAInitFit))) ) {
-    ErrorMsg <- "Argument forCoTiMAFit was provided but not for CoTiMAInitFit. Need the latter, too!"
+    ErrorMsg <- "Argument for CoTiMAFit was provided but not for CoTiMAInitFit. Need the latter, too!"
     stop(ErrorMsg)
   }
 
@@ -132,10 +132,10 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
   }
 
     # INIT Fit
-  ErrorMsg <- "arguments are missing"
-  if (is.null(primaryStudies) | is.null(problemStudy) | is.null(reFits) | is.null(activeDirectory) | is.null(n.latent)  ) stop(ErrorMsg)
-
   if(is.null(CoTiMAFit)) {
+    ErrorMsg <- "arguments are missing"
+    if (is.null(primaryStudies) | is.null(problemStudy) | is.null(reFits) | is.null(activeDirectory) | is.null(n.latent)  ) stop(ErrorMsg)
+
     # create new study list with a single problem study only
     listElements <- names(primaryStudies); listElements
     newStudyList <- as.list(listElements)
