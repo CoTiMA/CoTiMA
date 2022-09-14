@@ -201,52 +201,53 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         customPar = c(TRUE, FALSE)[tmp1]
       }
-      #tmp1 <- readRDS("/Users/cdormann/Downloads/CoTiMAFullFit_D_BO_RI.rds")
-      ctmaInitFitBackup <- CoTiMAInitFit
-      primaryStudyListBackup <- CoTiMAInitFit$primaryStudyList
-      for (l in 1:length(CoTiMAFit$argumentList)) {
-        assign(names(CoTiMAFit$argumentList)[[l]], CoTiMAFit$argumentList[[l]])
-      }
-      ctmaInitFit <- ctmaInitFitBackup
-      primaryStudyList <- primaryStudyListBackup
+      #ctmaInitFitBackup <- CoTiMAInitFit
+      #primaryStudyListBackup <- CoTiMAInitFit$primaryStudyList
+      ##
+      #for (l in 1:length(CoTiMAFit$argumentList)) {
+      #  assign(names(CoTiMAFit$argumentList)[[l]], CoTiMAFit$argumentList[[l]]) #, envir = as.environment(-1))
+      #  }
+      ##
+      #ctmaInitFit <- ctmaInitFitBackup
+      #primaryStudyList <- primaryStudyListBackup
       #
-      fits <- ctmaFit(ctmaInitFit=ctmaInitFit,
-                      primaryStudyList=primaryStudyList,
-                      cluster=cluster,
+      fits <- ctmaFit(ctmaInitFit=CoTiMAInitFit,
+                      primaryStudyList=CoTiMAInitFit$primaryStudyList,
+                      cluster=CoTiMAFit$argumentList$cluster,
                       activeDirectory=activeDirectory,
-                      activateRPB=activateRPB,
-                      digits=digits,
-                      drift=drift,
-                      invariantDrift=invariantDrift,
-                      moderatedDrift=moderatedDrift,
-                      equalDrift=equalDrift,
-                      mod.number=mod.number,
-                      mod.type=mod.type,
-                      mod.names=mod.names,
+                      activateRPB=CoTiMAFit$argumentList$activateRPB,
+                      digits=CoTiMAFit$argumentList$digits,
+                      drift=CoTiMAFit$argumentList$drift,
+                      invariantDrift=CoTiMAFit$argumentList$invariantDrift,
+                      moderatedDrift=CoTiMAFit$argumentList$moderatedDrift,
+                      equalDrift=CoTiMAFit$argumentList$equalDrift,
+                      mod.number=CoTiMAFit$argumentList$mod.number,
+                      mod.type=CoTiMAFit$argumentList$mod.type,
+                      mod.names=CoTiMAFit$argumentList$mod.names,
                       #n.manifest=0,
-                      indVarying=indVarying,
-                      coresToUse=coresToUse,
-                      scaleTI=scaleTI,
-                      scaleMod=scaleMod,
-                      transfMod=transfMod,
-                      scaleClus=scaleClus,
-                      scaleTime=scaleTime,
-                      optimize=optimize,
-                      nopriors=nopriors,
-                      finishsamples=finishsamples,
-                      iter=iter,
-                      chains=chains,
-                      verbose=verbose,
-                      allInvModel=allInvModel,
-                      customPar=customPar,
-                      inits=inits,
-                      modsToCompare=modsToCompare,
-                      catsToCompare=catsToCompare,
-                      driftsToCompare=driftsToCompare,
-                      useSampleFraction=useSampleFraction,
-                      T0means=T0means,
-                      manifestMeans=manifestMeans,
-                      CoTiMAStanctArgs=CoTiMAStanctArgs
+                      indVarying=CoTiMAFit$argumentList$indVarying,
+                      coresToUse=CoTiMAFit$argumentList$coresToUse,
+                      scaleTI=CoTiMAFit$argumentList$scaleTI,
+                      scaleMod=CoTiMAFit$argumentList$scaleMod,
+                      transfMod=CoTiMAFit$argumentList$transfMod,
+                      scaleClus=CoTiMAFit$argumentList$scaleClus,
+                      scaleTime=CoTiMAFit$argumentList$scaleTime,
+                      optimize=CoTiMAFit$argumentList$optimize,
+                      nopriors=CoTiMAFit$argumentList$nopriors,
+                      finishsamples=CoTiMAFit$argumentList$finishsamples,
+                      iter=CoTiMAFit$argumentList$iter,
+                      chains=CoTiMAFit$argumentList$chains,
+                      verbose=CoTiMAFit$argumentList$verbose,
+                      allInvModel=CoTiMAFit$argumentList$allInvModel,
+                      customPar=CoTiMAFit$argumentList$customPar,
+                      inits=CoTiMAFit$argumentList$inits,
+                      modsToCompare=CoTiMAFit$argumentList$modsToCompare,
+                      catsToCompare=CoTiMAFit$argumentList$catsToCompare,
+                      driftsToCompare=CoTiMAFit$argumentList$driftsToCompare,
+                      useSampleFraction=CoTiMAFit$argumentList$useSampleFraction,
+                      T0means=CoTiMAFit$argumentList$T0means,
+                      manifestMeans=CoTiMAFit$argumentList$manifestMeans,
+                      CoTiMAStanctArgs=CoTiMAFit$argumentList$CoTiMAStanctArgs
       )
       return(fits)
     }
