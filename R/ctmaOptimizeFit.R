@@ -41,7 +41,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' optimFit313 <- ctmaOptimizeInit(primaryStudies=CoTiMAstudyList_3,
+#' optimFit313 <- ctmaOptimizeFit(primaryStudies=CoTiMAstudyList_3,
 #'                                 activeDirectory="/Users/tmp/",  # adapt!
 #'                                 problemStudy=which(CoTiMAstudyList_3$studyNumbers == 313),
 #'                                 reFits=10,
@@ -49,7 +49,7 @@
 #' summary(optimFit313)
 #' }
 #'
-#' @export ctmaOptimizeInit
+#' @export ctmaOptimizeFit
 #'
 #' @return returns a list with bestFit (= the best fit achieved), all_minus2ll (= all -2ll values for all fitted models), and summary, which
 #' is printed if the summary function is applied to the returned object, and which shows the summary information of the ctsem model with the
