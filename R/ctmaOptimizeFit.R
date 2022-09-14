@@ -109,8 +109,6 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
   ########################################################################################################################
 
   '%dopar%' <- foreach::'%dopar%'
-  ErrorMsg <- "arguments are missing"
-  if (is.null(primaryStudies) | is.null(problemStudy) | is.null(reFits) | is.null(activeDirectory) | is.null(n.latent)  ) stop(ErrorMsg)
 
   if (randomScaleTime[2] < randomScaleTime[1]) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
@@ -134,6 +132,9 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
   }
 
     # INIT Fit
+  ErrorMsg <- "arguments are missing"
+  if (is.null(primaryStudies) | is.null(problemStudy) | is.null(reFits) | is.null(activeDirectory) | is.null(n.latent)  ) stop(ErrorMsg)
+
   if(is.null(CoTiMAFit)) {
     # create new study list with a single problem study only
     listElements <- names(primaryStudies); listElements
