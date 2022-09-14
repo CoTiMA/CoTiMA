@@ -200,14 +200,46 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         customPar = c(TRUE, FALSE)[tmp1]
       }
-      fits <- ctmaInit(newStudyList, coresToUse = 1, n.latent=n.latent,
-                       indVarying = indVarying,
-                       scaleTime = scaleTime,
-                       activeDirectory = activeDirectory,
-                       checkSingleStudyResults=checkSingleStudyResults,
-                       customPar=customPar,
-                       T0means=0,
-                       manifestMeans=0)
+      #tmp1 <- readRDS("/Users/cdormann/Downloads/CoTiMAFullFit_D_BO_RI.rds")
+      for (l in 1:length(CoTiMAFit1$argumentList)) assign(names(CoTiMAFit$argumentList)[[l]], CoTiMAFit$argumentList[[l]])
+      fits <- ctmaFit(  ctmaInitFit=ctmaInitFit,
+                        primaryStudyList=primaryStudyList,
+                        cluster=cluster,
+                        activeDirectory=activeDirectory,
+                        activateRPB=activateRPB,
+                        digits=digits,
+                        drift=drift,
+                        invariantDrift=invariantDrift,
+                        moderatedDrift=moderatedDrift,
+                        equalDrift=equalDrift,
+                        mod.number=mod.number,
+                        mod.type=mod.type,
+                        mod.names=mod.names,
+                        #n.manifest=0,
+                        indVarying=indVarying,
+                        coresToUse=coresToUse,
+                        scaleTI=scaleTI,
+                        scaleMod=scaleMod,
+                        transfMod=transfMod,
+                        scaleClus=scaleClus,
+                        scaleTime=scaleTime,
+                        optimize=optimize,
+                        nopriors=nopriors,
+                        finishsamples=finishsamples,
+                        iter=iter,
+                        chains=chains,
+                        verbose=verbose,
+                        allInvModel=allInvModel,
+                        customPar=customPar,
+                        inits=inits,
+                        modsToCompare=modsToCompare,
+                        catsToCompare=catsToCompare,
+                        driftsToCompare=driftsToCompare,
+                        useSampleFraction=useSampleFraction,
+                        T0means=T0means,
+                        manifestMeans=manifestMeans,
+                        CoTiMAStanctArgs=CoTiMAStanctArgs
+                        )
       return(fits)
     }
   }
