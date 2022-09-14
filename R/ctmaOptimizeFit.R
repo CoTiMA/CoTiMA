@@ -6,7 +6,7 @@
 #' Now, optimizing a CoTiMA model generated with \code{\link{ctmaFit}} can also be done.
 #' Using \code{\link{ctmaOptimizeFit}} could be helpful if a model yields out-of-range estimates, which could happen if the fitting
 #' algorithm unfortunately used random start values that resulted in a locally but not globally optimal fit. Essentially, using
-#' \code{\link{ctmaOptimizeFit}} is like gambling, hoping that at least one set of starting values (the number is tries is specified in the reFits argument)
+#' \code{\link{ctmaOptimizeFit}} is like gambling, hoping that at least one set of starting values (the number it tries is specified in the reFits argument)
 #' enables finding the global optimal fit. On unix-like machines (e.g. MacOS), this could be done in parallel mode if coresToUse > 1.
 #'
 #' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}
@@ -56,23 +56,23 @@
 #' best fit.
 #'
 ctmaOptimizeFit <- function(primaryStudies=NULL,
-                             activeDirectory=NULL,
-                             problemStudy=NULL,
-                             reFits=NULL,
-                             finishsamples=NULL,
-                             n.latent=NULL,
-                             coresToUse=c(1),
-                             indVarying=FALSE,
-                             randomScaleTime=c(1,1),
-                             activateRPB=FALSE,
-                             checkSingleStudyResults=FALSE,
-                             customPar=FALSE,
-                             T0means=0,
-                             manifestMeans=0,
-                             CoTiMAStanctArgs=NULL,
-                             CoTiMAFit=NULL,
-                             CoTiMAInitFit=NULL,
-                             randomPar=FALSE)
+                            activeDirectory=NULL,
+                            problemStudy=NULL,
+                            reFits=NULL,
+                            finishsamples=NULL,
+                            n.latent=NULL,
+                            coresToUse=c(1),
+                            indVarying=FALSE,
+                            randomScaleTime=c(1,1),
+                            activateRPB=FALSE,
+                            checkSingleStudyResults=FALSE,
+                            customPar=FALSE,
+                            T0means=0,
+                            manifestMeans=0,
+                            CoTiMAStanctArgs=NULL,
+                            CoTiMAFit=NULL,
+                            CoTiMAInitFit=NULL,
+                            randomPar=FALSE)
 {
 
   #######################################################################################################################
@@ -131,7 +131,7 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
     stop(ErrorMsg)
   }
 
-    # INIT Fit
+  # INIT Fit
   if(is.null(CoTiMAFit)) {
     ErrorMsg <- "arguments are missing"
     if (is.null(primaryStudies) | is.null(problemStudy) | is.null(reFits) | is.null(activeDirectory) | is.null(n.latent)  ) stop(ErrorMsg)
@@ -202,45 +202,52 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
         customPar = c(TRUE, FALSE)[tmp1]
       }
       #tmp1 <- readRDS("/Users/cdormann/Downloads/CoTiMAFullFit_D_BO_RI.rds")
-      for (l in 1:length(CoTiMAFit$argumentList)) assign(names(CoTiMAFit$argumentList)[[l]], CoTiMAFit$argumentList[[l]])
-      fits <- ctmaFit(  ctmaInitFit=ctmaInitFit,
-                        primaryStudyList=primaryStudyList,
-                        cluster=cluster,
-                        activeDirectory=activeDirectory,
-                        activateRPB=activateRPB,
-                        digits=digits,
-                        drift=drift,
-                        invariantDrift=invariantDrift,
-                        moderatedDrift=moderatedDrift,
-                        equalDrift=equalDrift,
-                        mod.number=mod.number,
-                        mod.type=mod.type,
-                        mod.names=mod.names,
-                        #n.manifest=0,
-                        indVarying=indVarying,
-                        coresToUse=coresToUse,
-                        scaleTI=scaleTI,
-                        scaleMod=scaleMod,
-                        transfMod=transfMod,
-                        scaleClus=scaleClus,
-                        scaleTime=scaleTime,
-                        optimize=optimize,
-                        nopriors=nopriors,
-                        finishsamples=finishsamples,
-                        iter=iter,
-                        chains=chains,
-                        verbose=verbose,
-                        allInvModel=allInvModel,
-                        customPar=customPar,
-                        inits=inits,
-                        modsToCompare=modsToCompare,
-                        catsToCompare=catsToCompare,
-                        driftsToCompare=driftsToCompare,
-                        useSampleFraction=useSampleFraction,
-                        T0means=T0means,
-                        manifestMeans=manifestMeans,
-                        CoTiMAStanctArgs=CoTiMAStanctArgs
-                        )
+      ctmaInitFitBackup <- CoTiMAInitFit
+      primaryStudyListBackup <- CoTiMAInitFit$primaryStudyList
+      for (l in 1:length(CoTiMAFit$argumentList)) {
+        assign(names(CoTiMAFit$argumentList)[[l]], CoTiMAFit$argumentList[[l]])
+      }
+      ctmaInitFit <- ctmaInitFitBackup
+      primaryStudyList <- primaryStudyListBackup
+      #
+      fits <- ctmaFit(ctmaInitFit=ctmaInitFit,
+                      primaryStudyList=primaryStudyList,
+                      cluster=cluster,
+                      activeDirectory=activeDirectory,
+                      activateRPB=activateRPB,
+                      digits=digits,
+                      drift=drift,
+                      invariantDrift=invariantDrift,
+                      moderatedDrift=moderatedDrift,
+                      equalDrift=equalDrift,
+                      mod.number=mod.number,
+                      mod.type=mod.type,
+                      mod.names=mod.names,
+                      #n.manifest=0,
+                      indVarying=indVarying,
+                      coresToUse=coresToUse,
+                      scaleTI=scaleTI,
+                      scaleMod=scaleMod,
+                      transfMod=transfMod,
+                      scaleClus=scaleClus,
+                      scaleTime=scaleTime,
+                      optimize=optimize,
+                      nopriors=nopriors,
+                      finishsamples=finishsamples,
+                      iter=iter,
+                      chains=chains,
+                      verbose=verbose,
+                      allInvModel=allInvModel,
+                      customPar=customPar,
+                      inits=inits,
+                      modsToCompare=modsToCompare,
+                      catsToCompare=catsToCompare,
+                      driftsToCompare=driftsToCompare,
+                      useSampleFraction=useSampleFraction,
+                      T0means=T0means,
+                      manifestMeans=manifestMeans,
+                      CoTiMAStanctArgs=CoTiMAStanctArgs
+      )
       return(fits)
     }
   }
