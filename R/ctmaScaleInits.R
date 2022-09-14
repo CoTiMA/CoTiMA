@@ -5,6 +5,7 @@
 #' @param CoTiMAFit Fit object created with \code{\link{ctmaFit}}
 #' @param ctsemFit Fit object created with \code{\link{ctStanFit}}
 #' @param newTimeScale New Time scale  \code{\link{ctStanFit}}
+#' @param autoRefit Whether to automatically refit the original model using the new inits
 #
 #' @importFrom stats uniroot
 #' @importFrom ctsem ctStanFitUpdate ctExtract

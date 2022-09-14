@@ -1,7 +1,7 @@
 #' ctmaOptimizeFit
 #'
 #' @description Replaces deprecated \code{\link{ctmaOptimizeInit}}, which was limited to initial fitting
-#' (i.e., applies \code{\link{ctmaInit}}) of a primary study reFit times to capitalize on chance for obtaining
+#' (i.e., applies \code{\link{ctmaInit}}) of a primary study reFits times to capitalize on chance for obtaining
 #' a hard-to-find optimal fit.
 #' Now, optimizing a CoTiMA model generated with \code{\link{ctmaFit}} can also be used as input.
 #' Using \code{\link{ctmaOptimizeFit}}could be very helpful if a primary yields out-of-range estimates, which could happen if the fitting
@@ -55,7 +55,7 @@
 #' is printed if the summary function is applied to the returned object, and which shows the summary information of the ctsem model with the
 #' best fit.
 #'
-ctmaOptimizeInit <- function(primaryStudies=NULL,
+ctmaOptimizeFit <- function(primaryStudies=NULL,
                              activeDirectory=NULL,
                              problemStudy=NULL,
                              reFits=NULL,
