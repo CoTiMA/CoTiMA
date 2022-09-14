@@ -17,6 +17,8 @@ ctmaScaleInits(
 \item{ctsemFit}{Fit object created with \code{\link{ctStanFit}}}
 
 \item{newTimeScale}{New Time scale  \code{\link{ctStanFit}}}
+
+\item{autoRefit}{Whether to automatically refit the original model using the new inits}
 }
 \description{
 This function rescales inits for drifts and sets all other inits to 0 (because it is too complicated to re-scale inits for diffusions).It uses the internal trasnformations of \code{\link{ctStanFit}} (i.e., tforms) to transform the raw estimates, then re-scale them, and finally use the inverse of tfrom to supplie raw estimates as inits.
