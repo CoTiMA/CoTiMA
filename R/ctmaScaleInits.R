@@ -80,7 +80,7 @@ ctmaScaleInits <- function(CoTiMAFit=NULL, ctsemFit=NULL, newTimeScale=NULL, aut
     transform_inverse[[i]] <- inverse(function (param) eval(parse(text=transforms[i])), -100, 100)
   }
 
-  initsTmp <- inits[c(tmp1)]
+  initsTmp <- inits[c(tmp1)]; initsTmp
 
   rawToTrans <- c()
   for (i in 1:length(initsTmp)) {
@@ -95,10 +95,15 @@ ctmaScaleInits <- function(CoTiMAFit=NULL, ctsemFit=NULL, newTimeScale=NULL, aut
     initsTmp2[i] <- unlist(transform_inverse[[i]](param)$root)
   }
 
+  #initsTmp2
+  # added 13 Sep 2022
+  initsTmp <- inits;initsTmp
   initsTmp[tmp1] <- initsTmp2
+
   #n <- length(inits) - length(tmp1); n
   #initsTmp[!(allInitPos %in% tmp1)] <- runif(n, -.01, .01) # random
-  initsTmp[!(allInitPos %in% tmp1)] <- 0
+  # removed 13 Sep 2022
+  #initsTmp[!(allInitPos %in% tmp1)] <- 0
 
   newFit <- list(comment="autoRefit was set to FALSE")
   if  (autoRefit == TRUE & (!(is.null(CoTiMAFit))) ) {
