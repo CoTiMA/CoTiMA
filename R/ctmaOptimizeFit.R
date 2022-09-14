@@ -25,6 +25,7 @@
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
 #' @param checkSingleStudyResults displays estimates from single study 'ctsem' models and waits for user input to continue.
 #' @param CoTiMAFit a object fitted with \code{\link{ctmaFit}}
+#' @param CoTiMAInitFit the ctmaInitFit object that was used to create the CoTiMAFit object with \code{\link{ctmaFit}}
 #' @param randomPar logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE
 #' Useful to check estimates before they are saved.
 
@@ -70,6 +71,7 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
                              manifestMeans=0,
                              CoTiMAStanctArgs=NULL,
                              CoTiMAFit=NULL,
+                             CoTiMAInitFit=NULL,
                              randomPar=FALSE)
 {
 
@@ -121,7 +123,17 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
     stop(ErrorMsg)
   }
 
-  # INIT Fit
+  if( (!(is.null(CoTiMAFit))) & ((is.null(CoTiMAInitFit))) ) {
+    ErrorMsg <- "Argument forCoTiMAFit was provided but not for CoTiMAInitFit. Need the latter, too!"
+    stop(ErrorMsg)
+  }
+
+  if( (!(is.null(CoTiMAFit))) & (!(is.null(CoTiMAInitFit)))  & (CoTiMAFit$argumentList$ctmaInitFit != deparse(substitute(CoTiMAInitFit)))  ) {
+    ErrorMsg <- paste0("The wrong CoTiMAInitFit object was provided. I need ",  CoTiMAFit$argumentList$ctmaInitFit, "!")
+    stop(ErrorMsg)
+  }
+
+    # INIT Fit
   if(is.null(CoTiMAFit)) {
     # create new study list with a single problem study only
     listElements <- names(primaryStudies); listElements
