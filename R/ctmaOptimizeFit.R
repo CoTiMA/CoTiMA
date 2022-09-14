@@ -3,10 +3,10 @@
 #' @description Replaces deprecated \code{\link{ctmaOptimizeInit}}, which was limited to initial fitting
 #' (i.e., applies \code{\link{ctmaInit}}) of a primary study reFits times to capitalize on chance for obtaining
 #' a hard-to-find optimal fit.
-#' Now, optimizing a CoTiMA model generated with \code{\link{ctmaFit}} can also be used as input.
-#' Using \code{\link{ctmaOptimizeFit}}could be very helpful if a primary yields out-of-range estimates, which could happen if the fitting
+#' Now, optimizing a CoTiMA model generated with \code{\link{ctmaFit}} can also be done.
+#' Using \code{\link{ctmaOptimizeFit}} could be helpful if a model yields out-of-range estimates, which could happen if the fitting
 #' algorithm unfortunately used random start values that resulted in a locally but not globally optimal fit. Essentially, using
-#' \code{\link{ctmaOptimizeFit}} is like gambling, hoping that at leas one set of starting values (the number is tries is specified in the reFits argument)
+#' \code{\link{ctmaOptimizeFit}} is like gambling, hoping that at least one set of starting values (the number is tries is specified in the reFits argument)
 #' enables finding the global optimal fit. On unix-like machines (e.g. MacOS), this could be done in parallel mode if coresToUse > 1.
 #'
 #' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}
@@ -202,7 +202,7 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
         customPar = c(TRUE, FALSE)[tmp1]
       }
       #tmp1 <- readRDS("/Users/cdormann/Downloads/CoTiMAFullFit_D_BO_RI.rds")
-      for (l in 1:length(CoTiMAFit1$argumentList)) assign(names(CoTiMAFit$argumentList)[[l]], CoTiMAFit$argumentList[[l]])
+      for (l in 1:length(CoTiMAFit$argumentList)) assign(names(CoTiMAFit$argumentList)[[l]], CoTiMAFit$argumentList[[l]])
       fits <- ctmaFit(  ctmaInitFit=ctmaInitFit,
                         primaryStudyList=primaryStudyList,
                         cluster=cluster,
