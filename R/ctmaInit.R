@@ -725,8 +725,11 @@ ctmaInit <- function(
     model_Diffusion_Coef <- model_Diffusion_SE <- model_Diffusion_CI <- list()
     model_T0var_Coef <- model_T0var_SE <- model_T0var_CI <- list()
     model_Cint_Coef <- model_Cint_SE <- model_Cint_CI <- list()
-    model_popsd <- model_popcov <- model_popcor <- list()
+    model_popsd <- list() # model_popcov <- model_popcor <- list()
     resultsSummary <- list()
+    model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_05 <- model_popcov_50 <- model_popcov_95 <- list()
+    model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_05 <- model_popcor_50 <- model_popcor_95 <- list()
+
     for (i in 1:n.studies) {
       #i <- 1
       notLoadable <- TRUE
@@ -1032,13 +1035,6 @@ ctmaInit <- function(
       }
       # changed 17. Aug. 2022
       if (indVarying == TRUE) {
-        #e <- ctsem::ctExtract(studyFit[[i]])
-        #model_popcov[[i]] <- list()
-        #model_popcov[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
-        #model_popcor[[i]] <- list()
-        #model_popcor[[i]] <- cov2cor(model_popcov[[i]])
-        model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_05 <- model_popcov_50 <- model_popcov_95 <- list()
-        model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_05 <- model_popcor_50 <- model_popcor_95 <- list()
         model_popsd[[i]] <- resultsSummary$popsd
         e <- ctsem::ctExtract(studyFit[[i]])
         model_popcov_m[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
