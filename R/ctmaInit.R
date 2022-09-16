@@ -1221,13 +1221,14 @@ ctmaInit <- function(
     if (!(is.null(dim(tmp2)))) {
       for (l in 1:dim(tmp2)[1]) {
         tmp3 <- matrix(as.numeric(tmp2[l, ]), n.latent, n.latent, byrow=TRUE)
-        tmp4 <- c(t(OpenMx::expm(tmp3)))
+        # changed 16 Sep 2022
+        if (is.null(scaleTime)) tmp4 <- c(t(OpenMx::expm(tmp3))) else tmp4 <- c(t(OpenMx::expm(tmp3 * scaleTime)))
         allStudiesDRIFT_effects_ext_dt[l, tmp1] <- round(tmp4, digits)
       }
     } else {
       tmp3 <- matrix(as.numeric(tmp2), n.latent, n.latent, byrow=TRUE)
-      tmp3
-      tmp4 <- c(t(OpenMx::expm(tmp3)))
+      # changed 16 Sep 2022
+      if (is.null(scaleTime)) tmp4 <- c(t(OpenMx::expm(tmp3))) else tmp4 <- c(t(OpenMx::expm(tmp3 * scaleTime)))
       allStudiesDRIFT_effects_ext_dt[tmp1]
       allStudiesDRIFT_effects_ext_dt[tmp1] <- round(tmp4, digits)
     }
