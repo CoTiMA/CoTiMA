@@ -1247,6 +1247,7 @@ ctmaInit <- function(
     if (checkSingleStudyResults == TRUE) {
       print(allStudiesDRIFT_effects_ext)
       print(allStudiesDRIFT_effects_ext_dt)
+      print(allStudies_Minus2LogLikelihood)
       #
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat(crayon::blue(" Press 'q' to quit or any other key to continue. Press ENTER afterwards."))
