@@ -110,10 +110,6 @@ ctmaInit <- function(
 
 {  # begin function definition (until end of file)
 
-  if (doPar > 1) {
-    doParallel::registerDoParallel(detectCores()-1)
-    '%dopar%' <- foreach::'%dopar%'
-  }
 
   start.time <- Sys.time()
 
@@ -187,6 +183,13 @@ ctmaInit <- function(
       coresToUse <- parallel::detectCores() - 1
       Msg <- "No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.\n"
       message(Msg)
+    }
+
+    # CHD changed on 19 Sep 2022
+    if (doPar > 1) {
+      #doParallel::registerDoParallel(detectCores()-1)
+      doParallel::registerDoParallel(coresToUse)
+      '%dopar%' <- foreach::'%dopar%'
     }
 
     if (n.manifest > n.latent ) {
