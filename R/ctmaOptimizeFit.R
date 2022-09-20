@@ -109,10 +109,10 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
     message(Msg)
   }
   #
-  if (doPar > 1) {
+  #if (doPar > 1) {
     doParallel::registerDoParallel(coresToUse)
     '%dopar%' <- foreach::'%dopar%'
-  }
+  #}
 
 
   if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
