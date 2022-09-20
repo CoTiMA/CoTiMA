@@ -93,7 +93,7 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
 
   # CHD added 20 SEP 2020
   myCluster <- parallel::makeCluster(coresToUse)
-  on.exit(stopCluster(myCluster))
+  on.exit(parallel::stopCluster(myCluster))
   # CHD deleted 20. Sep 2022
   #if (.Platform$OS.type == "unix") {
     #doParallel::registerDoParallel(coresToUse)
