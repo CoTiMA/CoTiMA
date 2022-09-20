@@ -30,6 +30,7 @@
 #' Useful to check estimates before they are saved.
 #'
 #' @importFrom doParallel registerDoParallel
+#' @importFrom parallel makeCluster
 #' @importFrom foreach %dopar%
 #' @importFrom RPushbullet pbPost
 #' @importFrom stats runif
@@ -91,7 +92,7 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
   }
 
   # CHD added 20 SEP 2020
-  myCluster <- makeCluster(coresToUse)
+  myCluster <- parallel::makeCluster(coresToUse)
   on.exit(stopCluster(myCluster))
   # CHD deleted 20. Sep 2022
   #if (.Platform$OS.type == "unix") {
