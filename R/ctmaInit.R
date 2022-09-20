@@ -43,6 +43,7 @@
 #' @importFrom utils read.table write.table
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
 #' @importFrom doParallel registerDoParallel
+#' @importFrom parallel makeCluster
 #' @importFrom foreach %dopar%
 #' @importFrom stats cov2cor
 #' @importFrom OpenMx expm
@@ -188,7 +189,10 @@ ctmaInit <- function(
     # CHD changed on 19 Sep 2022
     if (doPar > 1) {
       #doParallel::registerDoParallel(detectCores()-1)
-      doParallel::registerDoParallel(coresToUse)
+      myCluster <- parallel::makeCluster(coresToUse)
+      on.exit(parallel::stopCluster(myCluster))
+      #doParallel::registerDoParallel(coresToUse)
+      doParallel::registerDoParallel(myCluster)
       '%dopar%' <- foreach::'%dopar%'
     }
 
