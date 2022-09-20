@@ -28,8 +28,6 @@
 #' @param CoTiMAInitFit the ctmaInitFit object that was used to create the CoTiMAFit object with \code{\link{ctmaFit}}
 #' @param randomPar logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE
 #' Useful to check estimates before they are saved.
-
-
 #'
 #' @importFrom doParallel registerDoParallel
 #' @importFrom foreach %dopar%
@@ -92,11 +90,30 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
     }
   }
 
-  if (.Platform$OS.type == "unix") {
-    doParallel::registerDoParallel(coresToUse)
-  } else {
-    doParallel::registerDoParallel(1)
+  # CHD deleted 20. Sep 2022
+  #if (.Platform$OS.type == "unix") {
+  #  doParallel::registerDoParallel(coresToUse)
+  #} else {
+  #  doParallel::registerDoParallel(1)
+  #}
+
+  # CHD added 20 Sep 2022
+  if  (length(coresToUse) > 0) {
+    if (coresToUse < 1)  coresToUse <- parallel::detectCores() + coresToUse
   }
+  #
+  if (coresToUse >= parallel::detectCores()) {
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+    coresToUse <- parallel::detectCores() - 1
+    Msg <- "No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash.\n"
+    message(Msg)
+  }
+  #
+  if (doPar > 1) {
+    doParallel::registerDoParallel(coresToUse)
+    '%dopar%' <- foreach::'%dopar%'
+  }
+
 
   if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
 
