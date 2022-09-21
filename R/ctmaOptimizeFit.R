@@ -27,6 +27,7 @@
 #' @param CoTiMAFit a object fitted with \code{\link{ctmaFit}}
 #' @param CoTiMAInitFit the ctmaInitFit object that was used to create the CoTiMAFit object with \code{\link{ctmaFit}}
 #' @param randomPar logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE
+#' @param in logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE
 #' Useful to check estimates before they are saved.
 #'
 #' @importFrom doParallel registerDoParallel
@@ -140,8 +141,17 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
 
   # INIT Fit
   if(is.null(CoTiMAFit)) {
-    ErrorMsg <- "arguments are missing"
-    if (is.null(primaryStudies) | is.null(problemStudy) | is.null(reFits) | is.null(activeDirectory) | is.null(n.latent)  ) stop(ErrorMsg)
+    # CHD changed 21 SEP 2022
+    ErrorMsg <- "argument primaryStudies is missing"
+    if (is.null(primaryStudies))  stop(ErrorMsg)
+    ErrorMsg <- "argument problemStudy is missing"
+    if (is.null(problemStudy)) stop(ErrorMsg)
+    ErrorMsg <- "argument reFits is missing"
+    if (is.null(reFits)) stop(ErrorMsg)
+    ErrorMsg <- "argument activeDirectory is missing"
+    if (is.null(activeDirectory)) stop(ErrorMsg)
+    ErrorMsg <- "argument n.latent is missing"
+    if (is.null(n.latent)) stop(ErrorMsg)
 
     # create new study list with a single problem study only
     listElements <- names(primaryStudies); listElements
