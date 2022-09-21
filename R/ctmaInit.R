@@ -358,7 +358,6 @@ ctmaInit <- function(
           tmp <- as.numeric(loadSingleStudyModelFit[2:length(loadSingleStudyModelFit)]); tmp
           if (i %in% tmp) {
             currentSampleSizeTmp <- (n.latent * currentTpoints)^2; currentSampleSizeTmp
-            #currentPairwiseNTmp <- matrix(0, n.latent^2, n.latent^2)
             currentPairwiseNTmp <- matrix(0,0,0)
             currentEmpcovTmp <- matrix(0, n.latent * currentTpoints, n.latent * currentTpoints); currentEmpcovTmp
           }
@@ -754,6 +753,8 @@ ctmaInit <- function(
         if (file.exists(x1)) {
           notLoadable <- FALSE
           studyFit[[i]] <- readRDS(file=x1)
+          # CHD added 21 Sep 2022
+          empraw[[i]] <- studyFit[[i]]$empraw
         } else {
           notLoadable <- TRUE
         }
@@ -915,6 +916,9 @@ ctmaInit <- function(
       if ( (length(saveSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% saveSingleStudyModelFit[-1]) ) {
         x1 <- paste0(saveSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
         x2 <- paste0(saveSingleStudyModelFit[1], " singleStudyFits/"); x2
+        # CHD added 21. Sep 2022
+        studyFit[[i]]$empraw <- empraw[[i]]
+        #
         ctmaSaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
       }
 
