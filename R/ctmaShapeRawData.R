@@ -361,44 +361,57 @@ ctmaShapeRawData <- function(
 
   # Step 6 Experimental: Shift data left if all process variables are missing at a time point (even if time stamp is available)
   if (experimental == TRUE) {
-    for (t in 2:(Tpoints-1)) {
-      # which substantive T1 variables are all missing
-      tmp2 <- which(is.na(tmpData2[, allOutputVariablesNames[(n.manifest+1):(n.manifest+n.manifest)]]), arr.ind = TRUE)
-      tmp2 <- which(table(tmp2[, 1]) == n.manifest)
-      tmp2 <- as.numeric(names(tmp2))
-      #head(tmp2)
-      # shift substantive variables (allOutputVariablesNames)
-      tmpData2[tmp2, allOutputVariablesNames[((n.manifest)+1):((Tpoints-1)*n.manifest)]] <- tmpData2[tmp2, allOutputVariablesNames[(2*(n.manifest)+1):((Tpoints)*n.manifest)]]
-      tmpData2[tmp2, (n.manifest*(Tpoints-1)+1):(n.manifest*(Tpoints-1)+n.manifest)] <- NA
-      #head(tmpData2)
-      # shift TDpreds (outputTDpredNames)
-      tmpData2[tmp2, outputTDpredNames[(n.TDpredPerWave+1):((Tpoints-1)*n.TDpredPerWave)]] <-  tmpData2[tmp2, outputTDpredNames[(2*n.TDpredPerWave+1):((Tpoints)*n.TDpredPerWave)]]
-      tmpData2[tmp2, outputTDpredNames[(n.TDpredPerWave*(Tpoints-1+1)):((Tpoints-1)+n.TDpredPerWave)]] <- NA
-      # shift time variables
-      tmpData2[tmp2, allOutputTimeVariablesNames[2:(Tpoints-1)]] <- tmpData2[tmp2, allOutputTimeVariablesNames[3:(Tpoints)]]
-      tmpData2[tmp2, allOutputTimeVariablesNames[(Tpoints)]] <- NA
-      # delete last time stamp if process variables are missing at last time point
-      tmp2 <- which(is.na(tmpData2[, allOutputVariablesNames[((Tpoints-1)*(n.manifest)+1):((Tpoints)*(n.manifest))]]), arr.ind = TRUE)
-      tmp2 <- which(table(tmp2[, 1]) == n.manifest)
-      tmp2 <- as.numeric(names(tmp2))
-      tmpData2[tmp2, allOutputTimeVariablesNames[(Tpoints)]] <- NA
-    }
+    for (tt in 2:(Tpoints-1)) {
+      for (t in tt:(Tpoints-1)) {
+        #tt <- 2
+        #t <- 2
+        # which substantive T1 variables are all missing
+        #tmp2 <- which(is.na(tmpData2[, allOutputVariablesNames[(n.manifest+1):(n.manifest+n.manifest)]]), arr.ind = TRUE)
+        tmp2 <- which(is.na(tmpData2[, allOutputVariablesNames[((tt-1)*(n.manifest)+1):((tt-1)*(n.manifest)+n.manifest)]]), arr.ind = TRUE)
+        tmp2 <- which(table(tmp2[, 1]) == n.manifest)
+        tmp2 <- as.numeric(names(tmp2))
+        head(tmp2)
+        # shift substantive variables (allOutputVariablesNames)
+        #tmpData2[tmp2, allOutputVariablesNames[((n.manifest)+1):((Tpoints-1)*n.manifest)]] <- tmpData2[tmp2, allOutputVariablesNames[(2*(n.manifest)+1):((Tpoints)*n.manifest)]]
+        tmpData2[tmp2, allOutputVariablesNames[((tt-1)*(n.manifest)+1):((Tpoints-1)*n.manifest)]] <- tmpData2[tmp2, allOutputVariablesNames[(tt*(n.manifest)+1):((Tpoints)*n.manifest)]]
+        #tmpData2[tmp2, (n.manifest*(Tpoints-1)+1):(n.manifest*(Tpoints-1)+n.manifest)] <- NA
+        tmpData2[tmp2, allOutputVariablesNames[(n.manifest*(Tpoints-1)+1):(n.manifest*(Tpoints-1)+n.manifest)]] <- NA
+        #head(tmpData2)
+        # shift TDpreds (outputTDpredNames)
+        #tmpData2[tmp2, outputTDpredNames[(n.TDpredPerWave+1):((Tpoints-1)*n.TDpredPerWave)]] <-  tmpData2[tmp2, outputTDpredNames[(2*n.TDpredPerWave+1):((Tpoints)*n.TDpredPerWave)]]
+        tmpData2[tmp2, outputTDpredNames[((tt-1)*(n.TDpredPerWave)+1):((Tpoints-1)*n.TDpredPerWave)]] <-  tmpData2[tmp2, outputTDpredNames[(tt*n.TDpredPerWave+1):((Tpoints)*n.TDpredPerWave)]]
+        #tmpData2[tmp2, outputTDpredNames[(n.TDpredPerWave*(Tpoints-1)+1):((Tpoints-1)+n.TDpredPerWave)]] <- NA
+        tmpData2[tmp2, outputTDpredNames[(n.TDpredPerWave*(Tpoints-1)+1):(n.TDpredPerWave*(Tpoints-1)+n.TDpredPerWave)]] <- NA
+        # shift time variables
+        #tmpData2[tmp2, allOutputTimeVariablesNames[2:(Tpoints-1)]] <- tmpData2[tmp2, allOutputTimeVariablesNames[3:(Tpoints)]]
+        tmpData2[tmp2, allOutputTimeVariablesNames[tt:(Tpoints-1)]] <- tmpData2[tmp2, allOutputTimeVariablesNames[(tt+1):(Tpoints)]]
+        tmpData2[tmp2, allOutputTimeVariablesNames[(Tpoints)]] <- NA
+        # delete last time stamp if process variables are missing at last time point
+        tmp2 <- which(is.na(tmpData2[, allOutputVariablesNames[((Tpoints-1)*(n.manifest)+1):((Tpoints)*(n.manifest))]]), arr.ind = TRUE)
+        tmp2 <- which(table(tmp2[, 1]) == n.manifest)
+        tmp2 <- as.numeric(names(tmp2))
+        tmpData2[tmp2, allOutputTimeVariablesNames[(Tpoints)]] <- NA
+      }
 
-    # final correction (required if all all but Time0 is missing)
-    tmp2 <- which(is.na(tmpData2[, allOutputVariablesNames[(n.manifest+1):(n.manifest+n.manifest)]]), arr.ind = TRUE)
-    tmp2 <- which(table(tmp2[, 1]) == n.manifest)
-    tmp2 <- as.numeric(names(tmp2)); tmp2
-    tmpData2[tmp2, allOutputTimeVariablesNames[2]] <- NA
+      #head(tmpData2, 16)
 
-    # delete time stamps and TDpreds if process variables are missing
-    for (t in 2:(Tpoints-1)) {
-      tmp2 <- which(is.na(tmpData2[, allOutputVariablesNames[((t-1)*n.manifest+1):(t*n.manifest)]]), arr.ind = TRUE)
-      tmp2 <- which(table(tmp2[, 1]) == n.manifest)
-      tmp2 <- as.numeric(names(tmp2))
-      tmpData2[tmp2, allOutputTimeVariablesNames[(t)]] <- NA
+      ## final correction (required if all all but Time0 is missing)
+      #tmp2 <- which(is.na(tmpData2[, allOutputVariablesNames[(n.manifest+1):(n.manifest+n.manifest)]]), arr.ind = TRUE)
+      #tmp2 <- which(table(tmp2[, 1]) == n.manifest)
+      #tmp2 <- as.numeric(names(tmp2)); tmp2
+      #tmpData2[tmp2, allOutputTimeVariablesNames[2]] <- NA
+
+      # delete time stamps and TDpreds if process variables are missing
+      for (t in tt:(Tpoints-0)) {
+        tmp2 <- which(is.na(tmpData2[, allOutputVariablesNames[((t-1)*n.manifest+1):(t*n.manifest)]]), arr.ind = TRUE)
+        tmp2 <- which(table(tmp2[, 1]) == n.manifest)
+        tmp2 <- as.numeric(names(tmp2))
+        tmpData2[tmp2, allOutputTimeVariablesNames[(t)]] <- NA
+      }
     }
   }
-  #head(tmpData2)
+  #head(tmpData2[3:5,])
+  #tmpData2[16,]
   tmpData <- tmpData2
   #head(tmpData)
 
