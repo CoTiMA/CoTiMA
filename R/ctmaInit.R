@@ -34,7 +34,7 @@
 #' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
-
+#' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
@@ -106,7 +106,8 @@ ctmaInit <- function(
   experimental=FALSE,
   T0means=0,
   manifestMeans=0,
-  CoTiMAStanctArgs=NULL
+  CoTiMAStanctArgs=NULL,
+  posLL=TRUE
 )
 
 {  # begin function definition (until end of file)
@@ -900,7 +901,7 @@ ctmaInit <- function(
           }
           all_minus2ll <- unlist(lapply(allfits, function(x) x$stanfit$optimfit$value)); all_minus2ll
           # CHD added 27 SEP 2022 to prevent neg -2ll fits
-          all_minus2ll <- all_minus2ll[-(which(all_minus2ll < 0))]
+          if(posLL == FALSE) {all_minus2ll <- all_minus2ll[-(which(all_minus2ll < 0))]}
           #
           bestFit <- which(abs(all_minus2ll) == min(abs(all_minus2ll)))[1]; bestFit
           results <- allfits[[bestFit]]

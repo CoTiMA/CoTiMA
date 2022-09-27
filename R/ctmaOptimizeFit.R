@@ -27,7 +27,7 @@
 #' @param CoTiMAFit a object fitted with \code{\link{ctmaFit}}
 #' @param CoTiMAInitFit the ctmaInitFit object that was used to create the CoTiMAFit object with \code{\link{ctmaFit}}
 #' @param randomPar logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE
-#' @param in logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE
+#' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
 #' Useful to check estimates before they are saved.
 #'
 #' @importFrom doParallel registerDoParallel
@@ -72,7 +72,8 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
                             CoTiMAStanctArgs=NULL,
                             CoTiMAFit=NULL,
                             CoTiMAInitFit=NULL,
-                            randomPar=FALSE)
+                            randomPar=FALSE,
+                            posLL=TRUE)
 {
 
   #######################################################################################################################
@@ -273,7 +274,7 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
 
   all_minus2ll <- lapply(allfits, function(x) x$summary$minus2ll)
   # CHD added 27 SEP 2022 to prevent neg -2ll fits
-  all_minus2ll <- all_minus2ll[-(which(all_minus2ll < 0))]
+  if(posLL == FALSE) {all_minus2ll <- all_minus2ll[-(which(all_minus2ll < 0))]}
   #
   bestFit <- which(unlist(all_minus2ll) == min(unlist(all_minus2ll)))[1]; bestFit
   bestFit <- allfits[[bestFit]]
