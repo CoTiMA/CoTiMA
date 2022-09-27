@@ -899,6 +899,9 @@ ctmaInit <- function(
             return(fits)
           }
           all_minus2ll <- unlist(lapply(allfits, function(x) x$stanfit$optimfit$value)); all_minus2ll
+          # CHD added 27 SEP 2022 to prevent neg -2ll fits
+          all_minus2ll <- all_minus2ll[-(which(all_minus2ll < 0))]
+          #
           bestFit <- which(abs(all_minus2ll) == min(abs(all_minus2ll)))[1]; bestFit
           results <- allfits[[bestFit]]
         }

@@ -272,6 +272,9 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
 
 
   all_minus2ll <- lapply(allfits, function(x) x$summary$minus2ll)
+  # CHD added 27 SEP 2022 to prevent neg -2ll fits
+  all_minus2ll <- all_minus2ll[-(which(all_minus2ll < 0))]
+  #
   bestFit <- which(unlist(all_minus2ll) == min(unlist(all_minus2ll)))[1]; bestFit
   bestFit <- allfits[[bestFit]]
 
