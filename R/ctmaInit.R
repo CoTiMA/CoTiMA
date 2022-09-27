@@ -899,11 +899,12 @@ ctmaInit <- function(
               cores=1) )
             return(fits)
           }
-          all_minus2ll <- unlist(lapply(allfits, function(x) x$stanfit$optimfit$value)); all_minus2ll
+          all_loglik <- unlist(lapply(allfits, function(x) x$stanfit$optimfit$value)); all_loglik
           # CHD added 27 SEP 2022 to prevent neg -2ll fits
-          if(posLL == FALSE) {all_minus2ll <- all_minus2ll[-(which(all_minus2ll < 0))]}
+          if(posLL == FALSE) {all_loglik <- all_loglik[-(which(all_loglik > 0))]}
+          # CHD added 27 SEP 2022: changed min to max
+          bestFit <- which(abs(all_loglik) == max(abs(all_loglik)))[1]; bestFit
           #
-          bestFit <- which(abs(all_minus2ll) == min(abs(all_minus2ll)))[1]; bestFit
           results <- allfits[[bestFit]]
         }
 
