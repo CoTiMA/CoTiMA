@@ -901,7 +901,13 @@ ctmaInit <- function(
           }
           all_loglik <- unlist(lapply(allfits, function(x) x$stanfit$optimfit$value)); all_loglik
           # CHD added 27 SEP 2022 to prevent neg -2ll fits
-          if(posLL == FALSE) {all_loglik <- all_loglik[-(which(all_loglik > 0))]}
+          if(posLL == FALSE) {
+            if (all(all_loglik > 0)) {
+              ErrorMsg <- "\n All loglik values > 0, but you provided the argument posLL=FALSE, so no fit confirmed your expectations and I had to stop!"
+              stop(ErrorMsg)
+            }
+            all_loglik <- all_loglik[-(which(all_loglik > 0))]
+            }
           # CHD added 27 SEP 2022: changed min to max
           bestFit <- which(abs(all_loglik) == max(abs(all_loglik)))[1]; bestFit
           #
