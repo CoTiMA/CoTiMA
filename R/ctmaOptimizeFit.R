@@ -28,6 +28,8 @@
 #' @param CoTiMAInitFit the ctmaInitFit object that was used to create the CoTiMAFit object with \code{\link{ctmaFit}}
 #' @param randomPar logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE
 #' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
+#' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
+#' @param manifestVars define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
 #' Useful to check estimates before they are saved.
 #'
 #' @importFrom doParallel registerDoParallel
@@ -73,7 +75,9 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
                             CoTiMAFit=NULL,
                             CoTiMAInitFit=NULL,
                             randomPar=FALSE,
-                            posLL=TRUE)
+                            posLL=TRUE,
+                            lambda=NULL,
+                            manifestVars=NULL)
 {
 
   #######################################################################################################################
@@ -201,7 +205,8 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
                        checkSingleStudyResults=checkSingleStudyResults,
                        customPar=customPar,
                        T0means=0,
-                       manifestMeans=0)
+                       manifestMeans=0,
+                       manifestVars=manifestVars)
       return(fits)
     }
   }
