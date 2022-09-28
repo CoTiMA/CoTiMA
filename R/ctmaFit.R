@@ -680,14 +680,15 @@ ctmaFit <- function(
         ### added 9. Aug. 2022/16 Aug
         #T0meansParams <-  paste0("T0mean", manifestNames); T0meansParams
 
-        manifestVarParams <- c()
-        for (u in 1:n.var) {
-          for (v in 1:n.var) {
-            if ( v < u) manifestVarParams <- c(manifestVarParams, "0") else manifestVarParams <- c(manifestVarParams, paste0("var_", v, "_", u))
-          }
-        }
-        # make all 0 if only 1 manifest per latent
-        if (n.var == ncol(lambdaParams)) manifestVarParams <- 0
+        # taken out 29 Sep 2022
+        #manifestVarParams <- c()
+        #for (u in 1:n.var) {
+        #  for (v in 1:n.var) {
+        #    if ( v < u) manifestVarParams <- c(manifestVarParams, "0") else manifestVarParams <- c(manifestVarParams, paste0("var_", v, "_", u))
+        #  }
+        #}
+        ## make all 0 if only 1 manifest per latent
+        #if (n.var == ncol(lambdaParams)) manifestVarParams <- 0
 
         stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=maxTpoints, manifestNames=manifestNames,
                                       DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
