@@ -20,6 +20,8 @@
 #' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
+#' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
+#' @param manifestVars define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
 #' @param checkSingleStudyResults displays estimates from single study 'ctsem' models and waits for user input to continue.
 #' Useful to check estimates before they are saved.
 
@@ -63,7 +65,8 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
                              customPar=FALSE,
                              T0means=0,
                              manifestMeans=0,
-                             CoTiMAStanctArgs=NULL)
+                             CoTiMAStanctArgs=NULL,
+                             scaleTime=NULL)
 {
 
   #######################################################################################################################
@@ -90,6 +93,7 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
   }
 
   if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
+  if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
 
   # Added 17. Aug 2022
   tmp1 <- names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs); tmp1
@@ -152,8 +156,9 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
                      activeDirectory = activeDirectory,
                      checkSingleStudyResults=checkSingleStudyResults,
                      customPar=customPar,
-                     T0means=0,
-                     manifestMeans=0)
+                     T0means=T0means,
+                     manifestMeans=manifestMeans,
+                     manifestVars=manifestVars)
     return(fits)
   }
   all_minus2ll <- lapply(allfits, function(x) x$summary$minus2ll)

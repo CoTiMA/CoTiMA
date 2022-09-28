@@ -18,6 +18,7 @@
 #' @param activateRPB  set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
+#' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
 #' @param randomScaleTime lower and upper limit of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)
 #' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
@@ -65,6 +66,7 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
                             n.latent=NULL,
                             coresToUse=c(1),
                             indVarying=FALSE,
+                            scaleTime=NULL,
                             randomScaleTime=c(1,1),
                             activateRPB=FALSE,
                             checkSingleStudyResults=FALSE,
@@ -204,8 +206,8 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
                        activeDirectory = activeDirectory,
                        checkSingleStudyResults=checkSingleStudyResults,
                        customPar=customPar,
-                       T0means=0,
-                       manifestMeans=0,
+                       T0means=T0means,
+                       manifestMeans=manifestMeans,
                        manifestVars=manifestVars)
       return(fits)
     }
