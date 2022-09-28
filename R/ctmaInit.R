@@ -10,7 +10,7 @@
 #' @param n.latent number of latent variables of the model (hast to be specified)!
 #' @param n.manifest number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
-#' @param manifestVars define the error variances of the manifests with a single time point using R-type matrix with nrow=n.manifest & ncol=n.manifest.
+#' @param manifestVars define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
 #' @param drift labels for drift effects. Have to be either of the character strings of the type V1toV2 (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
 #' @param diff labels for diffusion effects. Have to be either of the character strings of the type "diff_eta1" or "diff_eta2_eta1" (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
 #' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
@@ -630,7 +630,8 @@ ctmaInit <- function(
       moderatedDrift=NULL,
       equalDrift=NULL,
       T0means=T0means,
-      manifestMeans=manifestMeans
+      manifestMeans=manifestMeans,
+      manifestVars=manifestVars
     )
     driftNames <- namesAndParams$driftNames; driftNames
     driftFullNames <- namesAndParams$driftFullNames; driftFullNames
@@ -644,8 +645,8 @@ ctmaInit <- function(
     T0VARParams <- namesAndParams$T0VARParams; T0VARParams
     #manifestmeansParams <- namesAndParams$manifestMeansParams; manifestmeansParams
     manifestMeansParams <- namesAndParams$manifestMeansParams; manifestMeansParams
-    T0meansParams=namesAndParams$T0meansParams
-    manifestVarParams <- namesAndParams$manifestVarParams; manifestVarParams
+    T0meansParams=namesAndParams$T0meansParams; T0meansParams
+    manifestVarsParams <- namesAndParams$manifestVarsParams; manifestVarsParams
 
 
   } ### END Create ctsem model template to fit all primary studies ###
@@ -806,7 +807,7 @@ ctmaInit <- function(
                                        #MANIFESTMEANS = matrix(manifestmeansParams, nrow = n.var, ncol = 1),
                                        T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
                                        MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
-                                       MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var)
+                                       MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var)
         )
         currentModel$pars
         currentModel$pars[, "indvarying"] <- FALSE
@@ -833,7 +834,7 @@ ctmaInit <- function(
                                          #MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
                                          T0MEANS = "auto",
                                          MANIFESTMEANS = "auto",
-                                         MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var)
+                                         MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var)
           )
         }
 

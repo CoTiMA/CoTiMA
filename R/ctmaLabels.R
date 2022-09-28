@@ -5,7 +5,7 @@
 #' @param n.latent n.latent
 #' @param n.manifest n.manifest
 #' @param lambda lambda
-#' @param manifestVar manifestVar
+#' @param manifestVars manifestVar
 #' @param drift drift
 #' @param diff diffusion
 #' @param invariantDrift invariantDrift
@@ -21,7 +21,7 @@ ctmaLabels <- function(
   n.latent=NULL,
   n.manifest=0,
   lambda=NULL,
-  manifestVar=NULL,
+  manifestVars=NULL,
   drift=NULL,
   diff=NULL,
   invariantDrift=NULL,
@@ -112,7 +112,7 @@ ctmaLabels <- function(
   }
 
   # error variances
-  if(!(is.null(manifestVar))) manifestVarParams <- manifestVar else manifestVarParams <- 0
+  if(!(is.null(manifestVars))) manifestVarsParams <- manifestVars else manifestVarsParams <- 0
 
   # T0 variance
   T0VAR <- "auto"
@@ -156,7 +156,7 @@ ctmaLabels <- function(
     #}
     }
   }
-  manifestMeans
+  #MANIFESTMEANS
 
   #T0Means
   if (!(is.null(invariantDrift))) {
@@ -178,7 +178,7 @@ ctmaLabels <- function(
                   T0VARParams=T0VAR,
                   manifestMeansParams=MANIFESTMEANS,
                   T0meansParams=T0meansParams,
-                  manifestVarParams=manifestVarParams)
+                  manifestVarsParams=manifestVarsParams)
 
   invisible(results)
 }

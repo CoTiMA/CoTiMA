@@ -21,6 +21,12 @@
 #' @param saveAllInvFit saveAllInvFit
 #' @param silentOverwrite silentOverwrite
 #' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
+#' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
+#' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
+#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
+#' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
+#' @param manifestVars define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
+#' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
 #'
 #' @return returns a fitted CoTiMA object, in which all drift parameters, Time 0 variances and covariances, and diffusion parameters were set invariant across primary studies
 #'
@@ -43,7 +49,12 @@ ctmaAllInvFit <- function(
   loadAllInvFit=c(),
   saveAllInvFit=c(),
   silentOverwrite=FALSE,
-  customPar=TRUE
+  customPar=FALSE,
+  T0means=0,
+  manifestMeans=0,
+  CoTiMAStanctArgs=NULL,
+  lambda=NULL,
+  manifestVars=NULL
 )
 {
 
@@ -154,7 +165,10 @@ ctmaAllInvFit <- function(
   namesAndParams <- ctmaLabels(
     n.latent=n.latent,
     n.manifest=n.manifest,
-    lambda=lambda)#,
+    lambda=lambda,
+    T0means=T0means,
+    manifestMeans=manifestMeans,
+    manifestVars=manifestVars)#,
     #drift=drift)
   driftNames <- namesAndParams$driftNames; driftNames
   driftNames <- gsub(" \\(invariant\\)" , "", driftNames); driftNames
@@ -165,8 +179,9 @@ ctmaAllInvFit <- function(
   diffFullNames <- namesAndParams$diffFullNames; diffFullNames
   lambdaParams <- namesAndParams$lambdaParams; lambdaParams
   T0VARParams <- namesAndParams$T0VARParams; T0VARParams
-  #manifestmeansParams <- namesAndParams$manifestMeansParams; manifestmeansParams
-  #manifestVarParams <- namesAndParams$manifestVarParams; manifestVarParams
+  manifestMeansParams <- namesAndParams$manifestMeansParams; manifestMeansParams
+  T0meansParams=namesAndParams$T0meansParams; T0meansParams
+  manifestVarsParams <- namesAndParams$manifestVarsParams; manifestVarsParams
 
 
   driftParamsTmp <- driftParams; driftParamsTmp
@@ -189,18 +204,21 @@ ctmaAllInvFit <- function(
   #tmp0[upper.tri(tmp0, diag=FALSE)] <- 0; tmp0
   #diffNamesTmp <- tmp0; diffNamesTmp
 
-  if (indVarying == TRUE) {
-    T0MEANS <- "auto"
-    #T0MEANS <- matrix(0, nrow=n.latent, ncol=1)
-    MANIFESTMEANS <- "auto"
-    #MANIFESTVAR <- "auto"
-    MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent)
-  } else {
-    T0MEANS <- matrix(c(0), nrow = n.latent, ncol = 1)
-    MANIFESTMEANS <- matrix(c(0), nrow = n.latent, ncol = 1)
-    MANIFESTVAR <- matrix(0, nrow=n.latent, ncol=n.latent)
-  }
-
+  # taken out and replaced 28 Sep 2022
+  #if (indVarying == TRUE) {
+  #  T0MEANS <- "auto"
+  #  #T0MEANS <- matrix(0, nrow=n.latent, ncol=1)
+  #  MANIFESTMEANS <- "auto"
+  #  #MANIFESTVAR <- "auto"
+  #  MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent)
+  #} else {
+  #  T0MEANS <- matrix(c(0), nrow = n.latent, ncol = 1)
+  #  MANIFESTMEANS <- matrix(c(0), nrow = n.latent, ncol = 1)
+  #  MANIFESTVAR <- matrix(0, nrow=n.latent, ncol=n.latent)
+  #}
+  T0MEANS <- T0meansParams
+  MANIFESTMEANS <- manifestMeansParams
+  MANIFESTVAR <- manifestVarsParams
 
   # all fixed model is a model with no TI predictors (identical to ctsemModel)
   # CHD allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only

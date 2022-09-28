@@ -39,6 +39,9 @@
 #' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
+#' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
+#' @param manifestVars define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
+
 #'
 #'
 #' @importFrom  RPushbullet pbPost
@@ -130,7 +133,9 @@ ctmaFit <- function(
   useSampleFraction=NULL,
   T0means=0,
   manifestMeans=0,
-  CoTiMAStanctArgs=NULL
+  CoTiMAStanctArgs=NULL,
+  lambda=NULL,
+  manifestVars=NULL
 )
 
 
@@ -600,7 +605,8 @@ ctmaFit <- function(
     moderatedDrift=moderatedDrift,
     equalDrift=equalDrift,
     T0means=T0means,
-    manifestMeans=manifestMeans
+    manifestMeans=manifestMeans,
+    manifestVars=manifestVars
   )
   driftNames <- namesAndParams$driftNames; driftNames
   driftFullNames <- namesAndParams$driftFullNames; driftFullNames
@@ -617,7 +623,7 @@ ctmaFit <- function(
   T0VARParams <- namesAndParams$T0VARParams; T0VARParams
   manifestMeansParams <- namesAndParams$manifestMeansParams; manifestMeansParams
   T0meansParams=namesAndParams$T0meansParams
-  manifestVarParams <- namesAndParams$manifestVarParams; manifestVarParams
+  manifestVarsParams <- namesAndParams$manifestVarsParams; manifestVarsParams
 
   if (is.null(invariantDriftNames)) invariantDriftNames <- driftNames
 
@@ -694,7 +700,7 @@ ctmaFit <- function(
                                       #MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
                                       T0MEANS = "auto",
                                       MANIFESTMEANS = "auto",
-                                      MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var),
+                                      MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var),
                                       type = 'stanct',
                                       n.TIpred = n.TIpred,
                                       TIpredNames = paste0("TI", 1:n.TIpred),
@@ -714,7 +720,7 @@ ctmaFit <- function(
                                       #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
                                       T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
                                       MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
-                                      MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var),
+                                      MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var),
                                       type = 'stanct',
                                       n.TIpred = n.TIpred,
                                       #TIpredNames = paste0("TI", 1:(n.studies-1+clusCounter+n.all.moderators)),
