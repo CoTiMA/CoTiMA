@@ -184,6 +184,9 @@ ctmaPlot <- function(
 
     # detect possible categorical moderator values
     for (i in 1:n.fitted.obj) {
+      # CHD changes necessary because return list of ctmaFit changed in Sep 2022
+      if (!(is.null(ctmaFitObject[[i]]$argumentList$mod.type))) ctmaFitObject[[i]]$mod.type <- ctmaFitObject[[i]]$argumentList$mod.type
+      #
       if (!(is.null(ctmaFitObject[[i]]$mod.type))) {
         if (ctmaFitObject[[i]]$mod.type == "cat") {
               mod.values[[i]] <- c(-999, unique(as.numeric(substr(rownames(ctmaFitObject[[i]]$summary$mod.effects), 1,2))))
