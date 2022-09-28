@@ -348,8 +348,18 @@ ctmaInit <- function(
 
         # Create Pseudo Raw Data
         #Msg <- "################################################################################# \n###### Read user provided data and create list with all study information ####### \n#################################################################################"
-        Msg <- paste0("################################################################################# \n###### Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ####### \n#################################################################################")
+
+        tmp1 <- paste0(" Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ")
+        tmp2 <- nchar(tmp1); tmp2
+        tmp3 <- (81 - tmp2)/2; tmp3
+        tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+        tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+        tmp6 <- paste0(tmp4, tmp1, tmp5); tmp6
+        Msg <- paste0("################################################################################# \n", tmp6, "\n#################################################################################")
         message(Msg)
+
+        #Msg <- paste0("################################################################################# \n###### Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ####### \n#################################################################################")
+        #message(Msg)
 
         # CHD ADDED 7.9.2022 reduce computation time by creating Pseudo Raw Data with small sample size because the data are loaded anyway
         currentSampleSizeTmp <- currentSampleSize
@@ -767,14 +777,44 @@ ctmaInit <- function(
       if (!(studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit[-1]) ) tmpLogic <- 1
       if (tmpLogic == 1) {
 
-        Msg <- paste0("################################################################################# \n################### Fitting SingleStudyModel ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ###################### \n#################################################################################")
+
+        tmp1 <- paste0(" Fitting SingleStudyModel ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ")
+        tmp2 <- nchar(tmp1); tmp2
+        tmp3 <- (81 - tmp2)/2; tmp3
+        tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+        tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+        tmp6 <- paste0(tmp4, tmp1, tmp5); tmp6
+        Msg <- paste0("################################################################################# \n", tmp6, "\n#################################################################################")
         message(Msg)
+
+        #Msg <- paste0("################################################################################# \n################### Fitting SingleStudyModel ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ###################### \n#################################################################################")
+        #message(Msg)
 
         if (!(optimize)) {
           customPar <- FALSE
           if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-          Msg <- "Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output \n"
+
+          tmp1a <- paste0(" Bayesian sampling was selected, which does require appropriate scaling of time. ")
+          tmp2 <- nchar(tmp1a); tmp2
+          tmp3 <- (81 - tmp2)/2; tmp3
+          tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+          tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+          tmp6a <- paste0(tmp4, tmp1a, tmp5); tmp6
+
+          tmp1b <- paste0(" See the end of the summary output ")
+          tmp2 <- nchar(tmp1b); tmp2
+          tmp3 <- (81 - tmp2)/2; tmp3
+          tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+          tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+          tmp6b <- paste0(tmp4, tmp1b, tmp5); tmp6
+
+          Msg <- paste0("################################################################################# \n", tmp6a, "\n", tmp6b, "\n#################################################################################")
           message(Msg)
+
+
+          #Msg <- "Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output \n"
+          #message(Msg)
+
         }
 
         # select correct template
@@ -868,8 +908,19 @@ ctmaInit <- function(
             cores=coresToUse) )
         } else {
           # parallel re-fitting of problem study
-          Msg <- "Parallel fit attmepts requested. Screen remains silent for a while.\n"
+
+          tmp1 <- paste0(" Parallel fit attmepts requested. Screen remains silent for a while. ")
+          tmp2 <- nchar(tmp1); tmp2
+          tmp3 <- (81 - tmp2)/2; tmp3
+          tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+          tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+          tmp6 <- paste0(tmp4, tmp1, tmp5); tmp6
+
+          Msg <- paste0("################################################################################# \n", tmp6, "\n#################################################################################")
           message(Msg)
+
+          #Msg <- "Parallel fit attmepts requested. Screen remains silent for a while.\n"
+          #message(Msg)
 
           allfits <- foreach::foreach(p=1:doPar) %dopar% {
             fits <- suppressMessages(ctsem::ctStanFit(

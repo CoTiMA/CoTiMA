@@ -783,8 +783,24 @@ ctmaFit <- function(
     if (!(optimize)) {
       customPar <- FALSE
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-      Msg <- "Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output\n"
+      tmp1a <- paste0(" Bayesian sampling was selected, which does require appropriate scaling of time. ")
+      tmp2 <- nchar(tmp1a); tmp2
+      tmp3 <- (81 - tmp2)/2; tmp3
+      tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+      tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+      tmp6a <- paste0(tmp4, tmp1a, tmp5); tmp6
+
+      tmp1b <- paste0(" See the end of the summary output ")
+      tmp2 <- nchar(tmp1b); tmp2
+      tmp3 <- (81 - tmp2)/2; tmp3
+      tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+      tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+      tmp6b <- paste0(tmp4, tmp1b, tmp5); tmp6
+
+      Msg <- paste0("################################################################################# \n", tmp6a, "\n", tmp6b, "\n#################################################################################")
       message(Msg)
+      #Msg <- "Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output\n"
+      #message(Msg)
     }
 
     fitStanctModel <- ctsem::ctStanFit(
