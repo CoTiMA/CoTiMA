@@ -347,19 +347,20 @@ ctmaInit <- function(
         }
 
         # Create Pseudo Raw Data
-        #Msg <- "################################################################################# \n###### Read user provided data and create list with all study information ####### \n#################################################################################"
+        if (!(studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit)) {
+          tmp1 <- paste0(" Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ")
+          tmp2 <- nchar(tmp1); tmp2
+          tmp3 <- (81 - tmp2)/2; tmp3
+          tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+          tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+          tmp6 <- paste0(tmp4, tmp1, tmp5); tmp6
+          Msg <- paste0("################################################################################# \n", tmp6, "\n#################################################################################")
+          message(Msg)
 
-        tmp1 <- paste0(" Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ")
-        tmp2 <- nchar(tmp1); tmp2
-        tmp3 <- (81 - tmp2)/2; tmp3
-        tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
-        tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
-        tmp6 <- paste0(tmp4, tmp1, tmp5); tmp6
-        Msg <- paste0("################################################################################# \n", tmp6, "\n#################################################################################")
-        message(Msg)
+          #Msg <- paste0("################################################################################# \n###### Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ####### \n#################################################################################")
+          #message(Msg)
+        }
 
-        #Msg <- paste0("################################################################################# \n###### Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ####### \n#################################################################################")
-        #message(Msg)
 
         # CHD ADDED 7.9.2022 reduce computation time by creating Pseudo Raw Data with small sample size because the data are loaded anyway
         currentSampleSizeTmp <- currentSampleSize
@@ -367,7 +368,7 @@ ctmaInit <- function(
         currentEmpcovTmp <- currentEmpcov
         if (length(loadSingleStudyModelFit) > 0) {
           tmp <- as.numeric(loadSingleStudyModelFit[2:length(loadSingleStudyModelFit)]); tmp
-          if (i %in% tmp) {
+          if (studyList[[i]]$originalStudyNo %in% tmp) {
             currentSampleSizeTmp <- (n.latent * currentTpoints)^2; currentSampleSizeTmp
             currentPairwiseNTmp <- matrix(0,0,0)
             currentEmpcovTmp <- matrix(0, n.latent * currentTpoints, n.latent * currentTpoints); currentEmpcovTmp
@@ -761,7 +762,7 @@ ctmaInit <- function(
         Msg <- paste0("################################################################################# \n" , tmp6 ,"\n#################################################################################")
         message(Msg)
         x1 <- paste0(activeDirectory, loadSingleStudyModelFit[1], " singleStudyFits/",loadSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
-        file.exists(x1)
+        #file.exists(x1)
         if (file.exists(x1)) {
           notLoadable <- FALSE
           studyFit[[i]] <- readRDS(file=x1)
@@ -979,8 +980,9 @@ ctmaInit <- function(
       if ( (length(saveSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% saveSingleStudyModelFit[-1]) ) {
         x1 <- paste0(saveSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
         x2 <- paste0(saveSingleStudyModelFit[1], " singleStudyFits/"); x2
-        # CHD added 21. Sep 2022
-        if (!(is.null(studyFit[[1]]$empraw))) empraw[[i]] <- studyFit[[i]]$empraw
+        # CHD added 21. Sep 2022 & changed 28 Sep 2022
+        #if (!(is.null(studyFit[[1]]$empraw))) empraw[[i]] <- studyFit[[i]]$empraw
+        studyFit[[i]]$empraw <- empraw[[i]]
         #
         ctmaSaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
       }
