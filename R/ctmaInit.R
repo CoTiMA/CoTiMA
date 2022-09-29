@@ -292,7 +292,9 @@ ctmaInit <- function(
       studyList[[i]] <- list(studyNumber=i, empcov=primaryStudies$empcovs[[i]], delta_t=primaryStudies$deltas[[i]],
                              sampleSize=primaryStudies$sampleSizes[[i]], originalStudyNo=primaryStudies$studyNumber[[i]],
                              timePoints=sum(length(primaryStudies$deltas[[i]]), 1), moderators=primaryStudies$moderators[[i]],
-                             maxModerators=length(primaryStudies$moderators[[i]]), startValues=primaryStudies$inits[[i]],
+                             # CHD changed next line on 29 Sep 2022
+                             #maxModerators=length(primaryStudies$moderators[[i]]), startValues=primaryStudies$inits[[i]],
+                             maxModerators=length(primaryStudies$moderators[[i]]), startValues=primaryStudies$startValues[[i]],
                              rawData=primaryStudies$rawData[[i]], pairwiseN=primaryStudies$pairwiseNs[[i]],
                              source=paste(primaryStudies$source[[i]], collapse=", "))
       if (useSV == FALSE) studyList[[i]]$startValues <- NULL
