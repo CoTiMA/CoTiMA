@@ -29,7 +29,7 @@
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit - for debugging
 #' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param doPar parallel and multiple fitting if single studies. A value > 1 will fit each study doPar times in parallel mode during which no output is generated (screen remains silent). Useful to obtain best fit.
-#' @param useSV if TRUE (default) start values will be used if provided in the list of primary studies
+#' @param useSV if TRUE (default=FALSE) start values will be used if provided in the list of primary studies
 #' @param experimental set TRUE to try new pairwise N function
 #' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
@@ -102,7 +102,7 @@ ctmaInit <- function(
   verbose=NULL,
   customPar=FALSE,
   doPar=1,
-  useSV=TRUE,
+  useSV=FALSE,
   experimental=FALSE,
   T0means=0,
   manifestMeans=0,
