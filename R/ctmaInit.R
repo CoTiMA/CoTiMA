@@ -298,6 +298,9 @@ ctmaInit <- function(
                              rawData=primaryStudies$rawData[[i]], pairwiseN=primaryStudies$pairwiseNs[[i]],
                              source=paste(primaryStudies$source[[i]], collapse=", "))
       if (useSV == FALSE) studyList[[i]]$startValues <- NULL
+      # CHD added next line on 30 Sep 2022
+      if ((useSV == TRUE) & (is.null(studyList[[i]]$startValues)) ) studyList[[i]]$startValues <- NA
+
       if (length(primaryStudies$moderators[[i]]) > maxLengthModeratorVector) maxLengthModeratorVector <- length(primaryStudies$moderators[[i]])
       # check matrix symmetry if matrix is provided
       if (!(primaryStudies$studyNumbers[i] %in% loadRawDataStudyNumbers)) {
