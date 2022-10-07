@@ -288,7 +288,7 @@ ctmaInit <- function(
     }
 
     for (i in 1:n.studies) {
-      #i <- 1
+      #i <- 38
       studyList[[i]] <- list(studyNumber=i, empcov=primaryStudies$empcovs[[i]], delta_t=primaryStudies$deltas[[i]],
                              sampleSize=primaryStudies$sampleSizes[[i]], originalStudyNo=primaryStudies$studyNumber[[i]],
                              timePoints=sum(length(primaryStudies$deltas[[i]]), 1), moderators=primaryStudies$moderators[[i]],
@@ -300,7 +300,9 @@ ctmaInit <- function(
       if (useSV == FALSE) studyList[[i]]$startValues <- NULL
       # CHD added next line on 30 Sep 2022, changed 7 Oct 2022
       #if ((useSV == TRUE) & (is.null(studyList[[i]]$startValues)) ) studyList[[i]]$startValues <- NA
-      if ((useSV == TRUE) & (is.na(studyList[[i]]$startValues)) ) studyList[[i]]$startValues <- NULL
+      #if ((useSV == TRUE) & (is.na(studyList[[i]]$startValues)) ) studyList[[i]]$startValues <- NULL DOES NOT WORK
+      if (is.null(studyList[[i]]$startValues)) studyList[[i]]$startValues <- NA
+      if (is.na(studyList[[i]]$startValues)) studyList[[i]]$startValues <- NULL
 
       if (length(primaryStudies$moderators[[i]]) > maxLengthModeratorVector) maxLengthModeratorVector <- length(primaryStudies$moderators[[i]])
       # check matrix symmetry if matrix is provided
