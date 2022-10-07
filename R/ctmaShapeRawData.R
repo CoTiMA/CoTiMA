@@ -25,7 +25,7 @@
 #' @param minTolDelta Set, e.g. to 1/24, to delete variables from time points that are too close (1hr; or even before) after another time point.
 #' @param maxTolDelta Set, e.g., to 7, to delete variables from time points that are too far after another time point (e.g., 7 days, if all cases should have responed within a week)
 #' @param negTolDelta FALSE (default) or TRUE. Delete entire cases that have at least one negative delta ('unreliable responding'; use minTolDelta to delete certain variables only)
-#' @param experimental FALSE (default) or TRUE.  Shift data left if all process variables are missing at a time point (even if time stamp is available)
+#' @param experimental FALSE (default) or TRUE. Deprecated. (Was: Shift data left if all process variables are missing at a time point (even if time stamp is available)
 #'
 #' @examples
 #' \dontrun{
@@ -333,7 +333,7 @@ ctmaShapeRawData <- function(
   if (length(tmp2) > 0) tmpData <- tmpData[-tmp2, ]
   #head(tmpData)
 
-    # Step 6e - Shift data left if 1st time point is missing (otherwise lags will be not computed correctly later)
+  # Step 6e - Shift data left if 1st time point is missing (otherwise lags will be not computed correctly later)
   tmpData2 <- tmpData
   n.TDpredPerWave <- length(targetInputTDpredNames)/Tpoints; n.TDpredPerWave
   for (t in 1:(Tpoints-1)) {
@@ -357,9 +357,10 @@ ctmaShapeRawData <- function(
   }
   tmpData <- tmpData2
 
-  # Step 6 Experimental: Shift data left if all process variables are missing at a time point (even if time stamp is available)
-  if (experimental == TRUE) {
-    for (tt in 2:(Tpoints-1)) {
+  # Step 6 Shift data left if all process variables are missing at a time point (even if time stamp is available)
+  #if (experimental == TRUE) {
+  if (Tpoints > 2) {
+  for (tt in 2:(Tpoints-1)) {
       for (t in tt:(Tpoints-1)) {
         # which substantive T1 variables are all missing
         tmp2 <- which(is.na(tmpData2[, allOutputVariablesNames[((tt-1)*(n.manifest)+1):((tt-1)*(n.manifest)+n.manifest)]]), arr.ind = TRUE)
@@ -395,8 +396,8 @@ ctmaShapeRawData <- function(
         tmpData2[tmp2, allOutputTimeVariablesNames[(t)]] <- NA
       }
     }
+    tmpData <- tmpData2
   }
-  tmpData <- tmpData2
 
 
   ### Step 6f - Determine possible lags that
@@ -438,7 +439,7 @@ ctmaShapeRawData <- function(
   }
   #tmpDataBackup <- tmpData
   #tmpData <- tmpDataBackup
-  head(tmpData)
+  #head(tmpData)
 
   # Step 7: ctIntervalise: Make time intervals out of time points if not already done.
   tmpData <- ctsem::ctIntervalise(tmpData, Tpoints = Tpoints, n.manifest = n.manifest,
@@ -489,8 +490,6 @@ ctmaShapeRawData <- function(
     }
     #head(tmpData)
   }
-
-
   return(tmpData)
 }
 
