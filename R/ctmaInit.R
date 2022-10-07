@@ -298,11 +298,11 @@ ctmaInit <- function(
                              rawData=primaryStudies$rawData[[i]], pairwiseN=primaryStudies$pairwiseNs[[i]],
                              source=paste(primaryStudies$source[[i]], collapse=", "))
       if (useSV == FALSE) studyList[[i]]$startValues <- NULL
-      # CHD added next line on 30 Sep 2022, changed 7 Oct 2022
+      # CHD added next line on 30 Sep 2022, changed 7 Oct 2022 , see also line 893 & 939
       #if ((useSV == TRUE) & (is.null(studyList[[i]]$startValues)) ) studyList[[i]]$startValues <- NA
       #if ((useSV == TRUE) & (is.na(studyList[[i]]$startValues)) ) studyList[[i]]$startValues <- NULL DOES NOT WORK
       if (is.null(studyList[[i]]$startValues)) studyList[[i]]$startValues <- NA
-      if (is.na(studyList[[i]]$startValues)) studyList[[i]]$startValues <- NULL
+
 
       if (length(primaryStudies$moderators[[i]]) > maxLengthModeratorVector) maxLengthModeratorVector <- length(primaryStudies$moderators[[i]])
       # check matrix symmetry if matrix is provided
@@ -889,10 +889,13 @@ ctmaInit <- function(
 
         # FIT STANCT MODEL
         if (doPar < 2) {
+          # CHD changed 7 Oct 2022
+          if (any(is.na(studyList[[i]]$startValues))) inits <- NULL else inits <- studyList[[i]]$startValues
           results <- suppressMessages(ctsem::ctStanFit(
             datalong = emprawLong[[i]],
             ctstanmodel = currentModel,
-            inits=studyList[[i]]$startValues,
+            #inits=studyList[[i]]$startValues,
+            inits=inits,
             savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
             stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
             iter=CoTiMAStanctArgs$iter,
@@ -932,10 +935,14 @@ ctmaInit <- function(
           #message(Msg)
 
           allfits <- foreach::foreach(p=1:doPar) %dopar% {
+            # CHD changed 7 Oct 2022
+            if (any(is.na(studyList[[i]]$startValues))) inits <- NULL else inits <- studyList[[i]]$startValues
+
             fits <- suppressMessages(ctsem::ctStanFit(
               datalong = emprawLong[[i]],
               ctstanmodel = currentModel,
-              inits=studyList[[i]]$startValues,
+              #inits=studyList[[i]]$startValues,
+              inits=inits,
               savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
               stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
               iter=CoTiMAStanctArgs$iter,
