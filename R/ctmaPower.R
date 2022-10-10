@@ -639,7 +639,7 @@ ctmaPower <- function(
       #
     }
   }
-  pValues
+  #pValues
 
   Msg <- "################################################################################# \n# Compute min and max discrete time intervals for which effects are significant # \n#################################################################################"
   message(Msg)
@@ -903,7 +903,9 @@ ctmaPower <- function(
   minN <- (apply(requiredSampleSizes, 2, min, na.rm=TRUE)); minN
   optimalCrossLagN <- c()
   for (h in 1:(dim(requiredSampleSizes)[2])) optimalCrossLagN[h] <- mean(which(requiredSampleSizes[ ,h ] == minN[h]))
-  optimalCrossLagN <- optimalCrossLagN*stepWidth; optimalCrossLagN
+  # CHD next line replace by line below 10. OCT 2022
+  #optimalCrossLagN <- optimalCrossLagN*stepWidth; optimalCrossLagN
+  optimalCrossLagN <- as.numeric(rownames(requiredSampleSizes))[round(optimalCrossLagN-.4, 0)]
   requiredSampleSizes <- rbind(requiredSampleSizes, minN, optimalCrossLagN)
   rownames(requiredSampleSizes) <- rowNames
   tmp1 <- grep("Power", colnames(requiredSampleSizes)); tmp1
