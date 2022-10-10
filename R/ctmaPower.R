@@ -27,6 +27,8 @@
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 #' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
+#' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
+
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
@@ -87,7 +89,8 @@ ctmaPower <- function(
   iter=NULL,
   chains=NULL,
   verbose=NULL,
-  customPar=TRUE
+  customPar=FALSE,
+  scaleTime=NULL
 )
 
 {  # begin function definition (until end of file)
@@ -95,6 +98,14 @@ ctmaPower <- function(
   { ### CHECKS
 
     { # fitting params
+
+      # Added 10. Oct 2022 (17. Aug 2022 in Init fit similar)
+      tmp1 <- names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs); tmp1
+      tmp2 <- CoTiMA::CoTiMAStanctArgs
+      if (!(is.null(CoTiMAStanctArgs))) tmp2[tmp1] <- CoTiMAStanctArgs
+      CoTiMAStanctArgs <- tmp2
+
+      if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
       if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
       if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples

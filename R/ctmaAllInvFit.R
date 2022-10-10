@@ -68,6 +68,12 @@ ctmaAllInvFit <- function(
   }
 
   { # fitting params
+    # Added 10. Oct 2022 (17. Aug 2022 in Init fit similar)
+    tmp1 <- names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs); tmp1
+    tmp2 <- CoTiMA::CoTiMAStanctArgs
+    if (!(is.null(CoTiMAStanctArgs))) tmp2[tmp1] <- CoTiMAStanctArgs
+    CoTiMAStanctArgs <- tmp2
+
     if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
     if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
     if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
@@ -134,7 +140,7 @@ ctmaAllInvFit <- function(
       dataTmp <- cbind(dataTmp, tmp); dim(dataTmp)
       tmp <- which(dataTmp[,"groups"] == i); tmp
       dataTmp[tmp, ncol(dataTmp)] <- 1
-      if (CoTiMAStanctArgs$scaleTI == TRUE) dataTmp[ , ncol(dataTmp)] <- scale(dataTmp[ , ncol(dataTmp)])
+      #if (CoTiMAStanctArgs$scaleTI == TRUE) dataTmp[ , ncol(dataTmp)] <- scale(dataTmp[ , ncol(dataTmp)]) # CHD 10 Oct 2022 not necessary in AllInv Model
     }
     targetCols <- which(colnames(dataTmp) == "groups"); targetCols
     dataTmp <- dataTmp[ ,-targetCols]
