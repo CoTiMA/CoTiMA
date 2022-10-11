@@ -689,6 +689,7 @@ ctmaPlot <- function(
       dotPlotPairs <- list() # study symbol and (scaled) time point
 
       for (g in 1:n.fitted.obj) {
+        # g <- 1
         if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
         #toPlot
         plotPairs[[g]] <- array(dim=c(toPlot, length(usedTimeRange), 1+n.latent[[g]]^2))
@@ -706,16 +707,19 @@ ctmaPlot <- function(
             timeValue <- usedTimeRange[stepCounter]; timeValue
             plotPairs[[g]][h,stepCounter,1] <- timeValue; plotPairs[[g]][h,stepCounter,1]
             for (j in 1:(n.latent[[g]]^2)) {
-              #j
+              #j <- 1
               plotPairs[[g]][h,stepCounter,(1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
               if (toPlot == 1) {
                 tmp <- round(meanDelta[[1]],0)
               } else {
                 if (exists("delta_t")) {
-                  #delta_t
-                  #exists("delta_t")
-                  if (!(is.null(delta_t))) {
-                  tmp <- delta_t[h]
+                  # CHD next line replaced by following two on 11 Oct 2022
+                  #if (!(is.null(delta_t))) {
+                  if (!(is.null(delta_t[h]))) {
+                    if (!(is.na(delta_t[h])))  {
+                    tmp <- delta_t[h]
+                    #tmp
+                    }
                   } else {
                     tmp <- mean(ctmaFitObject[[g]]$studyList[[h]]$delta_t)
                     if (undoTimeScaling == FALSE) {
