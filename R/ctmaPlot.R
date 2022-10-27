@@ -885,7 +885,8 @@ ctmaPlot <- function(
 
             # plot y-axis
             graphics::par(new=T)
-            plot(c(0,0), type="l", col="white", lwd=1.5, xlim = c(xMin, xMax), ylim = c(yMinCross, yMaxCross), xaxt='n', ann=FALSE, las=1)
+            # CHD c(yMinCross, yMaxCross) changed to c(yMinAuto, yMaxAuto),
+            plot(c(0,0), type="l", col="white", lwd=1.5, xlim = c(xMin, xMax), ylim = c(yMinAuto, yMaxAuto), xaxt='n', ann=FALSE, las=1)
 
             xLabels <- xLabelsBckup; xLabels
             if (is.null(xLabels)) xLabels <- round(seq(round(xMin,2), round((max(usedTimeRange+.4)),2), 1), 2); xLabels
