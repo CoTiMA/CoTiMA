@@ -340,6 +340,7 @@ ctmaShapeRawData <- function(
 
   # Intermediate Step: delete cases for which conditions min.val.n.Vars and  min.val.Tpoints are not met
   # min.val.n.Vars
+  #head(tmpData, 40)
   tmp1 <- apply(tmpData[, allOutputVariablesNames], 1, function(x) sum(!(is.na(x))))
   tmp2 <- which(tmp1 < min.val.n.Vars)
   if(length(tmp2) > 0 ) tmpData <- tmpData[-tmp2, ]
@@ -348,9 +349,10 @@ ctmaShapeRawData <- function(
   for (i in 0:(Tpoints-1)) {
     tmp1 <- grep(paste0("T", i), colnames(tmpData))
     tmp2 <- apply(tmpData[, tmp1], 1, function(x) sum(!(is.na(x))))
-    tmp3 <- which(tmp2 < min.val.Tpoints)
+    tmp3 <- which(tmp2 == 0)
     validTpoints[tmp3, i+1] <- 0
   }
+  #head(validTpoints, 40)
   tmp1 <- apply(validTpoints, 1, function(x) sum(x))
   tmp2 <- which(tmp1 < min.val.Tpoints)
   if(length(tmp2) > 0 ) tmpData <- tmpData[-tmp2, ]
