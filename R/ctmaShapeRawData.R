@@ -25,6 +25,8 @@
 #' @param minTolDelta Set, e.g. to 1/24, to delete variables from time points that are too close (1hr; or even before) after another time point.
 #' @param maxTolDelta Set, e.g., to 7, to delete variables from time points that are too far after another time point (e.g., 7 days, if all cases should have responed within a week)
 #' @param negTolDelta FALSE (default) or TRUE. Delete entire cases that have at least one negative delta ('unreliable responding'; use minTolDelta to delete certain variables only)
+#' @param min.val.n.Vars default = 1. Minimum no. of valid variables per Tpoint. Default = 1 (retaines cases with only 1 valid variable), 0 would retain cases will all variables missing (not very useful).
+#' @param min.val.Tpoints default = 1. Minimum no. of valid Tpoints (i.e. Tpoints where min.val.n.Var.per.Tpoint is met), default = 1 retains cases with full set of valid variables at least at one single Tpoint; 2 or more retains cases which provide longitudinal information.
 #' @param experimental FALSE (default) or TRUE. Deprecated. (Was: Shift data left if all process variables are missing at a time point (even if time stamp is available)
 #'
 #' @examples
@@ -88,6 +90,9 @@ ctmaShapeRawData <- function(
     maxTolDelta=NULL,
     negTolDelta=FALSE,
 
+    min.val.n.Vars=1,
+    min.val.Tpoints=1,
+
     experimental=FALSE
 ) {
   # some checks
@@ -144,10 +149,17 @@ ctmaShapeRawData <- function(
       message(Msg)
     }
 
+    #if (!(is.null(minTolDelta))) {
+    #  Msg <- paste0("Note: The shortest tolerated Delta is ", minTolDelta, ". A subsequent time point closer to the preceeding one (afte possible time scaling) than ", minTolDelta," will be deleted. \n" )
+    #  message(Msg)
+    #}
     if (!(is.null(minTolDelta))) {
-      Msg <- paste0("Note: The shortest tolerated Delta is ", minTolDelta, ". A subsequent time point closer to the preceeding one (afte possible time scaling) than ", minTolDelta," will be deleted. \n" )
+      Msg <- paste0("Note: The shortest tolerated delta is ", minTolDelta, ". A subsequent time point closer to the preceeding one (afte possible time scaling) than ", minTolDelta," will be deleted. \n" )
       message(Msg)
+    } else {
+      minTolDelta = mininterval*2 # just slightly above the missing indicator
     }
+
 
     if (!(is.null(maxTolDelta))) {
       Msg <- paste0("Note: The longest tolerated Delta is ", maxTolDelta, ". All (!) subsequent time points (after possible time scaling) after T0 with an intervall larger than ", maxTolDelta," will be deleted. \n" )
@@ -276,8 +288,18 @@ ctmaShapeRawData <- function(
   }
 
   tmpData <- tmpData[, c(targetInputVariablesNames, targetInputTDpredNames, targetTimeVariablesNames, targetInputTIpredNames)]
+  if (inputTimeFormat == "delta") {
+    dT0 <- data.frame(matrix(0, ncol=1, nrow=dim(tmpData)[1]))
+    colnames(dT0) <- "dT0"
+    tmpData <- cbind(tmpData[, c(targetInputVariablesNames, targetInputTDpredNames)],
+                     dT0,
+                     tmpData[, c(targetTimeVariablesNames, targetInputTIpredNames)])
+  }
   colnames(tmpData) <- c(allOutputVariablesNames, outputTDpredNames, allOutputTimeVariablesNames, outputTIpredNames)
   #head(tmpData)
+  #tmpData2 <- tmpData
+  #tmpData <- tmpData2
+  #head(tmpData2)
 
   #### Step 5b (make time out of delta if necessary)
   if (inputTimeFormat == "delta") {
@@ -285,17 +307,22 @@ ctmaShapeRawData <- function(
       ErrorMsg <- "\nYou specified time to be provided as time lags (deltas). The number of \"targetTimeVariablesNames\" provided exceeds the time lags in the data set! \nGood luck for the next try!"
       stop(ErrorMsg)
     }
-    tmp1 <- tmpData[, c(allOutputVariablesNames, allOutputTimeVariablesNames)]
-    tmp2 <- matrix(0, nrow=dim(tmpData)[1], ncol=1)
-    colnames(tmp2) <- paste0("time", Tpoints); head(tmp2)
-    tmp3 <- tmpData[, c(outputTDpredNames, outputTIpredNames)]; head(tmp3)
-    tmpData <- data.frame(cbind(tmp1, tmp2, tmp3))
-    tmpData$T0 <- 0
+    #tmp1 <- tmpData[, c(allOutputVariablesNames, allOutputTimeVariablesNames)]
+    #tmp2 <- matrix(0, nrow=dim(tmpData)[1], ncol=1)
+    #colnames(tmp2) <- paste0("time", Tpoints); head(tmp2)
+    #tmp3 <- tmpData[, c(outputTDpredNames, outputTIpredNames)]; head(tmp3)
+    #tmpData <- data.frame(cbind(tmp1, tmp2, tmp3))
+    #tmpData$T0 <- 0
     for (i in 1:(Tpoints-1)) {
-      tmpData[, paste0("time", i)] <- tmpData[ , paste0("time", i-1)]+tmpData[ , paste0("time", i)]
-    }
+      tmp1 <- tmpData[, paste0("time", i)] == mininterval
+      tmpData[, paste0("time", i)] <- tmpData[ , paste0("time", i-1)] + tmpData[ , paste0("time", i)]
+      tmpData[tmp1, paste0("time", i)] <- 0
+      }
     allOutputTimeVariablesNames <- colnames(tmpData)[grep("time", colnames(tmpData))]; allOutputTimeVariablesNames
+    tmp1 <- which(tmpData[, allOutputTimeVariablesNames[-1]] == 0, arr.ind = TRUE)
+    tmpData[, allOutputTimeVariablesNames[-1]][tmp1] <- NA
   }
+  #head(tmpData)
 
   # check
   if ( length(grep("time", colnames(tmpData)[c(allOutputVariablesNames, outputTDpredNames, outputTIpredNames)])) > 0) {
@@ -322,9 +349,11 @@ ctmaShapeRawData <- function(
   #head(tmpData)
 
   # Step 6c - Delete all cases where all time stamps are missing
-  tmp1 <- apply(tmpData[, allOutputTimeVariablesNames], 1, sum, na.rm=TRUE)
-  tmp2 <- which(tmp1 == 0)
-  if (length(tmp2) > 0) tmpData <- tmpData[-tmp2, ]
+  if (inputTimeFormat == "time") { # if it is "delta" there should be at lease one time point
+    tmp1 <- apply(tmpData[, allOutputTimeVariablesNames], 1, sum, na.rm=TRUE)
+    tmp2 <- which(tmp1 == 0)
+    if (length(tmp2) > 0) tmpData <- tmpData[-tmp2, ]
+  }
   #head(tmpData)
 
   # Step 6d - Delete all cases where all process variables are missing
@@ -332,6 +361,17 @@ ctmaShapeRawData <- function(
   tmp2 <- which(tmp1 == 0)
   if (length(tmp2) > 0) tmpData <- tmpData[-tmp2, ]
   #head(tmpData)
+
+  # Intermediate Step: delete cases for which conditions min.val.n.Vars and  min.val.Tpoints are not met
+  # min.val.n.Vars
+  tmp1 <- apply(tmpData[, allOutputVariablesNames], 1, function(x) sum(!(is.na(x))))
+  tmp2 <- which(tmp1 < min.val.n.Vars)
+  if(length(tmp2) > 0 ) tmpData <- tmpData[-tmp2, ]
+  # min.val.Tpoints
+  allOutputTimeVariablesNames
+  tmp1 <- apply(tmpData[, allOutputTimeVariablesNames], 1, function(x) sum(!(is.na(x))))
+  tmp2 <- which(tmp1 < min.val.Tpoints)
+  if(length(tmp2) > 0 ) tmpData <- tmpData[-tmp2, ]
 
   # Step 6e - Shift data left if 1st time point is missing (otherwise lags will be not computed correctly later)
   tmpData2 <- tmpData
@@ -398,7 +438,7 @@ ctmaShapeRawData <- function(
     }
     tmpData <- tmpData2
   }
-
+  #head(tmpData)
 
   ### Step 6f - Determine possible lags that
   # - are longer than maxTolDelta
@@ -493,3 +533,4 @@ ctmaShapeRawData <- function(
   return(tmpData)
 }
 
+head(tmpData)
