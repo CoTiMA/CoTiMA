@@ -149,10 +149,6 @@ ctmaShapeRawData <- function(
       message(Msg)
     }
 
-    #if (!(is.null(minTolDelta))) {
-    #  Msg <- paste0("Note: The shortest tolerated Delta is ", minTolDelta, ". A subsequent time point closer to the preceeding one (afte possible time scaling) than ", minTolDelta," will be deleted. \n" )
-    #  message(Msg)
-    #}
     if (!(is.null(minTolDelta))) {
       Msg <- paste0("Note: The shortest tolerated delta is ", minTolDelta, ". A subsequent time point closer to the preceeding one (afte possible time scaling) than ", minTolDelta," will be deleted. \n" )
       message(Msg)
@@ -203,7 +199,6 @@ ctmaShapeRawData <- function(
 
     tmp1 <- length(outputVariablesNames); tmp1
     if (tmp1 < n.manifest) {tmp1 <- rep(outputVariablesNames, n.manifest) } else {tmp1 <- outputVariablesNames}
-    #if (all(tmp1 == tmp1[1])) tmp1 <- paste0(tmp1, seq(1,length(tmp1),1))
     if (all(tmp1 == tmp1[1])) tmp1 <- paste0(tmp1[1], seq(1,length(tmp1),1))
     tmp2 <- rep("_T", 4); tmp2
     tmp3 <- paste0(tmp1, paste0(tmp2, c(0,0,1,1))); tmp3
@@ -234,7 +229,6 @@ ctmaShapeRawData <- function(
   #c(targetInputVariablesNames,  targetInputTDpredNames, targetTimeVariablesNames, targetInputTIpredNames)
   tmp1 <- c(targetInputVariablesNames,  targetInputTDpredNames, targetTimeVariablesNames, targetInputTIpredNames); tmp1
   tmpData <- tmpData[, tmp1]
-  #head(tmpData)
 
 
   # Step 5 (Rename & re-arrange variables: X_T0, Y_T0, X_T1, Y_T1, ... time1, time2, ...)
@@ -242,9 +236,6 @@ ctmaShapeRawData <- function(
   if (tmp1 < n.manifest) {tmp1 <- rep(outputVariablesNames, n.manifest) } else {tmp1 <- outputVariablesNames}
   if (all(tmp1 == tmp1[1])) tmp1 <- paste0(tmp1[1], seq(1,length(tmp1),1))
   newOutputVariablesNames <- tmp1; newOutputVariablesNames
-  #if (length(tmp1) == 1) {
-  #  tmp1 <- paste0(outputVariablesNames, seq(1, n.manifest, 1)); tmp1
-  #}
   tmp2 <- sort(rep(seq(1, Tpoints, 1)-1, n.manifest)); tmp2
   allOutputVariablesNames <- paste0(tmp1, "_T", tmp2); allOutputVariablesNames
   # TD preds
@@ -296,10 +287,6 @@ ctmaShapeRawData <- function(
                      tmpData[, c(targetTimeVariablesNames, targetInputTIpredNames)])
   }
   colnames(tmpData) <- c(allOutputVariablesNames, outputTDpredNames, allOutputTimeVariablesNames, outputTIpredNames)
-  #head(tmpData)
-  #tmpData2 <- tmpData
-  #tmpData <- tmpData2
-  #head(tmpData2)
 
   #### Step 5b (make time out of delta if necessary)
   if (inputTimeFormat == "delta") {
@@ -307,12 +294,6 @@ ctmaShapeRawData <- function(
       ErrorMsg <- "\nYou specified time to be provided as time lags (deltas). The number of \"targetTimeVariablesNames\" provided exceeds the time lags in the data set! \nGood luck for the next try!"
       stop(ErrorMsg)
     }
-    #tmp1 <- tmpData[, c(allOutputVariablesNames, allOutputTimeVariablesNames)]
-    #tmp2 <- matrix(0, nrow=dim(tmpData)[1], ncol=1)
-    #colnames(tmp2) <- paste0("time", Tpoints); head(tmp2)
-    #tmp3 <- tmpData[, c(outputTDpredNames, outputTIpredNames)]; head(tmp3)
-    #tmpData <- data.frame(cbind(tmp1, tmp2, tmp3))
-    #tmpData$T0 <- 0
     for (i in 1:(Tpoints-1)) {
       tmp1 <- tmpData[, paste0("time", i)] == mininterval
       tmpData[, paste0("time", i)] <- tmpData[ , paste0("time", i-1)] + tmpData[ , paste0("time", i)]
@@ -322,7 +303,6 @@ ctmaShapeRawData <- function(
     tmp1 <- which(tmpData[, allOutputTimeVariablesNames[-1]] == 0, arr.ind = TRUE)
     tmpData[, allOutputTimeVariablesNames[-1]][tmp1] <- NA
   }
-  #head(tmpData)
 
   # check
   if ( length(grep("time", colnames(tmpData)[c(allOutputVariablesNames, outputTDpredNames, outputTIpredNames)])) > 0) {
@@ -342,11 +322,9 @@ ctmaShapeRawData <- function(
     tmp2 <- grep(paste0("T", counter), allOutputVariablesNames); tmp2
     tmpData[tmp1, allOutputVariablesNames[tmp2]] <- NA
   }
-  #head(tmpData)
 
   # Step 6b -  Scale time intervals
   tmpData[ , allOutputTimeVariablesNames] <- tmpData[ , allOutputTimeVariablesNames] * scaleTime
-  #head(tmpData)
 
   # Step 6c - Delete all cases where all time stamps are missing
   if (inputTimeFormat == "time") { # if it is "delta" there should be at lease one time point
@@ -354,13 +332,11 @@ ctmaShapeRawData <- function(
     tmp2 <- which(tmp1 == 0)
     if (length(tmp2) > 0) tmpData <- tmpData[-tmp2, ]
   }
-  #head(tmpData)
 
   # Step 6d - Delete all cases where all process variables are missing
   tmp1 <- apply(tmpData[, allOutputVariablesNames], 1, sum, na.rm=TRUE)
   tmp2 <- which(tmp1 == 0)
   if (length(tmp2) > 0) tmpData <- tmpData[-tmp2, ]
-  #head(tmpData)
 
   # Intermediate Step: delete cases for which conditions min.val.n.Vars and  min.val.Tpoints are not met
   # min.val.n.Vars
@@ -422,12 +398,6 @@ ctmaShapeRawData <- function(
         tmpData2[tmp2, allOutputTimeVariablesNames[(Tpoints)]] <- NA
       }
 
-      ## final correction (required if all all but Time0 is missing)
-      #tmp2 <- which(is.na(tmpData2[, allOutputVariablesNames[(n.manifest+1):(n.manifest+n.manifest)]]), arr.ind = TRUE)
-      #tmp2 <- which(table(tmp2[, 1]) == n.manifest)
-      #tmp2 <- as.numeric(names(tmp2)); tmp2
-      #tmpData2[tmp2, allOutputTimeVariablesNames[2]] <- NA
-
       # delete time stamps and TDpreds if process variables are missing
       for (t in tt:(Tpoints-0)) {
         tmp2 <- which(is.na(tmpData2[, allOutputVariablesNames[((t-1)*n.manifest+1):(t*n.manifest)]]), arr.ind = TRUE)
@@ -477,9 +447,6 @@ ctmaShapeRawData <- function(
       }
     }
   }
-  #tmpDataBackup <- tmpData
-  #tmpData <- tmpDataBackup
-  #head(tmpData)
 
   # Step 7: ctIntervalise: Make time intervals out of time points if not already done.
   tmpData <- ctsem::ctIntervalise(tmpData, Tpoints = Tpoints, n.manifest = n.manifest,
@@ -495,18 +462,11 @@ ctmaShapeRawData <- function(
                                        manifestNames =  newOutputVariablesNames,
                                        TDpredNames = generalTDpredNames, TIpredNames = outputTIpredNames)
     tmpDataLong <- data.frame(tmpDataLong)
-    #head(tmpDataLong)
-
-    #### Step 10 - (Round time intervals to reasonable fine-graded but not overly graded values )
 
     # Step 11 (ctsem::ctDeintervalise:)
     if (outputTimeFormat == "time") {
       tmpData <- ctsem::ctDeintervalise(tmpDataLong)
     }
-    #head(tmpData)
-
-    # Step 12 (delete Tpoints with all process variables missing)
-
   }
 
 
@@ -528,9 +488,6 @@ ctmaShapeRawData <- function(
                                  TIpredNames = outputTIpredNames)
       }
     }
-    #head(tmpData)
   }
   return(tmpData)
 }
-
-head(tmpData)
