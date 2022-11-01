@@ -348,7 +348,7 @@ ctmaShapeRawData <- function(
   for (i in 0:(Tpoints-1)) {
     tmp1 <- grep(paste0("T", i), colnames(tmpData))
     tmp2 <- apply(tmpData[, tmp1], 1, function(x) sum(!(is.na(x))))
-    tmp3 <- which(tmp2 == 0)
+    tmp3 <- which(tmp2 < min.val.Tpoints)
     validTpoints[tmp3, i+1] <- 0
   }
   tmp1 <- apply(validTpoints, 1, function(x) sum(x))
