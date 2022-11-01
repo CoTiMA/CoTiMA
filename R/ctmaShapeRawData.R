@@ -344,10 +344,17 @@ ctmaShapeRawData <- function(
   tmp2 <- which(tmp1 < min.val.n.Vars)
   if(length(tmp2) > 0 ) tmpData <- tmpData[-tmp2, ]
   # min.val.Tpoints
-  allOutputTimeVariablesNames
-  tmp1 <- apply(tmpData[, allOutputTimeVariablesNames], 1, function(x) sum(!(is.na(x))))
+  validTpoints <- matrix(1, nrow=nrow(tmpData), ncol=Tpoints)
+  for (i in 0:(Tpoints-1)) {
+    tmp1 <- grep(paste0("T", i), colnames(tmpData))
+    tmp2 <- apply(tmpData[, tmp1], 1, function(x) sum(!(is.na(x))))
+    tmp3 <- which(tmp2 == 0)
+    validTpoints[tmp3, i+1] <- 0
+  }
+  tmp1 <- apply(validTpoints, 1, function(x) sum(x))
   tmp2 <- which(tmp1 < min.val.Tpoints)
   if(length(tmp2) > 0 ) tmpData <- tmpData[-tmp2, ]
+
 
   # Step 6e - Shift data left if 1st time point is missing (otherwise lags will be not computed correctly later)
   tmpData2 <- tmpData
