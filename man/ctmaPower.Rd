@@ -29,7 +29,8 @@ ctmaPower(
   iter = NULL,
   chains = NULL,
   verbose = NULL,
-  customPar = TRUE
+  customPar = FALSE,
+  scaleTime = NULL
 )
 }
 \arguments{
@@ -82,6 +83,8 @@ ctmaPower(
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
 
 \item{customPar}{logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
+
+\item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
 }
 \value{
 ctmaPower returns a list containing some arguments supplied, a fitted model with all (!) parameters invariant across primary

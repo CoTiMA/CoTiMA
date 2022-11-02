@@ -8,7 +8,7 @@ ctmaLabels(
   n.latent = NULL,
   n.manifest = 0,
   lambda = NULL,
-  manifestVar = NULL,
+  manifestVars = NULL,
   drift = NULL,
   diff = NULL,
   invariantDrift = NULL,
@@ -25,7 +25,7 @@ ctmaLabels(
 
 \item{lambda}{lambda}
 
-\item{manifestVar}{manifestVar}
+\item{manifestVars}{manifestVar}
 
 \item{drift}{drift}
 

@@ -13,6 +13,7 @@ ctmaOptimizeFit(
   n.latent = NULL,
   coresToUse = c(1),
   indVarying = FALSE,
+  scaleTime = NULL,
   randomScaleTime = c(1, 1),
   activateRPB = FALSE,
   checkSingleStudyResults = FALSE,
@@ -22,7 +23,10 @@ ctmaOptimizeFit(
   CoTiMAStanctArgs = NULL,
   CoTiMAFit = NULL,
   CoTiMAInitFit = NULL,
-  randomPar = FALSE
+  randomPar = FALSE,
+  posLL = TRUE,
+  lambda = NULL,
+  manifestVars = NULL
 )
 }
 \arguments{
@@ -42,6 +46,8 @@ ctmaOptimizeFit(
 
 \item{indVarying}{control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
 
+\item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
+
 \item{randomScaleTime}{lower and upper limit of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)}
 
 \item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
@@ -60,7 +66,13 @@ ctmaOptimizeFit(
 
 \item{CoTiMAInitFit}{the ctmaInitFit object that was used to create the CoTiMAFit object with \code{\link{ctmaFit}}}
 
-\item{randomPar}{logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE
+\item{randomPar}{logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE}
+
+\item{posLL}{logical. Allows (default = TRUE) of positive loglik (neg -2ll) values}
+
+\item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
+
+\item{manifestVars}{define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
 Useful to check estimates before they are saved.}
 }
 \value{

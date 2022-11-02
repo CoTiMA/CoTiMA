@@ -19,7 +19,8 @@ ctmaOptimizeInit(
   customPar = FALSE,
   T0means = 0,
   manifestMeans = 0,
-  CoTiMAStanctArgs = NULL
+  CoTiMAStanctArgs = NULL,
+  scaleTime = NULL
 )
 }
 \arguments{
@@ -53,6 +54,10 @@ Useful to check estimates before they are saved.}
 \item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 
 \item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
+
+\item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
+
+\item{manifestVars}{define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
 }
 \value{
 returns a list with bestFit (= the best fit achieved), all_minus2ll (= all -2ll values for all fitted models), and summary, which

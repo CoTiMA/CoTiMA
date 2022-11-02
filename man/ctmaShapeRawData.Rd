@@ -27,7 +27,10 @@ ctmaShapeRawData(
   mininterval = 1e-04,
   minTolDelta = NULL,
   maxTolDelta = NULL,
-  negTolDelta = FALSE
+  negTolDelta = FALSE,
+  min.val.n.Vars = 1,
+  min.val.Tpoints = 1,
+  experimental = FALSE
 )
 }
 \arguments{
@@ -76,6 +79,12 @@ ctmaShapeRawData(
 \item{maxTolDelta}{Set, e.g., to 7, to delete variables from time points that are too far after another time point (e.g., 7 days, if all cases should have responed within a week)}
 
 \item{negTolDelta}{FALSE (default) or TRUE. Delete entire cases that have at least one negative delta ('unreliable responding'; use minTolDelta to delete certain variables only)}
+
+\item{min.val.n.Vars}{default = 1. Minimum no. of valid variables per Tpoint. Default = 1 (retaines cases with only 1 valid variable), 0 would retain cases will all variables missing (not very useful).}
+
+\item{min.val.Tpoints}{default = 1. Minimum no. of valid Tpoints (i.e. Tpoints where min.val.n.Var.per.Tpoint is met), default = 1 retains cases with full set of valid variables at least at one single Tpoint; 2 or more retains cases which provide longitudinal information.}
+
+\item{experimental}{FALSE (default) or TRUE. Deprecated. (Was: Shift data left if all process variables are missing at a time point (even if time stamp is available)}
 }
 \value{
 A reshaped raw data file

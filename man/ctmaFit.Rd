@@ -40,7 +40,9 @@ ctmaFit(
   useSampleFraction = NULL,
   T0means = 0,
   manifestMeans = 0,
-  CoTiMAStanctArgs = NULL
+  CoTiMAStanctArgs = NULL,
+  lambda = NULL,
+  manifestVars = NULL
 )
 }
 \arguments{
@@ -115,6 +117,10 @@ ctmaFit(
 \item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 
 \item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
+
+\item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
+
+\item{manifestVars}{define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
 }
 \value{
 ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,

@@ -23,7 +23,12 @@ ctmaAllInvFit(
   loadAllInvFit = c(),
   saveAllInvFit = c(),
   silentOverwrite = FALSE,
-  customPar = TRUE
+  customPar = FALSE,
+  T0means = 0,
+  manifestMeans = 0,
+  CoTiMAStanctArgs = NULL,
+  lambda = NULL,
+  manifestVars = NULL
 )
 }
 \arguments{
@@ -64,6 +69,16 @@ ctmaAllInvFit(
 \item{silentOverwrite}{silentOverwrite}
 
 \item{customPar}{logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
+
+\item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
+\item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
+\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
+
+\item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
+
+\item{manifestVars}{define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
 }
 \value{
 returns a fitted CoTiMA object, in which all drift parameters, Time 0 variances and covariances, and diffusion parameters were set invariant across primary studies
