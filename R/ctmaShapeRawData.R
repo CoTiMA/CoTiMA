@@ -97,6 +97,12 @@ ctmaShapeRawData <- function(
 ) {
   # some checks
   {
+
+    if (!(inputDataFrameFormat %in% c("wide", "long"))) {
+      ErrorMsg <- "\nThe argument \"inputDataFrameFormat\" should be either \"wide\" or \"long\"! \nGood luck for the next try!"
+      stop(ErrorMsg)
+    }
+
     if (is.null(n.manifest)) {
       ErrorMsg <- "\nThe number of manifest variables has to be specified! \nGood luck for the next try!"
       stop(ErrorMsg)
@@ -218,6 +224,11 @@ ctmaShapeRawData <- function(
 
   ### Step 2 - (Transpose data into wide format if they are in long format)
   {
+    if (inputDataFrameFormat == "long") {
+      ErrorMsg <- "\nUnfortunetaly, long format data as input is not yet implemented. Consider using the function ctLongToWide to make wide format data frame! \nGood luck for the next try!"
+      stop(ErrorMsg)
+      }
+    }
   }
 
   ### Step 2b - (re-)label variables
