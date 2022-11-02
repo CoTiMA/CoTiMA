@@ -227,7 +227,6 @@ ctmaShapeRawData <- function(
     if (inputDataFrameFormat == "long") {
       ErrorMsg <- "\nUnfortunetaly, long format data as input is not yet implemented. Consider using the function ctLongToWide to make wide format data frame! \nGood luck for the next try!"
       stop(ErrorMsg)
-      }
     }
   }
 
@@ -491,8 +490,8 @@ ctmaShapeRawData <- function(
 
 
   ### make wide if required
-  skip <- 0
-  if (skip == 1) {
+  #skip <- 0
+  #if (skip == 1) {
     if (outputDataFrameFormat == "wide") {
       tmpData <- ctsem::ctLongToWide(datalong = tmpData, id = "id", time = "time",
                                      manifestNames =  newOutputVariablesNames,
@@ -508,6 +507,6 @@ ctmaShapeRawData <- function(
                                  TIpredNames = outputTIpredNames)
       }
     }
-  }
+  #}
   return(tmpData)
 }
