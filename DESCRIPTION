@@ -43,4 +43,4 @@ Imports:
     MASS
 Suggests: R.rsp
 VignetteBuilder: R.rsp
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1
