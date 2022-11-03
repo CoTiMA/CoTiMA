@@ -98,6 +98,11 @@ ctmaShapeRawData <- function(
   # some checks
   {
 
+    if (!(outputTimeVariablesNames %in% c("time", "dT"))) {
+      ErrorMsg <- "\nThe argument \"outputTimeVariablesNames\" is currently limited to either \"time\" or \"dT\"! \nGood luck for the next try!"
+      stop(ErrorMsg)
+    }
+
     if (!(inputDataFrameFormat %in% c("wide", "long"))) {
       ErrorMsg <- "\nThe argument \"inputDataFrameFormat\" should be either \"wide\" or \"long\"! \nGood luck for the next try!"
       stop(ErrorMsg)
@@ -221,6 +226,7 @@ ctmaShapeRawData <- function(
     tmp1 <- which(tmpData == missingValues, arr.ind = TRUE); tmp1
     tmpData[tmp1] <- NA
   }
+  #head(tmpData)
 
   ### Step 2 - (Transpose data into wide format if they are in long format)
   {
@@ -239,6 +245,7 @@ ctmaShapeRawData <- function(
   #c(targetInputVariablesNames,  targetInputTDpredNames, targetTimeVariablesNames, targetInputTIpredNames)
   tmp1 <- c(targetInputVariablesNames,  targetInputTDpredNames, targetTimeVariablesNames, targetInputTIpredNames); tmp1
   tmpData <- tmpData[, tmp1]
+  #head(tmpData)
 
 
   # Step 5 (Rename & re-arrange variables: X_T0, Y_T0, X_T1, Y_T1, ... time1, time2, ...)
@@ -289,6 +296,7 @@ ctmaShapeRawData <- function(
   }
 
   tmpData <- tmpData[, c(targetInputVariablesNames, targetInputTDpredNames, targetTimeVariablesNames, targetInputTIpredNames)]
+  #head(tmpData)
   if (inputTimeFormat == "delta") {
     dT0 <- data.frame(matrix(0, ncol=1, nrow=dim(tmpData)[1]))
     colnames(dT0) <- "dT0"
@@ -297,6 +305,7 @@ ctmaShapeRawData <- function(
                      tmpData[, c(targetTimeVariablesNames, targetInputTIpredNames)])
   }
   colnames(tmpData) <- c(allOutputVariablesNames, outputTDpredNames, allOutputTimeVariablesNames, outputTIpredNames)
+  #head(tmpData)
 
   #### Step 5b (make time out of delta if necessary)
   if (inputTimeFormat == "delta") {
@@ -335,6 +344,7 @@ ctmaShapeRawData <- function(
 
   # Step 6b -  Scale time intervals
   tmpData[ , allOutputTimeVariablesNames] <- tmpData[ , allOutputTimeVariablesNames] * scaleTime
+  #head(tmpData)
 
   # Step 6c - Delete all cases where all time stamps are missing
   if (inputTimeFormat == "time") { # if it is "delta" there should be at lease one time point
@@ -349,7 +359,6 @@ ctmaShapeRawData <- function(
   if (length(tmp2) > 0) tmpData <- tmpData[-tmp2, ]
 
   # Intermediate Step: delete cases for which conditions min.val.n.Vars and  min.val.Tpoints are not met
-  # min.val.n.Vars
   #head(tmpData, 40)
   tmp1 <- apply(tmpData[, allOutputVariablesNames], 1, function(x) sum(!(is.na(x))))
   tmp2 <- which(tmp1 < min.val.n.Vars)
@@ -391,6 +400,7 @@ ctmaShapeRawData <- function(
     tmpData2[tmp1, allOutputTimeVariablesNames[Tpoints+1-t]] <- NA
   }
   tmpData <- tmpData2
+  #head(tmpData)
 
   # Step 6 Shift data left if all process variables are missing at a time point (even if time stamp is available)
   #if (experimental == TRUE) {
@@ -467,46 +477,71 @@ ctmaShapeRawData <- function(
     }
   }
 
-  # Step 7: ctIntervalise: Make time intervals out of time points if not already done.
-  tmpData <- ctsem::ctIntervalise(tmpData, Tpoints = Tpoints, n.manifest = n.manifest,
-                                  manifestNames =  newOutputVariablesNames,
-                                  mininterval = minInterval,
-                                  n.TDpred = n.TDpred, n.TIpred = n.TIpred,
-                                  TDpredNames = generalTDpredNames, TIpredNames = outputTIpredNames)
+  #tmpData3 <- tmpData
+  #tmpData <- tmpData3
+  #head(tmpData)
+  if (! ((outputDataFrameFormat == "wide") & (outputTimeFormat == "time")) ) { # do nothing if it is wide and time (except possibly changing time name at the end)
 
-  if ( (!(outputDataFrameFormat == "wide")) & (!(outputTimeFormat == "delta")) ) {
-    # Step 8 (make long format again)
-    tmpDataLong <- ctsem::ctWideToLong(tmpData, Tpoints = Tpoints, n.manifest = n.manifest,
-                                       n.TDpred = n.TDpred, n.TIpred = n.TIpred,
-                                       manifestNames =  newOutputVariablesNames,
-                                       TDpredNames = generalTDpredNames, TIpredNames = outputTIpredNames)
-    tmpDataLong <- data.frame(tmpDataLong)
+    #ctIntervalise requires datawide
+    #ctWideToLong requires datawide
+    #ctDeintervalise requires datalong
 
-    # Step 11 (ctsem::ctDeintervalise:)
-    if (outputTimeFormat == "time") {
-      tmpData <- ctsem::ctDeintervalise(tmpDataLong)
+    tmpData <- ctIntervalise(datawide=tmpData,
+                              Tpoints=Tpoints,
+                              n.manifest=n.manifest,
+                              n.TDpred = n.TDpred,
+                              n.TIpred = n.TIpred,
+                              manifestNames = newOutputVariablesNames,
+                              TDpredNames = generalTDpredNames,
+                              TIpredNames = outputTIpredNames)
+    if (outputDataFrameFormat == "long")  {
+      # without intervalising it does not work correctly
+      tmpData <- ctsem::ctWideToLong(tmpData, Tpoints = Tpoints, n.manifest = n.manifest,
+                                           n.TDpred = n.TDpred, n.TIpred = n.TIpred,
+                                           manifestNames =  newOutputVariablesNames,
+                                           TDpredNames = generalTDpredNames, TIpredNames = outputTIpredNames)
+      tmpData <- data.frame(tmpData)
+      # delete cases where time is missing
+      tmp1 <- which(tmpData$dT == minInterval)
+      if (length(tmp1) > 0) tmpData <- tmpData[-tmp1, ]
+      # delete cases where all process variables are missing )probably not necessary)
+      tmp1 <- apply(tmpData[, outputVariablesNames], 1, function(x) sum(!(is.na(x))))
+      tmp2 <- which(tmp1 == 0)
+      if(length(tmp2) > 0 ) tmpData <- tmpData[-tmp2, ]
     }
-  }
+    #head(tmpData, 30)
 
-
-  ### make wide if required
-  #skip <- 0
-  #if (skip == 1) {
-    if (outputDataFrameFormat == "wide") {
-      tmpData <- ctsem::ctLongToWide(datalong = tmpData, id = "id", time = "time",
-                                     manifestNames =  newOutputVariablesNames,
-                                     TDpredNames = generalTDpredNames, TIpredNames = outputTIpredNames)
-      if (outputTimeFormat == "delta") {
-        tmpData <- ctIntervalise(datawide=tmpData,
-                                 Tpoints=Tpoints,
-                                 n.manifest=n.manifest,
-                                 n.TDpred = n.TDpred,
-                                 n.TIpred = n.TIpred,
-                                 manifestNames = newOutputVariablesNames,
-                                 TDpredNames = generalTDpredNames,
-                                 TIpredNames = outputTIpredNames)
+    #outputTimeFormat
+    if (outputTimeFormat == "time") {
+      allIds <- unique(tmpData$id); allIds
+      for (i in allIds) {
+        #i <- allIds[1]; i
+        currentData <- tmpData[tmpData$id == i,]
+        ##currentData
+        if (length(currentData$dT) > 1) {
+          for (j in 2:length(currentData$dT)) {
+            #j <- (length(currentData$time):2)[1]; j
+            currentData$dT[j] <- currentData$dT[j] + currentData$dT[j-1]
+          }
+        }
+        tmpData[tmpData$id == i,] <- currentData
       }
     }
-  #}
+    #head(tmpData, 30)
+
+
+    } # end   if (!(outputDataFrameFormat == "wide") & (outputTimeFormat == "time"))
+  #head(tmpData)
+
+  # correction of time names
+  if (outputTimeVariablesNames != "time") {
+    tmp1 <- grep("time", colnames(tmpData)); tmp1
+    colnames(tmpData) <- gsub("time", outputTimeVariablesNames, colnames(tmpData))
+  }
+  if (outputTimeVariablesNames == "time") {
+    tmp1 <- grep("dT", colnames(tmpData)); tmp1
+    colnames(tmpData) <- gsub("dT", outputTimeVariablesNames, colnames(tmpData))
+  }
+
   return(tmpData)
 }
