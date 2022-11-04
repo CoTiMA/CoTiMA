@@ -83,8 +83,10 @@ ctmaPlot <- function(
     }
 
     # check #1 if object can be plotted
-    if (class(ctmaFitObject) == "list") testObject <- ctmaFitObject[[1]] else testObject <- ctmaFitObject
-    if (class(testObject) != "CoTiMAFit")  {
+    #if (class(ctmaFitObject) == "list") testObject <- ctmaFitObject[[1]] else testObject <- ctmaFitObject
+    if (is(ctmaFitObject) == "list") testObject <- ctmaFitObject[[1]] else testObject <- ctmaFitObject
+    #if (class(testObject) != "CoTiMAFit")  {
+    if (!(is(testObject, "CoTiMAFit"))) {
       if (activateRPB==TRUE) {
         RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ),
                             paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))
@@ -181,6 +183,9 @@ ctmaPlot <- function(
     mod.values.backup <- mod.values; mod.values.backup
     mod.values <- list()
     n.primary.studies <- c()
+    # CHD added Nov 2022
+    allAvgDeltas <- c()
+
 
     # detect possible categorical moderator values
     for (i in 1:n.fitted.obj) {
@@ -203,12 +208,12 @@ ctmaPlot <- function(
       }
     }
 
+
     for (i in 1:n.fitted.obj) {
       if ("power" %in% plot.type[[i]]) plot.type[[i]] <- c("power", "drift")
       n.latent[i] <- unlist(ctmaFitObject[[i]]$n.latent); n.latent[i]
       driftNames[[i]] <- ctmaFitObject[[i]]$parameterNames$DRIFT; driftNames[[i]]
       n.studies[i] <- ctmaFitObject[[i]]$n.studies; n.studies[i]
-      #length(ctmaFitObject[[1]]$studyList)
 
       study.numbers[[i]] <- unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)); study.numbers[[i]]
       tmp1 <- 0
@@ -262,13 +267,14 @@ ctmaPlot <- function(
       if ("drift" %in% plot.type[[i]]) {
         allDeltas[[i]] <- ctmaFitObject[[i]]$statisticsList$allDeltas; allDeltas[[i]]
         if (undoTimeScaling == FALSE) {
-          #if (!(is.null(ctmaFitObject[[i]]$summary$scaleTime)))  allDeltas[[i]] <- unlist(lapply(allDeltas[[i]], function(x) x * ctmaFitObject[[i]]$summary$scaleTime))
           if (!(is.null(ctmaFitObject[[i]]$summary$scaledTime)))  allDeltas[[i]] <- unlist(lapply(allDeltas[[i]], function(x) x * ctmaFitObject[[i]]$summary$scaledTime))
         }
         maxDelta[i] <- max(allDeltas[[i]], na.rm=TRUE); maxDelta[i]
         minDelta[i] <- min(allDeltas[[i]], na.rm=TRUE); minDelta[i]
         meanDelta[i] <- mean(allDeltas[[i]], na.rm=TRUE); meanDelta[i]
-      }
+        # CHD added 4. Nov 2022
+        allAvgDeltas[[i]] <- unlist(lapply(ctmaFitObject[[i]]$primaryStudyList$deltas, mean))
+        }
 
       if ("power" %in% plot.type[[i]]) {
         requiredSampleSizes[[i]] <- ctmaFitObject[[i]]$summary$estimates$`Required Sample Sizes`
@@ -506,15 +512,21 @@ ctmaPlot <- function(
           stepWidth <- 1
           usedTimeRange <- seq(1, 1.5*round(maxDelta + 1), stepWidth)
           # add empirical lags not yet included in requested timeRage
-          usedTimeRange <- sort(unique(c(usedTimeRange, unlist(allDeltas))))
+          # CHD changed 4 Nov 2022
+          #usedTimeRange <- sort(unique(c(usedTimeRange, unlist(allDeltas))))
+          usedTimeRange <- sort(unique(c(usedTimeRange, unlist(allDeltas), unlist(allAvgDeltas))))
           noOfSteps <- length(usedTimeRange); noOfSteps
         }
-
         if (length(timeRange) > 0) {
           stepWidth <- timeRange[3]
           usedTimeRange <- seq(timeRange[1], timeRange[2], stepWidth)
           # add empirical lags not yet included in requested timeRage
-          tmp1 <- sort(unlist(allDeltas)/stepWidth); tmp1
+          # CHD changed 4 Nov 2022
+          #tmp1 <- sort(unlist(allDeltas)/stepWidth); tmp1
+          tmp1a <- sort(unlist(allDeltas)/stepWidth); tmp1a
+          tmp1b <- sort(unlist(allAvgDeltas)/stepWidth); tmp1a
+          tmp1 <- sort(c(tmp1a, tmp1b))
+          #
           tmp2 <- which(tmp1 >= min(usedTimeRange) & tmp1 <= max(usedTimeRange) ); tmp2
           usedTimeRange <- sort(unique(c(usedTimeRange, tmp1[tmp2])))
           noOfSteps <- length(usedTimeRange); noOfSteps
@@ -609,7 +621,6 @@ ctmaPlot <- function(
               }
               counter <- counter +1
             } # END for (i in mod.values[[g]])
-            #DRIFTCoeff
 
             ## apply tform to drift elements that should be tformed (extracted into tansforms)
             tmp1a <- ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars[, "transform"]; tmp1a
@@ -689,9 +700,8 @@ ctmaPlot <- function(
       dotPlotPairs <- list() # study symbol and (scaled) time point
 
       for (g in 1:n.fitted.obj) {
-        # g <- 1
+        #g <- 1
         if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
-        #toPlot
         plotPairs[[g]] <- array(dim=c(toPlot, length(usedTimeRange), 1+n.latent[[g]]^2))
         dotPlotPairs[[g]] <- array(dim=c(toPlot, length(usedTimeRange), 1+n.latent[[g]]^2))
 
@@ -701,7 +711,7 @@ ctmaPlot <- function(
         }
 
         for (h in 1:toPlot) {
-          #h <- 2
+          #h <- 1
           for (stepCounter in 1:length(usedTimeRange)){
             #stepCounter <-1
             timeValue <- usedTimeRange[stepCounter]; timeValue
@@ -737,12 +747,10 @@ ctmaPlot <- function(
                   }
                 }
               }
-              timeValue
-              tmp
                 if (timeValue == tmp) { # plot only if the (used) time range includes the current study's mean time lag
                   dotPlotPairs[[g]][h, stepCounter, 1] <- timeValue
                   dotPlotPairs[[g]][h, stepCounter, (1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
-                }
+               }
                 if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD)))  { # set dots if moderator is plotted
                   if (timeValue == xValueForModValue2[h]) {
                     tmp1 <- xValueForModValue[h+1]; tmp1
@@ -755,7 +763,6 @@ ctmaPlot <- function(
           } # END for (h in 1:toPlot)
         } # END for (g in 1:n.fitted.obj)
 
-
         ##################################### PLOTTING PARAMETERS ##########################################
         {
           autoCols <- seq(1, nlatent^2, (nlatent+1)); autoCols
@@ -763,6 +770,7 @@ ctmaPlot <- function(
           yMinAuto <- yMinCross <-  999999
           yMaxAuto <- yMaxCross <- -999999
           for (g in 1:n.fitted.obj) {
+            #g <- 1
             tmp1 <- dim(plotPairs[[g]])[3]; tmp1
             tmp2 <- plotPairs[[g]][, , -1, drop=FALSE]; tmp2 # array where in dim 3 there are n.latent dt effects sizes (do not drop if 1st dim=1)
             # y axis, auto
@@ -799,8 +807,10 @@ ctmaPlot <- function(
           coeffSeq <- seq(1, nlatent^2, (nlatent+1)); coeffSeq
 
           for (j in coeffSeq) { # diagonal elements only
+            #j <- 1
             counter <- counter + 1
             for (g in 1:n.fitted.obj) {
+              #g <- 1
               if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
 
               if (is.null(ctmaFitObject[[g]]$type)) plot..type <- "l" else plot..type <- ctmaFitObject[[g]]$type; plot..type

@@ -30,8 +30,7 @@
 #' @param randomPar logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE
 #' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
-#' @param manifestVars define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
-#' Useful to check estimates before they are saved.
+#' @param manifestVars define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest. Useful to check estimates before they are saved.
 #'
 #' @importFrom doParallel registerDoParallel
 #' @importFrom parallel makeCluster
@@ -215,7 +214,8 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
 
   # CoTiMAFit
   if(!(is.null(CoTiMAFit))) {
-    if (class(CoTiMAFit) != "CoTiMAFit") {
+    #if (class(CoTiMAFit) != "CoTiMAFit") {
+    if (!(is(CoTiMAFit, "CoTiMAFit"))) {
       ErrorMsg <- "The CoTiMAfit object provided is not of class CoTiMAFit. Probably it was not created with ctmaFit."
       stop(ErrorMsg)
     }
