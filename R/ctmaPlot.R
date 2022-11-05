@@ -210,12 +210,14 @@ ctmaPlot <- function(
 
 
     for (i in 1:n.fitted.obj) {
+      #i <- 1
       if ("power" %in% plot.type[[i]]) plot.type[[i]] <- c("power", "drift")
       n.latent[i] <- unlist(ctmaFitObject[[i]]$n.latent); n.latent[i]
       driftNames[[i]] <- ctmaFitObject[[i]]$parameterNames$DRIFT; driftNames[[i]]
       n.studies[i] <- ctmaFitObject[[i]]$n.studies; n.studies[i]
 
       study.numbers[[i]] <- unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)); study.numbers[[i]]
+      #study.numbers[[i]]
       tmp1 <- 0
       if (is.na(study.numbers[[i]][length(study.numbers[[i]])])) {
         study.numbers[[i]] <- study.numbers[[i]][1:(length(study.numbers[[i]])-1 )]
@@ -273,8 +275,25 @@ ctmaPlot <- function(
         minDelta[i] <- min(allDeltas[[i]], na.rm=TRUE); minDelta[i]
         meanDelta[i] <- mean(allDeltas[[i]], na.rm=TRUE); meanDelta[i]
         # CHD added 4. Nov 2022
-        allAvgDeltas[[i]] <- unlist(lapply(ctmaFitObject[[i]]$primaryStudyList$deltas, mean))
+        if (n.studies[i] > 1) { # if init fit object
+          allAvgDeltas[[i]] <- unlist(lapply(ctmaFitObject[[i]]$primaryStudyList$deltas, mean))
+          # if deltas are not specified because raw data are provided
+          deltaCounter <- 1
+          for (j in 1:length(tmp1)) {
+            tmp2 <- length(tmp1[[j]]); tmp2
+            if (is.na(allAvgDeltas[[i]][j])) {
+              allAvgDeltas[[i]][j] <- mean(allDeltas[[i]][deltaCounter:tmp2])
+            }
+            deltaCounter <- deltaCounter + tmp2
+          }
         }
+        #
+        if (n.studies[i] == 1) { # if full fit object
+          allAvgDeltas[[i]] <- mean(allDeltas[[i]])
+        }
+        #allAvgDeltas[[1]]
+      }
+
 
       if ("power" %in% plot.type[[i]]) {
         requiredSampleSizes[[i]] <- ctmaFitObject[[i]]$summary$estimates$`Required Sample Sizes`
@@ -508,27 +527,34 @@ ctmaPlot <- function(
         ## timeRange, stepWidth, & noOfSteps
         maxDelta <- max(unlist(maxDelta)); maxDelta
         minDelta <- min(unlist(minDelta)); minDelta
+        noDecims <- 0
         if (length(timeRange) < 1) {
           stepWidth <- 1
           usedTimeRange <- seq(1, 1.5*round(maxDelta + 1), stepWidth)
           # add empirical lags not yet included in requested timeRage
           # CHD changed 4 Nov 2022
           #usedTimeRange <- sort(unique(c(usedTimeRange, unlist(allDeltas))))
-          usedTimeRange <- sort(unique(c(usedTimeRange, unlist(allDeltas), unlist(allAvgDeltas))))
+          usedTimeRange <- sort(unique(c(usedTimeRange, unlist(allDeltas), unlist(allAvgDeltas)))); usedTimeRange
           noOfSteps <- length(usedTimeRange); noOfSteps
         }
         if (length(timeRange) > 0) {
           stepWidth <- timeRange[3]
-          usedTimeRange <- seq(timeRange[1], timeRange[2], stepWidth)
+          usedTimeRange <- seq(timeRange[1], timeRange[2], stepWidth); usedTimeRange
           # add empirical lags not yet included in requested timeRage
           # CHD changed 4 Nov 2022
           #tmp1 <- sort(unlist(allDeltas)/stepWidth); tmp1
-          tmp1a <- sort(unlist(allDeltas)/stepWidth); tmp1a
-          tmp1b <- sort(unlist(allAvgDeltas)/stepWidth); tmp1a
-          tmp1 <- sort(c(tmp1a, tmp1b))
+          tmp1a <- sort(unlist(allDeltas)); tmp1a
+          tmp1b <- sort(unlist(allAvgDeltas)); tmp1b
+          tmp1 <- sort(c(tmp1a, tmp1b)); tmp1
+          if (nchar(stepWidth) == 1) {
+            noDecims <- 0
+          } else {
+            noDecims <- as.numeric((strsplit(as.character(stepWidth), "\\.")[[1]][2])); noDecims # number of decimal places
+          }
+          tmp1 <- round(tmp1, noDecims); tmp1
           #
           tmp2 <- which(tmp1 >= min(usedTimeRange) & tmp1 <= max(usedTimeRange) ); tmp2
-          usedTimeRange <- sort(unique(c(usedTimeRange, tmp1[tmp2])))
+          usedTimeRange <- sort(unique(c(usedTimeRange, tmp1[tmp2]))); usedTimeRange
           noOfSteps <- length(usedTimeRange); noOfSteps
         }
 
@@ -712,6 +738,8 @@ ctmaPlot <- function(
 
         for (h in 1:toPlot) {
           #h <- 1
+          #usedTimeRange
+          #allAvgDeltas
           for (stepCounter in 1:length(usedTimeRange)){
             #stepCounter <-1
             timeValue <- usedTimeRange[stepCounter]; timeValue
@@ -747,9 +775,13 @@ ctmaPlot <- function(
                   }
                 }
               }
+              # CHD added 5 Nov 2022
+              tmp <- round(tmp, noDecims); tmp
                 if (timeValue == tmp) { # plot only if the (used) time range includes the current study's mean time lag
                   dotPlotPairs[[g]][h, stepCounter, 1] <- timeValue
                   dotPlotPairs[[g]][h, stepCounter, (1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
+                  #print(dotPlotPairs[[g]][h, stepCounter, 1])
+                  #print(dotPlotPairs[[g]][h, stepCounter, (1+j)])
                }
                 if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD)))  { # set dots if moderator is plotted
                   if (timeValue == xValueForModValue2[h]) {
@@ -842,6 +874,9 @@ ctmaPlot <- function(
               if (is.null(ctmaFitObject[[g]]$dot.lty)) dot.plot.lty <- 3 else dot.plot.lty <- ctmaFitObject[[g]]$dot.lty; dot.plot.lty
               if (is.null(ctmaFitObject[[g]]$dot.pch)) dot.plot.pch <- 16 else dot.plot.pch <- ctmaFitObject[[g]]$dot.pch; dot.plot.pch
               if (is.null(ctmaFitObject[[g]]$dot.cex)) dot.plot.cex <- 2 else dot.plot.cex <- ctmaFitObject[[g]]$dot.cex; dot.plot.cex
+              # CHD 5 Nov 2022
+              if (is.null(ctmaFitObject[[g]]$text.cex)) text.plot.cex <- 2 else text.plot.cex <- ctmaFitObject[[g]]$text.cex; dot.plot.cex
+
 
               for (h in 1:toPlot) {
                 currentPlotPair <- cbind(plotPairs[[g]][h, , 1], plotPairs[[g]][h, , 1+j])
@@ -881,8 +916,11 @@ ctmaPlot <- function(
                         currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
                       }
                     }
-                    if (h < 10) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
-                    if (h > 9) graphics::text(currentPlotPair, labels=currentLabel, cex=1/5*dot.plot.cex, col="white")
+                    #if (h < 10) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
+                    #if (h > 9) graphics::text(currentPlotPair, labels=currentLabel, cex=1/5*dot.plot.cex, col="white")
+                    if (nchar(currentLabel) == 1) graphics::text(currentPlotPair, labels=currentLabel, cex=3/5*text.plot.cex, col="white")
+                    if (nchar(currentLabel) == 2) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*text.plot.cex, col="white")
+                    if (nchar(currentLabel) > 2) graphics::text(currentPlotPair, labels=currentLabel, cex=1.5/5*text.plot.cex, col="white")
                   } else {
                     currentLabel <- aggregateLabel
                     currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
@@ -962,6 +1000,8 @@ ctmaPlot <- function(
               if (is.null(ctmaFitObject[[g]]$dot.lty)) dot.plot.lty <- 3 else dot.plot.lty <- ctmaFitObject[[g]]$dot.lty; dot.plot.lty
               if (is.null(ctmaFitObject[[g]]$dot.pch)) dot.plot.pch <- 16 else dot.plot.pch <- ctmaFitObject[[g]]$dot.pch; dot.plot.pch
               if (is.null(ctmaFitObject[[g]]$dot.cex)) dot.plot.cex <- 2 else dot.plot.cex <- ctmaFitObject[[g]]$dot.cex; dot.plot.cex
+              # CHD 5 Nov 2022
+              if (is.null(ctmaFitObject[[g]]$text.cex)) text.plot.cex <- 2 else text.plot.cex <- ctmaFitObject[[g]]$text.cex; dot.plot.cex
 
               #if (is.null(ctmaFitObject[[g]]$modelResults$MOD)) toPlot <- n.studies[[g]] else toPlot <- length(mod.values[[1]])
               for (h in 1:toPlot) {
@@ -1002,9 +1042,13 @@ ctmaPlot <- function(
                         currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
                       }
                     }
+
                     currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
-                    if (h < 10) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
-                    if (h > 9) graphics::text(currentPlotPair, labels=currentLabel, cex=1/5*dot.plot.cex, col="white")
+                    #if (h < 10) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
+                    #if (h > 9) graphics::text(currentPlotPair, labels=currentLabel, cex=1/5*dot.plot.cex, col="white")
+                    if (nchar(currentLabel) == 1) graphics::text(currentPlotPair, labels=currentLabel, cex=3/5*text.plot.cex, col="white")
+                    if (nchar(currentLabel) == 2) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*text.plot.cex, col="white")
+                    if (nchar(currentLabel) > 2) graphics::text(currentPlotPair, labels=currentLabel, cex=1.5/5*text.plot.cex, col="white")
                     currentLabel <- aggregateLabel
                     currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
                     graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
