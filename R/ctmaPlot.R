@@ -217,7 +217,7 @@ ctmaPlot <- function(
       n.studies[i] <- ctmaFitObject[[i]]$n.studies; n.studies[i]
 
       study.numbers[[i]] <- unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)); study.numbers[[i]]
-      #study.numbers[[i]]
+
       tmp1 <- 0
       if (is.na(study.numbers[[i]][length(study.numbers[[i]])])) {
         study.numbers[[i]] <- study.numbers[[i]][1:(length(study.numbers[[i]])-1 )]
@@ -277,6 +277,8 @@ ctmaPlot <- function(
         # CHD added 4. Nov 2022
         if (n.studies[i] > 1) { # if init fit object
           allAvgDeltas[[i]] <- unlist(lapply(ctmaFitObject[[i]]$primaryStudyList$deltas, mean))
+          #allAvgDeltas[[i]]
+          tmp1 <- allAvgDeltas[[i]]
           # if deltas are not specified because raw data are provided
           deltaCounter <- 1
           for (j in 1:length(tmp1)) {
@@ -538,18 +540,25 @@ ctmaPlot <- function(
           noOfSteps <- length(usedTimeRange); noOfSteps
         }
         if (length(timeRange) > 0) {
-          stepWidth <- timeRange[3]
+          stepWidth <- timeRange[3]; stepWidth
           usedTimeRange <- seq(timeRange[1], timeRange[2], stepWidth); usedTimeRange
           # add empirical lags not yet included in requested timeRage
           # CHD changed 4 Nov 2022
           #tmp1 <- sort(unlist(allDeltas)/stepWidth); tmp1
           tmp1a <- sort(unlist(allDeltas)); tmp1a
           tmp1b <- sort(unlist(allAvgDeltas)); tmp1b
-          tmp1 <- sort(c(tmp1a, tmp1b)); tmp1
+          tmp1c <- c()
+          for (g in 1:n.fitted.obj) {
+            tmp1c <- c(tmp1c, unlist(lapply(ctmaFitObject[[g]]$studyList, function(x) x$delta_t)))
+            for (l in 1:length(ctmaFitObject[[g]]$studyList)) {
+              tmp1c <- c(tmp1c, mean(ctmaFitObject[[g]]$studyList[[l]]$delta_t))
+            }
+          }
+          tmp1 <- sort(unique(c(tmp1a, tmp1b, tmp1c))); tmp1
           if (nchar(stepWidth) == 1) {
             noDecims <- 0
           } else {
-            noDecims <- as.numeric((strsplit(as.character(stepWidth), "\\.")[[1]][2])); noDecims # number of decimal places
+            noDecims <- nchar((strsplit(as.character(stepWidth), "\\.")[[1]][2])); noDecims # number of decimal places
           }
           tmp1 <- round(tmp1, noDecims); tmp1
           #
@@ -737,11 +746,12 @@ ctmaPlot <- function(
         }
 
         for (h in 1:toPlot) {
-          #h <- 1
+          #h <- 2
           #usedTimeRange
           #allAvgDeltas
+          #mean(ctmaFitObject[[g]]$studyList[[h]]$delta_t)
           for (stepCounter in 1:length(usedTimeRange)){
-            #stepCounter <-1
+            #stepCounter <-113
             timeValue <- usedTimeRange[stepCounter]; timeValue
             plotPairs[[g]][h,stepCounter,1] <- timeValue; plotPairs[[g]][h,stepCounter,1]
             for (j in 1:(n.latent[[g]]^2)) {
@@ -767,7 +777,7 @@ ctmaPlot <- function(
                     }
                   }
                 } else {
-                  tmp <- mean(ctmaFitObject[[g]]$studyList[[h]]$delta_t)
+                  tmp <- mean(ctmaFitObject[[g]]$studyList[[h]]$delta_t); tmp
                   if (undoTimeScaling == FALSE) {
                     if (!(is.null(ctmaFitObject[[g]]$summary$scaleTime))) {
                       tmp <- tmp * ctmaFitObject[[g]]$summary$scaleTime
@@ -794,6 +804,7 @@ ctmaPlot <- function(
             } # END for (stepCounter in 0:noOfSteps)
           } # END for (h in 1:toPlot)
         } # END for (g in 1:n.fitted.obj)
+
 
         ##################################### PLOTTING PARAMETERS ##########################################
         {
