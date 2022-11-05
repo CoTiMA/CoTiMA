@@ -275,7 +275,8 @@ ctmaPlot <- function(
         minDelta[i] <- min(allDeltas[[i]], na.rm=TRUE); minDelta[i]
         meanDelta[i] <- mean(allDeltas[[i]], na.rm=TRUE); meanDelta[i]
         # CHD added 4. Nov 2022
-        if (n.studies[i] > 1) { # if init fit object
+        #if (n.studies[i] > 1) { # if init fit object
+        if (is.null(ctmaFitObject[[i]]$argumentList)) { # if init fit object
           allAvgDeltas[[i]] <- unlist(lapply(ctmaFitObject[[i]]$primaryStudyList$deltas, mean))
           #allAvgDeltas[[i]]
           tmp1 <- allAvgDeltas[[i]]
@@ -290,7 +291,8 @@ ctmaPlot <- function(
           }
         }
         #
-        if (n.studies[i] == 1) { # if full fit object
+        #if (n.studies[i] == 1) { # if full fit object
+        if (!(is.null(ctmaFitObject[[i]]$argumentList))) { # if full fit object
           allAvgDeltas[[i]] <- mean(allDeltas[[i]])
         }
         #allAvgDeltas[[1]]
@@ -555,6 +557,12 @@ ctmaPlot <- function(
             }
           }
           tmp1 <- sort(unique(c(tmp1a, tmp1b, tmp1c))); tmp1
+          ctmaFitObject[[1]]$summary$scaleTime
+          if (undoTimeScaling == FALSE) {
+            tmp2 <- ctmaFitObject[[1]]$argumentList$scaleTime; tmp2
+            if (is.null(tmp2)) tmp2 <- ctmaFitObject[[g]]$summary$scaledTime; tmp2
+            tmp1 <- tmp1 * tmp2; tmp1
+          }
           if (nchar(stepWidth) == 1) {
             noDecims <- 0
           } else {
