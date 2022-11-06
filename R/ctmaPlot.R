@@ -961,7 +961,7 @@ ctmaPlot <- function(
                     if (nchar(currentLabel) == 2) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*text.plot.cex, col="white")
                     if (nchar(currentLabel) > 2) graphics::text(currentPlotPair, labels=currentLabel, cex=1.5/5*text.plot.cex, col="white")
                     currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
-                    graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
+                    #graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
                   }
                   graphics::par(new=T)
                 }
@@ -1095,7 +1095,7 @@ ctmaPlot <- function(
                     if (nchar(currentLabel) == 2) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*text.plot.cex, col="white")
                     if (nchar(currentLabel) > 2) graphics::text(currentPlotPair, labels=currentLabel, cex=1.5/5*text.plot.cex, col="white")
                     currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
-                    graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
+                    #graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
                   }
                   graphics::par(new=T)
                 }
