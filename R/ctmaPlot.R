@@ -112,6 +112,12 @@ ctmaPlot <- function(
       stop(ErrorMsg)
     }
 
+    if (nchar(aggregateLabel) > 3) {
+      Msg <- "The aggregate label has 4 or more characters. Plots will probably do not look nice.\n"
+      message(Msg)
+    }
+
+
     n.fitted.obj <- length(ctmaFitObject); n.fitted.obj # has to be done twice
 
     plot.type <- list() # has to be a list because a single fit could be used for different plots (e.g. "power")
@@ -165,6 +171,16 @@ ctmaPlot <- function(
       }
       ErrorMsg <- paste0("More than a single active directors was sepcified, which does not work. \nThe following activeDirectory arguments were found: \n", unique(activeDirectory), "\nGood luck for the next try!")
       stop(ErrorMsg)
+    }
+
+    # detect study no > 4 nchar
+    tmp1 <- c()
+    for (i in 1:n.fitted.obj)  tmp1 <- c(tmp1, unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)))
+    if (!(is.null(tmp1))) {
+      if (any(nchar(tmp1) > 4)) {
+        Msg <- "Some orginal study numbers have 4 or more digits. Plots will probably do not look nice.\n"
+        message(Msg)
+      }
     }
 
   } # end some checks
@@ -275,8 +291,8 @@ ctmaPlot <- function(
         minDelta[i] <- min(allDeltas[[i]], na.rm=TRUE); minDelta[i]
         meanDelta[i] <- mean(allDeltas[[i]], na.rm=TRUE); meanDelta[i]
         # CHD added 4. Nov 2022
-        #if (n.studies[i] > 1) { # if init fit object
-        if (is.null(ctmaFitObject[[i]]$argumentList)) { # if init fit object
+        if (n.studies[i] > 1) { # if init fit object
+        #if (is.null(ctmaFitObject[[i]]$argumentList)) { # if init fit object
           allAvgDeltas[[i]] <- unlist(lapply(ctmaFitObject[[i]]$primaryStudyList$deltas, mean))
           #allAvgDeltas[[i]]
           tmp1 <- allAvgDeltas[[i]]
@@ -291,8 +307,8 @@ ctmaPlot <- function(
           }
         }
         #
-        #if (n.studies[i] == 1) { # if full fit object
-        if (!(is.null(ctmaFitObject[[i]]$argumentList))) { # if full fit object
+        if (n.studies[i] == 1) { # if full fit object
+        #if (!(is.null(ctmaFitObject[[i]]$argumentList))) { # if full fit object
           allAvgDeltas[[i]] <- mean(allDeltas[[i]])
         }
         #allAvgDeltas[[1]]
@@ -557,7 +573,6 @@ ctmaPlot <- function(
             }
           }
           tmp1 <- sort(unique(c(tmp1a, tmp1b, tmp1c))); tmp1
-          ctmaFitObject[[1]]$summary$scaleTime
           if (undoTimeScaling == FALSE) {
             tmp2 <- ctmaFitObject[[1]]$argumentList$scaleTime; tmp2
             if (is.null(tmp2)) tmp2 <- ctmaFitObject[[g]]$summary$scaledTime; tmp2
@@ -892,7 +907,7 @@ ctmaPlot <- function(
               if (is.null(ctmaFitObject[[g]]$dot.lwd)) dot.plot.lwd <- .5 else dot.plot.lwd <- ctmaFitObject[[g]]$dot.lwd; dot.plot.lwd
               if (is.null(ctmaFitObject[[g]]$dot.lty)) dot.plot.lty <- 3 else dot.plot.lty <- ctmaFitObject[[g]]$dot.lty; dot.plot.lty
               if (is.null(ctmaFitObject[[g]]$dot.pch)) dot.plot.pch <- 16 else dot.plot.pch <- ctmaFitObject[[g]]$dot.pch; dot.plot.pch
-              if (is.null(ctmaFitObject[[g]]$dot.cex)) dot.plot.cex <- 2 else dot.plot.cex <- ctmaFitObject[[g]]$dot.cex; dot.plot.cex
+              if (is.null(ctmaFitObject[[g]]$dot.cex)) dot.plot.cex <- 3 else dot.plot.cex <- ctmaFitObject[[g]]$dot.cex; dot.plot.cex
               # CHD 5 Nov 2022
               if (is.null(ctmaFitObject[[g]]$text.cex)) text.plot.cex <- 2 else text.plot.cex <- ctmaFitObject[[g]]$text.cex; dot.plot.cex
 
@@ -942,6 +957,9 @@ ctmaPlot <- function(
                     if (nchar(currentLabel) > 2) graphics::text(currentPlotPair, labels=currentLabel, cex=1.5/5*text.plot.cex, col="white")
                   } else {
                     currentLabel <- aggregateLabel
+                    if (nchar(currentLabel) == 1) graphics::text(currentPlotPair, labels=currentLabel, cex=3/5*text.plot.cex, col="white")
+                    if (nchar(currentLabel) == 2) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*text.plot.cex, col="white")
+                    if (nchar(currentLabel) > 2) graphics::text(currentPlotPair, labels=currentLabel, cex=1.5/5*text.plot.cex, col="white")
                     currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
                     graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
                   }
@@ -1068,7 +1086,14 @@ ctmaPlot <- function(
                     if (nchar(currentLabel) == 1) graphics::text(currentPlotPair, labels=currentLabel, cex=3/5*text.plot.cex, col="white")
                     if (nchar(currentLabel) == 2) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*text.plot.cex, col="white")
                     if (nchar(currentLabel) > 2) graphics::text(currentPlotPair, labels=currentLabel, cex=1.5/5*text.plot.cex, col="white")
+                    #currentLabel <- aggregateLabel
+                    #currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
+                    #graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
+                  } else {
                     currentLabel <- aggregateLabel
+                    if (nchar(currentLabel) == 1) graphics::text(currentPlotPair, labels=currentLabel, cex=3/5*text.plot.cex, col="white")
+                    if (nchar(currentLabel) == 2) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*text.plot.cex, col="white")
+                    if (nchar(currentLabel) > 2) graphics::text(currentPlotPair, labels=currentLabel, cex=1.5/5*text.plot.cex, col="white")
                     currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
                     graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
                   }
