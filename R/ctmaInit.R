@@ -652,6 +652,7 @@ ctmaInit <- function(
       manifestMeans=manifestMeans,
       manifestVars=manifestVars
     )
+    #
     driftNames <- namesAndParams$driftNames; driftNames
     driftFullNames <- namesAndParams$driftFullNames; driftFullNames
     driftParams <- namesAndParams$driftParams; driftParams
