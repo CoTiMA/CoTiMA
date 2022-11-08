@@ -15,6 +15,7 @@ ctmaInit(
   lambda = NULL,
   manifestVars = NULL,
   drift = NULL,
+  diff = NULL,
   indVarying = FALSE,
   saveRawData = list(),
   coresToUse = c(1),
@@ -31,8 +32,12 @@ ctmaInit(
   verbose = NULL,
   customPar = FALSE,
   doPar = 1,
-  useSV = TRUE,
-  experimental = FALSE
+  useSV = FALSE,
+  experimental = FALSE,
+  T0means = 0,
+  manifestMeans = 0,
+  CoTiMAStanctArgs = NULL,
+  posLL = TRUE
 )
 }
 \arguments{
@@ -52,9 +57,11 @@ ctmaInit(
 
 \item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
 
-\item{manifestVars}{define the error variances of the manifests with a single time point using R-type matrix with nrow=n.manifest & ncol=n.manifest.}
+\item{manifestVars}{define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
 
-\item{drift}{labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)}
+\item{drift}{labels for drift effects. Have to be either of the character strings of the type V1toV2 (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)}
+
+\item{diff}{labels for diffusion effects. Have to be either of the character strings of the type "diff_eta1" or "diff_eta2_eta1" (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)}
 
 \item{indVarying}{control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
 
@@ -86,11 +93,19 @@ ctmaInit(
 
 \item{customPar}{logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
 
-\item{doPar}{parallel and multiple fitting if single studies}
+\item{doPar}{parallel and multiple fitting if single studies. A value > 1 will fit each study doPar times in parallel mode during which no output is generated (screen remains silent). Useful to obtain best fit.}
 
-\item{useSV}{if TRUE (default) start values will be used if provided in the list of primary studies}
+\item{useSV}{if TRUE (default=FALSE) start values will be used if provided in the list of primary studies}
 
 \item{experimental}{set TRUE to try new pairwise N function}
+
+\item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
+\item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
+\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
+
+\item{posLL}{logical. Allows (default = TRUE) of positive loglik (neg -2ll) values}
 }
 \value{
 ctmaFit returns a list containing some arguments supplied, the fitted models, different elements summarizing the main results,

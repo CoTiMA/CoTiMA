@@ -255,7 +255,7 @@ ctmaSV <- function(
       for (i in 1:n.latent) {
         for (j in 1:n.latent) {
           counter <- counter + 1
-          tform_inverse = inverse(function (param) eval(parse(text=tformT0Var[counter])), -1000, 1000)
+          tform_inverse <- inverse(function (param) eval(parse(text=tformT0Var[counter])), -1000, 1000)
           if (!(is.na(tformT0Var[counter]))) T0varTmp[i,j] <- tform_inverse(T0varTmp[i,j])$root
         }
       }

@@ -307,7 +307,7 @@ ctmaPrep <- function(selectedStudies=NULL,
   summaryTable <- matrix(NA, nrow=n.studies, ncol=0); summaryTable
   #length(studyListCategories)
   for (i in 1:length(studyListCategories)) {
-    #i <- 1
+    #i <- 3
     #(any(!(is.na(primaryStudies2[[i]]))))
     if (any(!(is.na(primaryStudies2[[i]])))) {
       # check max length of list elements across studies
@@ -324,7 +324,7 @@ ctmaPrep <- function(selectedStudies=NULL,
       if (maxLength > 0) {
         tmpTable <- matrix(NA, nrow=n.studies, ncol=maxLength); tmpTable
         for (j in (1:n.studies)) {
-         #j <- 18
+         #j <- 5
           if (length(primaryStudies2[[i]][[j]]) > 0) {
             if (object == "matrix") {
               currentLength <- length(primaryStudies2[[i]][[j]])^.5; currentLength
@@ -350,7 +350,7 @@ ctmaPrep <- function(selectedStudies=NULL,
             }
           }
         } # end for (j in (1:n.studies))
-        tmpTable
+        #tmpTable
 
         if (names(studyListCategories)[i] %in% c("ageM", "ageSD", "malePercent")) tmpTable <- round(tmpTable, digits)
         tmpTableNames <- tmpTableNamesBackup <- gsub("$", "", names(studyListCategories[i])); tmpTableNames
@@ -404,6 +404,9 @@ ctmaPrep <- function(selectedStudies=NULL,
               }
             }
           }
+          #tmpTableNames
+          #n.variables
+          #maxWaves
           tmpTableNamesMat <- matrix(tmpTableNames, n.variables*maxWaves, n.variables*maxWaves); tmpTableNamesMat
           tmpTableNames <- tmpTableNamesMat[lower.tri(tmpTableNamesMat)]; tmpTableNames
           tmpTableNames <- tmpTableNames[1:maxLength] # test

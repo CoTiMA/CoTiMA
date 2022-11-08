@@ -20,7 +20,7 @@ ctmaFit(
   mod.names = NULL,
   indVarying = FALSE,
   coresToUse = c(1),
-  scaleTI = NULL,
+  scaleTI = TRUE,
   scaleMod = NULL,
   transfMod = NULL,
   scaleClus = NULL,
@@ -37,7 +37,12 @@ ctmaFit(
   modsToCompare = NULL,
   catsToCompare = NULL,
   driftsToCompare = NULL,
-  useSampleFraction = NULL
+  useSampleFraction = NULL,
+  T0means = 0,
+  manifestMeans = 0,
+  CoTiMAStanctArgs = NULL,
+  lambda = NULL,
+  manifestVars = NULL
 )
 }
 \arguments{
@@ -71,9 +76,9 @@ ctmaFit(
 
 \item{coresToUse}{if negative, the value is subtracted from available cores, else value = cores to use}
 
-\item{scaleTI}{scale TI predictors - not recommended if TI are dummies representing primary studies, which would be the usual case}
+\item{scaleTI}{scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dimmies representing primary studies.}
 
-\item{scaleMod}{scale moderator variables - FALSE (default) highly recommended for categorical moderators, TRUE highly recommended for continuous moderators}
+\item{scaleMod}{scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts}
 
 \item{transfMod}{more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))}
 
@@ -106,6 +111,16 @@ ctmaFit(
 \item{driftsToCompare}{when performing contrasts for categorical moderators, the (subset of) drift effects analyzed}
 
 \item{useSampleFraction}{to speed up debugging. Provided as fraction (e.g., 1/10).}
+
+\item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
+\item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
+\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
+
+\item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
+
+\item{manifestVars}{define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
 }
 \value{
 ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,

@@ -8,11 +8,14 @@ ctmaLabels(
   n.latent = NULL,
   n.manifest = 0,
   lambda = NULL,
-  manifestVar = NULL,
+  manifestVars = NULL,
   drift = NULL,
+  diff = NULL,
   invariantDrift = NULL,
   moderatedDrift = NULL,
-  equalDrift = NULL
+  equalDrift = NULL,
+  T0means = 0,
+  manifestMeans = 0
 )
 }
 \arguments{
@@ -22,15 +25,21 @@ ctmaLabels(
 
 \item{lambda}{lambda}
 
-\item{manifestVar}{manifestVar}
+\item{manifestVars}{manifestVar}
 
 \item{drift}{drift}
+
+\item{diff}{diffusion}
 
 \item{invariantDrift}{invariantDrift}
 
 \item{moderatedDrift}{moderatedDrift}
 
 \item{equalDrift}{equalDrift}
+
+\item{T0means}{T0means}
+
+\item{manifestMeans}{manifestMeans}
 }
 \value{
 returns consistently named parameters (e.g., "V1toV2") as well es their symbolic values, which are used to fix or free

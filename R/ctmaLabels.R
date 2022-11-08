@@ -5,11 +5,14 @@
 #' @param n.latent n.latent
 #' @param n.manifest n.manifest
 #' @param lambda lambda
-#' @param manifestVar manifestVar
+#' @param manifestVars manifestVar
 #' @param drift drift
+#' @param diff diffusion
 #' @param invariantDrift invariantDrift
 #' @param moderatedDrift moderatedDrift
 #' @param equalDrift equalDrift
+#' @param T0means T0means
+#' @param manifestMeans manifestMeans
 #'
 #' @return returns consistently named parameters (e.g., "V1toV2") as well es their symbolic values, which are used to fix or free
 #' parameters when fitting a 'CoTiMA' model
@@ -18,11 +21,14 @@ ctmaLabels <- function(
   n.latent=NULL,
   n.manifest=0,
   lambda=NULL,
-  manifestVar=NULL,
+  manifestVars=NULL,
   drift=NULL,
+  diff=NULL,
   invariantDrift=NULL,
   moderatedDrift=NULL,
-  equalDrift=NULL)
+  equalDrift=NULL,
+  T0means=0,
+  manifestMeans=0)
   {
 
   n.var <- max(c(n.manifest, n.latent)); n.var
@@ -46,20 +52,32 @@ ctmaLabels <- function(
 
   if (!(is.null(drift))) {
     tmp1 <- which(!(driftParams %in% drift)); tmp1
-    driftParams[tmp1] <- "0"
-    driftNames <- driftNames[-tmp1]
+    # changed 11. Aug. 2022
+    #driftParams[tmp1] <- "0"
+    driftParams[tmp1] <- drift; driftParams
+    tmp1 <- which(drift == 0); tmp1
+    if (length(tmp1) > 0) driftNames <- driftNames[-tmp1]
+  }
+
+  # added 11. Aug. 2022
+  if (!(is.null(diff))) {
+    tmp1 <- which(!(diffParams %in% drift)); tmp1
+    diffParamsParams[tmp1] <- diff; driftParams
+    tmp1 <- which(diff == 0); tmp1
+    if (length(tmp1) > 0) diffNames <- diffNames[-tmp1]
   }
 
   # backup full names for labeling output later
   tmp1 <- tmp2 <- c()
   if (!(is.null(drift))) {
     # check validity of user-provided drift names
-    tmp1 <- which(c(driftParams) %in% driftNames); tmp1
-    tmp2 <- which(c(driftParams) == "0"); tmp2
-    if ( (length(tmp1)+length(tmp2)) != length(driftParams) ) {
-    ErrorMsg <- "\nDrift names provided by user do not match requirements.\nThey should be of the type V1toV2 or just 0. \nGood luck for the next try!"
-    stop(ErrorMsg)
-    }
+    # taken out on 11. Aug 2022
+    #tmp1 <- which(c(driftParams) %in% driftNames); tmp1
+    #tmp2 <- which(c(driftParams) == "0"); tmp2
+    #if ( (length(tmp1)+length(tmp2)) != length(driftParams) ) {
+    #ErrorMsg <- "\nDrift names provided by user do not match requirements.\nThey should be of the type V1toV2 or just 0. \nGood luck for the next try!"
+    #stop(ErrorMsg)
+    #}
     driftNames <- drift # replace
   }
 
@@ -80,8 +98,6 @@ ctmaLabels <- function(
   equalDriftParams <- equalDriftNames <- equalDrift; equalDriftParams
   tmp1 <- which(driftNames %in% equalDriftNames); tmp1
   driftNames[tmp1] <- paste0(driftNames[tmp1], " (equal)"); driftNames
-  #driftParams <- c(t(matrix(driftParams, n.latent))); driftParams
-  #driftNames <- c(t(matrix(driftNames, n.latent))); driftNames
 
   tmp0 <- matrix(diffParams, n.latent); tmp0
   tmp0[upper.tri(tmp0, diag=FALSE)] <- 0; tmp0
@@ -96,7 +112,7 @@ ctmaLabels <- function(
   }
 
   # error variances
-  if(!(is.null(manifestVar))) manifestVarParams <- manifestVar else manifestVarParams <- 0
+  if(!(is.null(manifestVars))) manifestVarsParams <- manifestVars else manifestVarsParams <- 0
 
   # T0 variance
   T0VAR <- "auto"
@@ -125,12 +141,26 @@ ctmaLabels <- function(
   MANIFESTMEANS <- 0
   if (!(is.null(invariantDrift))) {
     if ( (length(tmp1) + length(tmp2)) < n.var * n.latent ) {
-      MANIFESTMEANS <- rep("0", n.manifest); MANIFESTMEANS
-      targetVar <- which(is.na(rowSums(tmp3))); targetVar
-      MANIFESTMEANS[targetVar] <- paste0("mean_", targetVar); MANIFESTMEANS
+      # added 16. Aug 2022 (if else)
+      if (manifestMeans == 0) {
+        MANIFESTMEANS <- rep("0", n.manifest); MANIFESTMEANS
+        targetVar <- which(is.na(rowSums(tmp3))); targetVar
+        MANIFESTMEANS[targetVar] <- paste0("mean_", targetVar); MANIFESTMEANS
+      } #else {
+      #  MANIFESTMEANS <- manifestMeans
+      #}
     } else {
-      MANIFESTMEANS <- 0
+      # changed 16. Aug 2022
+      #MANIFESTMEANS <- 0
+      MANIFESTMEANS <- manifestMeans
+    #}
     }
+  }
+  #MANIFESTMEANS
+
+  #T0Means
+  if (!(is.null(invariantDrift))) {
+    T0meansParams <- T0means
   }
 
   results <- list(driftNames=driftNames,
@@ -147,7 +177,8 @@ ctmaLabels <- function(
                   lambdaParams=LAMBDA,
                   T0VARParams=T0VAR,
                   manifestMeansParams=MANIFESTMEANS,
-                  manifestVarParams=manifestVarParams)
+                  T0meansParams=T0meansParams,
+                  manifestVarsParams=manifestVarsParams)
 
   invisible(results)
 }

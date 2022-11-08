@@ -123,6 +123,9 @@ ctmaBiG <- function(
             tmp3 <- cbind(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0VAR[, , 1],
                           ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0VAR[, , 2])
           }
+          if (dim(tmp2)[2] != dim(tmp3)[2]) { # if random intercepts were included and T0var includes manifestvar
+            tmp3 <- tmp3[, c(1:n.latent, (1+n.latent):(n.latent+n.latent))]
+          }
           tmp4 <- cbind(tmp1, tmp2, tmp3); tmp4
           all_Coeff[i,] <- apply(tmp4, 2, mean); all_Coeff[i,]
           all_SE[i,] <- apply(tmp4, 2, stats::sd); all_SE[i,]

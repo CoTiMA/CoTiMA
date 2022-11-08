@@ -10,8 +10,9 @@
 #' @param n.latent number of latent variables of the model (hast to be specified)!
 #' @param n.manifest number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
-#' @param manifestVars define the error variances of the manifests with a single time point using R-type matrix with nrow=n.manifest & ncol=n.manifest.
-#' @param drift labels for drift effects. Have to be either of the type V1toV2 or 0 for effects to be excluded, which is usually not recommended)
+#' @param manifestVars define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
+#' @param drift labels for drift effects. Have to be either of the character strings of the type V1toV2 (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
+#' @param diff labels for diffusion effects. Have to be either of the character strings of the type "diff_eta1" or "diff_eta2_eta1" (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
 #' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
 #' @param saveRawData save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
 #' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
@@ -27,18 +28,25 @@
 #' @param iter number of interation (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit - for debugging
 #' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
-#' @param doPar parallel and multiple fitting if single studies
-#' @param useSV if TRUE (default) start values will be used if provided in the list of primary studies
+#' @param doPar parallel and multiple fitting if single studies. A value > 1 will fit each study doPar times in parallel mode during which no output is generated (screen remains silent). Useful to obtain best fit.
+#' @param useSV if TRUE (default=FALSE) start values will be used if provided in the list of primary studies
 #' @param experimental set TRUE to try new pairwise N function
+#' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
+#' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
+#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
+#' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
 #' @importFrom parallel detectCores
-#' @importFrom ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit
+#' @importFrom ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit ctExtract ctCollapse
 #' @importFrom utils read.table write.table
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
 #' @importFrom doParallel registerDoParallel
+#' @importFrom parallel makeCluster
 #' @importFrom foreach %dopar%
+#' @importFrom stats cov2cor
+#' @importFrom OpenMx expm
 #'
 #' @export ctmaInit
 #'
@@ -77,6 +85,7 @@ ctmaInit <- function(
   lambda=NULL,
   manifestVars=NULL,
   drift=NULL,
+  diff=NULL,
   indVarying=FALSE,
   saveRawData=list(),
   coresToUse=c(1),
@@ -93,16 +102,16 @@ ctmaInit <- function(
   verbose=NULL,
   customPar=FALSE,
   doPar=1,
-  useSV=TRUE,
-  experimental=FALSE
+  useSV=FALSE,
+  experimental=FALSE,
+  T0means=0,
+  manifestMeans=0,
+  CoTiMAStanctArgs=NULL,
+  posLL=TRUE
 )
 
 {  # begin function definition (until end of file)
 
-  if (doPar > 1) {
-    doParallel::registerDoParallel(detectCores()-1)
-    '%dopar%' <- foreach::'%dopar%'
-  }
 
   start.time <- Sys.time()
 
@@ -118,7 +127,7 @@ ctmaInit <- function(
     Msg <- "################################################################################# \n########################## Check Model Specification ############################ \n#################################################################################"
     message(Msg)
 
-    if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMAStanctArgs$verbose}
+    if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMA::CoTiMAStanctArgs$verbose}
 
     if (is.null(primaryStudies)) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
@@ -178,6 +187,16 @@ ctmaInit <- function(
       message(Msg)
     }
 
+    # CHD changed on 19 Sep 2022
+    if (doPar > 1) {
+      #doParallel::registerDoParallel(detectCores()-1)
+      myCluster <- parallel::makeCluster(coresToUse)
+      on.exit(parallel::stopCluster(myCluster))
+      #doParallel::registerDoParallel(coresToUse)
+      doParallel::registerDoParallel(myCluster)
+      '%dopar%' <- foreach::'%dopar%'
+    }
+
     if (n.manifest > n.latent ) {
       if (is.null(lambda)) {
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
@@ -197,9 +216,14 @@ ctmaInit <- function(
 
     { # fitting params
 
-      #invariantDrift <- NULL
       invariantDrift <- FALSE
       moderatedDrift <- NULL
+
+      # Added 17. Aug 2022
+      tmp1 <- names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs); tmp1
+      tmp2 <- CoTiMA::CoTiMAStanctArgs
+      if (!(is.null(CoTiMAStanctArgs))) tmp2[tmp1] <- CoTiMAStanctArgs
+      CoTiMAStanctArgs <- tmp2
 
       if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
       if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
@@ -210,6 +234,10 @@ ctmaInit <- function(
       if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
       if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
     }
+
+    # correction of misspecified user input
+    if (is.null(T0means)) T0means <- 0
+    if (is.null(manifestMeans)) manifestMeans <- 0
 
   } ### END Check Model Specification ###
 
@@ -231,15 +259,21 @@ ctmaInit <- function(
     if (!(exists("moderatorNumber"))) moderatorNumber <- 1; moderatorNumber
     # determine number of studies (if list is created by ctmaInit.R it is 1 element too long)
     # Option 1: Applies for older versions of ctmaPrep
-    tmp <- length(unlist(primaryStudies$studyNumbers)); tmp
+    #tmp <- length(unlist(primaryStudies$studyNumbers)); tmp
+    tmp <- unlist(primaryStudies$studyNumbers); tmp
+    tmp2 <- which(is.na(tmp)); tmp2
+    for (i in tmp2) primaryStudies$studyNumbers[[i]] <- NULL
+    tmp <- length(tmp[!(is.na(tmp))]); tmp
     if  ( is.na(primaryStudies$deltas[tmp]) &
           is.na(primaryStudies$sampleSizes[tmp]) &
           is.na(primaryStudies$deltas[tmp]) &
           is.null(dim(primaryStudies$pairwiseNs[tmp])) &
           is.null(dim(primaryStudies$emcovs[tmp])) &
           all(is.na(unlist(primaryStudies$moderators[tmp]))) &
-          is.null(primaryStudies$rawData$fileName[tmp]) ) {
-      n.studies <- tmp-1
+          is.null(primaryStudies$rawData$fileName[tmp])
+          # 9. Aug. 2022:
+          & (length(tmp) > 1) ) {
+      if (tmp != 1) n.studies <- tmp-1 else n.studies <- 1
       primaryStudies$studyNumbers[[tmp]] <- NULL
     } else {
       n.studies <- tmp
@@ -254,13 +288,22 @@ ctmaInit <- function(
     }
 
     for (i in 1:n.studies) {
+      #i <- 38
       studyList[[i]] <- list(studyNumber=i, empcov=primaryStudies$empcovs[[i]], delta_t=primaryStudies$deltas[[i]],
                              sampleSize=primaryStudies$sampleSizes[[i]], originalStudyNo=primaryStudies$studyNumber[[i]],
                              timePoints=sum(length(primaryStudies$deltas[[i]]), 1), moderators=primaryStudies$moderators[[i]],
-                             maxModerators=length(primaryStudies$moderators[[i]]), startValues=primaryStudies$inits[[i]],
+                             # CHD changed next line on 29 Sep 2022
+                             #maxModerators=length(primaryStudies$moderators[[i]]), startValues=primaryStudies$inits[[i]],
+                             maxModerators=length(primaryStudies$moderators[[i]]), startValues=primaryStudies$startValues[[i]],
                              rawData=primaryStudies$rawData[[i]], pairwiseN=primaryStudies$pairwiseNs[[i]],
                              source=paste(primaryStudies$source[[i]], collapse=", "))
       if (useSV == FALSE) studyList[[i]]$startValues <- NULL
+      # CHD added next line on 30 Sep 2022, changed 7 Oct 2022 , see also line 893 & 939
+      #if ((useSV == TRUE) & (is.null(studyList[[i]]$startValues)) ) studyList[[i]]$startValues <- NA
+      #if ((useSV == TRUE) & (is.na(studyList[[i]]$startValues)) ) studyList[[i]]$startValues <- NULL DOES NOT WORK
+      if (is.null(studyList[[i]]$startValues)) studyList[[i]]$startValues <- NA
+
+
       if (length(primaryStudies$moderators[[i]]) > maxLengthModeratorVector) maxLengthModeratorVector <- length(primaryStudies$moderators[[i]])
       # check matrix symmetry if matrix is provided
       if (!(primaryStudies$studyNumbers[i] %in% loadRawDataStudyNumbers)) {
@@ -288,10 +331,9 @@ ctmaInit <- function(
       manifestNames <- paste0("V", 1:n.latent); manifestNames
       latentNames <- paste0("V", 1:n.latent); latentNames
     }
-
     for (i in 1:n.studies) {
-      #i <- 13
-      if (!(i %in% loadRawDataStudyNumbers)) {
+      #i <- 1
+      if (!(studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers)) {
         currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
         currentEmpcov <- (lapply(studyList, function(extract) extract$empcov))[[i]]; currentEmpcov
@@ -313,203 +355,227 @@ ctmaInit <- function(
         }
 
         # Create Pseudo Raw Data
-        #Msg <- "################################################################################# \n###### Read user provided data and create list with all study information ####### \n#################################################################################"
-        Msg <- paste0("################################################################################# \n###### Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ####### \n#################################################################################")
-        message(Msg)
+        if (!(studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit)) {
+          tmp1 <- paste0(" Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ")
+          tmp2 <- nchar(tmp1); tmp2
+          tmp3 <- (81 - tmp2)/2; tmp3
+          tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+          tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+          tmp6 <- paste0(tmp4, tmp1, tmp5); tmp6
+          Msg <- paste0("################################################################################# \n", tmp6, "\n#################################################################################")
+          message(Msg)
 
-        tmp <- suppressWarnings(ctmaPRaw(empCovMat=currentEmpcov, empN=currentSampleSize, empNMat=currentPairwiseN,
-                                         experimental=experimental))
+          #Msg <- paste0("################################################################################# \n###### Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ####### \n#################################################################################")
+          #message(Msg)
+        }
 
-        empraw[[i]] <- tmp$data
-        lostN[[i]] <- tmp$lostN
-        overallNDiff[[i]] <- tmp$overallLostN
-        relativeNDiff[[i]] <- tmp$relativeLostN
-        lags[[i]] <- matrix(currentLags, nrow=dim(empraw[[i]])[1], ncol=currentTpoints-1, byrow=TRUE)
-        empraw[[i]] <- cbind(empraw[[i]], lags[[i]]);
-        colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
-        empraw[[i]] <- as.data.frame(empraw[[i]])
 
-        # ADDED TO DEAL WITH MANIFEST VARIABLES
-        n.var <- max(c(n.manifest, n.latent)); n.var
-        ## START correction of current lags if entire time point is missing for a case
-        emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames)
-        emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
-        ## eliminate rows where ALL latents are NA
-        if (n.manifest > n.latent) targetCols <- paste0("y", 1:n.manifest) else targetCols <- paste0("V", 1:n.latent)
-        emprawLongTmp <- emprawLongTmp[, ][ apply(emprawLongTmp[, targetCols], 1, function(x) sum(is.na(x)) != n.var ), ]
-        # eliminate rows where time is NA
-        emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
-        # make wide format
-        emprawWide <- suppressMessages(ctsem::ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
-        # intervalise
-        emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide, Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames))
-        # restore
-        empraw[[i]] <- as.data.frame(emprawWide)
-        # END correction
-        # add potential moderators
-      }
-
-      # load raw data on request
-      if ( i %in% loadRawDataStudyNumbers ) {
-        if ( (!(is.null(primaryStudies$emprawList[[i]]))) &
-             ((is.null(primaryStudies$empcovs[[i]]))) ) {  # if the function list of primary studies is already post-processed (ctmaSV) and called from ctmaOptimizeINit)
-          empraw[[i]] <- primaryStudies$emprawList[[i]]
-          if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
-          tmp1 <- dim(empraw[[i]])[2]; tmp1
-          currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
-          currentTpointsBackup <- currentTpoints # in case function is called from ctmaOptimizeInit
-          currentVarnames <- c()
-          for (j in 1:(currentTpoints)) {
-            if (n.manifest == 0) {
-              for (h in 1:n.latent) {
-                currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
-              }
-            } else {
-              for (h in 1:n.manifest) {
-                currentVarnames <- c(currentVarnames, paste0("y",h,"_T", (j-1)))
-              }
-            }
+        # CHD ADDED 7.9.2022 reduce computation time by creating Pseudo Raw Data with small sample size because the data are loaded anyway
+        currentSampleSizeTmp <- currentSampleSize
+        currentPairwiseNTmp <- currentPairwiseN
+        currentEmpcovTmp <- currentEmpcov
+        if (length(loadSingleStudyModelFit) > 0) {
+          tmp <- as.numeric(loadSingleStudyModelFit[2:length(loadSingleStudyModelFit)]); tmp
+          if (studyList[[i]]$originalStudyNo %in% tmp) {
+            currentSampleSizeTmp <- (n.latent * currentTpoints)^2; currentSampleSizeTmp
+            currentPairwiseNTmp <- matrix(0,0,0)
+            currentEmpcovTmp <- matrix(0, n.latent * currentTpoints, n.latent * currentTpoints); currentEmpcovTmp
           }
-          tmp1 <- empraw[[i]]
-          tmp2 <- tmp1[,grep("dT", colnames(tmp1))] == minInterval
-          tmp1[ ,grep("dT", colnames(tmp1))][tmp2] <- NA
-          for (h in 1:(currentTpoints-1)) studyList[[i]]$delta_t[h] <- mean(tmp1[, paste0("dT", h)], na.rm=TRUE)
-          studyList[[i]]$delta_t
-        } else {
-          currentTpoints <- length((lapply(studyList, function(extract) extract$delta_t))[[i]])+1; currentTpoints
+        }
 
-          tmp1 <- studyList[[i]]$rawData$fileName; tmp1
-          tmp2 <- studyList[[i]]$rawData$header; tmp2
-          tmp3 <- studyList[[i]]$rawData$dec; tmp3
-          tmp4 <- studyList[[i]]$rawData$sep; tmp4
-          (activeDirectory != primaryStudies$activeDirectory)
-          if (activeDirectory != primaryStudies$activeDirectory) {
-            tmp1 <- gsub(primaryStudies$activeDirectory, activeDirectory, tmp1, fixed=TRUE)
-          }
-          tmp1
-          tmpData <- utils::read.table(file=tmp1,
-                                       header=tmp2,
-                                       dec=tmp3,
-                                       sep=tmp4)
-          currentVarnames <- c()
-          for (j in 1:(currentTpoints)) {
-            if (n.manifest == 0) {
-              for (h in 1:n.latent) {
-                currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
-              }
-            } else {
-              for (h in 1:n.manifest) {
-                currentVarnames <- c(currentVarnames, paste0("y",h,"_T", (j-1)))
-              }
-            }
-          }
+        # CHD: changed 7.9.2022 "Tmp"
+        tmp <- suppressWarnings(ctmaPRaw(empCovMat=currentEmpcovTmp, empN=currentSampleSizeTmp, empNMat=currentPairwiseNTmp,
+                                           experimental=experimental))
 
-          # replace missing values
-          tmpData <- as.matrix(tmpData) # important: line below will not work without having data as a matrix
-          tmpData[tmpData %in% studyList[[i]]$rawData$missingValues] <- NA
-          empraw[[i]] <- as.data.frame(tmpData)
+          empraw[[i]] <- tmp$data
+          lostN[[i]] <- tmp$lostN
+          overallNDiff[[i]] <- tmp$overallLostN
+          relativeNDiff[[i]] <- tmp$relativeLostN
+          lags[[i]] <- matrix(currentLags, nrow=dim(empraw[[i]])[1], ncol=currentTpoints-1, byrow=TRUE)
+          empraw[[i]] <- cbind(empraw[[i]], lags[[i]]);
+          colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
+          empraw[[i]] <- as.data.frame(empraw[[i]])
 
+          # ADDED TO DEAL WITH MANIFEST VARIABLES
+          n.var <- max(c(n.manifest, n.latent)); n.var
           ## START correction of current lags if entire time point is missing for a case
-          # if called from ctmaOptimize
-          if (!(exists("n.var"))) n.var <- max(n.latent, n.manifest)
-          # change variable names
-          tmp1 <- dim(empraw[[i]])[2]; tmp1
-          currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
-          currentTpointsBackup <- currentTpoints # in case function is called from ctmaOptimizeInit
-          if (n.manifest > n.latent) {
-            colnames(empraw[[i]])[1:(currentTpoints * n.manifest)] <- paste0(paste0("x", 1:n.manifest), "_T", rep(0:(currentTpoints-1), each=n.manifest))
-          } else {
-            colnames(empraw[[i]])[1:(currentTpoints * n.latent)] <- paste0(paste0("V", 1:n.latent), "_T", rep(0:(currentTpoints-1), each=n.latent))
-          }
-
-          # wide to long
           emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames)
           emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
-
-          # eliminate rows where ALL latents are NA
-          if (n.manifest > n.latent) {
-            emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("x", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
-          } else {
-            emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
-          }
+          ## eliminate rows where ALL latents are NA
+          if (n.manifest > n.latent) targetCols <- paste0("y", 1:n.manifest) else targetCols <- paste0("V", 1:n.latent)
+          emprawLongTmp <- emprawLongTmp[, ][ apply(emprawLongTmp[, targetCols], 1, function(x) sum(is.na(x)) != n.var ), ]
           # eliminate rows where time is NA
           emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
           # make wide format
           emprawWide <- suppressMessages(ctsem::ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
           # intervalise
-          emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide,
-                                                              Tpoints=currentTpoints,
-                                                              n.manifest=n.var,
-                                                              manifestNames=manifestNames,
-                                                              mininterval=minInterval))
+          emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide, Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames))
           # restore
           empraw[[i]] <- as.data.frame(emprawWide)
-          #head(empraw[[i]])
           # END correction
-          ###}
-
-          # Change the NAs provided for deltas if raw data are loaded
-          for (h in 1:(currentTpoints-1)) {
-            # temporarily replace dT = .001 by NA
-            tmp1 <- grep("dT", colnames(empraw[[i]])); tmp1
-            colnamesTmp <- colnames(empraw[[i]])[tmp1]; colnamesTmp
-            emprawTmp <- as.matrix(empraw[[i]][, tmp1])
-            colnames(emprawTmp) <- colnamesTmp
-            emprawTmp[emprawTmp == minInterval] <- NA
-            studyList[[i]]$delta_t[h] <- mean(emprawTmp[, paste0("dT", h)], na.rm=TRUE)
-          }
-          ##}
-          ##      }
-
-          # change sample size if entire cases were deleted
-          studyList[[i]]$sampleSize <- (dim(empraw[[i]]))[1]
-          allSampleSizes[[i]] <- dim(empraw[[i]])[1]; allSampleSizes[[i]]
-          currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
-          currentTpoints <- allTpoints[[i]]; currentTpoints
-          if (is.null(currentTpoints)) currentTpoints <- currentTpointsBackup
-
-          #currentVarnames
-          colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
-
-          # standardize (variables - not time lags) if option is chosen
-          if (studyList[[i]]$rawData$standardize == TRUE) empraw[[i]][, currentVarnames] <- scale(empraw[[i]][, currentVarnames])
-
-          # replace missing values for time lags dTi by minInterval (has to be so because dTi are definition variables)
-          tmpData <- empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))]
-          tmpData[is.na(tmpData)] <- minInterval
-          empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))] <- tmpData
-          #head(empraw[[i]])
-
-          # add moderators to loaded raw data
-          # Save raw data  on request
-          if ( i %in% saveRawData$studyNumbers ) {
-            x1 <- paste0(saveRawData$fileName, i, ".dat"); x1
-            utils::write.table(empraw[[i]], file=x1, row.names=saveRawData$row.names, col.names=saveRawData$col.names,
-                               sep=saveRawData$sep, dec=saveRawData$dec)
-          }
-        }
+          # add potential moderators
       }
 
-      # augment pseudo raw data for stanct model
-      {
-        dataTmp <- empraw[[i]]
-        dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=currentTpoints, n.manifest=n.var, #n.TIpred = (n.studies-1),
-                                        manifestNames=manifestNames)
-        dataTmp3 <- suppressMessages(ctsem::ctDeintervalise(dataTmp2))
-        dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
+        # load raw data on request
+        if (studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers) {
+          if ( (!(is.null(primaryStudies$emprawList[[i]]))) &
+               ((is.null(primaryStudies$empcovs[[i]]))) ) {  # if the function list of primary studies is already post-processed (ctmaSV) and called from ctmaOptimizeINit)
+            empraw[[i]] <- primaryStudies$emprawList[[i]]
+            if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
+            tmp1 <- dim(empraw[[i]])[2]; tmp1
+            currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
+            currentTpointsBackup <- currentTpoints # in case function is called from ctmaOptimizeInit
+            currentVarnames <- c()
+            for (j in 1:(currentTpoints)) {
+              if (n.manifest == 0) {
+                for (h in 1:n.latent) {
+                  currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
+                }
+              } else {
+                for (h in 1:n.manifest) {
+                  currentVarnames <- c(currentVarnames, paste0("y",h,"_T", (j-1)))
+                }
+              }
+            }
+            tmp1 <- empraw[[i]]
+            tmp2 <- tmp1[,grep("dT", colnames(tmp1))] == minInterval
+            tmp1[ ,grep("dT", colnames(tmp1))][tmp2] <- NA
+            for (h in 1:(currentTpoints-1)) studyList[[i]]$delta_t[h] <- mean(tmp1[, paste0("dT", h)], na.rm=TRUE)
+            #studyList[[i]]$delta_t
+          } else {
+            currentTpoints <- length((lapply(studyList, function(extract) extract$delta_t))[[i]])+1; currentTpoints
 
-        # eliminate rows where ALL latents are NA
-        if (n.manifest > n.latent) {
-          dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("y", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
-        } else {
-          dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+            tmp1 <- studyList[[i]]$rawData$fileName; tmp1
+            tmp2 <- studyList[[i]]$rawData$header; tmp2
+            tmp3 <- studyList[[i]]$rawData$dec; tmp3
+            tmp4 <- studyList[[i]]$rawData$sep; tmp4
+            if (activeDirectory != primaryStudies$activeDirectory) {
+              tmp1 <- gsub(primaryStudies$activeDirectory, activeDirectory, tmp1, fixed=TRUE)
+            }
+            tmpData <- utils::read.table(file=tmp1,
+                                         header=tmp2,
+                                         dec=tmp3,
+                                         sep=tmp4)
+
+            currentVarnames <- c()
+            for (j in 1:(currentTpoints)) {
+              if (n.manifest == 0) {
+                for (h in 1:n.latent) {
+                  currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
+                }
+              } else {
+                for (h in 1:n.manifest) {
+                  currentVarnames <- c(currentVarnames, paste0("y",h,"_T", (j-1)))
+                }
+              }
+            }
+
+            # replace missing values
+            tmpData <- as.matrix(tmpData) # important: line below will not work without having data as a matrix
+            tmpData[tmpData %in% studyList[[i]]$rawData$missingValues] <- NA
+            empraw[[i]] <- as.data.frame(tmpData)
+
+
+            ## START correction of current lags if entire time point is missing for a case
+            # if called from ctmaOptimize
+            if (!(exists("n.var"))) n.var <- max(n.latent, n.manifest)
+            # change variable names
+            tmp1 <- dim(empraw[[i]])[2]; tmp1
+            currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
+            currentTpointsBackup <- currentTpoints # in case function is called from ctmaOptimizeInit
+            if (n.manifest > n.latent) {
+              colnames(empraw[[i]])[1:(currentTpoints * n.manifest)] <- paste0(paste0("x", 1:n.manifest), "_T", rep(0:(currentTpoints-1), each=n.manifest))
+            } else {
+              colnames(empraw[[i]])[1:(currentTpoints * n.latent)] <- paste0(paste0("V", 1:n.latent), "_T", rep(0:(currentTpoints-1), each=n.latent))
+            }
+
+            # wide to long
+            emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames)
+            emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
+
+            # eliminate rows where ALL latents are NA
+            ## skipped on 31. Aug. 2022
+            #if (n.manifest > n.latent) {
+            #  emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("x", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
+            #} else {
+            #  emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+            #}
+
+            # eliminate rows where time is NA
+            emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
+            # 9. Aug. 2022: handle possibly reduced Tpoints (if some rows were eliminated for all cases)
+            currentTpoints <- max(table(emprawLongTmp[,1])); currentTpoints
+
+            # make wide format
+            emprawWide <- suppressMessages(ctsem::ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
+            # intervalise
+            emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide,
+                                                                Tpoints=currentTpoints,
+                                                                n.manifest=n.var,
+                                                                manifestNames=manifestNames,
+                                                                mininterval=minInterval))
+            # restore
+            empraw[[i]] <- as.data.frame(emprawWide)
+
+            # Change the NAs provided for deltas if raw data are loaded
+            for (h in 1:(currentTpoints-1)) {
+              # temporarily replace dT = .001 by NA
+              tmp1 <- grep("dT", colnames(empraw[[i]])); tmp1
+              colnamesTmp <- colnames(empraw[[i]])[tmp1]; colnamesTmp
+              emprawTmp <- as.matrix(empraw[[i]][, tmp1])
+              colnames(emprawTmp) <- colnamesTmp
+              emprawTmp[emprawTmp == minInterval] <- NA
+              studyList[[i]]$delta_t[h] <- mean(emprawTmp[, paste0("dT", h)], na.rm=TRUE)
+            }
+
+
+            # change sample size if entire cases were deleted
+            studyList[[i]]$sampleSize <- (dim(empraw[[i]]))[1]
+            allSampleSizes[[i]] <- dim(empraw[[i]])[1]; allSampleSizes[[i]]
+            currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
+            currentTpoints <- allTpoints[[i]]; currentTpoints
+            if (is.null(currentTpoints)) currentTpoints <- currentTpointsBackup
+
+            #currentVarnames
+            colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
+
+            # standardize (variables - not time lags) if option is chosen
+            if (studyList[[i]]$rawData$standardize == TRUE) empraw[[i]][, currentVarnames] <- scale(empraw[[i]][, currentVarnames])
+
+
+            # replace missing values for time lags dTi by minInterval (has to be so because dTi are definition variables)
+            tmpData <- empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))]
+            tmpData[is.na(tmpData)] <- minInterval
+            empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))] <- tmpData
+
+            # add moderators to loaded raw data
+            # Save raw data  on request
+            if ( i %in% saveRawData$studyNumbers ) {
+              x1 <- paste0(saveRawData$fileName, i, ".dat"); x1
+              utils::write.table(empraw[[i]], file=x1, row.names=saveRawData$row.names, col.names=saveRawData$col.names,
+                                 sep=saveRawData$sep, dec=saveRawData$dec)
+            }
+          }
         }
-        emprawLong[[i]] <- dataTmp3
-      }
-      #print(i)
-      #}
-    } ### END for i ...
-  } ### END Read user provided data and create list with all study information ###
+
+        # augment pseudo raw data for stanct model
+        {
+          dataTmp <- empraw[[i]]
+          dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=currentTpoints, n.manifest=n.var, #n.TIpred = (n.studies-1),
+                                          manifestNames=manifestNames)
+          dataTmp3 <- suppressMessages(ctsem::ctDeintervalise(dataTmp2))
+          dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
+
+          # eliminate rows where ALL latents are NA
+          if (n.manifest > n.latent) {
+            dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("y", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
+          } else {
+            dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+          }
+          emprawLong[[i]] <- dataTmp3
+        }
+      } ### END for i ...
+    } ### END Read user provided data and create list with all study information ###
 
 
   # Check if sample sizes specified in prep file deviate from cases provided in possible raw data files
@@ -529,6 +595,7 @@ ctmaInit <- function(
     }
   }
 
+
   #######################################################################################################################
   ################################################### Some Statistics ###################################################
   #######################################################################################################################
@@ -541,8 +608,8 @@ ctmaInit <- function(
     allSampleSizes <-unlist(lapply(studyList, function(extract) extract$sampleSize)); allSampleSizes
     overallSampleSize <- N1; overallSampleSize
     meanSampleSize <- mean(allSampleSizes, na.rm=TRUE); meanSampleSize
-    maxSampleSize <- max(allSampleSizes, na.rm=TRUE); maxSampleSize
-    minSampleSize <- min(allSampleSizes, na.rm=TRUE); minSampleSize
+    maxSampleSize <- suppressWarnings(max(allSampleSizes, na.rm=TRUE)); maxSampleSize
+    minSampleSize <- suppressWarnings(min(allSampleSizes, na.rm=TRUE)); minSampleSize
     # lags (will be computed again below if raw data are loaded #
     allDeltas <-unlist(lapply(studyList, function(extract) extract$delta_t)); allDeltas
     if (is.na(allDeltas[length(allDeltas)])) allDeltas <- allDeltas[-length(allDeltas)]; allDeltas
@@ -580,8 +647,12 @@ ctmaInit <- function(
       drift=drift,
       invariantDrift=invariantDrift,
       moderatedDrift=NULL,
-      equalDrift=NULL
+      equalDrift=NULL,
+      T0means=T0means,
+      manifestMeans=manifestMeans,
+      manifestVars=manifestVars
     )
+    #
     driftNames <- namesAndParams$driftNames; driftNames
     driftFullNames <- namesAndParams$driftFullNames; driftFullNames
     driftParams <- namesAndParams$driftParams; driftParams
@@ -592,8 +663,10 @@ ctmaInit <- function(
     invariantDriftParams <- namesAndParams$invariantDriftParams; invariantDriftParams
     lambdaParams <- namesAndParams$lambdaParams; lambdaParams
     T0VARParams <- namesAndParams$T0VARParams; T0VARParams
-    manifestmeansParams <- namesAndParams$manifestMeansParams; manifestmeansParams
-    manifestVarParams <- namesAndParams$manifestVarParams; manifestVarParams
+    #manifestmeansParams <- namesAndParams$manifestMeansParams; manifestmeansParams
+    manifestMeansParams <- namesAndParams$manifestMeansParams; manifestMeansParams
+    T0meansParams=namesAndParams$T0meansParams; T0meansParams
+    manifestVarsParams <- namesAndParams$manifestVarsParams; manifestVarsParams
 
 
   } ### END Create ctsem model template to fit all primary studies ###
@@ -680,8 +753,11 @@ ctmaInit <- function(
     model_Diffusion_Coef <- model_Diffusion_SE <- model_Diffusion_CI <- list()
     model_T0var_Coef <- model_T0var_SE <- model_T0var_CI <- list()
     model_Cint_Coef <- model_Cint_SE <- model_Cint_CI <- list()
-    model_popsd <- list()
+    model_popsd <- list() # model_popcov <- model_popcor <- list()
     resultsSummary <- list()
+    model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_05 <- model_popcov_50 <- model_popcov_95 <- list()
+    model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_05 <- model_popcor_50 <- model_popcor_95 <- list()
+
     for (i in 1:n.studies) {
       #i <- 1
       notLoadable <- TRUE
@@ -695,10 +771,12 @@ ctmaInit <- function(
         Msg <- paste0("################################################################################# \n" , tmp6 ,"\n#################################################################################")
         message(Msg)
         x1 <- paste0(activeDirectory, loadSingleStudyModelFit[1], " singleStudyFits/",loadSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
-        file.exists(x1)
+        #file.exists(x1)
         if (file.exists(x1)) {
           notLoadable <- FALSE
           studyFit[[i]] <- readRDS(file=x1)
+          # CHD added 21 Sep 2022
+          empraw[[i]] <- studyFit[[i]]$empraw
         } else {
           notLoadable <- TRUE
         }
@@ -709,14 +787,44 @@ ctmaInit <- function(
       if (!(studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit[-1]) ) tmpLogic <- 1
       if (tmpLogic == 1) {
 
-        Msg <- paste0("################################################################################# \n################### Fitting SingleStudyModel ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ###################### \n#################################################################################")
+
+        tmp1 <- paste0(" Fitting SingleStudyModel ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ")
+        tmp2 <- nchar(tmp1); tmp2
+        tmp3 <- (81 - tmp2)/2; tmp3
+        tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+        tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+        tmp6 <- paste0(tmp4, tmp1, tmp5); tmp6
+        Msg <- paste0("################################################################################# \n", tmp6, "\n#################################################################################")
         message(Msg)
+
+        #Msg <- paste0("################################################################################# \n################### Fitting SingleStudyModel ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ###################### \n#################################################################################")
+        #message(Msg)
 
         if (!(optimize)) {
           customPar <- FALSE
           if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-          Msg <- "Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output \n"
+
+          tmp1a <- paste0(" Bayesian sampling was selected, which does require appropriate scaling of time. ")
+          tmp2 <- nchar(tmp1a); tmp2
+          tmp3 <- (81 - tmp2)/2; tmp3
+          tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+          tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+          tmp6a <- paste0(tmp4, tmp1a, tmp5); tmp6
+
+          tmp1b <- paste0(" See the end of the summary output ")
+          tmp2 <- nchar(tmp1b); tmp2
+          tmp3 <- (81 - tmp2)/2; tmp3
+          tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+          tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+          tmp6b <- paste0(tmp4, tmp1b, tmp5); tmp6
+
+          Msg <- paste0("################################################################################# \n", tmp6a, "\n", tmp6b, "\n#################################################################################")
           message(Msg)
+
+
+          #Msg <- "Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output \n"
+          #message(Msg)
+
         }
 
         # select correct template
@@ -745,17 +853,21 @@ ctmaInit <- function(
                                        T0VAR=T0VARParams,
                                        type='stanct',
                                        CINT=matrix(0, nrow=n.latent, ncol=1),
-                                       T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                       MANIFESTMEANS = matrix(manifestmeansParams, nrow = n.var, ncol = 1),
-                                       MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var)
+                                       #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                       #MANIFESTMEANS = matrix(manifestmeansParams, nrow = n.var, ncol = 1),
+                                       T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
+                                       MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
+                                       MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var)
         )
-        #currentModel$pars
+        currentModel$pars
         currentModel$pars[, "indvarying"] <- FALSE
 
         if (indVarying == TRUE) {
           Msg <- "################################################################################# \n######## Just a note: Individually varying intercepts model requested.  ######### \n#################################################################################"
           message(Msg)
           MANIFESTMEANS <- paste0("mean_", manifestNames); MANIFESTMEANS # if provided, indVarying is the default
+          # added 9. Aug. 2022
+          T0MEANS <- paste0("T0mean_", manifestNames); MANIFESTMEANS # if provided, indVarying is the default
 
           currentModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
                                          DIFFUSION=matrix(diffParams, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
@@ -764,18 +876,27 @@ ctmaInit <- function(
                                          T0VAR=T0VARParams,
                                          type='stanct',
                                          CINT=matrix(0, nrow=n.latent, ncol=1),
-                                         T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                         MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.var, ncol = 1),
-                                         MANIFESTVAR=matrix(manifestVarParams, nrow=n.var, ncol=n.var)
+                                         # changed 9. Aug. 2022/16. Aug
+                                         #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                         #T0MEANS = matrix(c(T0MEANS), nrow = n.latent, ncol = 1),
+                                         #MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.var, ncol = 1),
+                                         #T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
+                                         #MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
+                                         T0MEANS = "auto",
+                                         MANIFESTMEANS = "auto",
+                                         MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var)
           )
         }
 
         # FIT STANCT MODEL
         if (doPar < 2) {
+          # CHD changed 7 Oct 2022
+          if (any(is.na(studyList[[i]]$startValues))) inits <- NULL else inits <- studyList[[i]]$startValues
           results <- suppressMessages(ctsem::ctStanFit(
             datalong = emprawLong[[i]],
             ctstanmodel = currentModel,
-            inits=studyList[[i]]$startValues,
+            #inits=studyList[[i]]$startValues,
+            inits=inits,
             savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
             stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
             iter=CoTiMAStanctArgs$iter,
@@ -800,14 +921,29 @@ ctmaInit <- function(
             cores=coresToUse) )
         } else {
           # parallel re-fitting of problem study
-          Msg <- "Parallel fit attmepts requested. Screen remains silent for a while.\n"
+
+          tmp1 <- paste0(" Parallel fit attmepts requested. Screen remains silent for a while. ")
+          tmp2 <- nchar(tmp1); tmp2
+          tmp3 <- (81 - tmp2)/2; tmp3
+          tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+          tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+          tmp6 <- paste0(tmp4, tmp1, tmp5); tmp6
+
+          Msg <- paste0("################################################################################# \n", tmp6, "\n#################################################################################")
           message(Msg)
 
+          #Msg <- "Parallel fit attmepts requested. Screen remains silent for a while.\n"
+          #message(Msg)
+
           allfits <- foreach::foreach(p=1:doPar) %dopar% {
+            # CHD changed 7 Oct 2022
+            if (any(is.na(studyList[[i]]$startValues))) inits <- NULL else inits <- studyList[[i]]$startValues
+
             fits <- suppressMessages(ctsem::ctStanFit(
               datalong = emprawLong[[i]],
               ctstanmodel = currentModel,
-              inits=studyList[[i]]$startValues,
+              #inits=studyList[[i]]$startValues,
+              inits=inits,
               savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
               stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
               iter=CoTiMAStanctArgs$iter,
@@ -832,8 +968,18 @@ ctmaInit <- function(
               cores=1) )
             return(fits)
           }
-          all_minus2ll <- unlist(lapply(allfits, function(x) x$stanfit$optimfit$value)); all_minus2ll
-          bestFit <- which(abs(all_minus2ll) == min(abs(all_minus2ll)))[1]; bestFit
+          all_loglik <- unlist(lapply(allfits, function(x) x$stanfit$optimfit$value)); all_loglik
+          # CHD added 27 SEP 2022 to prevent neg -2ll fits
+          if(posLL == FALSE) {
+            if (all(all_loglik > 0)) {
+              ErrorMsg <- "\n All loglik values > 0, but you provided the argument posLL=FALSE, so no fit confirmed your expectations and I had to stop!"
+              stop(ErrorMsg)
+            }
+            all_loglik <- all_loglik[-(which(all_loglik > 0))]
+            }
+          # CHD added 27 SEP 2022: changed min to max
+          bestFit <- which(abs(all_loglik) == max(abs(all_loglik)))[1]; bestFit
+          #
           results <- allfits[[bestFit]]
         }
 
@@ -846,11 +992,14 @@ ctmaInit <- function(
         studyFit[[i]]$resultsSummary$'df (CoTiMA)' <- df
       } # END if (!(studyList[[i]]$originalStudyNo %in% ...
 
-
       # SAVE
       if ( (length(saveSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% saveSingleStudyModelFit[-1]) ) {
         x1 <- paste0(saveSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
         x2 <- paste0(saveSingleStudyModelFit[1], " singleStudyFits/"); x2
+        # CHD added 21. Sep 2022 & changed 28 Sep 2022
+        #if (!(is.null(studyFit[[1]]$empraw))) empraw[[i]] <- studyFit[[i]]$empraw
+        studyFit[[i]]$empraw <- empraw[[i]]
+        #
         ctmaSaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
       }
 
@@ -895,8 +1044,6 @@ ctmaInit <- function(
         model_Diffusion_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "Mean"])
         names(model_Diffusion_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
       }
-      #resultsSummary
-      #model_Diffusion_Coef[[i]]
 
       if (!(is.null(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Sd"]))) {
         model_Diffusion_SE[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Sd"]) #; model_Diffusion_SE[[i]]
@@ -905,7 +1052,6 @@ ctmaInit <- function(
         model_Diffusion_SE[[i]] <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "sd"] #; model_Diffusion_SE[[i]]
         names(model_Diffusion_SE[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
       }
-      #model_Diffusion_SE[[i]]
 
       if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "2.5%"])) == 0) {
         tmp1 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "2.5%"]; tmp1
@@ -922,15 +1068,28 @@ ctmaInit <- function(
                         paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
         names(model_Diffusion_CI[[i]]) <- tmp3; model_Diffusion_CI[[i]]
       }
-      #model_Diffusion_CI[[i]]
 
       tmp <- grep("0var", rownames(resultsSummary$popmeans)); tmp
+      # added 9. Aug. 2022. Next one become neccessary because ctsem labeling changed from "var" to "cov"
+      if (length(tmp) == 0) {
+        tmp <- grep("0cov", resultsSummary$parmatrices$matrix)
+        tmp2 <- (resultsSummary$parmatrices[tmp, c("matrix", "row", "col")]); tmp2
+        T0covNames <- c()
+        for (m in 1:nrow(tmp2)) T0covNames[m] <- paste0(tmp2[m, 1], tmp2[m, 2], tmp2[m, 3])
+      } else {
+        T0covNames <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+      }
       if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"])) == 0 ) {
         model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"])
         names(model_T0var_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_T0var_Coef[[i]]
       }  else {
         model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "Mean"])
-        names(model_T0var_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+        # added 9. Aug. 2022
+        if (length(model_T0var_Coef[[i]]) != n.latent^2) {
+          names(model_T0var_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+        } else {
+          names(model_T0var_Coef[[i]]) <- T0covNames
+        }
       }
 
       if (!(is.null(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Sd"]))) {
@@ -938,7 +1097,11 @@ ctmaInit <- function(
         names(model_T0var_SE[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_T0var_SE[[i]]
       } else {
         model_T0var_SE[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "sd"])
-        names(model_T0var_SE[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+        if (length(model_T0var_SE[[i]]) != n.latent^2) {
+          names(model_T0var_SE[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+        } else {
+          names(model_T0var_SE[[i]]) <- T0covNames
+        }
       }
 
       if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "2.5%"]) == 0)) {
@@ -952,15 +1115,44 @@ ctmaInit <- function(
         tmp1 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "2.5%"]; tmp1
         tmp2 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "97.5%"]; tmp2
         model_T0var_CI[[i]] <- c(rbind(tmp1, tmp2)); model_T0var_CI[[i]]
-        tmp3 <- c(rbind(paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "LL"),
+        if (length(tmp1) != n.latent^2) {
+          tmp3 <- c(rbind(paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "LL"),
                         paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
-        names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
+          names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
+        } else {
+          tmp3 <- c(rbind(paste0(T0covNames, "LL"),
+                          paste0(T0covNames, "UL"))); tmp3
+          names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
+        }
       }
-
-      if (indVarying == TRUE) model_popsd[[i]] <- resultsSummary$popsd
+      # changed 17. Aug. 2022
+      if (indVarying == TRUE) {
+        model_popsd[[i]] <- resultsSummary$popsd
+        e <- ctsem::ctExtract(studyFit[[i]])
+        model_popcov_m[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
+        model_popcov_sd[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
+        model_popcov_T[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
+        model_popcov_05[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .05))
+        model_popcov_50[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
+        model_popcov_95[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .95))
+        # convert to correlations and do the same (array to list then list to array)
+        e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
+        e$popcor <- lapply(e$popcor, stats::cov2cor)
+        e$popcor <- array(unlist(e$popcor), dim=c(n.latent*2, n.latent*2, length(e$popcor)))
+        model_popcor_m[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
+        model_popcor_sd[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
+        model_popcor_T[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
+        model_popcor_05[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .05))
+        model_popcor_50[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
+        model_popcor_95[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .95))
+      } else {
+        model_popsd <- "no random effects estimated"
+        model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_05 <- model_popcov_50 <- model_popcov_95 <- "no random effects estimated"
+        model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_05 <- model_popcor_50 <- model_popcor_95 <- "no random effects estimated"
+      }
+      #}
 
     } # END     for (i in 1:n.studies)
-
 
     # Combine summary information and fit statistics
     allStudies_Minus2LogLikelihood <- sum(unlist(studyFit_Minus2LogLikelihood)); allStudies_Minus2LogLikelihood
@@ -1013,8 +1205,8 @@ ctmaInit <- function(
       allStudiesDIFFUSION_effects_original_time_scale <- NULL
     }
 
-
     source <- lapply(primaryStudies$source, function(extract) paste(extract, collapse=", ")); source
+    if (length(source) > n.studies) source[n.studies +1] <- NULL # new 6. July< 2022
     for (l in 1:length(source)) if ( source[[l]] == "NA") source[[l]] <- "Reference not provided"
     #
     allStudiesDRIFT_effects_ext <- cbind(unlist(source), allStudiesDRIFT_effects)
@@ -1046,8 +1238,8 @@ ctmaInit <- function(
       allStudiesDIFF_effects_original_time_scale_ext <- tmp; allStudiesDIFF_effects_original_time_scale_ext
       #allStudiesDIFF_effects_ext
     } else {
-      allStudiesDRIFT_effects_original_time_scale_ext <- NULL
-      allStudiesDIFF_effects_original_time_scale_ext <- NULL
+      allStudiesDRIFT_effects_original_time_scale_ext <- allStudiesDRIFT_effects_ext # new 8.7.2022
+      allStudiesDIFF_effects_original_time_scale_ext <- allStudiesDIFF_effects_ext # new 8.7.2022
     }
 
     # confidence intervals
@@ -1068,8 +1260,8 @@ ctmaInit <- function(
                                                      nrow=n.studies, byrow=TRUE)
       colnames(allStudiesDiffCI_original_time_scale) <- names(model_Diffusion_CI[[1]]); allStudiesDiffCI_original_time_scale
     } else {
-      allStudiesDriftCI_original_time_scale <- NULL
-      allStudiesDiffCI_original_time_scale <- NULL
+      allStudiesDriftCI_original_time_scale <- allStudiesDriftCI  # new 8.7.2022
+      allStudiesDiffCI_original_time_scale <- allStudiesDiffusionCI  # new 8.7.2022
     }
 
 
@@ -1083,7 +1275,6 @@ ctmaInit <- function(
     if (is.null(ncol(tmp2))) tmp2b <- length(tmp2) else tmp2b <- ncol(tmp2)
     tmp3b <- matrix(round(as.numeric(tmp2) * scaleTime2, digits), ncol=tmp2b); tmp3b
 
-    #if (!(is.matrix(allStudiesCI_original_time_scale[, 1]))) tmp3a <- matrix(allStudiesCI_original_time_scale[, 1], nrow=1) else tmp3a <- allStudiesCI_original_time_scale[, 1]
     if (!(is.matrix(allStudiesCI_original_time_scale[, 1]))) {
       tmp3a <- matrix(allStudiesCI_original_time_scale[, 1], nrow=length(allStudiesCI_original_time_scale[, 1]))
     } else {
@@ -1095,7 +1286,7 @@ ctmaInit <- function(
       tmp3c <- allStudiesCI_original_time_scale[, tmp1]
     }
 
-    #tmp3 <- cbind(allStudiesCI_original_time_scale[, 1], tmp2, allStudiesCI_original_time_scale[, tmp1])
+    if (dim(tmp3c)[2] == 1) tmp3c <- c(tmp3c) # new 6.7.2022
     if (is.null(dim(tmp3c))) tmp3 <- cbind(tmp3a, tmp3b, t(tmp3c)) else tmp3 <- cbind(tmp3a, tmp3b,   tmp3c)
     colnames(tmp3) <- colnames(allStudiesCI_original_time_scale); tmp3
     allStudiesCI_original_time_scale <- tmp3
@@ -1115,9 +1306,38 @@ ctmaInit <- function(
       rownames(allStudiesDIFF_effects_original_time_scale_ext) <- paste0("Study No ", primaryStudies$studyNumbers)
     }
 
+    # dt effects
+    allStudiesDRIFT_effects_ext_dt <- allStudiesDRIFT_effects_ext
+    tmp1 <- grep("toV", colnames(allStudiesDRIFT_effects_ext_dt))
+    tmp2 <- (allStudiesDRIFT_effects_ext[, tmp1])
+    if (!(is.null(dim(tmp2)))) {
+      for (l in 1:dim(tmp2)[1]) {
+        tmp3 <- matrix(as.numeric(tmp2[l, ]), n.latent, n.latent, byrow=TRUE)
+        # changed 16 Sep 2022
+        if (is.null(scaleTime)) tmp4 <- c(t(OpenMx::expm(tmp3))) else tmp4 <- c(t(OpenMx::expm(tmp3 * scaleTime)))
+        allStudiesDRIFT_effects_ext_dt[l, tmp1] <- round(tmp4, digits)
+      }
+    } else {
+      tmp3 <- matrix(as.numeric(tmp2), n.latent, n.latent, byrow=TRUE)
+      # changed 16 Sep 2022
+      if (is.null(scaleTime)) tmp4 <- c(t(OpenMx::expm(tmp3))) else tmp4 <- c(t(OpenMx::expm(tmp3 * scaleTime)))
+      allStudiesDRIFT_effects_ext_dt[tmp1]
+      allStudiesDRIFT_effects_ext_dt[tmp1] <- round(tmp4, digits)
+    }
+    tmp1 <- grep("SE", colnames(allStudiesDRIFT_effects_ext_dt))
+    allStudiesDRIFT_effects_ext_dt <- allStudiesDRIFT_effects_ext_dt[, -tmp1]
+    if (!(is.null(dim(allStudiesDRIFT_effects_ext_dt)))) {
+      colnames(allStudiesDRIFT_effects_ext_dt) <- paste0(colnames(allStudiesDRIFT_effects_ext_dt), " discrete time")
+    } else {
+      names(allStudiesDRIFT_effects_ext_dt)  <- paste0(names(allStudiesDRIFT_effects_ext_dt), " discrete time")
+    }
+
     # check single study results
     if (checkSingleStudyResults == TRUE) {
       print(allStudiesDRIFT_effects_ext)
+      print(allStudiesDRIFT_effects_ext_dt)
+      print(allStudies_Minus2LogLikelihood)
+      #
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       cat(crayon::blue(" Press 'q' to quit or any other key to continue. Press ENTER afterwards."))
       char <- readline(" ")
@@ -1133,7 +1353,7 @@ ctmaInit <- function(
 
     if (n.studies < 2) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      Msg <- "Only a single primary study was handed over to ctmaInitFit. No further (meta-) analyses can be conducted. \nI guess this stop is intended! You could ignore further warning messages such as sqrt(n-2): NaNs produced"
+      Msg <- "Only a single primary study was handed over to ctmaInitFit. No further (meta-) analyses can be conducted. \nI guess this stop is intended!"
       message(Msg)
     }
 
@@ -1143,36 +1363,43 @@ ctmaInit <- function(
   ##############################################################################################################
   end.time <- Sys.time()
   time.taken <- end.time - start.time
+  message1 <- c()
 
   if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
 
-  maxDeltas <- max(unlist(primaryStudies$deltas), na.rm=TRUE); maxDeltas
-  if (!(is.null(scaleTime))) maxDeltas <- maxDeltas * scaleTime
-  largeDelta <- which(unlist(primaryStudies$deltas) >= maxDeltas); largeDelta
-  if (!(is.null(scaleTime))) {
-    tmp1 <- unlist(primaryStudies$deltas)
-    tmp1 <- tmp1[!(is.na(tmp1))]
-    largeDelta <- which( (tmp1 * scaleTime) >= maxDeltas)
-  }
-  tmp1 <- table(unlist(primaryStudies$deltas)[largeDelta]); tmp1
-  if (!(is.null(scaleTime))) {
-    #table(unlist(primaryStudies$deltas * scaleTime)[largeDelta])
-    table((tmp1 * scaleTime)[largeDelta])
-  }
-  tmp2 <- which(tmp1 == (max(tmp1))); tmp2
-  suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
-  message <- c()
-  if (maxDeltas > 6) {
-    tmp2 <- paste0("Maximum time interval was ", maxDeltas, "."); tmp2
-    tmp3 <- paste0("timeScale=1/", suggestedScaleTime); tmp3
-    if (suggestedScaleTime != scaleTime2) {
-      #tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, " and customPar=FALSE. "); tmp4
-      tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, ". "); tmp4
-    } else {
-      tmp4 <- paste0(""); tmp4
+  if (!(all(is.na(unlist(primaryStudies$deltas))))) {
+    maxDeltas <- max(unlist(primaryStudies$deltas), na.rm=TRUE)
+
+    if (!(is.null(scaleTime))) maxDeltas <- maxDeltas * scaleTime
+    largeDelta <- which(unlist(primaryStudies$deltas) >= maxDeltas); largeDelta
+
+    if (!(is.null(scaleTime))) {
+      tmp1 <- unlist(primaryStudies$deltas)
+      tmp1 <- tmp1[!(is.na(tmp1))]
+      largeDelta <- which( (tmp1 * scaleTime) >= maxDeltas)
     }
-    message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using, e.g.,", tmp3, "in all subsequent models.", collapse="\n"); message
-  }
+    tmp1 <- table(unlist(primaryStudies$deltas)[largeDelta]); tmp1
+    if (!(is.null(scaleTime))) {
+      #table(unlist(primaryStudies$deltas * scaleTime)[largeDelta])
+      table((tmp1 * scaleTime)[largeDelta])
+    }
+    tmp2 <- which(tmp1 == (max(tmp1))); tmp2
+    suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
+    #message1 <- c()
+    if (maxDeltas > 6) {
+      tmp2 <- paste0("Maximum time interval was ", maxDeltas, "."); tmp2
+      tmp3 <- paste0("timeScale=1/", suggestedScaleTime); tmp3
+      if (suggestedScaleTime != scaleTime2) {
+        #tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, " and customPar=FALSE. "); tmp4
+        tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, ". "); tmp4
+      } else {
+        tmp4 <- paste0(""); tmp4
+      }
+      message1 <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using, e.g.,", tmp3, "in all subsequent models.", collapse="\n"); message1
+    }
+  } else {
+    maxDeltas <- NA
+  }; maxDeltas
 
   if (is.null(scaleTime)) scaleTime2 <- 1 else scaleTime2 <- scaleTime
 
@@ -1199,12 +1426,21 @@ ctmaInit <- function(
                   parameterNames=list(DRIFT=names(model_Drift_Coef[[1]]), DIFFUSION=names(model_Diffusion_Coef[[1]]), T0VAR=names(model_T0var_Coef[[1]])),
                   summary=(list(model="all drift free (het. model)",
                                 estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
+                                estimates_discrete=allStudiesDRIFT_effects_ext_dt,
                                 scaleTime=scaleTime2,
-                                randomEffects=model_popsd,
+                                # changed 17. Aug. 2022
+                                #randomEffects=list(popsd=model_popsd, popcov=model_popcov, popcor=model_popcor),
+                                randomEffects=list(popsd=model_popsd,
+                                                   popcov_mean=model_popcov_m, model_popcov_sd=model_popcov_sd,
+                                                   model_popcov_T=model_popcov_T, model_popcov_05=model_popcov_05,
+                                                   model_popcov_50=model_popcov_50, model_popcov_95=model_popcov_95,
+                                                   popcor_mean=model_popcor_m, model_popcor_sd=model_popcor_sd,
+                                                   model_popcor_T=model_popcor_T, model_popcor_05=model_popcor_05,
+                                                   model_popcor_50=model_popcor_50, model_popcor_95=model_popcor_95),
                                 confidenceIntervals=allStudiesCI,
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),
-                                message=message,
+                                note=message1,
                                 drift_estimates_original_time_scale =allStudiesDRIFT_effects_original_time_scale_ext,
                                 drift_CI_original_time_scale=allStudiesDriftCI_original_time_scale,
                                 diff_estimates_original_time_scale=allStudiesDIFF_effects_original_time_scale_ext,
@@ -1282,7 +1518,8 @@ ctmaInit <- function(
     ### random Effects
     startCol <- 2; startCol
     startRow <- 1; startRow
-    openxlsx::writeData(wb, sheet5, startCol=startCol, startRow = startRow, results$summary$randomEffects, colNames = FALSE)
+    # CHD 7. Sep 2022: Quickfix: do not report all random effect matrices
+    openxlsx::writeData(wb, sheet5, startCol=startCol, startRow = startRow, results$summary$randomEffects[1], colNames = FALSE)
     ### stats
     startCol <- 2; startCol
     startRow <- 1; startRow
