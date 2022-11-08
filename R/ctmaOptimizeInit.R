@@ -65,6 +65,7 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
                              customPar=FALSE,
                              T0means=0,
                              manifestMeans=0,
+                             manifestVars=NUll,
                              CoTiMAStanctArgs=NULL,
                              scaleTime=NULL)
 {
