@@ -75,6 +75,7 @@
 #' ("omx" was deprecated).
 #'
 ctmaInit <- function(
+  #
   primaryStudies=NULL,
   activeDirectory=NULL,
   activateRPB=FALSE,
@@ -84,6 +85,7 @@ ctmaInit <- function(
   n.manifest=0,
   lambda=NULL,
   manifestVars=NULL,
+  #
   drift=NULL,
   diff=NULL,
   indVarying=FALSE,
