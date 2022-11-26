@@ -234,6 +234,7 @@ ctmaPower <- function(
 
     allSampleSizes <- ctmaInitFit$statisticsList$allSampleSizes; allSampleSizes
     #failSafeN
+    failSafeNhelper <- ""
     if ( (!(is.null(failSafeN)) & ((is.null(failSafeP))))
          | ((is.null(failSafeN)) & (!(is.null(failSafeP)))) )  {
       if (activateRPB == TRUE) {
