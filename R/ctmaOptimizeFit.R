@@ -37,6 +37,7 @@
 #' @importFrom foreach %dopar%
 #' @importFrom RPushbullet pbPost
 #' @importFrom stats runif
+#' @importFrom methods is
 #'
 #' @note All but one of multiple cores are used on unix-type machines for parallel fitting
 #' @note During fitting, not output is generated. Be patient.
