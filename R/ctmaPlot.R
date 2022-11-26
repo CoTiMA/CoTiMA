@@ -175,6 +175,9 @@ ctmaPlot <- function(
 
     # detect study no > 4 nchar
     tmp1 <- c()
+    #ctmaFitObject[[i]]$studyList
+    #str(ctmaFitObject[[1]]$studyList)
+    #(lapply(ctmaFitObject[[1]]$studyList, function(extract) extract$originalStudyNo))
     for (i in 1:n.fitted.obj)  tmp1 <- c(tmp1, unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)))
     if (!(is.null(tmp1))) {
       if (any(nchar(tmp1) > 4)) {
@@ -224,7 +227,6 @@ ctmaPlot <- function(
       }
     }
 
-
     for (i in 1:n.fitted.obj) {
       #i <- 1
       if ("power" %in% plot.type[[i]]) plot.type[[i]] <- c("power", "drift")
@@ -232,8 +234,8 @@ ctmaPlot <- function(
       driftNames[[i]] <- ctmaFitObject[[i]]$parameterNames$DRIFT; driftNames[[i]]
       n.studies[i] <- ctmaFitObject[[i]]$n.studies; n.studies[i]
 
+      for (i in 1:n.fitted.obj)  tmp1 <- c(tmp1, unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)))
       study.numbers[[i]] <- unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)); study.numbers[[i]]
-
       tmp1 <- 0
       if (is.na(study.numbers[[i]][length(study.numbers[[i]])])) {
         study.numbers[[i]] <- study.numbers[[i]][1:(length(study.numbers[[i]])-1 )]
@@ -568,8 +570,11 @@ ctmaPlot <- function(
           tmp1c <- c()
           for (g in 1:n.fitted.obj) {
             tmp1c <- c(tmp1c, unlist(lapply(ctmaFitObject[[g]]$studyList, function(x) x$delta_t)))
-            for (l in 1:length(ctmaFitObject[[g]]$studyList)) {
-              tmp1c <- c(tmp1c, mean(ctmaFitObject[[g]]$studyList[[l]]$delta_t))
+            #CHD changed 10 Nov 2022
+            if (length(ctmaFitObject[[g]]$studyList) > 1) {
+              for (l in 1:length(ctmaFitObject[[g]]$studyList)) {
+                tmp1c <- c(tmp1c, mean(ctmaFitObject[[g]]$studyList[[l]]$delta_t))
+              }
             }
           }
           tmp1 <- sort(unique(c(tmp1a, tmp1b, tmp1c))); tmp1
@@ -611,7 +616,7 @@ ctmaPlot <- function(
             originalStudyNo <- delta_t <- c()
 
             for (i in unlist(mod.values[[g]]) ) {
-              #i <- unlist(mod.values[[g]])[2]; i
+              #i <- unlist(mod.values[[g]])[3]; i
               originalStudyNo[counter] <- i # used for labeling in plot
               delta_t[counter] <- xValueForModValue[counter+1]
 
@@ -658,13 +663,28 @@ ctmaPlot <- function(
                   DRIFTlo[[g]][[counter]] <- tmp1 #- .01 * tmp2
                 } else {
                   n.mod.tmp <- length(mod.values[[g]])-1; n.mod.tmp
+                  # added CHD 10 Nov 2022 to accound for possible modelling of means
+                  tmp11 <- ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars$matrix
+                  tmp11 <- which(tmp11 == "MANIFESTMEANS"); tmp11
+                  #is.na(ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars$param[tmp11])
+                  tmp11 <- is.na(ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars$param[tmp11]); tmp11
+                  offset <- length(which(tmp11 == FALSE)); offset
+                  #if (!(is.null(ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull))) {
+                  #  tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,1:(n.latent^2),
+                  #                                                                                   n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1]; tmp2
+                  #} else {
+                  #  tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedpars$TIPREDEFFECT[,1:(n.latent^2),
+                  #                                                                               n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1]; tmp2
+                  #}
+                  # CHD changed 10 Nov 2022
                   if (!(is.null(ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull))) {
-                    tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,1:(n.latent^2),
+                    tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,(offset+1):(offset+n.latent^2),
                                                                                                      n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1]; tmp2
                   } else {
-                    tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedpars$TIPREDEFFECT[,1:(n.latent^2),
+                    tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedpars$TIPREDEFFECT[,(offset+1):(offset+n.latent^2),
                                                                                                  n.TIpreds+(n.mod.tmp*(mod.number-1)+counter)-1]; tmp2
                   }
+
                   if (!(is.matrix(tmp2))) { # 29. Aug. 2022
                     tmp2 <- matrix(tmp2, n.latent, n.latent, byrow=TRUE); tmp2
                   } else {
@@ -950,8 +970,6 @@ ctmaPlot <- function(
                         currentLabel <- ctmaFitObject[[g]]$ctmaFitObject$studyList[[h]]$originalStudyNo; currentLabel
                       }
                     }
-                    #if (h < 10) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
-                    #if (h > 9) graphics::text(currentPlotPair, labels=currentLabel, cex=1/5*dot.plot.cex, col="white")
                     if (nchar(currentLabel) == 1) graphics::text(currentPlotPair, labels=currentLabel, cex=3/5*text.plot.cex, col="white")
                     if (nchar(currentLabel) == 2) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*text.plot.cex, col="white")
                     if (nchar(currentLabel) > 2) graphics::text(currentPlotPair, labels=currentLabel, cex=1.5/5*text.plot.cex, col="white")
@@ -961,7 +979,6 @@ ctmaPlot <- function(
                     if (nchar(currentLabel) == 2) graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*text.plot.cex, col="white")
                     if (nchar(currentLabel) > 2) graphics::text(currentPlotPair, labels=currentLabel, cex=1.5/5*text.plot.cex, col="white")
                     currentPlotPair <- cbind(dotPlotPairs[[g]][h, ,1], plotPairs[[g]][h, ,1+j])
-                    #graphics::text(currentPlotPair, labels=currentLabel, cex=2/5*dot.plot.cex, col="white")
                   }
                   graphics::par(new=T)
                 }

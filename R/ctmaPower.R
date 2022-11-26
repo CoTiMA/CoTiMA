@@ -241,8 +241,10 @@ ctmaPower <- function(
       }
       cat(crayon::red$bold("Only one argument (failSafeN OR failSafeP) has been provided, but both are required!", sep="\n"))
       cat(crayon::red$bold(" ", " ", sep="\n"))
-      round(mean(allSampleSizes+.5),0)
-      failSafeNhelper <- ""
+      #round(mean(allSampleSizes+.5),0)
+      # Changed 26 Nov 2022
+      #failSafeNhelper <- ""
+      failSafeNhelper <-  round(mean(allSampleSizes+.5),0)
       if (is.null(failSafeN)) {
         failSafeN <- round(mean(allSampleSizes+.5),0)
         failSafeNhelper <- "( = avg. N)"
