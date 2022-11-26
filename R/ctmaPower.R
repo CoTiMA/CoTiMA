@@ -287,51 +287,55 @@ ctmaPower <- function(
   ################################################# data preparation ####################################################
   #######################################################################################################################
   {
-    # combine pseudo raw data for model
-    tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit)
-    #var(tmp$alldata[,1:8], na.rm=TRUE)
+    # CHD adeed 26 Nov 2022
+    if (length(loadAllInvFit) < 1) {
+      # combine pseudo raw data for model
+      tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit)
+      #var(tmp$alldata[,1:8], na.rm=TRUE)
 
-    if (skipScaling == FALSE) {
-      tmp1 <- grep("_T", colnames(tmp$alldata)); tmp1
-      tmp$alldata[, tmp1] <- scale(tmp$alldata[, tmp1])
+      if (skipScaling == FALSE) {
+        tmp1 <- grep("_T", colnames(tmp$alldata)); tmp1
+        tmp$alldata[, tmp1] <- scale(tmp$alldata[, tmp1])
+      }
+
+      datawide_all <- tmp$alldata
+      groups <- tmp$groups
+
+      # possible subsample selection
+      if (!(is.null(useSampleFraction))) {
+        N <- dim(datawide_all)[1]; N
+        stepwidth <- 100/useSampleFraction
+        targetCases <- round(seq(1, N, stepwidth), 0); targetCases
+        datawide_all <- datawide_all[targetCases, ]
+        groups <- groups[targetCases]
+      }
+      #var(datawide_all[,1:8], na.rm=TRUE)
+
+
+      names(groups) <- c("Study_No_"); groups
+      groupsNamed <- (paste0("Study_No_", groups)); groupsNamed
+
+      # augment pseudo raw data for stanct model
+      dataTmp <- cbind(datawide_all, groups)
+      for (i in 1:(n.studies-1)) {
+        tmp <- matrix(0, nrow=nrow(dataTmp)); tmp
+        colnames(tmp) <- paste0("TI", i); tmp
+        dataTmp <- cbind(dataTmp, tmp); dim(dataTmp)
+        tmp <- which(dataTmp[,"groups"] == i); tmp
+        dataTmp[tmp, ncol(dataTmp)] <- 1
+        if (CoTiMAStanctArgs$scaleTI == TRUE) dataTmp[ , ncol(dataTmp)] <- scale(dataTmp[ , ncol(dataTmp)])
+      }
+      targetCols <- which(colnames(dataTmp) == "groups"); targetCols
+      dataTmp <- dataTmp[ ,-targetCols]
+      dataTmp2 <- suppressMessages(ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1),
+                                                manifestNames=manifestNames))
+      dataTmp3 <- suppressMessages(ctDeintervalise(dataTmp2))
+      dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
+      # eliminate rows where ALL latents are NA
+      dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+      datalong_all <- dataTmp3
+      datalong_all <- datalong_all[, -grep("TI", colnames(datalong_all))]
     }
-
-    datawide_all <- tmp$alldata
-    groups <- tmp$groups
-
-    # possible subsample selection
-    if (!(is.null(useSampleFraction))) {
-      N <- dim(datawide_all)[1]; N
-      stepwidth <- 100/useSampleFraction
-      targetCases <- round(seq(1, N, stepwidth), 0); targetCases
-      datawide_all <- datawide_all[targetCases, ]
-      groups <- groups[targetCases]
-    }
-    #var(datawide_all[,1:8], na.rm=TRUE)
-
-
-    names(groups) <- c("Study_No_"); groups
-    groupsNamed <- (paste0("Study_No_", groups)); groupsNamed
-
-    # augment pseudo raw data for stanct model
-    dataTmp <- cbind(datawide_all, groups)
-    for (i in 1:(n.studies-1)) {
-      tmp <- matrix(0, nrow=nrow(dataTmp)); tmp
-      colnames(tmp) <- paste0("TI", i); tmp
-      dataTmp <- cbind(dataTmp, tmp); dim(dataTmp)
-      tmp <- which(dataTmp[,"groups"] == i); tmp
-      dataTmp[tmp, ncol(dataTmp)] <- 1
-      if (CoTiMAStanctArgs$scaleTI == TRUE) dataTmp[ , ncol(dataTmp)] <- scale(dataTmp[ , ncol(dataTmp)])
-    }
-    targetCols <- which(colnames(dataTmp) == "groups"); targetCols
-    dataTmp <- dataTmp[ ,-targetCols]
-    dataTmp2 <- suppressMessages(ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1),
-                                              manifestNames=manifestNames))
-    dataTmp3 <- suppressMessages(ctDeintervalise(dataTmp2))
-    dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
-    # eliminate rows where ALL latents are NA
-    dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
-    datalong_all <- dataTmp3
   }
 
 
@@ -345,7 +349,8 @@ ctmaPower <- function(
   Msg <- "################################################################################# \n######## Fitting all fixed CoTiMA - ALL parameters equal across groups ########## \n#################################################################################"
   message(Msg)
 
-  datalong_all <- datalong_all[, -grep("TI", colnames(datalong_all))]
+  # CHD moved up 26 Nov 2022
+  #datalong_all <- datalong_all[, -grep("TI", colnames(datalong_all))]
 
 
   # LOAD or Fit
@@ -645,7 +650,7 @@ ctmaPower <- function(
       #
     }
   }
-  #pValues
+
 
   Msg <- "################################################################################# \n# Compute min and max discrete time intervals for which effects are significant # \n#################################################################################"
   message(Msg)
