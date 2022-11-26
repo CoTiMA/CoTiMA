@@ -350,7 +350,10 @@ ctmaPower <- function(
   # LOAD or Fit
   if (length(loadAllInvFit) > 0) {
     x1 <- paste0(activeDirectory, loadAllInvFit[1], ".rds"); x1
-    results <- readRDS(file=x1)
+    # CHD changed Nov 2022
+    #results <- readRDS(file=x1)
+    allInvModelFit <- readRDS(file=x1)
+    allInvModelFitSummary <- summary(allInvModelFit, digits=digits)
   } else {
     allInvModelFit <- ctmaAllInvFit(ctmaInitFit=ctmaInitFit,
                                     activeDirectory=activeDirectory,
