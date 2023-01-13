@@ -245,7 +245,7 @@ ctmaPlot <- function(
 
       n.primary.studies[i] <- length(ctmaFitObject[[i]]$studyList); n.primary.studies[i]
       if (tmp1 == 1) n.primary.studies[i] <- n.primary.studies[i] - 1
-      n.studies
+
       if (n.studies[i] == 1) {
         DRIFTCoeff[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFT); DRIFTCoeff[[i]]
         if (undoTimeScaling) {
