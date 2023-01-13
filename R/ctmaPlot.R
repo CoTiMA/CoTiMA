@@ -234,7 +234,8 @@ ctmaPlot <- function(
       driftNames[[i]] <- ctmaFitObject[[i]]$parameterNames$DRIFT; driftNames[[i]]
       n.studies[i] <- ctmaFitObject[[i]]$n.studies; n.studies[i]
 
-      for (i in 1:n.fitted.obj)  tmp1 <- c(tmp1, unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)))
+      # CHD Jan 2023:
+      #for (j in 1:n.fitted.obj)  tmp1 <- c(tmp1, unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)))
       study.numbers[[i]] <- unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)); study.numbers[[i]]
       tmp1 <- 0
       if (is.na(study.numbers[[i]][length(study.numbers[[i]])])) {
@@ -244,7 +245,7 @@ ctmaPlot <- function(
 
       n.primary.studies[i] <- length(ctmaFitObject[[i]]$studyList); n.primary.studies[i]
       if (tmp1 == 1) n.primary.studies[i] <- n.primary.studies[i] - 1
-
+      n.studies
       if (n.studies[i] == 1) {
         DRIFTCoeff[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFT); DRIFTCoeff[[i]]
         if (undoTimeScaling) {
