@@ -791,11 +791,7 @@ ctmaPlot <- function(
 
         for (h in 1:toPlot) {
           #h <- 2
-          #usedTimeRange
-          #allAvgDeltas
-          #mean(ctmaFitObject[[g]]$studyList[[h]]$delta_t)
           for (stepCounter in 1:length(usedTimeRange)){
-            #stepCounter <-113
             timeValue <- usedTimeRange[stepCounter]; timeValue
             plotPairs[[g]][h,stepCounter,1] <- timeValue; plotPairs[[g]][h,stepCounter,1]
             for (j in 1:(n.latent[[g]]^2)) {

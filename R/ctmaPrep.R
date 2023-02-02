@@ -302,13 +302,8 @@ ctmaPrep <- function(selectedStudies=NULL,
   studyListCategories$empVars <- NULL # do not summarize variances
   primaryStudies2$empVars <- NULL
 
-  #studyListCategories
-
   summaryTable <- matrix(NA, nrow=n.studies, ncol=0); summaryTable
-  #length(studyListCategories)
   for (i in 1:length(studyListCategories)) {
-    #i <- 3
-    #(any(!(is.na(primaryStudies2[[i]]))))
     if (any(!(is.na(primaryStudies2[[i]])))) {
       # check max length of list elements across studies
       maxLength <- max(unlist(lapply(primaryStudies2[[i]], length))); maxLength
@@ -317,6 +312,7 @@ ctmaPrep <- function(selectedStudies=NULL,
       if (names(studyListCategories)[i] %in% c("combineVariables")) object <- "list"
       if (object == "matrix") {
         maxLength <- maxLength ^.5; maxLength # correction if input is matrix
+        maxDim <- maxLength # CHD 2.2.23
         maxLength <- maxLength * (maxLength - 1) / 2; maxLength
       }
       if (names(studyListCategories)[i] %in% c("alphas")) maxLength <- maxWaves * n.variables
@@ -324,12 +320,24 @@ ctmaPrep <- function(selectedStudies=NULL,
       if (maxLength > 0) {
         tmpTable <- matrix(NA, nrow=n.studies, ncol=maxLength); tmpTable
         for (j in (1:n.studies)) {
-         #j <- 5
+         #j <- 1
           if (length(primaryStudies2[[i]][[j]]) > 0) {
             if (object == "matrix") {
-              currentLength <- length(primaryStudies2[[i]][[j]])^.5; currentLength
+              #currentLength <- length(primaryStudies2[[i]][[j]])^.5; currentLength
+              #currentLength <- currentLength * (currentLength-1) / 2; currentLength
+              #for (k in 1:currentLength) tmpTable[j, k] <- round(primaryStudies2[[i]][[j]][lower.tri(primaryStudies2[[i]][[j]])][k], digits)
+              # new CHD 2.2.23
+              tmp1 <- primaryStudies2[[i]][[j]]
+              currentDim <- length(tmp1)^.5; currentDim
+              tmp2 <- maxDim - currentDim; tmp2
+              if (tmp2 > 0) {
+                tmp1 <- cbind(tmp1, matrix(NA, nrow=currentDim, ncol=tmp2))
+                tmp1 <- rbind(tmp1, matrix(NA, nrow=tmp2, ncol=maxDim))
+              }
+              currentLength <- length(tmp1)^.5; currentLength
               currentLength <- currentLength * (currentLength-1) / 2; currentLength
-              for (k in 1:currentLength) tmpTable[j, k] <- round(primaryStudies2[[i]][[j]][lower.tri(primaryStudies2[[i]][[j]])][k], digits)
+              tmp1[lower.tri(tmp1)]
+              for (k in 1:currentLength) if (!(is.na(tmp1[lower.tri(tmp1)][k]))) tmpTable[j, k] <- round(tmp1[lower.tri(tmp1)][k], digits)
             }
             if (object == "vector") {
               for (k in 1:maxLength) tmpTable[j, k] <- primaryStudies2[[i]][[j]][k]
@@ -404,9 +412,6 @@ ctmaPrep <- function(selectedStudies=NULL,
               }
             }
           }
-          #tmpTableNames
-          #n.variables
-          #maxWaves
           tmpTableNamesMat <- matrix(tmpTableNames, n.variables*maxWaves, n.variables*maxWaves); tmpTableNamesMat
           tmpTableNames <- tmpTableNamesMat[lower.tri(tmpTableNamesMat)]; tmpTableNames
           tmpTableNames <- tmpTableNames[1:maxLength] # test
