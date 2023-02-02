@@ -323,9 +323,9 @@ ctmaPrep <- function(selectedStudies=NULL,
          #j <- 1
           if (length(primaryStudies2[[i]][[j]]) > 0) {
             if (object == "matrix") {
-              #currentLength <- length(primaryStudies2[[i]][[j]])^.5; currentLength
-              #currentLength <- currentLength * (currentLength-1) / 2; currentLength
-              #for (k in 1:currentLength) tmpTable[j, k] <- round(primaryStudies2[[i]][[j]][lower.tri(primaryStudies2[[i]][[j]])][k], digits)
+              # currentLength <- length(primaryStudies2[[i]][[j]])^.5; currentLength
+              # currentLength <- currentLength * (currentLength-1) / 2; currentLength
+              # for (k in 1:currentLength) tmpTable[j, k] <- round(primaryStudies2[[i]][[j]][lower.tri(primaryStudies2[[i]][[j]])][k], digits)
               # new CHD 2.2.23
               tmp1 <- primaryStudies2[[i]][[j]]
               currentDim <- length(tmp1)^.5; currentDim
