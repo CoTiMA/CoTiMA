@@ -178,7 +178,7 @@ ctmaBiG <- function(
     # CHD 24.2.2023
     if (!(is.null(dt))) {
       nsamples <- 1000
-      drift_Coeff_dt <- matrix(NA, ncol=(1*(n.latent^2)), nrow=n.studies); drif_Coeff_dt
+      drift_Coeff_dt <- matrix(NA, ncol=(1*(n.latent^2)), nrow=n.studies); drift_Coeff_dt
       drift_SE_dt <- matrix(NA, ncol=(1*(n.latent^2)), nrow=n.studies); drift_SE_dt
       #
       tmpTimeScale <- ctmaInitFit$summary$scaleTime; tmpTimeScale
@@ -698,3 +698,5 @@ ctmaBiG <- function(
     invisible(results)
   }
 } ### END function definition
+summary(results)
+summaryList
