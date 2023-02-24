@@ -163,6 +163,21 @@ ctmaBiG <- function(
         }
     }
 
+    # CHD 24.2.2023
+    #all_Coeff
+    #table(all_Coeff)
+    #which((table(all_Coeff) > 1))
+    #(sum(table(all_Coeff)[which((table(all_Coeff) > 1))]) > 2*n.studies)
+    if (any(all_SE == 0)) {
+      tmp <- which(all_SE == 0, arr.ind = TRUE); tmp
+      colnames(tmp) <- c("Study", "Drift Effect"); tmp
+      ErrorMsg <- paste0("\nA At least one SE was zero. Analysis of heterogeneity and bias cannot be performed.
+                         Possible problem in fitting the single studies listed above. \nGood luck for the next try!")
+      print(tmp)
+      stop(ErrorMsg)
+    }
+
+
     #######################################################################################################################
     ##################################### Analyses of Publication Bias ####################################################
     #######################################################################################################################
@@ -178,8 +193,12 @@ ctmaBiG <- function(
     DRIFTSE <- all_SE[, grep("toV", colnames(all_SE))]; DRIFTSE
     DIFFUSIONCoeff <- all_Coeff[, grep("diff", colnames(all_Coeff))]; DIFFUSIONCoeff
     DIFFUSIONSE <- all_SE[, grep("diff", colnames(all_SE))]; DIFFUSIONSE
-    T0VARCoeff <- all_Coeff[, grep("T0var", colnames(all_Coeff))]; T0VARCoeff
-    T0VARSE <- all_SE[, grep("T0var", colnames(all_SE))]; T0VARSE
+    tmp <- grep("T0var", colnames(all_Coeff)); tmp
+    if (length(tmp) == 0) tmp <- grep("T0cov", colnames(all_Coeff)); tmp
+    T0VARCoeff <- all_Coeff[, tmp]; T0VARCoeff
+    tmp <- grep("T0var", colnames(all_SE)); tmp
+    if (length(tmp) == 0) tmp <- grep("T0cov", colnames(all_Coeff)); tmp
+    T0VARSE <- all_SE[, tmp]; T0VARSE
 
     # just added in case time scaled funnel and forest plots should be done with ctmaPlot
     DRIFTCoeff_timeScaled <- all_Coeff_timeScaled[, grep("toV", colnames(all_Coeff))]; DRIFTCoeff_timeScaled
@@ -198,6 +217,7 @@ ctmaBiG <- function(
 
     eggerDrift <- list()
     for (j in 1:(n.latent^2)) {
+      #j <- 1
       tmp1 <- stats::lm(DRIFTCoeffSND[,j]~DRIFTPrecision[,j]) # This is identical to a weighted regression of drift on se ...
       tmp2 <- summary(tmp1)
       eggerDrift[[j]] <- list()
@@ -227,7 +247,7 @@ ctmaBiG <- function(
       #FREAResults[[FREACounter]] <- summary(eggerDrift[[j]])
       FREAResults[[FREACounter]] <- eggerDrift[[j]]$summary
     }
-    #str(FREAResults)
+    #str(FREAResults
 
     ################################### Fixed & Random Effects Analyses ###################################################
 
@@ -237,6 +257,7 @@ ctmaBiG <- function(
 
     # FIXED EFFECTS ANALYSIS ###############################################################################
     DriftMeans <- colMeans(DRIFTCoeff); DriftMeans
+    DRIFTSE_timeScaled
     # Sum of within weights  and weight * effect size
     T_DriftWeights <- colSums(DRIFTPrecision^2); T_DriftWeights
     #DRIFTPrecision
@@ -279,6 +300,11 @@ ctmaBiG <- function(
                                      FixedEffect_DriftZ, FixedEffect_DriftProb, tau2Drift, Q_Drift, H2_Drift,
                                      H2DriftUpperLimit, H2DriftLowerLimit, I2_Drift,
                                      I2DriftUpperLimit, I2DriftLowerLimit)
+    # CHD 24.2.2023
+    fixedEffectDriftMessage <- c()
+    if (any(I2_Drift < 0)) fixedEffectDriftMessage <- "Negative I2 values can be set to 0.0."
+    tau2DriftMessage <- c()
+    if (any(tau2Drift < 0)) tau2DriftMessage <- "Some tau-squared are negative. Random effects cannot be computed. Possibly a small-k-problem."
 
     # RANDOM EFFECTS ANALYSIS ###############################################################################
 
@@ -448,6 +474,8 @@ ctmaBiG <- function(
                     summary=list(model="Analysis of Publication Bias & Generalizability",
                                  estimates=list("Fixed Effects of Drift Coefficients"=round(fixedEffectDriftResults, digits),
                                                 "Heterogeneity"=round(heterogeneity, digits),
+                                                "I2 message" = fixedEffectDriftMessage,
+                                                "Tau2 message" = tau2DriftMessage,
                                                 "Random Effects of Drift Coefficients"=round(RandomEffectDriftResults, digits),
                                                 "PET-PEESE corrections"=round(PET_PEESE_DRIFTresults, digits),
                                                 "Egger's tests"=round(eggerTest, digits),
