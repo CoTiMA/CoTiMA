@@ -171,7 +171,7 @@ ctmaBiG <- function(
     if (any(all_SE == 0)) {
       tmp <- which(all_SE == 0, arr.ind = TRUE); tmp
       colnames(tmp) <- c("Study", "Drift Effect"); tmp
-      ErrorMsg <- paste0("\nA At least one SE was zero. Analysis of heterogeneity and bias cannot be performed.
+      ErrorMsg <- paste0("\nAt least one SE was zero. Analysis of heterogeneity and bias cannot be performed.
                          Possible problem in fitting the single studies listed above. \nGood luck for the next try!")
       print(tmp)
       stop(ErrorMsg)
