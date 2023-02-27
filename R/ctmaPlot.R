@@ -127,6 +127,8 @@ ctmaPlot <- function(
       if (is.null(tmp)) {
         activeDirectory <- ctmaFitObject[[1]]$activeDirectory
         if (is.null(activeDirectory)) activeDirectory <- ctmaFitObject$activeDirectory
+        # CHD 27.2.23 added
+        if (is.null(activeDirectory)) activeDirectory <- ctmaFitObject$argumentList$activeDirectory
       } else {
         activeDirectory <- tmp
       }
