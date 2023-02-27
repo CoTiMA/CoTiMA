@@ -199,7 +199,6 @@ ctmaBiG <- function(
       }
     }
 
-
     #######################################################################################################################
     ##################################### Analyses of Publication Bias ####################################################
     #######################################################################################################################
@@ -231,8 +230,12 @@ ctmaBiG <- function(
 
     DRIFTCoeffSND <- DRIFTCoeff / DRIFTSE; DRIFTCoeffSND
     DRIFTPrecision <- c(rep(1, n.latent^2))/(DRIFTSE); DRIFTPrecision
-    DRIFTPrecision_dt <- c(rep(1, n.latent^2))/(drift_SE_dt); DRIFTPrecision_dt
     colnames(DRIFTPrecision) <- colnames(DRIFTCoeffSND); DRIFTPrecision
+    if (!(is.null(dt))) {
+      DRIFTPrecision_dt <- c(rep(1, n.latent^2))/(drift_SE_dt); DRIFTPrecision_dt
+      colnames(DRIFTPrecision_dt) <- colnames(DRIFTPrecision_dt); DRIFTPrecision_dt
+    }
+
 
     message1 <- "The pos. & sign. intercept indicates that SMALLER studies produced more positive (or less negative) effects"
     message2 <- "The neg. & sign. intercept indicates that LARGER studies produced more positive (or less negative) effects"
@@ -280,15 +283,17 @@ ctmaBiG <- function(
 
     # FIXED EFFECTS ANALYSIS ###############################################################################
     DriftMeans <- colMeans(DRIFTCoeff); DriftMeans
-    DriftMeans_dt <- colMeans(drift_Coeff_dt); DriftMeans_dt
+    if (!(is.null(dt))) DriftMeans_dt <- colMeans(drift_Coeff_dt); DriftMeans_dt
     # Sum of within weights  and weight * effect size
     T_DriftWeights <- colSums(DRIFTPrecision^2); T_DriftWeights
-    T_DriftWeights_dt <- colSums(DRIFTPrecision_dt^2); T_DriftWeights_dt
+    if (!(is.null(dt))) T_DriftWeights_dt <- colSums(DRIFTPrecision_dt^2); T_DriftWeights_dt
     #DRIFTPrecision
     T_DriftMeans <- colSums(DRIFTCoeff * DRIFTPrecision^2); T_DriftMeans
     names(T_DriftMeans) <- names(T_DriftWeights); T_DriftMeans
-    T_DriftMeans_dt <- colSums(drift_Coeff_dt * DRIFTPrecision_dt^2); T_DriftMeans_dt
-    names(T_DriftMeans_dt) <- names(T_DriftWeights); T_DriftMeans_dt
+    if (!(is.null(dt))) {
+      T_DriftMeans_dt <- colSums(drift_Coeff_dt * DRIFTPrecision_dt^2); T_DriftMeans_dt
+      names(T_DriftMeans_dt) <- names(T_DriftWeights); T_DriftMeans_dt
+    }
     # Fixed effects results
     FixedEffect_Drift <- T_DriftMeans/T_DriftWeights; FixedEffect_Drift
     FixedEffect_DriftVariance <- 1/T_DriftWeights; FixedEffect_DriftVariance
@@ -639,7 +644,6 @@ ctmaBiG <- function(
     }
 
     # } # End Analysis of Publication Bias
-    modelResultsList
     if (is.null(dt)) {
       modelResultsList <- list(DRIFT=DRIFTCoeff, DIFFUSION=DIFFUSIONCoeff, T0VAR=T0VARCoeff, CINT=NULL,
                       DRIFTSE=DRIFTSE, DIFFUSIONSE=DIFFUSIONSE, T0VARSE=T0VARSE,
@@ -698,5 +702,3 @@ ctmaBiG <- function(
     invisible(results)
   }
 } ### END function definition
-summary(results)
-summaryList

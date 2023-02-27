@@ -11,7 +11,8 @@ ctmaBiG(
   activateRPB = FALSE,
   digits = 4,
   zcurve = FALSE,
-  undoTimeScaling = TRUE
+  undoTimeScaling = TRUE,
+  dt = NULL
 )
 }
 \arguments{

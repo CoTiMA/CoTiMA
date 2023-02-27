@@ -44,4 +44,4 @@ Imports:
     methods
 Suggests: R.rsp
 VignetteBuilder: R.rsp
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
