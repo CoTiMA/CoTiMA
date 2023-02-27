@@ -142,7 +142,12 @@ ctmaPlot <- function(
           plot.type[[i]] <- ctmaFitObject[[i]]$plot.type
         }
       }
-      if (is.null(tmp)) activeDirectory <- ctmaFitObject$studyFitList[[1]]$activeDirectory else activeDirectory <- tmp
+      if (is.null(tmp)) { # CHD 27.2.2023
+        activeDirectory <- ctmaFitObject$studyFitList[[1]]$activeDirectory
+        if (is.null(activeDirectory)) activeDirectory <- ctmaFitObject$studyFitList[[1]]$argumentListactiveDirectory
+      } else {
+          activeDirectory <- tmp
+        }
     }
 
     # check if fit object can be plotted
