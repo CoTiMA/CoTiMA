@@ -29,6 +29,8 @@ ctmaBiG(
 \item{zcurve}{performs z-curve analysis. Could fail if too few studies (e.g. around 10) are supplied. default=FALSE}
 
 \item{undoTimeScaling}{if TRUE, the original time scale is used (timeScale argument possibly used in \code{\link{ctmaInit}} is undone )}
+
+\item{dt}{A scalar indicating a time interval across which discrete time effects should be estimated and then used for ctmaBiG.}
 }
 \value{
 ctmaBiG returns a list containing some arguments supplied, the results of analyses of publication bias and generalizability,

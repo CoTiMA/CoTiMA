@@ -12,6 +12,7 @@
 #' @param digits rounding (default = 4)
 #' @param zcurve performs z-curve analysis. Could fail if too few studies (e.g. around 10) are supplied. default=FALSE
 #' @param undoTimeScaling if TRUE, the original time scale is used (timeScale argument possibly used in \code{\link{ctmaInit}} is undone )
+#' @param dt A scalar indicating a time interval across which discrete time effects should be estimated and then used for ctmaBiG.
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom stats var lm pnorm
