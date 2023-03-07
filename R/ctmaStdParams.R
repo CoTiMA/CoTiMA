@@ -95,16 +95,26 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE) {
   T0cov <- matrix(T0cov[T0cov$matrix=="T0cov", 2], n.latent, n.latent, byrow=T); T0cov
 
   T0cov_s <- fit$stanfit$transformedpars$pop_T0cov[, riT0, riT0]; T0cov_s[1,,]
+  #if (dim(T0cov_s)[2] == 0) T0cov_s <- array(0, dim=c(dim(drift_s)[1], n.latent, n.latent))
+  if (dim(T0cov_s)[2] == 0) T0cov_s <- as.array(rep(c(T0cov), dim(drift_s)[1]), dim=c(dim(drift_s)[1], n.latent, n.latent))
+  T0cov_s[1,,]
 
   # partial (co-)variance of random intercepts
   # https://stats.stackexchange.com/questions/557855/partial-covariance-matrix-after-linear-transformations
   Cov_s <- fit$stanfit$transformedpars$pop_T0cov[, c(riT0, riTt), c(riT0, riTt)]; Cov_s[1,,]
+  #if (dim(Cov_s)[2] == 0) Cov_s <- array(0, dim=c(dim(drift_s)[1], n.latent, n.latent))
   pRIcov_s <- list() # array(data=NA, dim=c(dim(drift_s)[1], n.latent^2, n.latent^2))
+  IVs <- 1:n.latent; IVs
+  DVs <- (n.latent+1):(2*n.latent); DVs
   for (i in 1:dim(drift_s)[1]) {
+    if (dim(Cov_s)[2] != 0) {
     SX <- Cov_s[i,IVs,IVs]; SX
     SXY <- Cov_s[i, IVs, DVs]; SXY
     SY <- Cov_s[i, DVs, DVs]; SY
     pRIcov_s[[i]] <- SX - SXY %*% solve(SY) %*% t(SXY); pRIcov_s[[i]]
+    } else {
+      pRIcov_s[[i]] <- matrix(0, n.latent, n.latent)
+    }
   }
   #pRIcov_s
 
