@@ -94,10 +94,9 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE) {
   T0cov <- fitsum$parmatrices[, c("matrix", "Mean")]; T0cov
   T0cov <- matrix(T0cov[T0cov$matrix=="T0cov", 2], n.latent, n.latent, byrow=T); T0cov
 
-  T0cov_s <- fit$stanfit$transformedpars$pop_T0cov[, riT0, riT0]; T0cov_s[1,,]
+  T0cov_s <- fit$stanfit$transformedpars$pop_T0cov[, riT0, riT0] #; T0cov_s[1,,]
   #if (dim(T0cov_s)[2] == 0) T0cov_s <- array(0, dim=c(dim(drift_s)[1], n.latent, n.latent))
-  if (dim(T0cov_s)[2] == 0) T0cov_s <- as.array(rep(c(T0cov), dim(drift_s)[1]), dim=c(dim(drift_s)[1], n.latent, n.latent))
-  T0cov_s[1,,]
+  if (dim(T0cov_s)[2] == 0) T0cov_s <- fit$stanfit$transformedpars$pop_T0cov[, 1:n.latent, 1:n.latent] #; T0cov_s[1,,]
 
   # partial (co-)variance of random intercepts
   # https://stats.stackexchange.com/questions/557855/partial-covariance-matrix-after-linear-transformations
