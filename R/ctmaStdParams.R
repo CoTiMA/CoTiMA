@@ -60,9 +60,12 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE) {
   n.latent <- fit$ctstanmodel$n.latent; n.latent
 
   tmp1 <- which(fit$ctstanmodel$pars$indvarying); tmp1
-  riT0 <- grep("T0m", fit$ctstanmodel$pars[tmp1,"param"]); riT0
-  riTt <- grep("cin", fit$ctstanmodel$pars[tmp1,"param"]); riTt
-  riTt <- c(riTt, grep("mm_", fit$ctstanmodel$pars[tmp1,"param"])); riTt
+  #riT0 <- grep("T0m", fit$ctstanmodel$pars[tmp1,"param"]); riT0
+  riT0 <- grep("T0MEANS", fit$ctstanmodel$pars[tmp1[1:n.latent],"matrix"]); riT0
+  #riTt <- grep("cin", fit$ctstanmodel$pars[tmp1,"param"]); riTt
+  riTt <- grep("CINT", fit$ctstanmodel$pars[tmp1,"matrix"]); riTt # no need to know RI of manifests (no latent variance)
+  #riTt <- c(riTt, grep("mm_", fit$ctstanmodel$pars[tmp1,"param"])); riTt
+  #riTt <- c(riTt, grep("mm", fit$ctstanmodel$pars[tmp1,"param"])); riTt
 
   # drift
   fitsum <- summary(fit)
@@ -106,11 +109,11 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE) {
   IVs <- 1:n.latent; IVs
   DVs <- (n.latent+1):(2*n.latent); DVs
   for (i in 1:dim(drift_s)[1]) {
-    if (dim(Cov_s)[2] != 0) {
-    SX <- Cov_s[i,IVs,IVs]; SX
-    SXY <- Cov_s[i, IVs, DVs]; SXY
-    SY <- Cov_s[i, DVs, DVs]; SY
-    pRIcov_s[[i]] <- SX - SXY %*% solve(SY) %*% t(SXY); pRIcov_s[[i]]
+    if ((dim(Cov_s)[2] != 0) & (length(riTt) != 0)) {
+      SX <- Cov_s[i,IVs,IVs]; SX
+      SXY <- Cov_s[i, IVs, DVs]; SXY
+      SY <- Cov_s[i, DVs, DVs]; SY
+      pRIcov_s[[i]] <- SX - SXY %*% solve(SY) %*% t(SXY); pRIcov_s[[i]]
     } else {
       pRIcov_s[[i]] <- matrix(0, n.latent, n.latent)
     }
