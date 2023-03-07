@@ -62,9 +62,12 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE) {
   indvarying <- which(fit$ctstanmodelbase$pars$indvarying); indvarying
   tmp1 <- grep("T0MEANS", fit$ctstanmodelbase$pars$matrix[indvarying]); tmp1
   tmp1 <- c(tmp1, grep("CINT", fit$ctstanmodelbase$pars$matrix[indvarying])); tmp1
+  tmp1 <- c(tmp1, grep("MANIFESTMEANS", fit$ctstanmodelbase$pars$matrix[indvarying])); tmp1
   if (length(tmp1) > n.latent) riT0 <- tmp1[1:n.latent] else riT0 <- c()
   if (length(tmp1) > n.latent) riTt <- tmp1[(n.latent+1):(2*n.latent) ] else riTt <- c()
   riT0; riTt
+  # if manifestmeans are varying, use power = 2 later
+  if( length(grep("MANIFESTMEANS", fit$ctstanmodelbase$pars$matrix[indvarying])) > 0) power <- 2 else power <- 1
 
   # drift
   fitsum <- summary(fit)
@@ -103,7 +106,8 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE) {
   # partial (co-)variance of random intercepts
   # https://stats.stackexchange.com/questions/557855/partial-covariance-matrix-after-linear-transformations
   Cov_s <- fit$stanfit$transformedpars$pop_T0cov[, c(riT0, riTt), c(riT0, riTt)]; Cov_s[1,,]
-  #if (dim(Cov_s)[2] == 0) Cov_s <- array(0, dim=c(dim(drift_s)[1], n.latent, n.latent))
+  #if (dim(Cov_s)[2] == 0) Cov_s <- fit$stanfit$transformedpars$pop_T0cov
+  #Cov_s[1,,]
   pRIcov_s <- list() # array(data=NA, dim=c(dim(drift_s)[1], n.latent^2, n.latent^2))
   IVs <- 1:n.latent; IVs
   DVs <- (n.latent+1):(2*n.latent); DVs
@@ -113,11 +117,12 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE) {
       SXY <- Cov_s[i, IVs, DVs]; SXY
       SY <- Cov_s[i, DVs, DVs]; SY
       pRIcov_s[[i]] <- SX - SXY %*% solve(SY) %*% t(SXY); pRIcov_s[[i]]
+      pRIcov_s[[i]] <- pRIcov_s[[i]]^power # if manifest means are used, make ^2
     } else {
       pRIcov_s[[i]] <- matrix(0, n.latent, n.latent)
     }
   }
-  #pRIcov_s
+  #pRIcov_s[[i]]
 
   # RI covs
   e <- ctsem::ctExtract(fit)
