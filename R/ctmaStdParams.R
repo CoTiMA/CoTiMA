@@ -59,13 +59,13 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE) {
 
   n.latent <- fit$ctstanmodel$n.latent; n.latent
 
-  tmp1 <- which(fit$ctstanmodel$pars$indvarying); tmp1
-  #riT0 <- grep("T0m", fit$ctstanmodel$pars[tmp1,"param"]); riT0
-  riT0 <- grep("T0MEANS", fit$ctstanmodel$pars[tmp1[1:n.latent],"matrix"]); riT0
-  #riTt <- grep("cin", fit$ctstanmodel$pars[tmp1,"param"]); riTt
-  riTt <- grep("CINT", fit$ctstanmodel$pars[tmp1,"matrix"]); riTt # no need to know RI of manifests (no latent variance)
-  #riTt <- c(riTt, grep("mm_", fit$ctstanmodel$pars[tmp1,"param"])); riTt
-  #riTt <- c(riTt, grep("mm", fit$ctstanmodel$pars[tmp1,"param"])); riTt
+  #fit$ctstanmodel$pars
+  #fit$ctstanmodelbase$pars
+  indvarying <- which(fit$ctstanmodelbase$pars$indvarying); indvarying
+  tmp1 <- grep("T0MEANS", fit$ctstanmodelbase$pars$matrix[indvarying]); tmp1
+  tmp1 <- c(tmp1, grep("CINT", fit$ctstanmodelbase$pars$matrix[indvarying])); tmp1
+  riT0 <- tmp1[1:n.latent]; riT0
+  if (length(tmp1) > n.latent) riTt <- tmp1[(n.latent+1):(2*n.latent) ]
 
   # drift
   fitsum <- summary(fit)
@@ -145,9 +145,12 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE) {
 
   # get drift names
   driftNames <- fit$ctstanmodelbase$latentNames; driftNames
+  driftEffects <- fit$ctstanmodelbase$pars[fit$ctstanmodelbase$pars$matrix == "DRIFT", ]$param; driftEffects
+  driftEffects <- c(t(matrix(driftEffects, n.latent, n.latent))); driftEffects
 
   # use popmeans
   standardized_effects <- list()
+  standardized_effects_table <- list()
   for (time in times) {
     #time <- times[1]; time
     Ttvar <- OpenMx::expm(drift * time) %*% T0cov %*% t(OpenMx::expm(drift * time)); Ttvar
@@ -166,21 +169,31 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE) {
       }
     }
     dimnames(standardized_effects[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
+    standardized_effects_table[[paste0("time = ", time)]] <- matrix(c(standardized_effects[[paste0("time = ", time)]]), ncol=1)
+    rownames(standardized_effects_table[[paste0("time = ", time)]]) <- driftEffects
+    #standardized_effects_table[[paste0("time = ", time)]]
   }
   standardized_effects_popmeans <- standardized_effects
+  standardized_effects_table_popmeans <- standardized_effects_table
   #standardized_effects_popmeans
+  #standardized_effects_table_popmeans
 
   # use all samples
   standardized_effects_s <- list()
+  #standardized_effects_table_s <- list()
   for (time in times) {
     for (i in 1:dim(drift_s)[1]) {
-      if (time == times[1]) standardized_effects_s[[i]] <- list()
+      if (time == times[1]) {
+        standardized_effects_s[[i]] <- list()
+        #standardized_effects_table_s[[i]] <- list()
+      }
       Ttvar <- OpenMx::expm(drift_s[i,,] * time) %*% T0cov_s[i,,] %*% t(OpenMx::expm(drift_s[i,,] * time)); Ttvar
       Psi <- drift_hatch_solve_s[i,,] %*% (OpenMx::expm(drift_hatch_s[i,,] %x% time) - diag(1, n.latent^2, n.latent^2) )  %*% c(Q_s[i,,]); Psi
       Psi <- matrix(Psi, n.latent, n.latent); Psi
       #Ttvar <- Ttvar + Psi + RIcov_s[i,,]; Ttvar
       Ttvar <- Ttvar + Psi + pRIcov_s[[i]]; Ttvar
       standardized_effects_s[[i]][[paste0("time = ", time)]] <- matrix(NA, n.latent, n.latent)
+      #standardized_effects_table_s[[i]][[paste0("time = ", time)]] <- matrix(NA, nrow=n.latent^2, ncol=1)
       for (dv in 1:n.latent) {
         for (iv in 1:n.latent) {
           if (standardize == TRUE) {
@@ -191,19 +204,30 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE) {
         }
       }
       dimnames(standardized_effects_s[[i]][[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
+      #standardized_effects_table_s[[i]][[paste0("time = ", time)]] <- matrix(c(standardized_effects_s[[i]][[paste0("time = ", time)]]), ncol=1)
+      #rownames(standardized_effects_table_s[[i]][[paste0("time = ", time)]]) <- driftEffects
+
     } # end i
   }
 
+  standardized_effects_table_s <- list()
   #standardized_effects_s_backup <- standardized_effects_s
   counter <- 0
   means <- sds <- ul95 <- ll95 <- ul99 <- ll99 <- medians <- matrix(NA, nrow=length(times), ncol=(n.latent^2))
+  #means_table <- sds_table <- ul95_table <- ll95_table <- ul99_table <- ll99_table <- medians_table <- matrix(NA, nrow=length(times), ncol=(n.latent^2))
   standardized_effects_m <- standardized_effects_sd <- list()
   standardized_effects_ul95 <- standardized_effects_ll95 <- list()
   standardized_effects_ul99 <- standardized_effects_ll99 <- list()
   standardized_effects_medians <- list()
+  #standardized_effects_table_m <- standardized_effects_table_sd <- list()
+  #standardized_effects_table_ul95 <- standardized_effects_table_ll95 <- list()
+  #standardized_effects_table_ul99 <- standardized_effects_table_ll99 <- list()
+  #standardized_effects_table_medians <- list()
   for (time in times) {
+    #time <- times[1]
     counter <- counter + 1
     tmp <- lapply(standardized_effects_s, function(x) x[[paste0("time = ", time)]])
+    #tmp2 <- lapply(standardized_effects_table_s, function(x) x[[paste0("time = ", time)]])
     for (i in 1:(n.latent^2)) {
       means[counter, i] <- mean(unlist(lapply(tmp, function(x) x[i])))
       sds[counter, i] <- sd(unlist(lapply(tmp, function(x) x[i])))
@@ -214,30 +238,45 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE) {
       ll99[counter, i] <- stats::quantile(tmp2, .01)
       medians[counter, i] <- stats::quantile(tmp2, .50)
     }
-    standardized_effects_m[[paste0("time = ", time)]] <- round(matrix(means[counter,], n.latent, n.latent), digits)
-    standardized_effects_sd[[paste0("time = ", time)]] <- round(matrix(sds[counter,], n.latent, n.latent), digits)
-    standardized_effects_ul95[[paste0("time = ", time)]] <- round(matrix(ul95[counter,], n.latent, n.latent), digits)
-    standardized_effects_ll95[[paste0("time = ", time)]] <- round(matrix(ll95[counter,], n.latent, n.latent), digits)
-    standardized_effects_ul99[[paste0("time = ", time)]] <- round(matrix(ul99[counter,], n.latent, n.latent), digits)
-    standardized_effects_ll99[[paste0("time = ", time)]] <- round(matrix(ll99[counter,], n.latent, n.latent), digits)
-    standardized_effects_medians[[paste0("time = ", time)]] <- round(matrix(medians[counter,], n.latent, n.latent), digits)
-    dimnames(standardized_effects_m[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
-    dimnames(standardized_effects_sd[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
-    dimnames(standardized_effects_ul95[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
-    dimnames(standardized_effects_ll95[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
-    dimnames(standardized_effects_ul99[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
-    dimnames(standardized_effects_ll99[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
-    dimnames(standardized_effects_medians[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
-  }
-  standardized_effects_sampled <- list(standardized_effects_mean=standardized_effects_m,
-                                       standardized_effects_median=standardized_effects_medians,
-                                       standardized_effects_sd=standardized_effects_sd,
-                                       standardized_effects_ll95=standardized_effects_ll95,
-                                       standardized_effects_ul95=standardized_effects_ul95,
-                                       standardized_effects_ll99=standardized_effects_ll99,
-                                       standardized_effects_ul99=standardized_effects_ul99
-                                       )
+    #standardized_effects_m[[paste0("time = ", time)]] <- round(matrix(means[counter,], n.latent, n.latent), digits)
+    #standardized_effects_sd[[paste0("time = ", time)]] <- round(matrix(sds[counter,], n.latent, n.latent), digits)
+    #standardized_effects_ul95[[paste0("time = ", time)]] <- round(matrix(ul95[counter,], n.latent, n.latent), digits)
+    #standardized_effects_ll95[[paste0("time = ", time)]] <- round(matrix(ll95[counter,], n.latent, n.latent), digits)
+    #standardized_effects_ul99[[paste0("time = ", time)]] <- round(matrix(ul99[counter,], n.latent, n.latent), digits)
+    #standardized_effects_ll99[[paste0("time = ", time)]] <- round(matrix(ll99[counter,], n.latent, n.latent), digits)
+    #standardized_effects_medians[[paste0("time = ", time)]] <- round(matrix(medians[counter,], n.latent, n.latent), digits)
+    #dimnames(standardized_effects_m[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
+    #dimnames(standardized_effects_sd[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
+    #dimnames(standardized_effects_ul95[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
+    #dimnames(standardized_effects_ll95[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
+    #dimnames(standardized_effects_ul99[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
+    #dimnames(standardized_effects_ll99[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
+    #dimnames(standardized_effects_medians[[paste0("time = ", time)]]) <- list(c(driftNames), c(driftNames))
+    #
+    standardized_effects_m[[paste0("time = ", time)]] <- round(means[counter,], digits)
+    standardized_effects_sd[[paste0("time = ", time)]] <- round(sds[counter,], digits)
+    standardized_effects_ul95[[paste0("time = ", time)]] <- round(ul95[counter,], digits)
+    standardized_effects_ll95[[paste0("time = ", time)]] <- round(ll95[counter,], digits)
+    standardized_effects_ul99[[paste0("time = ", time)]] <- round(ul99[counter,], digits)
+    standardized_effects_ll99[[paste0("time = ", time)]] <- round(ll99[counter,], digits)
+    standardized_effects_medians[[paste0("time = ", time)]] <- round(medians[counter,], digits)
+    tmp <- cbind(standardized_effects_m[[paste0("time = ", time)]], standardized_effects_sd[[paste0("time = ", time)]],
+          standardized_effects_ll99[[paste0("time = ", time)]], standardized_effects_ll95[[paste0("time = ", time)]],
+          standardized_effects_medians[[paste0("time = ", time)]],
+          standardized_effects_ul95[[paste0("time = ", time)]], standardized_effects_ul99[[paste0("time = ", time)]])
+    rownames(tmp) <- driftEffects
+    colnames(tmp) <- c("mean", "sd", "LL99", "LL95", "median", "UL95", "UL99"); tmp
+    standardized_effects_table_s[[paste0("time = ", time)]] <- tmp
+    }
+  #standardized_effects_sampled <- list(standardized_effects_mean=standardized_effects_m,
+  #                                     standardized_effects_median=standardized_effects_medians,
+  #                                     standardized_effects_sd=standardized_effects_sd,
+  #                                     standardized_effects_ll95=standardized_effects_ll95,
+  #                                     standardized_effects_ul95=standardized_effects_ul95,
+  #                                     standardized_effects_ll99=standardized_effects_ll99,
+  #                                     standardized_effects_ul99=standardized_effects_ul99
+  #                                     )
   #standardized_effects_sampled
-  return(list(popmeans=standardized_effects_popmeans, sampled=standardized_effects_sampled))
+  return(list(popmeans=standardized_effects_table_popmeans, sampled=standardized_effects_table_s))
 }
 
