@@ -59,13 +59,12 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE) {
 
   n.latent <- fit$ctstanmodel$n.latent; n.latent
 
-  #fit$ctstanmodel$pars
-  #fit$ctstanmodelbase$pars
   indvarying <- which(fit$ctstanmodelbase$pars$indvarying); indvarying
   tmp1 <- grep("T0MEANS", fit$ctstanmodelbase$pars$matrix[indvarying]); tmp1
   tmp1 <- c(tmp1, grep("CINT", fit$ctstanmodelbase$pars$matrix[indvarying])); tmp1
-  riT0 <- tmp1[1:n.latent]; riT0
-  if (length(tmp1) > n.latent) riTt <- tmp1[(n.latent+1):(2*n.latent) ]
+  if (length(tmp1) > n.latent) riT0 <- tmp1[1:n.latent] else riT0 <- c()
+  if (length(tmp1) > n.latent) riTt <- tmp1[(n.latent+1):(2*n.latent) ] else riTt <- c()
+  riT0; riTt
 
   # drift
   fitsum <- summary(fit)
