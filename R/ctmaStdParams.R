@@ -74,7 +74,6 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE, oneTail
   # report one- vs. twotailed
   if (oneTailed == FALSE) testText <- "two-tailed" else testText <- "one-tailed"
 
-
   # drift
   fitsum <- summary(fit)
   drift <- fitsum$parmatrices[, c("matrix", "Mean")]; drift
@@ -85,6 +84,7 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE, oneTail
   # Q
   Q <- fitsum$parmatrices[, c("matrix", "Mean")]; Q
   Q <- matrix(Q[Q$matrix=="DIFFUSIONcov", 2], n.latent, n.latent, byrow=T); Q
+  #t(chol(Q))
 
   Q_s <- fit$stanfit$transformedpars$pop_DIFFUSIONcov; Q_s[1,,]
 
@@ -103,11 +103,8 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE, oneTail
   # useful for several estimates
   e <- ctsem::ctExtract(fit)
 
-  # try manifestMeans variance/sd
-  #e$popcov[1,,]
-
   # T0cov
-  T0cov <- ctsem::ctCollapse(e$pop_T0cov, 1, mean)[1:n.latent,1:n.latent]; T0cov
+  T0cov <- ctsem::ctCollapse(e$pop_T0cov, 1, mean)[1:n.latent,1:n.latent]; T0cov; t(chol(T0cov)/10)
   T0cov_s <- e$pop_T0cov[, 1:n.latent,1:n.latent]; T0cov_s[1,,]
 
   IVs <- 1:n.latent; IVs
@@ -115,14 +112,22 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE, oneTail
 
   # RI covs
   if (!(is.null(e$popcov))) {
+    #T0cov
     RIcov <- ctsem::ctCollapse(e$popcov, 1, mean); RIcov
+    #RIcov[1:2,3:4] <- RIcov[1:2,3:4]/10
+    #RIcov[3:4,] <- RIcov[3:4, ]/10
+    #RIcov
     # partial (co-)variance of random intercepts
     # https://stats.stackexchange.com/questions/557855/partial-covariance-matrix-after-linear-transformations
-    SX <- RIcov[IVs, IVs]; SX
+    # https://link.springer.com/content/pdf/10.1007/BF02294097.pdf (Eq. 4)
+    SXX <- RIcov[IVs, IVs]; SXX
     SXY <- RIcov[IVs, DVs]; SXY
-    SY <- RIcov[DVs, DVs]; SY
-    pRIcov <- SX - SXY %*% solve(SY) %*% t(SXY); pRIcov
-    if (power == 2) pRIcov <- pRIcov^2
+    SYY <- RIcov[DVs, DVs]; SYY
+    pRIcov <- SXX - SXY %*% solve(SYY) %*% t(SXY); pRIcov
+    # try
+    SYX <- RIcov[DVs, IVs]; SYX
+    pRIcov <- SYY - SYX %*% solve(SXX) %*% t(SXY); pRIcov
+    #if (power == 2) pRIcov <- pRIcov^2
     # https://psyarxiv.com/u2zdv/ p. 4
     #SXY <- RIcov[DVs, DVs]; SX
     #SXZ <- RIcov[DVs, IVs]; SXZ
@@ -132,8 +137,8 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE, oneTail
   } else {
     pRIcov <- matrix(0, n.latent, n.latent); pRIcov
   }
-  pRIcov
-
+  #RIcov
+  #pRIcov
 
   # partial (co-)variance of random intercepts
   # https://stats.stackexchange.com/questions/557855/partial-covariance-matrix-after-linear-transformations
@@ -142,12 +147,14 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE, oneTail
     if (!(is.null(e$popcov))) {
       #RIcov_s <- e$popcov[,(n.latent+1):(2*n.latent), (n.latent+1):(2*n.latent)]#; RIcov_s[1,,]
       RIcov_s <- e$popcov#; RIcov_s[1,,]
-      SX <- RIcov_s[i, IVs, IVs]; SX
+      SXX <- RIcov_s[i, IVs, IVs]; SXX
       SXY <- RIcov_s[i, IVs, DVs]; SXY
-      SY <- RIcov_s[i,  DVs, DVs]; SY
-      SX - SXY %*% solve(SY) %*% t(SXY)
-      pRIcov_s[[i]] <- SX - SXY %*% solve(SY) %*% t(SXY); pRIcov_s[[i]]
-      if (power == 2) pRIcov_s[[i]] <- pRIcov_s[[i]]^2
+      SYY <- RIcov_s[i,  DVs, DVs]; SYY
+      #SXX - SXY %*% solve(SYY) %*% t(SXY)
+      pRIcov_s[[i]] <- SXX - SXY %*% solve(SYY) %*% t(SXY); pRIcov_s[[i]]
+      #if (power == 2) pRIcov_s[[i]] <- pRIcov_s[[i]]^2
+      SYX <- RIcov_s[i, DVs, IVs]; SYX
+      pRIcov_s[[i]] <- SYY - SYX %*% solve(SXX) %*% t(SXY); pRIcov_s[[i]]
       # https://psyarxiv.com/u2zdv/ p. 4
       #SXY <- RIcov_s[i, DVs, DVs]; SX
       #SXZ <- RIcov_s[i, DVs, IVs]; SXZ
@@ -158,7 +165,8 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE, oneTail
     pRIcov_s[[i]] <- matrix(0, n.latent, n.latent)
     }
   }
-  pRIcov_s
+  #RIcov_s[1,,]
+  #pRIcov_s[[1]]
 
   # get drift names
   driftNames <- fit$ctstanmodelbase$latentNames; driftNames
@@ -173,8 +181,15 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE, oneTail
     Ttvar <- OpenMx::expm(drift * time) %*% T0cov %*% t(OpenMx::expm(drift * time)); Ttvar
     Psi <- drift_hatch_solve %*% (OpenMx::expm(drift_hatch %x% time) - diag(1, n.latent^2, n.latent^2) )  %*% c(Q); Psi
     Psi <- matrix(Psi, n.latent, n.latent); Psi
-    #Ttvar <- Ttvar + Psi + RIcov; Ttvar
-    Ttvar <- Ttvar + Psi + pRIcov^power; Ttvar
+    #T0cov
+    #Ttvar + Psi
+    #pRIcov
+    #Ttvar + Psi + pRIcov
+    #RIcov
+    #fitsum$popsd$mean^2
+    #Ttvar <- Ttvar + Psi + RIcov[riTt,riTt]; Ttvar
+    if (power == 2) pRIcov <- 0
+    Ttvar <- Ttvar + Psi + pRIcov; Ttvar
     standardized_effects[[paste0("time = ", time, " ", testText)]] <- matrix(NA, n.latent, n.latent)
     for (dv in 1:n.latent) {
       for (iv in 1:n.latent) {
@@ -204,8 +219,8 @@ ctmaStdParams <- function(fit=NULL, times=1, digits=4, standardize=TRUE, oneTail
       Ttvar <- OpenMx::expm(drift_s[i,,] * time) %*% T0cov_s[i,,] %*% t(OpenMx::expm(drift_s[i,,] * time)); Ttvar
       Psi <- drift_hatch_solve_s[i,,] %*% (OpenMx::expm(drift_hatch_s[i,,] %x% time) - diag(1, n.latent^2, n.latent^2) )  %*% c(Q_s[i,,]); Psi
       Psi <- matrix(Psi, n.latent, n.latent); Psi
-      Ttvar <- Ttvar + Psi + pRIcov_s[[i]]^power; Ttvar
-      Ttvar
+      if (power == 2) pRIcov_s[[i]] <- 0
+      Ttvar <- Ttvar + Psi + pRIcov_s[[i]]; Ttvar
       standardized_effects_s[[i]][[paste0("time = ", time, " ", testText)]] <- matrix(NA, n.latent, n.latent)
       for (dv in 1:n.latent) {
         for (iv in 1:n.latent) {

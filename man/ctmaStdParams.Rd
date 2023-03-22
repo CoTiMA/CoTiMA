@@ -4,7 +4,13 @@
 \alias{ctmaStdParams}
 \title{ctmaStdParams}
 \usage{
-ctmaStdParams(fit = NULL, times = 1, digits = 4, standardize = TRUE)
+ctmaStdParams(
+  fit = NULL,
+  times = 1,
+  digits = 4,
+  standardize = TRUE,
+  oneTailed = FALSE
+)
 }
 \arguments{
 \item{fit}{CoTiMA or ctsem fit object with or without random intercepts}
@@ -14,6 +20,8 @@ ctmaStdParams(fit = NULL, times = 1, digits = 4, standardize = TRUE)
 \item{digits}{rounding (4 by default)}
 
 \item{standardize}{logical. TRUE (default) or FALSE (does not standardize and just computes discrete time effects)}
+
+\item{oneTailed}{logical. FALSE (default) or TRUE. If TRUE, one-tailed CIs will be reported}
 }
 \value{
 ctmaStdParams returns a list of standardized discrete time drift matrices for different time intervals.
