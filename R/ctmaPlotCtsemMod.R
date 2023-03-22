@@ -73,8 +73,9 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
 ) {
   # arguments to be added
   {
-    if (is.null(mod.sd.to.plot)) mod.sd.to.plot <- -2:2
-    if (mod.type == "cont") no.mod.cats <- 0
+    #if (is.null(mod.sd.to.plot)) mod.sd.to.plot <- -2:2
+
+    if (mod.type == "cont") no.mod.cats <- NULL
 
     if (is.null(ctStanFitObject)) {
       ErrorMsg <- "\nNo ctsem fit object has been specified! \nGood luck for the next try!"
@@ -154,10 +155,12 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
       print(paste0("(Note: In your sample ", length(tmp4), " ( = ", round(tmp5*100, 4), "%) people have larger moderator values than ", tmp6, "SD above the sample mean"))
     }
 
-    if ((mod.type == "cat") & (no.mod.cats == 1)) {
-      ErrorMsg <- "\nYou want to plot effects of a categorical moderator. The argument \"no.mod.cats\" should be > 1 (The number of dummy variables to represent the categories + 1)
+    if ((mod.type == "cat") & (!(is.null(no.mod.cats))) ) {
+      if (no.mod.cats == 1) {
+        ErrorMsg <- "\nYou want to plot effects of a categorical moderator. The argument \"no.mod.cats\" should be > 1 (The number of dummy variables to represent the categories + 1)
      \nGood luck for the next try!"
-      stop(ErrorMsg)
+        stop(ErrorMsg)
+      }
     }
   }
 
