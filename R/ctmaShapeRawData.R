@@ -7,6 +7,7 @@
 #' @param inputTimeFormat  "time" (default) or "delta"
 #' @param missingValues  Missing value indicator, e.g., -999 or NA (default)
 #' @param n.manifest  Number of process variables (e.g, 2 in a bivariate model)
+#' @param manifest.per.latent n.manifest per latent factor. Frequently 1 manifest per latent, but e.g. c(2,3,1) also possible for 6 manifest loading on 3 latents
 #' @param Tpoints Number of time points in the data frame
 #' @param allInputVariablesNames  vector of all process variable names, time dependent predictor names, time independent predictor names, and names of times/deltas. Only required if the dataFrame does not have column names.
 #' @param orderInputVariablesNames  = "names" vs "time" (e.g., names: X1, X2, X3, Y1, Y2, X3 vs time: X1, Y1, X2, Y2, ... ). For ctsem/CoTiMA, the output file will order by time.
@@ -56,6 +57,7 @@
 #'
 #' @importFrom  ctsem ctWideToLong ctDeintervalise
 #' @importFrom  utils head
+#' @importFrom  stats diffinv
 #'
 #' @export ctmaShapeRawData
 #'
@@ -68,6 +70,7 @@ ctmaShapeRawData <- function(
 
     missingValues=NA,
     n.manifest=NULL,
+    manifest.per.latent=NULL,
     Tpoints=NULL,
 
     allInputVariablesNames=NULL,
@@ -178,6 +181,13 @@ ctmaShapeRawData <- function(
       message(Msg)
     }
 
+    if (is.null(manifest.per.latent)) {
+      Msg <- paste0("Note: The argument manifest.per.latent was not specified (NULL). I expect that there is an eual number of manifests per latent. \n
+                    In your case I assume you have ", n.manifest, " latent variables!  \n")
+      message(Msg)
+    }
+
+
     if ( !(is.null(allInputVariablesNames)) & (!(is.null(colnames(dataFrame)))) ) {
       if ( length(allInputVariablesNames) != length(colnames(dataFrame)) ) {
         ErrorMsg <- "\nThe argument \"allInputVariablesNames\" does not equal the no. of columns of the dataFrame provided! \nGood luck for the next try!"
@@ -211,8 +221,12 @@ ctmaShapeRawData <- function(
     tmp1 <- length(outputVariablesNames); tmp1
     if (tmp1 < n.manifest) {tmp1 <- rep(outputVariablesNames, n.manifest) } else {tmp1 <- outputVariablesNames}
     if (all(tmp1 == tmp1[1])) tmp1 <- paste0(tmp1[1], seq(1,length(tmp1),1))
-    tmp2 <- rep("_T", 4); tmp2
-    tmp3 <- paste0(tmp1, paste0(tmp2, c(0,0,1,1))); tmp3
+    #tmp2 <- rep("_T", 4); tmp2
+    tmp2 <- rep("_T", n.manifest); tmp2
+    tmp2a <- rep(0, n.manifest); tmp2a
+    tmp2b <- rep(1, n.manifest); tmp2b
+    #tmp3 <- paste0(tmp1, paste0(tmp2, c(0,0,1,1))); tmp3
+    tmp3 <- paste0(tmp1, paste0(tmp2, c(tmp2a, tmp2b))); tmp3
     tmp3 <- paste(tmp3, collapse=" "); tmp3
     Msg <- paste0("Note: Output variable names will be ", tmp3, ", etc. \n")#)
     message(Msg)
@@ -240,6 +254,7 @@ ctmaShapeRawData <- function(
   if ( !(is.null(allInputVariablesNames)) ) {
     colnames(dataFrame) <- allInputVariablesNames
   }
+
 
   # Step 3 (Select the desired "target variables" (at least X and Y and time) and kick out the remaining stuff.)
   #c(targetInputVariablesNames,  targetInputTDpredNames, targetTimeVariablesNames, targetInputTIpredNames)
@@ -286,17 +301,24 @@ ctmaShapeRawData <- function(
   # time
   allOutputTimeVariablesNames <- paste0("time", seq(0, (Tpoints-1), 1)); allOutputTimeVariablesNames
 
-  # original order
+  # CHD 4.4.23 original order
   if (orderInputVariablesNames == "names") {
+    if (is.null(manifest.per.latent)) manifest.per.latent <- rep(1, n.manifest)
+    tmp1 <- stats::diffinv(manifest.per.latent*Tpoints)+1; tmp1
+    start <- tmp1[-length(tmp1)]; start
+    end <- start + manifest.per.latent-1; end
     variableOrder <- c()
-    for (i in 1:Tpoints) {
-      variableOrder <- c(variableOrder, seq(i, n.manifest*Tpoints, Tpoints)); variableOrder
+    while(end[length(end)] <= n.manifest*Tpoints) {
+      for (m in 1:length(manifest.per.latent)) {
+        variableOrder <- c(variableOrder, start[m]:end[m])
+      }
+      start <- start + manifest.per.latent
+      end <- end + manifest.per.latent
     }
     targetInputVariablesNames <- targetInputVariablesNames[variableOrder]
   }
 
   tmpData <- tmpData[, c(targetInputVariablesNames, targetInputTDpredNames, targetTimeVariablesNames, targetInputTIpredNames)]
-  #head(tmpData)
   if (inputTimeFormat == "delta") {
     dT0 <- data.frame(matrix(0, ncol=1, nrow=dim(tmpData)[1]))
     colnames(dT0) <- "dT0"
@@ -344,7 +366,6 @@ ctmaShapeRawData <- function(
 
   # Step 6b -  Scale time intervals
   tmpData[ , allOutputTimeVariablesNames] <- tmpData[ , allOutputTimeVariablesNames] * scaleTime
-  #head(tmpData)
 
   # Step 6c - Delete all cases where all time stamps are missing
   if (inputTimeFormat == "time") { # if it is "delta" there should be at lease one time point
@@ -359,7 +380,6 @@ ctmaShapeRawData <- function(
   if (length(tmp2) > 0) tmpData <- tmpData[-tmp2, ]
 
   # Intermediate Step: delete cases for which conditions min.val.n.Vars and  min.val.Tpoints are not met
-  #head(tmpData, 40)
   tmp1 <- apply(tmpData[, allOutputVariablesNames], 1, function(x) sum(!(is.na(x))))
   tmp2 <- which(tmp1 < min.val.n.Vars)
   if(length(tmp2) > 0 ) tmpData <- tmpData[-tmp2, ]
@@ -371,7 +391,6 @@ ctmaShapeRawData <- function(
     tmp3 <- which(tmp2 == 0)
     validTpoints[tmp3, i+1] <- 0
   }
-  #head(validTpoints, 40)
   tmp1 <- apply(validTpoints, 1, function(x) sum(x))
   tmp2 <- which(tmp1 < min.val.Tpoints)
   if(length(tmp2) > 0 ) tmpData <- tmpData[-tmp2, ]
@@ -403,7 +422,6 @@ ctmaShapeRawData <- function(
   #head(tmpData)
 
   # Step 6 Shift data left if all process variables are missing at a time point (even if time stamp is available)
-  #if (experimental == TRUE) {
   if (Tpoints > 2) {
   for (tt in 2:(Tpoints-1)) {
       for (t in tt:(Tpoints-1)) {
@@ -477,9 +495,6 @@ ctmaShapeRawData <- function(
     }
   }
 
-  #tmpData3 <- tmpData
-  #tmpData <- tmpData3
-  #head(tmpData)
   if (! ((outputDataFrameFormat == "wide") & (outputTimeFormat == "time")) ) { # do nothing if it is wide and time (except possibly changing time name at the end)
 
     #ctIntervalise requires datawide
@@ -509,7 +524,6 @@ ctmaShapeRawData <- function(
       tmp2 <- which(tmp1 == 0)
       if(length(tmp2) > 0 ) tmpData <- tmpData[-tmp2, ]
     }
-    #head(tmpData, 30)
 
     #outputTimeFormat
     if (outputTimeFormat == "time") {
@@ -527,11 +541,8 @@ ctmaShapeRawData <- function(
         tmpData[tmpData$id == i,] <- currentData
       }
     }
-    #head(tmpData, 30)
-
 
     } # end   if (!(outputDataFrameFormat == "wide") & (outputTimeFormat == "time"))
-  #head(tmpData)
 
   # correction of time names
   if (outputTimeVariablesNames != "time") {
@@ -542,6 +553,5 @@ ctmaShapeRawData <- function(
     tmp1 <- grep("dT", colnames(tmpData)); tmp1
     colnames(tmpData) <- gsub("dT", outputTimeVariablesNames, colnames(tmpData))
   }
-
   return(tmpData)
 }

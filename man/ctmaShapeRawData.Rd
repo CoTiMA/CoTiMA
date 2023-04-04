@@ -10,6 +10,7 @@ ctmaShapeRawData(
   inputTimeFormat = "time",
   missingValues = NA,
   n.manifest = NULL,
+  manifest.per.latent = NULL,
   Tpoints = NULL,
   allInputVariablesNames = NULL,
   orderInputVariablesNames = NULL,
@@ -43,6 +44,8 @@ ctmaShapeRawData(
 \item{missingValues}{Missing value indicator, e.g., -999 or NA (default)}
 
 \item{n.manifest}{Number of process variables (e.g, 2 in a bivariate model)}
+
+\item{manifest.per.latent}{n.manifest per latent factor. Frequently 1 manifest per latent, but e.g. c(2,3,1) also possible for 6 manifest loading on 3 latents}
 
 \item{Tpoints}{Number of time points in the data frame}
 
