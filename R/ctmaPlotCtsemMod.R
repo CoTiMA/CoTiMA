@@ -109,8 +109,12 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
       message(Msg)
     }
 
-
     if (is.null(n.x.labels)) n.x.labels <- max(timeRange)/3  # the 0 is added automatically later, so that e.g., 12 will becomes 13, and 4 X labels will be printed
+
+    if (n.x.labels < 1)  {
+      ErrorMsg <- "\nThe largest time interval is < 1. Cannot plot. Please specify larger time range, e.g., timeRange=seq(0, 10, .1). \nGood luck for the next try!"
+      stop(ErrorMsg)
+    }
 
     mod.no.to.plot <- 1 # only a single categorical continuous moderator can be plotted in a single plot, e.g., 1st, 3rd ...
     #                     note that each categorical moderator counts as k, with k = number of moderator categories - 1. (i.e., dummies)
@@ -187,18 +191,22 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
       if (mod.type == "cont") {
         tmp2 <- ctStanFitObject$stanfit$transformedparsfull$TIPREDEFFECT[,driftPos, modPos]; tmp2 # (rowwise extracted)
         tmp3 <- rownames(ctStanFitObject_summary$tipreds); tmp3
-        tmp4 <- c()
-        for (l in 1:length(driftNames)) {
-          tmp5 <- grep(unlist(driftNames[l]), tmp3); tmp5
-          if (length(tmp5) == 0) tmp4 <- c(tmp4, NA) else tmp4 <- c(tmp4, tmp5)
+        if (length(driftNames) != (n.latent^2)) { # if some drift effects were specified as NA; CHD added 28.4.23
+          tmp4 <- c()
+          for (l in 1:length(driftNames)) {
+            tmp5 <- grep(unlist(driftNames[l]), tmp3); tmp5
+            if (length(tmp5) == 0) tmp4 <- c(tmp4, NA) else tmp4 <- c(tmp4, tmp5)
+          }
+          tmp4 <- unique(tmp4); tmp4
+          tmp4[!(is.na(tmp4))] <- tmp2[!(is.na(tmp4))]
+          tmp4[(is.na(tmp4))] <- 0
+        } else {
+          tmp4 <- tmp2
         }
-        tmp4 <- unique(tmp4); tmp4
-        tmp4[!(is.na(tmp4))] <- tmp2[!(is.na(tmp4))]
-        tmp4[(is.na(tmp4))] <- 0
         rawMod <- matrix(tmp4, n.latent, byrow=TRUE); rawMod # raw moderator effect to be added to raw main effect (followed by tform) (correct order in matrix)
         tmpNames <- paste0("Raw Drift for Moderator Value = ", mod.sd.to.plot[counter], " SD from mean of moderator"); tmpNames
         DRIFTCoeff[[tmpNames]] <- rawDrift + mod.values.to.plot[counter] * rawMod; DRIFTCoeff[[counter]]
-      }
+        }
       #
       if (mod.type == "cat") {
         if (counter == 1) {
@@ -253,9 +261,6 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
 
     ## plotting
     toPlot <- n.mod.values.to.plot; toPlot
-
-    #xValueForModValue2 <- xValueForModValue[-length(xValueForModValue)]; xValueForModValue2
-    #xValueForModValue2 <- xValueForModValue[-1]; xValueForModValue2
 
     plotPairs <- discreteDriftCoeff
     dotPlotPairs <- discreteDriftCoeff
