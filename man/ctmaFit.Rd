@@ -42,7 +42,8 @@ ctmaFit(
   manifestMeans = 0,
   CoTiMAStanctArgs = NULL,
   lambda = NULL,
-  manifestVars = NULL
+  manifestVars = NULL,
+  LCS = FALSE
 )
 }
 \arguments{
@@ -121,6 +122,8 @@ ctmaFit(
 \item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
 
 \item{manifestVars}{define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
+
+\item{LCS}{if FALSE (default), the normal autoregressive and cross-lagged model ist used, and if TRUE, latent change scores (with possibly unequal intervals) is used by fixing the diffusion covariances at 0.0 (see Voelkle & Oud, 2015, p.369)}
 }
 \value{
 ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,

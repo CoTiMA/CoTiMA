@@ -41,6 +41,7 @@
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
 #' @param manifestVars define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
+#' @param LCS if FALSE (default), the normal autoregressive and cross-lagged model ist used, and if TRUE, latent change scores (with possibly unequal intervals) is used by fixing the diffusion covariances at 0.0 (see Voelkle & Oud, 2015, p.369)
 
 #'
 #'
@@ -135,7 +136,8 @@ ctmaFit <- function(
   manifestMeans=0,
   CoTiMAStanctArgs=NULL,
   lambda=NULL,
-  manifestVars=NULL
+  manifestVars=NULL,
+  LCS=FALSE
 )
 
 
@@ -606,7 +608,8 @@ ctmaFit <- function(
     equalDrift=equalDrift,
     T0means=T0means,
     manifestMeans=manifestMeans,
-    manifestVars=manifestVars
+    manifestVars=manifestVars,
+    LCS=LCS
   )
   driftNames <- namesAndParams$driftNames; driftNames
   driftFullNames <- namesAndParams$driftFullNames; driftFullNames
@@ -626,6 +629,11 @@ ctmaFit <- function(
   manifestVarsParams <- namesAndParams$manifestVarsParams; manifestVarsParams
 
   if (is.null(invariantDriftNames)) invariantDriftNames <- driftNames
+
+  # added 24.5.2023
+  #if (LCS == TRUE) for (l in 1:length(diffParams)) diffParams[l] <- 0
+  #if (LCS == TRUE) for (l in 1:length(diffParams)) diffParams[l] <- 0.00000001
+  #if (LCS == TRUE) for (l in 1:length(diffParams)) diffParams[l] <- 0.00000001
 
   if (allInvModel) {
     allInvModelFit <- ctmaAllInvFit(ctmaInitFit=ctmaInitFit,
@@ -660,7 +668,8 @@ ctmaFit <- function(
           counter <- counter + 1
           if (h == j) {
             driftParamsTmp[counter] <- paste0(driftParamsTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
-            diffParamsTmp[counter] <- paste0(diffParamsTmp[counter], paste0("|log1p_exp(param *.1 +2)"))
+            # change 24.5.2023
+            if (LCS == FALSE) diffParamsTmp[counter] <- paste0(diffParamsTmp[counter], paste0("|log1p_exp(param *.1 +2)"))
           }
         }
       }
@@ -788,14 +797,14 @@ ctmaFit <- function(
       tmp3 <- (81 - tmp2)/2; tmp3
       tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
       tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
-      tmp6a <- paste0(tmp4, tmp1a, tmp5); tmp6
+      tmp6a <- paste0(tmp4, tmp1a, tmp5); tmp6a
 
       tmp1b <- paste0(" See the end of the summary output ")
       tmp2 <- nchar(tmp1b); tmp2
       tmp3 <- (81 - tmp2)/2; tmp3
       tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
       tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
-      tmp6b <- paste0(tmp4, tmp1b, tmp5); tmp6
+      tmp6b <- paste0(tmp4, tmp1b, tmp5); tmp6b
 
       Msg <- paste0("################################################################################# \n", tmp6a, "\n", tmp6b, "\n#################################################################################")
       message(Msg)
