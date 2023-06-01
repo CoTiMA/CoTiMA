@@ -186,9 +186,6 @@ ctmaPlot <- function(
 
     # detect study no > 4 nchar
     tmp1 <- c()
-    #ctmaFitObject[[i]]$studyList
-    #str(ctmaFitObject[[1]]$studyList)
-    #(lapply(ctmaFitObject[[1]]$studyList, function(extract) extract$originalStudyNo))
     for (i in 1:n.fitted.obj)  tmp1 <- c(tmp1, unlist(lapply(ctmaFitObject[[i]]$studyList, function(extract) extract$originalStudyNo)))
     if (!(is.null(tmp1))) {
       if (any(nchar(tmp1) > 4)) {
