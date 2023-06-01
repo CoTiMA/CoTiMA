@@ -13,7 +13,6 @@
 #' @param equalDrift equalDrift
 #' @param T0means T0means
 #' @param manifestMeans manifestMeans
-#' @param LCS if FALSE (default), the normal autoregressive and cross-lagged model ist used, and if TRUE, latent change scores (with possibly unequal intervals) is used by fixing the diffusion covariances at 0.0 (see Voelkle & Oud, 2015, p.369)
 #'
 #' @return returns consistently named parameters (e.g., "V1toV2") as well es their symbolic values, which are used to fix or free
 #' parameters when fitting a 'CoTiMA' model
@@ -29,8 +28,7 @@ ctmaLabels <- function(
   moderatedDrift=NULL,
   equalDrift=NULL,
   T0means=0,
-  manifestMeans=0,
-  LCS=FALSE)
+  manifestMeans=0)
   {
 
   n.var <- max(c(n.manifest, n.latent)); n.var
@@ -40,22 +38,10 @@ ctmaLabels <- function(
   for (i in 1:(n.latent)) {
     for (j in 1:(n.latent)) {
       driftNames <- c(driftNames, paste0("V",i,"toV", j))
-      if (i != j) {
-        if (LCS == TRUE) {
-          diffNames <- c(diffNames, 0)
-        } else {
-          diffNames <- c(diffNames, paste0("diff_eta", j, "_eta", i))
-        }
-      }
-      if (i == j) {
-        if (LCS == TRUE) {
-          diffNames <- c(diffNames, 0.001)
-        } else {
-          diffNames <- c(diffNames, paste0("diff_eta", j))
-        }
+      if (i != j) diffNames <- c(diffNames, paste0("diff_eta", j, "_eta", i))
+      if (i == j) diffNames <- c(diffNames, paste0("diff_eta", j))
       }
     }
-  }
 
   #driftNames <- c(t(matrix(driftNames, n.latent))); driftNames
   driftParams <- driftNames; driftParams
