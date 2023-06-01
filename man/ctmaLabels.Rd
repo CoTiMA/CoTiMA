@@ -15,8 +15,7 @@ ctmaLabels(
   moderatedDrift = NULL,
   equalDrift = NULL,
   T0means = 0,
-  manifestMeans = 0,
-  LCS = FALSE
+  manifestMeans = 0
 )
 }
 \arguments{
@@ -41,8 +40,6 @@ ctmaLabels(
 \item{T0means}{T0means}
 
 \item{manifestMeans}{manifestMeans}
-
-\item{LCS}{if FALSE (default), the normal autoregressive and cross-lagged model ist used, and if TRUE, latent change scores (with possibly unequal intervals) is used by fixing the diffusion covariances at 0.0 (see Voelkle & Oud, 2015, p.369)}
 }
 \value{
 returns consistently named parameters (e.g., "V1toV2") as well es their symbolic values, which are used to fix or free
