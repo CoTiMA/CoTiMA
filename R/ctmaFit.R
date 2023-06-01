@@ -41,7 +41,7 @@
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
 #' @param manifestVars define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
-#' @param LCS if FALSE (default), the normal autoregressive and cross-lagged model ist used, and if TRUE, latent change scores (with possibly unequal intervals) is used by fixing the diffusion covariances at 0.0 (see Voelkle & Oud, 2015, p.369)
+#' @param LCS if TRUE, results from the CLPM are transformed into (L)CS terms and presented as additional output (cf. Voelkle & Oud, 2015)
 
 #'
 #'
@@ -608,9 +608,8 @@ ctmaFit <- function(
     equalDrift=equalDrift,
     T0means=T0means,
     manifestMeans=manifestMeans,
-    manifestVars=manifestVars,
-    LCS=LCS
-  )
+    manifestVars=manifestVars)
+
   driftNames <- namesAndParams$driftNames; driftNames
   driftFullNames <- namesAndParams$driftFullNames; driftFullNames
   driftParams <- namesAndParams$driftParams; driftParams
@@ -629,11 +628,6 @@ ctmaFit <- function(
   manifestVarsParams <- namesAndParams$manifestVarsParams; manifestVarsParams
 
   if (is.null(invariantDriftNames)) invariantDriftNames <- driftNames
-
-  # added 24.5.2023
-  #if (LCS == TRUE) for (l in 1:length(diffParams)) diffParams[l] <- 0
-  #if (LCS == TRUE) for (l in 1:length(diffParams)) diffParams[l] <- 0.00000001
-  #if (LCS == TRUE) for (l in 1:length(diffParams)) diffParams[l] <- 0.00000001
 
   if (allInvModel) {
     allInvModelFit <- ctmaAllInvFit(ctmaInitFit=ctmaInitFit,
@@ -668,8 +662,7 @@ ctmaFit <- function(
           counter <- counter + 1
           if (h == j) {
             driftParamsTmp[counter] <- paste0(driftParamsTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
-            # change 24.5.2023
-            if (LCS == FALSE) diffParamsTmp[counter] <- paste0(diffParamsTmp[counter], paste0("|log1p_exp(param *.1 +2)"))
+            diffParamsTmp[counter] <- paste0(diffParamsTmp[counter], paste0("|log1p_exp(param *.1 +2)"))
           }
         }
       }
@@ -1207,6 +1200,11 @@ ctmaFit <- function(
     #modTI_Coeff_original_time_scale
   }
 
+  # new 1. June 2023 (add LCS output)
+  if (LCS == TRUE) {
+    #
+  }
+
   results <- list(#activeDirectory=activeDirectory,
                   plot.type="drift",  model.type="stanct",
                   #coresToUse=coresToUse,
@@ -1256,6 +1254,7 @@ ctmaFit <- function(
                                     useSampleFraction=useSampleFraction,
                                     T0means=T0means,
                                     manifestMeans=manifestMeans,
+                                    LCS=LCS,
                                     CoTiMAStanctArgs=CoTiMAStanctArgs),
                   modelResults=list(DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
                                     DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale,
