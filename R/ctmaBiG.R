@@ -533,6 +533,13 @@ ctmaBiG <- function(
       print(paste0("#################################################################################"))
       print(paste0("############################## Z-curve 2.0 analysis #############################"))
       print(paste0("#################################################################################"))
+      print(paste0("                                                                                 "))
+      print(paste0("Note: The fitting range is from |1.96| - |5|, as z-statistics > |5| have almost "))
+      print(paste0("guaranteed > 99% power (the model treats them separately and includes them in   "))
+      print(paste0("the EDR/ERR calculations, but does not fit the mixture of them, so too few      "))
+      print(paste0("usable significant effects could perhaps be present in your data. In that case, "))
+      print(paste0("you can be quite confident that the EDR and ERR will be close 1, but you have   "))
+      print(paste0("to set the argument zcurve=FALSE!                                               "))
 
       zFit <- list()
       for (i in 1: dim(DRIFTCoeffSND)[2]) {
