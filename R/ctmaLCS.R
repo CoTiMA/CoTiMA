@@ -85,7 +85,6 @@ ctmaLCS <- function(CoTiMAFiT=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   } else {
     drift <- matrix(CoTiMAFiT$modelResults$DRIFT, n.latent, n.latent, byrow=TRUE); drift
   }
-  drift
   ## get SDs
   tmp1 <- grep("DRIFT", rowNames); tmp1
   tmp2 <- grep("dt", rowNames); tmp2
@@ -241,8 +240,9 @@ ctmaLCS <- function(CoTiMAFiT=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   names(T0Covs) <- gsub("Diffusion", "T0Cov", names(T0Covs)); T0Covs
   #
   # overwrite previous in case random intercepts were modelled
-  if (!(is.null(CoTiMAFiT$summary$randomEffects))) {
-    InitialVars <- InitialVarsSD <- c()
+  #if (!(is.null(CoTiMAFiT$summary$randomEffects))) {
+  InitialVars <- InitialVarsSD <- c()
+  if (CoTiMAFiT$summary$randomEffects$popsd != "no random effects estimated") {
     for (i in 1:n.latent) {
       InitialVars[i] <- CoTiMAFiT$summary$randomEffects$popcov_mean[i,i]
       InitialVarsSD[i] <- CoTiMAFiT$summary$randomEffects$model_popcov_sd[i,i]
@@ -346,7 +346,7 @@ ctmaLCS <- function(CoTiMAFiT=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   #length(tmp1)
   #tmp2
   resultsTable <- as.matrix(cbind(tmp1, tmp2))
-  #resultsTable
+  resultsTable
 
   rownames(resultsTable) <- names(tmp1)
   colnames(resultsTable) <- c("estimates", "SD")
