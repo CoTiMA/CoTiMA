@@ -732,14 +732,18 @@ ctmaPower <- function(
   # Plot required sample size for cross effects.
   for (h in 1:length(statisticalPower)) {
     counter <- 0
+    #h <- 1
     for (j1 in 1:(n.latent)) {
+      #j1 <- 1
       for (j2 in 1:(n.latent)) {
+        #j2 <- 2
         if (j1 != j2) {
           counter <- counter + 1; counter
           for (k in 1:(length(usedTimeRange)-1)) {
+            #k <- 1
             delta_t <- usedTimeRange[k+1]; delta_t
             plotPairs[counter, h, k, 1] <- usedTimeRange[k+1]; plotPairs[counter, h, k, 1] # time point
-
+            #plotPairs[1, , ,]
             # R2 in terms of Kelley & Maxwell 2008
             # betas & psis for model with all effects included
             sample.nobs <- 1000 # large enough to prevent shrinkage
