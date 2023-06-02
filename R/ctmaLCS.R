@@ -242,7 +242,8 @@ ctmaLCS <- function(CoTiMAFiT=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   # overwrite previous in case random intercepts were modelled
   #if (!(is.null(CoTiMAFiT$summary$randomEffects))) {
   InitialVars <- InitialVarsSD <- c()
-  if (CoTiMAFiT$summary$randomEffects$popsd != "no random effects estimated") {
+  #if (CoTiMAFiT$summary$randomEffects$popsd[1] != "no random effects estimated") {
+  if (length(length(grep("random", CoTiMAFiT$summary$randomEffects$popsd))) >0) {
     for (i in 1:n.latent) {
       InitialVars[i] <- CoTiMAFiT$summary$randomEffects$popcov_mean[i,i]
       InitialVarsSD[i] <- CoTiMAFiT$summary$randomEffects$model_popcov_sd[i,i]
