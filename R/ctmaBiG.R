@@ -284,10 +284,10 @@ ctmaBiG <- function(
 
     # FIXED EFFECTS ANALYSIS ###############################################################################
     DriftMeans <- colMeans(DRIFTCoeff); DriftMeans
-    if (!(is.null(dt))) DriftMeans_dt <- colMeans(drift_Coeff_dt); DriftMeans_dt
+    if (!(is.null(dt))) DriftMeans_dt <- colMeans(drift_Coeff_dt)
     # Sum of within weights  and weight * effect size
     T_DriftWeights <- colSums(DRIFTPrecision^2); T_DriftWeights
-    if (!(is.null(dt))) T_DriftWeights_dt <- colSums(DRIFTPrecision_dt^2); T_DriftWeights_dt
+    if (!(is.null(dt))) T_DriftWeights_dt <- colSums(DRIFTPrecision_dt^2)
     #DRIFTPrecision
     T_DriftMeans <- colSums(DRIFTCoeff * DRIFTPrecision^2); T_DriftMeans
     names(T_DriftMeans) <- names(T_DriftWeights); T_DriftMeans
@@ -392,11 +392,13 @@ ctmaBiG <- function(
     Ttot_DriftWeights <-colSums(1/ (DRIFTSE^2 + tau2DriftExtended)); Ttot_DriftWeights
     Ttot_DriftMeans <- colSums(DRIFTCoeff * 1/ (DRIFTSE^2 + tau2DriftExtended)); Ttot_DriftMeans
     # same for dt
-    Ttot_DriftWeights_dt <- 0
-    Ttot_DriftMeans_dt <- 0
-    tau2DriftExtended_dt <- do.call(rbind, replicate(n.studies, tau2Drift_dt, simplify=FALSE))
-    Ttot_DriftWeights_dt <-colSums(1/ (drift_SE_dt^2 + tau2DriftExtended_dt)); Ttot_DriftWeights_dt
-    Ttot_DriftMeans_dt <- colSums(drift_Coeff_dt * 1/ (drift_SE_dt^2 + tau2DriftExtended_dt)); Ttot_DriftMeans_dt
+    if (!(is.null(dt))) {
+      Ttot_DriftWeights_dt <- 0
+      Ttot_DriftMeans_dt <- 0
+      tau2DriftExtended_dt <- do.call(rbind, replicate(n.studies, tau2Drift_dt, simplify=FALSE))
+      Ttot_DriftWeights_dt <-colSums(1/ (drift_SE_dt^2 + tau2DriftExtended_dt)); Ttot_DriftWeights_dt
+      Ttot_DriftMeans_dt <- colSums(drift_Coeff_dt * 1/ (drift_SE_dt^2 + tau2DriftExtended_dt)); Ttot_DriftMeans_dt
+    }
     # Random effects results
     RandomEffecttot_Drift <- Ttot_DriftMeans/Ttot_DriftWeights; RandomEffecttot_Drift
     RandomEffecttot_DriftVariance <- 1/Ttot_DriftWeights; RandomEffecttot_DriftVariance
@@ -405,10 +407,7 @@ ctmaBiG <- function(
     RandomEffecttot_DriftLowerLimit <- RandomEffecttot_Drift - 1.96*RandomEffecttot_DriftSE; RandomEffecttot_DriftLowerLimit
     RandomEffecttot_DriftZ <- RandomEffecttot_Drift/RandomEffecttot_DriftSE; RandomEffecttot_DriftZ
     RandomEffecttot_DriftProb <- round(1-stats::pnorm(abs(RandomEffecttot_DriftZ),
-                                                      mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log=F), digits=digits); RandomEffecttot_DriftProb
-    #RandomEffectDriftResults <- rbind(RandomEffecttot_Drift, RandomEffecttot_DriftVariance, RandomEffecttot_DriftSE,
-    #                                  RandomEffecttot_DriftUpperLimit, RandomEffecttot_DriftLowerLimit,
-    #                                  RandomEffecttot_DriftZ, RandomEffecttot_DriftProb)
+                                                      mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log.p=F), digits=digits); RandomEffecttot_DriftProb
     RandomEffecttot_DriftUpperLimitPI <- RandomEffecttot_Drift + 1.96*(tau2Drift^.5); RandomEffecttot_DriftUpperLimitPI
     RandomEffecttot_DriftLowerLimitPI <- RandomEffecttot_Drift - 1.96*(tau2Drift^.5); RandomEffecttot_DriftLowerLimitPI
     RandomEffectDriftResults <- rbind(RandomEffecttot_Drift, RandomEffecttot_DriftVariance, RandomEffecttot_DriftSE,
@@ -424,7 +423,7 @@ ctmaBiG <- function(
       RandomEffecttot_DriftLowerLimit_dt <- RandomEffecttot_Drift_dt - 1.96*RandomEffecttot_DriftSE_dt; RandomEffecttot_DriftLowerLimit_dt
       RandomEffecttot_DriftZ_dt <- RandomEffecttot_Drift_dt/RandomEffecttot_DriftSE_dt; RandomEffecttot_DriftZ_dt
       RandomEffecttot_DriftProb_dt <- round(1-stats::pnorm(abs(RandomEffecttot_DriftZ_dt),
-                                                        mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log=F), digits=digits); RandomEffecttot_DriftProb_dt
+                                                        mean=c(rep(0, (n.latent^2))), sd=c(rep(1, (n.latent^2))), log.p=F), digits=digits); RandomEffecttot_DriftProb_dt
       RandomEffecttot_DriftUpperLimitPI_dt <- RandomEffecttot_Drift_dt + 1.96*(tau2Drift_dt^.5); RandomEffecttot_DriftUpperLimitPI_dt
       RandomEffecttot_DriftLowerLimitPI_dt <- RandomEffecttot_Drift_dt - 1.96*(tau2Drift_dt^.5); RandomEffecttot_DriftLowerLimitPI_dt
       RandomEffectDriftResults_dt <- rbind(RandomEffecttot_Drift_dt, RandomEffecttot_DriftVariance_dt, RandomEffecttot_DriftSE_dt,
@@ -432,8 +431,6 @@ ctmaBiG <- function(
         RandomEffecttot_DriftZ_dt, RandomEffecttot_DriftProb_dt,
         RandomEffecttot_DriftUpperLimitPI_dt, RandomEffecttot_DriftLowerLimitPI_dt)
     }
-
-    #RandomEffectDriftResults
 
     ### PET, PEESE & WLS approaches to correct for bias
 
@@ -540,6 +537,8 @@ ctmaBiG <- function(
       zFit <- list()
       for (i in 1: dim(DRIFTCoeffSND)[2]) {
         tmp1 <- abs(DRIFTCoeffSND[, i]); tmp1
+        tmp1
+        zcurve::zcurve(z=tmp1)
         zFit[[i]] <- summary(zcurve::zcurve(z=tmp1))
       }
       names(zFit) <- paste0("Z-Curve 2.0 analysis of ", colnames(DRIFTCoeffSND)); zFit
