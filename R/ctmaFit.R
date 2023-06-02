@@ -1088,6 +1088,12 @@ ctmaFit <- function(
   }
   #} ## END  fit stanct model
 
+  if (!(is.null(scaleTime))) {
+    optimalCrossLag_originalTimeScale <- optimalCrossLag * CoTiMAStanctArgs$scaleTime
+  } else {
+    optimalCrossLag_originalTimeScale <- optimalCrossLag
+  }
+
   #######################################################################################################################
 
   end.time <- Sys.time()
@@ -1283,6 +1289,7 @@ ctmaFit <- function(
                                #df= invariantDrift_df,
                                optimalLagInfo = "Optimal lag and effect was calculated for original time scale (i.e., ignoring possible scaleTime argument).",
                                opt.lag = optimalCrossLag,
+                               opt.lag.orig.time = optimalCrossLag_originalTimeScale,
                                max.effects = maxCrossEffect,
                                clus.effects=clus.effects,
                                mod.effects=modTI_Coeff,
