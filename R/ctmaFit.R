@@ -849,9 +849,9 @@ ctmaFit <- function(
     model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
     model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
     model_popcov_T <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
-    model_popcov_05 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .05))
+    model_popcov_025 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
     model_popcov_50 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
-    model_popcov_95 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .95))
+    model_popcov_975 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975))
     # convert to correlations and do the same (array to list then list to array)
     e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
     e$popcor <- lapply(e$popcor, stats::cov2cor)
@@ -859,14 +859,14 @@ ctmaFit <- function(
     model_popcor_m <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
     model_popcor_sd <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
     model_popcor_T <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
-    model_popcor_05 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .05))
+    model_popcor_025 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
     model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
-    model_popcor_95 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .95))
+    model_popcor_975 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
     #model_popcor <- stats::cov2cor(model_popcov_m)
   } else {
     model_popsd <- "no random effects estimated"
-    model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_05 <- model_popcov_50 <- model_popcov_95 <- "no random effects estimated"
-    model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_05 <- model_popcor_50 <- model_popcor_95 <- "no random effects estimated"
+    model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- "no random effects estimated"
+    model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- "no random effects estimated"
   }
 
   # account for changes in ctsem 3.4.1
@@ -1279,11 +1279,11 @@ ctmaFit <- function(
                                #randomEffects=invariantDriftStanctFit$popsd,
                                randomEffects=list(popsd=model_popsd,
                                                   popcov_mean=model_popcov_m, model_popcov_sd=model_popcov_sd,
-                                                  model_popcov_T=model_popcov_T, model_popcov_05=model_popcov_05,
-                                                  model_popcov_50=model_popcov_50, model_popcov_95=model_popcov_95,
+                                                  model_popcov_T=model_popcov_T, model_popcov_025=model_popcov_025,
+                                                  model_popcov_50=model_popcov_50, model_popcov_975=model_popcov_975,
                                                   popcor_mean=model_popcor_m, model_popcor_sd=model_popcor_sd,
-                                                  model_popcor_T=model_popcor_T, model_popcor_05=model_popcor_05,
-                                                  model_popcor_50=model_popcor_50, model_popcor_95=model_popcor_95),
+                                                  model_popcor_T=model_popcor_T, model_popcor_025=model_popcor_025,
+                                                  model_popcor_50=model_popcor_50, model_popcor_975=model_popcor_975),
                                minus2ll= invariantDrift_Minus2LogLikelihood,
                                n.parameters = invariantDrift_estimatedParameters,
                                #df= invariantDrift_df,

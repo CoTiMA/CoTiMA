@@ -755,8 +755,8 @@ ctmaInit <- function(
     model_Cint_Coef <- model_Cint_SE <- model_Cint_CI <- list()
     model_popsd <- list() # model_popcov <- model_popcor <- list()
     resultsSummary <- list()
-    model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_05 <- model_popcov_50 <- model_popcov_95 <- list()
-    model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_05 <- model_popcor_50 <- model_popcor_95 <- list()
+    model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- list()
+    model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- list()
 
     for (i in 1:n.studies) {
       #i <- 1
@@ -1132,9 +1132,9 @@ ctmaInit <- function(
         model_popcov_m[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
         model_popcov_sd[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
         model_popcov_T[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
-        model_popcov_05[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .05))
+        model_popcov_025[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
         model_popcov_50[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
-        model_popcov_95[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .95))
+        model_popcov_975[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975))
         # convert to correlations and do the same (array to list then list to array)
         e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
         e$popcor <- lapply(e$popcor, stats::cov2cor)
@@ -1142,13 +1142,13 @@ ctmaInit <- function(
         model_popcor_m[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
         model_popcor_sd[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
         model_popcor_T[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
-        model_popcor_05[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .05))
+        model_popcor_025[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
         model_popcor_50[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
-        model_popcor_95[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .95))
+        model_popcor_975[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
       } else {
         model_popsd <- "no random effects estimated"
-        model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_05 <- model_popcov_50 <- model_popcov_95 <- "no random effects estimated"
-        model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_05 <- model_popcor_50 <- model_popcor_95 <- "no random effects estimated"
+        model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- "no random effects estimated"
+        model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- "no random effects estimated"
       }
       #}
 
@@ -1432,11 +1432,11 @@ ctmaInit <- function(
                                 #randomEffects=list(popsd=model_popsd, popcov=model_popcov, popcor=model_popcor),
                                 randomEffects=list(popsd=model_popsd,
                                                    popcov_mean=model_popcov_m, model_popcov_sd=model_popcov_sd,
-                                                   model_popcov_T=model_popcov_T, model_popcov_05=model_popcov_05,
-                                                   model_popcov_50=model_popcov_50, model_popcov_95=model_popcov_95,
+                                                   model_popcov_T=model_popcov_T, model_popcov_025=model_popcov_025,
+                                                   model_popcov_50=model_popcov_50, model_popcov_975=model_popcov_975,
                                                    popcor_mean=model_popcor_m, model_popcor_sd=model_popcor_sd,
-                                                   model_popcor_T=model_popcor_T, model_popcor_05=model_popcor_05,
-                                                   model_popcor_50=model_popcor_50, model_popcor_95=model_popcor_95),
+                                                   model_popcor_T=model_popcor_T, model_popcor_025=model_popcor_025,
+                                                   model_popcor_50=model_popcor_50, model_popcor_975=model_popcor_975),
                                 confidenceIntervals=allStudiesCI,
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),
