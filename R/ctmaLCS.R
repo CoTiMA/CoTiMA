@@ -31,6 +31,12 @@ ctmaLCS <- function(CoTiMAFiT=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
     stop(ErrorMsg)
   }
 
+  e <- ctExtract(CoTiMAFiT$studyFitList)
+  if (undoTimeScaling == TRUE) {
+    e$pop_DRIFT <- e$pop_DRIFT * CoTiMAFiT$argumentList$scaleTime
+    #e$pop_DIFFUSION <- e$pop_DIFFUSION * CoTiMAFiT$argumentList$scaleTime # done later after GG'
+  }
+
   driftNames <- CoTiMAFiT$parameterNames$DRIFT; driftNames
   diffNames <- CoTiMAFiT$parameterNames$DIFFUSION
   T0varNames <- CoTiMAFiT$parameterNames$T0VAR
@@ -109,33 +115,38 @@ ctmaLCS <- function(CoTiMAFiT=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   names(crosss) <- paste0("CTcross_", names(crosss) ); crosss
   names(autos) <- paste0("CTauto_", names(autos)); autos
   #
-  proportions <- autoregressions <- c()
+  expm_drift_minus1_samples <- expm_drift_samples <- drift_samples <- list()
+  proportions <- autoregressions <- proportionsSD <- autoregressionsSD <- c()
+  for (j in 1:dim(e$pop_DRIFT)[1]) {
+    drift_samples[[j]] <- e$pop_DRIFT[j,,]
+    expm_drift_samples[[j]] <- expm(e$pop_DRIFT[j,,])
+    expm_drift_minus1_samples[[j]] <- expm_drift_samples[[j]]  - diag(n.latent)
+  }
   for (i in 1:n.latent) {
-    proportions[i] <- (OpenMx::expm(drift) - diag(n.latent))[i,i]
-    autoregressions[i] <- OpenMx::expm(drift)[i,i]
+    proportions[i] <- mean(unlist(lapply(expm_drift_minus1_samples, function(x) x[i,i])))
+    proportionsSD[i] <- sd(unlist(lapply(expm_drift_minus1_samples, function(x) x[i,i])))
+    autoregressions[i] <- mean(unlist(lapply(expm_drift_samples, function(x) x[i,i])))
+    autoregressionsSD[i] <- sd(unlist(lapply(expm_drift_samples, function(x) x[i,i])))
   }
   names(proportions) <- paste0("Proportion_", latentNames); proportions
   names(autoregressions) <- paste0("Autoregressions_", latentNames, " (Delta=1)"); autoregressions
-  proportionsSD <- autoregressionsSD <- c()
-  for (i in 1:length(proportions)) proportionsSD[i] <- NA
-  for (i in 1:length(autoregressions)) autoregressionsSD[i] <- NA
   #
-  couplings <- crosslaggeds <- c()
+  couplings <- crosslaggeds <- couplingsSD <- crosslaggedsSD <- c()
   counter <- 0
   for (i in 1:n.latent) {
     for (j in 1:n.latent) {
       if (i != j) {
         counter <- counter + 1
-        couplings[counter] <- drift[j,i]
-        crosslaggeds[counter] <- OpenMx::expm(drift)[j,i]
+        couplings[counter] <- mean(unlist(lapply(drift_samples, function(x) x[j,i])))
+        couplingsSD[counter] <- sd(unlist(lapply(drift_samples, function(x) x[j,i])))
+        crosslaggeds[counter] <- mean(unlist(lapply(expm_drift_samples, function(x) x[j,i])))
+        crosslaggedsSD[counter] <- sd(unlist(lapply(expm_drift_samples, function(x) x[j,i])))
+
       }
     }
   }
   names(couplings) <- paste0("Coupling_", crossNames); couplings
   names(crosslaggeds) <- paste0("CrossLagged_", crossNames, " (Delta=1)"); crosslaggeds
-  couplingsSD <- crosslaggedsSD <- c()
-  for (i in 1:length(couplings)) couplingsSD[i] <- NA
-  for (i in 1:length(crosslaggeds)) crosslaggedsSD[i] <- NA
   #
   if (undoTimeScaling == TRUE) {
     diffs <- matrix(CoTiMAFiT$modelResults$DIFFUSIONoriginal_time_scale, n.latent, n.latent); diffs
@@ -164,29 +175,48 @@ ctmaLCS <- function(CoTiMAFiT=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   names(diffusionCovs) <- gsub("to", "with", names(diffusionCovs)); diffusionCovs
   #
   ## this block is more complex and involves Kroneker products and matrix inverse
-  kronek <- drift %x% diag(n.latent) + diag(n.latent) %x% drift; kronek
-  DynErrVarsMatrix <- matrix(solve(kronek) %*% (OpenMx::expm(kronek) - diag(nrow(kronek))) %*% c(diffs), n.latent, n.latent); DynErrVarsMatrix
-  #
-  DynErrVars <- c()
-  for (i in 1:n.latent) {
-    DynErrVars[i] <- DynErrVarsMatrix[i,i]
+  diffusion_samples <- list()
+  for (j in 1:dim(e$pop_DIFFUSIONcov)[1]) {
+    if (undoTimeScaling == TRUE) {
+      diffusion_samples[[j]] <- e$pop_DIFFUSIONcov[j,,] * CoTiMAFiT$CoTiMAStanctArgs$scaleTime # GG'
+    } else {
+      diffusion_samples[[j]] <- e$pop_DIFFUSIONcov[j,,]
+    }
   }
-  names(DynErrVars) <- paste0("DynErrVar_", latentNames, " (Delta=1)"); DynErrVars
-  DynErrVarsSD <- DynErrVars
-  for (i in 1:length(DynErrVars)) DynErrVarsSD[i] <- NA
+  diffusion_samples
+  DynErrVarsMatrix_samples <- list()
+  for (j in 1:dim(e$pop_DRIFT)[1]) {
+    kronek <- e$pop_DRIFT[j,,] %x% diag(n.latent) + diag(n.latent) %x% e$pop_DRIFT[j,,]
+    DynErrVarsMatrix_samples[[j]] <- matrix(solve(kronek) %*% (OpenMx::expm(kronek) - diag(nrow(kronek))) %*% c(diffusion_samples[[j]]), n.latent, n.latent)
+  }
   #
-  DynErrCovs <- c()
+  DynErrVars <- DynErrVarsSD <- diffusionVars <- diffusionVarsSD <- c()
+  for (i in 1:n.latent) {
+    DynErrVars[i] <- mean(unlist(lapply(DynErrVarsMatrix_samples, function(x) x[i,i])))
+    DynErrVarsSD[i] <- sd(unlist(lapply(DynErrVarsMatrix_samples, function(x) x[i,i])))
+    diffusionVars[i] <- mean(unlist(lapply(diffusion_samples, function(x) x[i,i])))
+    diffusionVarsSD[i] <- sd(unlist(lapply(diffusion_samples, function(x) x[i,i])))
+  }
+  names(diffusionVars) <- paste0("Diffusion_", latentNames); diffusionVars
+  names(DynErrVars) <- paste0("DynErrVar_", latentNames, " (Delta=1)"); DynErrVars
+
+  #
+  DynErrCovs <- DynErrCovsSD <- diffusionCovs <- diffusionCovsSD <- c()
   counter <- 0
   for (i in 1:n.latent) {
     for (j in 1:n.latent) {
       if (i != j) {
         counter <- counter + 1
-        DynErrCovs[i] <- DynErrVarsMatrix[j,i]
+        DynErrCovs[counter] <- mean(unlist(lapply(DynErrVarsMatrix_samples, function(x) x[j,i])))
+        DynErrCovsSD[counter] <- sd(unlist(lapply(DynErrVarsMatrix_samples, function(x) x[j,i])))
+        diffusionCovs[counter] <- mean(unlist(lapply(diffusion_samples, function(x) x[j,i])))
+        diffusionCovsSD[counter] <- sd(unlist(lapply(diffusion_samples, function(x) x[j,i])))
       }
     }
   }
-  DynErrCovsSD <- DynErrCovs
-  for (i in 1:length(DynErrCovs)) DynErrCovsSD[i] <- NA
+  names(diffusionCovs) <- names(couplings); diffusionCovs
+  names(diffusionCovs) <- gsub("Coupling_", "Diffusion_", names(diffusionCovs)); diffusionCovs
+  names(diffusionCovs) <- gsub("to", "with", names(diffusionCovs)); diffusionCovs
   names(DynErrCovs) <- names(diffusionCovs); DynErrVars
   names(DynErrCovs) <- gsub("Diffusion", "DynErrCov", names(DynErrCovs)); DynErrCovs
   names(DynErrCovs) <- paste0(names(DynErrCovs), " (Delta=1)" ); DynErrCovs
@@ -263,38 +293,43 @@ ctmaLCS <- function(CoTiMAFiT=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
     names(InitialCovs) <- names(diffusionCovs); InitialCovs
     names(InitialCovs) <- gsub("Diffusion", "InitialCov", names(InitialCovs)); InitialCovs
     #
-    SlopVariance_TraitVariance <- SlopVariance_TraitVarianceSD <- c()
+    SlopeVariance_TraitVariance <- SlopeVariance_TraitVarianceSD <- c()
     counter <- 0
     for (i in (n.latent+1):(2*n.latent)) {
       counter <- counter + 1
-      SlopVariance_TraitVariance[counter] <- CoTiMAFiT$summary$randomEffects$popcov_mean[i,i]
-      SlopVariance_TraitVarianceSD[counter] <- CoTiMAFiT$summary$randomEffects$model_popcov_sd[i,i]
+      SlopeVariance_TraitVariance[counter] <- CoTiMAFiT$summary$randomEffects$popcov_mean[i,i]
+      SlopeVariance_TraitVarianceSD[counter] <- CoTiMAFiT$summary$randomEffects$model_popcov_sd[i,i]
     }
-    names(SlopVariance_TraitVariance) <-paste0("SlopVariance_TraitVariance_", latentNames); SlopVariance_TraitVariance
+    names(SlopeVariance_TraitVariance) <-paste0("SlopeVariance_TraitVariance_", latentNames); SlopeVariance_TraitVariance
     #
-    SlopCov_TraitCov <- SlopCov_TraitCovSD <- c()
+    SlopeCov_TraitCov <- SlopeCov_TraitCovSD <- SlopeCor_TraitCor <- c()
     counter <- 0
     for (i in (n.latent+1):(2*n.latent)) {
       for (j in (n.latent+1):(2*n.latent)) {
         if (i != j) {
           counter <- counter + 1
-          SlopCov_TraitCov[counter] <- CoTiMAFiT$summary$randomEffects$popcov_mean[j,i]
-          SlopCov_TraitCovSD[counter] <- CoTiMAFiT$summary$randomEffects$model_popcov_sd[j,i]
+          SlopeCov_TraitCov[counter] <- CoTiMAFiT$summary$randomEffects$popcov_mean[j,i]
+          SlopeCov_TraitCovSD[counter] <- CoTiMAFiT$summary$randomEffects$model_popcov_sd[j,i]
+          SlopeCor_TraitCor[counter] <- CoTiMAFiT$summary$randomEffects$popcor_mean[j,i]
         }
       }
     }
-    names(SlopCov_TraitCov) <- names(diffusionCovs); SlopCov_TraitCov
-    names(SlopCov_TraitCov) <- gsub("Diffusion", "SlopCov_TraitCov", names(SlopCov_TraitCov)); SlopCov_TraitCov
+    names(SlopeCov_TraitCov) <- names(diffusionCovs); SlopeCov_TraitCov
+    names(SlopeCov_TraitCov) <- gsub("Diffusion", "SlopeCov_TraitCov", names(SlopeCov_TraitCov)); SlopeCov_TraitCov
+    names(SlopeCor_TraitCor) <- names(diffusionCovs); SlopeCov_TraitCov
+    names(SlopeCor_TraitCor) <- gsub("Diffusion", "SlopeCor_TraitCor", names(SlopeCor_TraitCor)); SlopeCor_TraitCor
+    SlopeCor_TraitCorSD <- rep(NA, (n.latent*n.latent-n.latent))
   } else {
     InitialVar <- T0Vars; InitialVar
     InitialCovs <- T0Covs; InitialCovs
-    SlopVariance_TraitVariance <- NA
-    SlopCov_TraitCov <- NA
+    SlopeVariance_TraitVariance <- NA
+    SlopeCov_TraitCov <- NA
     InitialVarSD <- T0VarsSD; InitialVarSD
     InitialCovsSD <- T0CovsSD; InitialCovsSD
-    SlopVariance_TraitVarianceSD <- NA
-    SlopCov_TraitCovSD <- NA
-
+    SlopeVariance_TraitVarianceSD <- NA
+    SlopeCov_TraitCovSD <- NA
+    SlopeCor_TraitCor <- rep(NA, (n.latent*n.latent-n.latent))
+    SlopeCor_TraitCorSD <- rep(NA, (n.latent*n.latent-n.latent))
   }
   Minus2LL <- CoTiMAFiT$summary$minus2ll; Minus2LL
   names(Minus2LL) <- "Minus2LL"
@@ -319,8 +354,9 @@ ctmaLCS <- function(CoTiMAFiT=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
                   measurementErrorCovs,
                   InitialVars,
                   InitialCovs,
-                  SlopVariance_TraitVariance,
-                  SlopCov_TraitCov,
+                  SlopeVariance_TraitVariance,
+                  SlopeCov_TraitCov,
+                  SlopeCor_TraitCor,
                   Minus2LL,
                   NumEstParams), digits); tmp1
   tmp2 <- round(c(initialMeansSD,
@@ -340,8 +376,9 @@ ctmaLCS <- function(CoTiMAFiT=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
                   measurementErrorCovsSD,
                   InitialVarsSD,
                   InitialCovsSD,
-                  SlopVariance_TraitVarianceSD,
-                  SlopCov_TraitCovSD,
+                  SlopeVariance_TraitVarianceSD,
+                  SlopeCov_TraitCovSD,
+                  SlopeCor_TraitCorSD,
                   NA,
                   NA), digits); tmp2
   #length(tmp1)
