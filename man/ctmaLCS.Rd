@@ -5,14 +5,14 @@
 \title{ctmaLCS}
 \usage{
 ctmaLCS(
-  CoTiMAFiT = NULL,
+  CoTiMAFit = NULL,
   undoTimeScaling = TRUE,
   digits = 4,
   activateRPB = FALSE
 )
 }
 \arguments{
-\item{CoTiMAFiT}{Fitted CoTiMA object.}
+\item{CoTiMAFit}{Fitted CoTiMA object.}
 
 \item{undoTimeScaling}{Whether (TRUE) or not (FALSE) LCS results should be provided ignoring the scaleTime argument used in ctmaFit.}
 
