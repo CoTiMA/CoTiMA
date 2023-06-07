@@ -835,6 +835,7 @@ ctmaFit <- function(
     if (!(is.null(CoTiMAStanctArgs$resample))) {
       fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel)
       #saveRDS(fitStanctModel, paste0(activeDirectory, "fitStanctModel.rds"))
+      #fitStanctModel <- readRDS(paste0(activeDirectory, "fitStanctModel.rds"))
     }
     invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
   } # end if else (allInvModel)
