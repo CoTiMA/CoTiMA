@@ -163,7 +163,7 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
     slopeMeans_CintLL <- cintsLL
     slopeMeans_CintUL <- cintsUL
   }
-  names(slopeMeans_Cint) <- paste0("SlopeMean_Cint", latentNames); slopeMeans_Cint
+  names(slopeMeans_Cint) <- paste0("SlopeMean_Cint_", latentNames); slopeMeans_Cint
   #
   drift <- matrix(fit$summary$popmeans[grep("to", rownames(fit$summary$popmeans)), 1], n.latent, n.latent, byrow=TRUE) * scaleTime; drift
 
@@ -218,14 +218,18 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
     for (j in 1:n.latent) {
       if (i != j) {
         counter <- counter + 1
-        couplings[counter] <- mean(unlist(lapply(drift_samples, function(x) x[j,i])))
-        couplingsSD[counter] <- sd(unlist(lapply(drift_samples, function(x) x[j,i])))
-        couplingsLL[counter] <- stats::quantile(unlist(lapply(drift_samples, function(x) x[j,i])), prob=.025)
-        couplingsUL[counter] <- stats::quantile(unlist(lapply(drift_samples, function(x) x[j,i])), prob=.975)
+        #couplings[counter] <- mean(unlist(lapply(drift_samples, function(x) x[j,i])))
+        #couplingsSD[counter] <- sd(unlist(lapply(drift_samples, function(x) x[j,i])))
+        #couplingsLL[counter] <- stats::quantile(unlist(lapply(drift_samples, function(x) x[j,i])), prob=.025)
+        #couplingsUL[counter] <- stats::quantile(unlist(lapply(drift_samples, function(x) x[j,i])), prob=.975)
         crosslaggeds[counter] <- mean(unlist(lapply(expm_drift_samples, function(x) x[j,i])))
         crosslaggedsSD[counter] <- sd(unlist(lapply(expm_drift_samples, function(x) x[j,i])))
         crosslaggedsLL[counter] <- stats::quantile(unlist(lapply(expm_drift_samples, function(x) x[j,i])), prob=.025)
         crosslaggedsUL[counter] <- stats::quantile(unlist(lapply(expm_drift_samples, function(x) x[j,i])), prob=.975)
+        couplings[counter] <- crosslaggeds[counter]
+        couplingsSD[counter] <- crosslaggedsSD[counter]
+        couplingsLL[counter] <- crosslaggedsLL[counter]
+        couplingsUL[counter] <- crosslaggedsUL[counter]
       }
     }
   }

@@ -41,8 +41,6 @@
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
 #' @param manifestVars define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
-#' @param LCS if TRUE, results from the CLPM are transformed into (L)CS terms and presented as additional output (cf. Voelkle & Oud, 2015)
-
 #'
 #'
 #' @importFrom  RPushbullet pbPost
@@ -117,7 +115,7 @@ ctmaFit <- function(
   scaleTI=TRUE,
   scaleMod=NULL,
   transfMod=NULL,
-  scaleClus=NULL,
+  scaleClus=TRUE,
   scaleTime=NULL,
   optimize=TRUE,
   nopriors=TRUE,
@@ -136,8 +134,7 @@ ctmaFit <- function(
   manifestMeans=0,
   CoTiMAStanctArgs=NULL,
   lambda=NULL,
-  manifestVars=NULL,
-  LCS=FALSE
+  manifestVars=NULL
 )
 
 
@@ -513,7 +510,9 @@ ctmaFit <- function(
         tmp2 <- which(groups %in% targetGroups); length(tmp2)
         tmpTI[tmp2, i] <- 1
       }
-      if (CoTiMAStanctArgs$scaleClus == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)], scale=FALSE)
+      # CHD changed 7.6.2023
+      #if (CoTiMAStanctArgs$scaleClus == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)], scale=FALSE)
+      if (scaleClus == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)], scale=FALSE)
       cluster.weights <- cluster.sizes <- matrix(NA, nrow=ncol(tmpTI), ncol=2)
       for (l in 1:ncol(tmpTI)) {
         cluster.weights[l,] <- round(as.numeric(names(table(tmpTI[ , l]))), digits)
@@ -834,7 +833,7 @@ ctmaFit <- function(
 
     ### resample in parcels to avoid memory crash and speed up
     if (!(is.null(CoTiMAStanctArgs$resample))) {
-      fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel) #, CoTiMAStanctArgs=CoTiMAStanctArgs)
+      fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel)
       #saveRDS(fitStanctModel, paste0(activeDirectory, "fitStanctModel.rds"))
     }
     invariantDriftStanctFit <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
@@ -1024,6 +1023,7 @@ ctmaFit <- function(
     # re-label
     targetCluster <- which(table(cluster) > 1); targetCluster
     for (i in 1:clusCounter) {
+      #i <- 2
       targetNamePart <- paste0("tip_", clusTIs[i]); targetNamePart
       rownames(clusTI_Coeff) <- sub(targetNamePart, paste0("Cluster_", targetCluster[i], "_on_"), rownames(clusTI_Coeff))
       for (j in 1:length(driftNames)) {
@@ -1032,7 +1032,9 @@ ctmaFit <- function(
           tmp0 <- gsub(" \\(invariant\\)", "", tmp0); tmp0
           tmp1 <- grep(tmp0, rownames((clusTI_Coeff))); tmp1
           tmp2 <- grep(tmp0, names((model_Drift_Coef))); tmp2
-          cluster.specific.effect[i,j] <- round(model_Drift_Coef[tmp2] + clusTI_Coeff[tmp1, 1] * cluster.weights[i, 2], digits)
+          # CHD changed 7.6.2023
+          # cluster.specific.effect[i,j] <- round(model_Drift_Coef[tmp2] + clusTI_Coeff[tmp1, 1] * cluster.weights[i, 2], digits)
+          cluster.specific.effect[i,j] <- round(model_Drift_Coef[tmp2] + clusTI_Coeff[tmp1[i], 1] * cluster.weights[i, 2], digits)
         }
       }
     }
@@ -1206,11 +1208,6 @@ ctmaFit <- function(
     #modTI_Coeff_original_time_scale
   }
 
-  # new 1. June 2023 (add LCS output)
-  if (LCS == TRUE) {
-    #
-  }
-
   results <- list(#activeDirectory=activeDirectory,
                   plot.type="drift",  model.type="stanct",
                   #coresToUse=coresToUse,
@@ -1260,7 +1257,6 @@ ctmaFit <- function(
                                     useSampleFraction=useSampleFraction,
                                     T0means=T0means,
                                     manifestMeans=manifestMeans,
-                                    LCS=LCS,
                                     CoTiMAStanctArgs=CoTiMAStanctArgs),
                   modelResults=list(DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
                                     DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale,
