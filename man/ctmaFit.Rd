@@ -23,7 +23,7 @@ ctmaFit(
   scaleTI = TRUE,
   scaleMod = NULL,
   transfMod = NULL,
-  scaleClus = NULL,
+  scaleClus = TRUE,
   scaleTime = NULL,
   optimize = TRUE,
   nopriors = TRUE,
@@ -39,11 +39,14 @@ ctmaFit(
   driftsToCompare = NULL,
   useSampleFraction = NULL,
   T0means = 0,
-  manifestMeans = 0,
   CoTiMAStanctArgs = NULL,
   lambda = NULL,
-  manifestVars = NULL,
-  LCS = FALSE
+  experimental = FALSE,
+  cint = 0,
+  T0var = "auto",
+  manifestMeans = 0,
+  manifestVars = 0,
+  indVaryingT0 = TRUE
 )
 }
 \arguments{
@@ -73,11 +76,11 @@ ctmaFit(
 
 \item{mod.names}{vector of names for moderators used in output}
 
-\item{indVarying}{allows continuous time intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)}
+\item{indVarying}{allows continuous time intercepts to vary at the individual level (random intercepts model, accounts for unobserved heterogeneity)}
 
 \item{coresToUse}{if negative, the value is subtracted from available cores, else value = cores to use}
 
-\item{scaleTI}{scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dimmies representing primary studies.}
+\item{scaleTI}{scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dummies representing primary studies.}
 
 \item{scaleMod}{scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts}
 
@@ -115,15 +118,21 @@ ctmaFit(
 
 \item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 
-\item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
-
 \item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
 
 \item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
 
-\item{manifestVars}{define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
+\item{experimental}{}
 
-\item{LCS}{if TRUE, results from the CLPM are transformed into (L)CS terms and presented as additional output (cf. Voelkle & Oud, 2015)}
+\item{cint}{default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')}
+
+\item{T0var}{(default = 'auto')}
+
+\item{manifestMeans}{default = 0. Are automatically set free is indvarying is set to TRUE. Can be assigned labels to estimate them freely.}
+
+\item{manifestVars}{define the error variances (default = 0) of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
+
+\item{indVaryingT0}{Forces T0MEANS (T0 scores) to vary interindividually, which undos the nesting of T0(co-)variances in primary studies (default = TRUE). Was standard until Aug. 2022. Could provide better/worse estimates if set to FALSE.}
 }
 \value{
 ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,

@@ -139,25 +139,31 @@ ctmaLabels <- function(
   }
 
   # manifest means
-  MANIFESTMEANS <- 0
-  if (!(is.null(invariantDrift))) {
-    if ( (length(tmp1) + length(tmp2)) < n.var * n.latent ) {
-      # added 16. Aug 2022 (if else)
-      if (manifestMeans == 0) {
-        MANIFESTMEANS <- rep("0", n.manifest); MANIFESTMEANS
-        targetVar <- which(is.na(rowSums(tmp3))); targetVar
-        MANIFESTMEANS[targetVar] <- paste0("mean_", targetVar); MANIFESTMEANS
-      } #else {
-      #  MANIFESTMEANS <- manifestMeans
-      #}
-    } else {
-      # changed 16. Aug 2022
-      #MANIFESTMEANS <- 0
-      MANIFESTMEANS <- manifestMeans
-    #}
+  # CHD 9.6.2023
+  if (manifestMeans == 'auto') {
+    MANIFESTMEANS <- 'auto'
+    print(MANIFESTMEANS)
+  } else {
+    MANIFESTMEANS <- 0
+    if (!(is.null(invariantDrift))) {
+      if ( (length(tmp1) + length(tmp2)) < n.var * n.latent ) {
+        # added 16. Aug 2022 (if else)
+        if (manifestMeans == 0) {
+          MANIFESTMEANS <- rep("0", n.manifest); MANIFESTMEANS
+          targetVar <- which(is.na(rowSums(tmp3))); targetVar
+          MANIFESTMEANS[targetVar] <- paste0("mean_", targetVar); MANIFESTMEANS
+        } #else {
+        #  MANIFESTMEANS <- manifestMeans
+        #}
+      } else {
+        # changed 16. Aug 2022
+        #MANIFESTMEANS <- 0
+        MANIFESTMEANS <- manifestMeans
+        #}
+      }
     }
+    print(MANIFESTMEANS)
   }
-  #MANIFESTMEANS
 
   #T0Means
   if (!(is.null(invariantDrift))) {
