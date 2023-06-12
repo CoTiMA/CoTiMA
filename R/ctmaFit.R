@@ -919,8 +919,10 @@ ctmaFit <- function(
   if ( (indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT') ) {
     e <- ctsem::ctExtract(fitStanctModel)
     # CHD 12.6.2023
+    model_popsd <- fitStanctModel_summary$popsd
     #if (indVaryingT0 == TRUE) {
-    if ( (indVaryingT0 == TRUE) & (T0meansParams[1] != 0) ) {
+    #if ( (indVaryingT0 == TRUE) & (T0meansParams[1] != 0) ) {
+    if (nrow(model_popsd) != n.latent) {
       model_popsd <- fitStanctModel_summary$popsd
       model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
       model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
