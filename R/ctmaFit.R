@@ -738,7 +738,7 @@ ctmaFit <- function(
         #if ( ((indVarying != 'CINT') & (indVarying != 'cint')) & (T0meansParams[1] == 0) & (indVaryingT0 == TRUE) ) {
         if ( ((indVarying == TRUE) | (indVarying != 'CINT') | (indVarying != 'cint') ) & (T0meansParams[1] == 0) & (indVaryingT0 == TRUE) ) {
           #T0meansParams <- 'auto'
-          T0meansParams <- 'auto'
+          T0meansParams <- 0
           print(paste0("#################################################################################"))
           #print(paste0("### Note: T0means were set free to estimate random intercepts with manifests. ###"))
           print(paste0("# Note: T0means were fixed to 0 to estimate random \'intercepts\' with manifests. #"))
