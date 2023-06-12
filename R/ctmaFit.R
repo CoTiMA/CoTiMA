@@ -730,7 +730,7 @@ ctmaFit <- function(
         if ( ((indVarying == TRUE) | (indVarying == 'CINT') | (indVarying == 'cint') ) & (T0meansParams[1] != 0) & (indVaryingT0 == FALSE) ) {
             T0meansParams <- 0 # if set 0 they cannot vary individually even if indvarying is set to TRUE
             print(paste0("#################################################################################"))
-            print(paste0("###################### Note: T0means were set to 0 ..  ##########################"))
+            print(paste0("####################### Note: T0means were set to 0.  ##########################"))
             print(paste0("#################################################################################"))
         }
         #T0meansParams
@@ -763,8 +763,8 @@ ctmaFit <- function(
                          TIpredNames = paste0("TI", 1:n.TIpred))
         )
 
-        # CHD 96.2023
-        stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
+        # CHD 12.6.2023
+        if (T0meansParams != 0) stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
         if ( (indVarying == 'CINT') | (indVarying == 'cint') ) {
           stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
         } else {
