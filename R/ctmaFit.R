@@ -764,7 +764,12 @@ ctmaFit <- function(
         )
 
         # CHD 12.6.2023
-        if (T0meansParams != 0) stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
+        if (T0meansParams != 0) {
+          stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
+        } else {
+          stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
+        }
+        # CHD 9.6.2023
         if ( (indVarying == 'CINT') | (indVarying == 'cint') ) {
           stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
         } else {
@@ -913,7 +918,9 @@ ctmaFit <- function(
   #if (indVarying == TRUE) {
   if ( (indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT') ) {
     e <- ctsem::ctExtract(fitStanctModel)
-    if (indVaryingT0 == TRUE) {
+    # CHD 12.6.2023
+    #if (indVaryingT0 == TRUE) {
+    if ( (indVaryingT0 == TRUE) & (T0meansParams[1] != 0) ) {
       model_popsd <- fitStanctModel_summary$popsd
       model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
       model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
