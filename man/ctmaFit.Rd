@@ -41,7 +41,6 @@ ctmaFit(
   T0means = 0,
   CoTiMAStanctArgs = NULL,
   lambda = NULL,
-  experimental = FALSE,
   cint = 0,
   T0var = "auto",
   manifestMeans = 0,
@@ -121,8 +120,6 @@ ctmaFit(
 \item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
 
 \item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
-
-\item{experimental}{}
 
 \item{cint}{default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')}
 

@@ -710,7 +710,7 @@ ctmaFit <- function(
             }
           }
         }
-        CINTParams
+        #CINTParams
 
         #if ( ((indVarying != 'CINT') & (indVarying != 'cint')) & (manifestMeansParams == 0) ) {
         if ( ((indVarying == TRUE)) & (manifestMeansParams == 0) ) {
@@ -724,7 +724,7 @@ ctmaFit <- function(
 
           manifestMeansParams <- 'auto'
         }
-        manifestMeansParams
+        #manifestMeansParams
 
         #if ( ((indVarying != 'CINT') & (indVarying != 'cint')) & (T0meansParams[1] != 0) & (indVaryingT0 == FALSE) ) {
         if ( ((indVarying == TRUE) | (indVarying == 'CINT') | (indVarying == 'cint') ) & (T0meansParams[1] != 0) & (indVaryingT0 == FALSE) ) {
@@ -733,7 +733,7 @@ ctmaFit <- function(
             print(paste0("###################### Note: T0means were set to 0 ..  ##########################"))
             print(paste0("#################################################################################"))
         }
-        T0meansParams
+        #T0meansParams
 
         #if ( ((indVarying != 'CINT') & (indVarying != 'cint')) & (T0meansParams[1] == 0) & (indVaryingT0 == TRUE) ) {
         if ( ((indVarying == TRUE) | (indVarying != 'CINT') | (indVarying != 'cint') ) & (T0meansParams[1] == 0) & (indVaryingT0 == TRUE) ) {
@@ -742,7 +742,7 @@ ctmaFit <- function(
           print(paste0("### Note: T0means were set free to estimate random intercepts with manifests. ###"))
           print(paste0("#################################################################################"))
         }
-        T0meansParams
+        #T0meansParams
 
         stanctModel <- suppressMessages(
           ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, #Tpoints=maxTpoints,
@@ -766,7 +766,7 @@ ctmaFit <- function(
         if ( (indVarying == 'CINT') | (indVarying == 'cint') ) {
           stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
         } else {
-          stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS'] <- TRUE
+          stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- TRUE
           #stanctModel$pars[1:14,1:10]
           #stanctModel$pars[14:28,1:10]
         }
