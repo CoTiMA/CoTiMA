@@ -42,18 +42,28 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
       CoTiMA <- FALSE
     }
 
+  if (is.null(fit$stanfit$transformedpars$popsd)) {
+    ErrorMsg <- "\nAThe fitted CoTiMA object or ctsem object did not include T0means and ct intercepts. LCS results cannot be computed. Fit an appropriate CoTiMA/ctsem model. nGood luck for the next try!"
+    stop(ErrorMsg)
+  }
+
+  n.latent <- fit$ctstanmodelbase$n.latent; n.latent
+  n.manifest <- fit$ctstanmodelbase$n.manifest; n.manifest
+
+  if (dim(fit$stanfit$transformedpars$popsd)[1] != (n.latent*2)) {
+    ErrorMsg <- "\nAThe fitted CoTiMA object or ctsem object did not included both(!) T0means and ct intercepts. LCS results cannot be computed. Fit an appropriate CoTiMA/ctsem model. nGood luck for the next try!"
+    stop(ErrorMsg)
+  }
+
+
   if ((undoTimeScaling == TRUE) & CoTiMA) scaleTime <- CoTiMAFit$argumentList$scaleTime else scaleTime <- 1
 
   e <- ctExtract(fit)
   e$pop_DRIFT <- e$pop_DRIFT * scaleTime
 
-  n.latent <- fit$ctstanmodelbase$n.latent; n.latent
-  n.manifest <- fit$ctstanmodelbase$n.manifest; n.manifest
-
   # get random intercept stats
   if (!(is.null(fit$stanfit$transformedpars$popsd))) {
     model_popsd <- apply(fit$stanfit$transformedpars$popsd, 2, mean); model_popsd
-    #e <- ctsem::ctExtract(fitStanctModel)
     model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
     model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
     model_popcov_T <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
@@ -111,8 +121,6 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
 
   lowerTri <- lower.tri(matrix(NA, n.latent, n.latent)); lowerTri
   driftNamesMatrix <- matrix(driftNames, n.latent, n.latent, byrow=T); driftNamesMatrix
-  #manifestCovNamesMatrix <- matrix(manifestCovNames, length(which(lowerTri==TRUE)), length(which(lowerTri==TRUE)), byrow=T); manifestCovNamesMatrix
-  #manifestVarNames
 
   # get results
   tmp <- summary(fit)
