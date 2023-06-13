@@ -132,9 +132,9 @@ ctmaFit <- function(
     catsToCompare=NULL,
     driftsToCompare=NULL,
     useSampleFraction=NULL,
-    T0means=0,
     CoTiMAStanctArgs=NULL,
     lambda=NULL,
+    T0means=0,
     cint=0,
     T0var='auto',
     manifestMeans=0,
@@ -658,6 +658,7 @@ ctmaFit <- function(
                                     chains=chains,
                                     verbose=verbose,
                                     indVarying = indVarying,
+                                    indVaryingT0 = indVaryingT0,
                                     customPar = customPar)
     fitStanctModel <- allInvModelFit$studyFitList[[1]]
     fitStanctModel_summary <- summary(fitStanctModel)
@@ -683,67 +684,98 @@ ctmaFit <- function(
     # Make model
     {
       # CHD 9.6.2023
+      if ((indVarying == 'cint') | (indVarying == 'Cint')) indVarying <- 'CINT'
 
-
-      if ((allInvModel == FALSE) & ((indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT') ) ) {
+      #if ((allInvModel == FALSE) & ((indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT') ) ) {
+      if (allInvModel == FALSE)  {
 
         # CHD 9.6.2023
-        if ( ( (indVarying == 'CINT') | (indVarying == 'cint') ) & (CINTParams[1] == 0) ) {
-          if (T0meansParams == 0) {
-            print(paste0("#################################################################################"))
-            print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
-            print(paste0("#################################################################################"))
+        if ( (indVarying == 'CINT') & (indVaryingT0 == TRUE) ) {
+          print(paste0("#################################################################################"))
+          print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
+          print(paste0("#################################################################################"))
 
-            print(paste0("#################################################################################"))
-            print(paste0("############## Note: T0means were set to 'auto' instead 0.  ###############"))
-            print(paste0("#################################################################################"))
+          print(paste0("#################################################################################"))
+          print(paste0("# T0means are set to \'auto\'. T0(co-)variances not modelled nested in primaries.#"))
+          print(paste0("#################################################################################"))
+          T0meansParams <- 'auto'
 
-            T0meansParams <- 'auto'
+          print(paste0("#################################################################################"))
+          print(paste0("####################### CT intercepts are set free.  ########################"))
+          print(paste0("#################################################################################"))
 
-            print(paste0("#################################################################################"))
-            print(paste0("####################### And CT intercepts are set free.  ########################"))
-            print(paste0("#################################################################################"))
-
-            CINTParams <- c()
-            for (c in 1:n.latent) {
-              CINTParams <- c(CINTParams, paste0("cintV", c))
-            }
+          CINTParams <- c()
+          for (c in 1:n.latent) {
+            CINTParams <- c(CINTParams, paste0("cintV", c))
           }
         }
         #CINTParams
 
-        #if ( ((indVarying != 'CINT') & (indVarying != 'cint')) & (manifestMeansParams == 0) ) {
-        if ( ((indVarying == TRUE)) & (manifestMeansParams == 0) ) {
+        if ( (indVarying == 'CINT') & (indVaryingT0 == FALSE) ) {
+          print(paste0("#################################################################################"))
+          print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
+          print(paste0("#################################################################################"))
+
+          print(paste0("#################################################################################"))
+          print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
+          print(paste0("#################################################################################"))
+          T0meansParams <- 0
+
+          print(paste0("#################################################################################"))
+          print(paste0("####################### CT intercepts are set free.  ########################"))
+          print(paste0("#################################################################################"))
+
+          CINTParams <- c()
+          for (c in 1:n.latent) {
+            CINTParams <- c(CINTParams, paste0("cintV", c))
+          }
+        }
+
+        if ( (indVarying == TRUE) & (indVaryingT0 == TRUE) ) {
           print(paste0("#################################################################################"))
           print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
           print(paste0("#################################################################################"))
 
           print(paste0("#################################################################################"))
-          print(paste0("########### Therefore: Manifest means are set free instead instead 0.  ##########"))
+          print(paste0("## T0means set to \'auto\'. T0(co-)variances not modelled nested in primaries. ##"))
+          print(paste0("#################### Consider setting \'indVaryingT0 = FALSE\' ####################"))
+          print(paste0("#################################################################################"))
+          T0meansParams <- 'auto'
+
+          print(paste0("#################################################################################"))
+          print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
           print(paste0("#################################################################################"))
 
           manifestMeansParams <- 'auto'
         }
-        #manifestMeansParams
 
-        #if ( ((indVarying != 'CINT') & (indVarying != 'cint')) & (T0meansParams[1] != 0) & (indVaryingT0 == FALSE) ) {
-        if ( ((indVarying == TRUE) | (indVarying == 'CINT') | (indVarying == 'cint') ) & (T0meansParams[1] != 0) & (indVaryingT0 == FALSE) ) {
-            T0meansParams <- 0 # if set 0 they cannot vary individually even if indvarying is set to TRUE
-            print(paste0("#################################################################################"))
-            print(paste0("####################### Note: T0means were set to 0.  ##########################"))
-            print(paste0("#################################################################################"))
-        }
-        #T0meansParams
 
-        #if ( ((indVarying != 'CINT') & (indVarying != 'cint')) & (T0meansParams[1] == 0) & (indVaryingT0 == TRUE) ) {
-        if ( ((indVarying == TRUE) | (indVarying != 'CINT') | (indVarying != 'cint') ) & (T0meansParams[1] == 0) & (indVaryingT0 == TRUE) ) {
-          #T0meansParams <- 'auto'
+        if ( (indVarying == TRUE) & (indVaryingT0 == FALSE) ) {
+          print(paste0("#################################################################################"))
+          print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
+          print(paste0("#################################################################################"))
+
+          print(paste0("#################################################################################"))
+          print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
+          print(paste0("#################################################################################"))
           T0meansParams <- 0
+
           print(paste0("#################################################################################"))
-          #print(paste0("### Note: T0means were set free to estimate random intercepts with manifests. ###"))
-          print(paste0("# Note: T0means were fixed to 0 to estimate random \'intercepts\' with manifests. #"))
+          print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
           print(paste0("#################################################################################"))
+
+          manifestMeansParams <- 'auto'
         }
+
+
+        #if ( ((indVarying == TRUE) | (indVarying != 'CINT')  ) & (T0meansParams[1] == 0) & (indVaryingT0 == TRUE) ) {
+        #  #T0meansParams <- 'auto'
+        #  T0meansParams <- 0
+        #  print(paste0("#################################################################################"))
+        #  #print(paste0("### Note: T0means were set free to estimate random intercepts with manifests. ###"))
+        #  print(paste0("# Note: T0means were fixed to 0 to estimate random \'intercepts\' with manifests. #"))
+        #  print(paste0("#################################################################################"))
+        #}
         #T0meansParams
 
         stanctModel <- suppressMessages(
@@ -763,19 +795,22 @@ ctmaFit <- function(
                          TIpredNames = paste0("TI", 1:n.TIpred))
         )
 
-        # CHD 12.6.2023
-        if (T0meansParams != 0) {
+        #CHD 13.6.2023
+        if (indVaryingT0 == TRUE) {
           stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
         } else {
           stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
         }
-        # CHD 9.6.2023
-        if ( (indVarying == 'CINT') | (indVarying == 'cint') ) {
+        # CHD 13.6.2023
+        if (indVarying == 'CINT') {
           stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
         } else {
+          stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- FALSE
+        }
+        if (indVarying == TRUE) {
           stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- TRUE
-          #stanctModel$pars[1:14,1:10]
-          #stanctModel$pars[14:28,1:10]
+        } else {
+          stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- FALSE
         }
       } else {
         stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, #Tpoints=maxTpoints,
@@ -959,13 +994,13 @@ ctmaFit <- function(
       model_popcor_025 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
       model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
       model_popcor_975 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
-      }
+    }
   } else {
     model_popsd <- "no random effects estimated"
     model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- "no random effects estimated"
     model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- "no random effects estimated"
   }
- #model_popcov_m
+  #model_popcov_m
 
   # account for changes in ctsem 3.4.1
   if ("matrix" %in% colnames(fitStanctModel_summary$parmatrices)) ctsem341 <- TRUE else ctsem341 <- FALSE
@@ -1179,7 +1214,7 @@ ctmaFit <- function(
             #} else {
             #  optimalCrossLag[j,h] <- NA
             #}
-          #  optimalCrossLag[j,h]
+            #  optimalCrossLag[j,h]
           } else {
             optimalCrossLag[j,h] <- NA
           }

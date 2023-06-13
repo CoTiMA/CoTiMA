@@ -14,6 +14,7 @@
 #' @param drift labels for drift effects. Have to be either of the character strings of the type V1toV2 (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
 #' @param diff labels for diffusion effects. Have to be either of the character strings of the type "diff_eta1" or "diff_eta2_eta1" (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
 #' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
+#' @param indVaryingT0 Forces T0MEANS (T0 scores) to vary interindividually (default = FALSE).
 #' @param saveRawData save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
 #' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
 #' @param silentOverwrite overwrite old files without asking
@@ -35,6 +36,8 @@
 #' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
 #' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
+#' @param cint default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')
+#' @param T0var (default = 'auto')
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
@@ -75,39 +78,42 @@
 #' ("omx" was deprecated).
 #'
 ctmaInit <- function(
-  primaryStudies=NULL,
-  activeDirectory=NULL,
-  activateRPB=FALSE,
-  checkSingleStudyResults=TRUE,
-  digits=4,
-  n.latent=NULL,
-  n.manifest=0,
-  lambda=NULL,
-  manifestVars=NULL,
-  drift=NULL,
-  diff=NULL,
-  indVarying=FALSE,
-  saveRawData=list(),
-  coresToUse=c(1),
-  silentOverwrite=FALSE,
-  saveSingleStudyModelFit=c(),
-  loadSingleStudyModelFit=c(),
-  scaleTI=NULL,
-  scaleTime=NULL,
-  optimize=TRUE,
-  nopriors=TRUE,
-  finishsamples=NULL,
-  chains=NULL,
-  iter=NULL,
-  verbose=NULL,
-  customPar=FALSE,
-  doPar=1,
-  useSV=FALSE,
-  experimental=FALSE,
-  T0means=0,
-  manifestMeans=0,
-  CoTiMAStanctArgs=NULL,
-  posLL=TRUE
+    primaryStudies=NULL,
+    activeDirectory=NULL,
+    activateRPB=FALSE,
+    checkSingleStudyResults=TRUE,
+    digits=4,
+    n.latent=NULL,
+    n.manifest=0,
+    lambda=NULL,
+    manifestVars=NULL,
+    drift=NULL,
+    diff=NULL,
+    indVarying=FALSE,
+    saveRawData=list(),
+    coresToUse=c(1),
+    silentOverwrite=FALSE,
+    saveSingleStudyModelFit=c(),
+    loadSingleStudyModelFit=c(),
+    scaleTI=NULL,
+    scaleTime=NULL,
+    optimize=TRUE,
+    nopriors=TRUE,
+    finishsamples=NULL,
+    chains=NULL,
+    iter=NULL,
+    verbose=NULL,
+    customPar=FALSE,
+    doPar=1,
+    useSV=FALSE,
+    experimental=FALSE,
+    manifestMeans=0,
+    CoTiMAStanctArgs=NULL,
+    posLL=TRUE,
+    T0means=0,
+    cint=0,
+    T0var='auto',
+    indVaryingT0=FALSE
 )
 
 {  # begin function definition (until end of file)
@@ -385,197 +391,205 @@ ctmaInit <- function(
 
         # CHD: changed 7.9.2022 "Tmp"
         tmp <- suppressWarnings(ctmaPRaw(empCovMat=currentEmpcovTmp, empN=currentSampleSizeTmp, empNMat=currentPairwiseNTmp,
-                                           experimental=experimental))
+                                         experimental=experimental))
 
-          empraw[[i]] <- tmp$data
-          lostN[[i]] <- tmp$lostN
-          overallNDiff[[i]] <- tmp$overallLostN
-          relativeNDiff[[i]] <- tmp$relativeLostN
-          lags[[i]] <- matrix(currentLags, nrow=dim(empraw[[i]])[1], ncol=currentTpoints-1, byrow=TRUE)
-          empraw[[i]] <- cbind(empraw[[i]], lags[[i]]);
-          colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
-          empraw[[i]] <- as.data.frame(empraw[[i]])
+        empraw[[i]] <- tmp$data
+        lostN[[i]] <- tmp$lostN
+        overallNDiff[[i]] <- tmp$overallLostN
+        relativeNDiff[[i]] <- tmp$relativeLostN
+        lags[[i]] <- matrix(currentLags, nrow=dim(empraw[[i]])[1], ncol=currentTpoints-1, byrow=TRUE)
+        empraw[[i]] <- cbind(empraw[[i]], lags[[i]]);
+        colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
+        empraw[[i]] <- as.data.frame(empraw[[i]])
 
-          # ADDED TO DEAL WITH MANIFEST VARIABLES
-          n.var <- max(c(n.manifest, n.latent)); n.var
+        # ADDED TO DEAL WITH MANIFEST VARIABLES
+        n.var <- max(c(n.manifest, n.latent)); n.var
+        ## START correction of current lags if entire time point is missing for a case
+        emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames)
+        emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
+        ## eliminate rows where ALL latents are NA
+        if (n.manifest > n.latent) targetCols <- paste0("y", 1:n.manifest) else targetCols <- paste0("V", 1:n.latent)
+        emprawLongTmp <- emprawLongTmp[, ][ apply(emprawLongTmp[, targetCols], 1, function(x) sum(is.na(x)) != n.var ), ]
+        # eliminate rows where time is NA
+        emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
+        # make wide format
+        emprawWide <- suppressMessages(ctsem::ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
+        # intervalise
+        emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide, Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames))
+        # restore
+        empraw[[i]] <- as.data.frame(emprawWide)
+        # END correction
+        # add potential moderators
+      }
+
+      # load raw data on request
+      if (studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers) {
+        # CHD 13.6.2023 changed to allow raw data that are recovered by ctmaFitToList to be used (is.na was added)
+        if ( (!(is.null(primaryStudies$emprawList[[i]]))) &
+             (
+               ((is.null(primaryStudies$empcovs[[i]]))
+                |
+                (is.na(primaryStudies$empcovs[[i]]))
+               )
+             )
+        )
+        {  # if the function list of primary studies is already post-processed (ctmaSV) and called from ctmaOptimizeINit)
+          empraw[[i]] <- primaryStudies$emprawList[[i]]
+          if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
+          tmp1 <- dim(empraw[[i]])[2]; tmp1
+          currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
+          currentTpointsBackup <- currentTpoints # in case function is called from ctmaOptimizeInit
+          currentVarnames <- c()
+          for (j in 1:(currentTpoints)) {
+            if (n.manifest == 0) {
+              for (h in 1:n.latent) {
+                currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
+              }
+            } else {
+              for (h in 1:n.manifest) {
+                currentVarnames <- c(currentVarnames, paste0("y",h,"_T", (j-1)))
+              }
+            }
+          }
+          tmp1 <- empraw[[i]]
+          tmp2 <- tmp1[,grep("dT", colnames(tmp1))] == minInterval
+          tmp1[ ,grep("dT", colnames(tmp1))][tmp2] <- NA
+          for (h in 1:(currentTpoints-1)) studyList[[i]]$delta_t[h] <- mean(tmp1[, paste0("dT", h)], na.rm=TRUE)
+          #studyList[[i]]$delta_t
+        } else {
+          currentTpoints <- length((lapply(studyList, function(extract) extract$delta_t))[[i]])+1; currentTpoints
+
+          tmp1 <- studyList[[i]]$rawData$fileName; tmp1
+          tmp2 <- studyList[[i]]$rawData$header; tmp2
+          tmp3 <- studyList[[i]]$rawData$dec; tmp3
+          tmp4 <- studyList[[i]]$rawData$sep; tmp4
+          if (activeDirectory != primaryStudies$activeDirectory) {
+            tmp1 <- gsub(primaryStudies$activeDirectory, activeDirectory, tmp1, fixed=TRUE)
+          }
+          tmpData <- utils::read.table(file=tmp1,
+                                       header=tmp2,
+                                       dec=tmp3,
+                                       sep=tmp4)
+
+          currentVarnames <- c()
+          for (j in 1:(currentTpoints)) {
+            if (n.manifest == 0) {
+              for (h in 1:n.latent) {
+                currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
+              }
+            } else {
+              for (h in 1:n.manifest) {
+                currentVarnames <- c(currentVarnames, paste0("y",h,"_T", (j-1)))
+              }
+            }
+          }
+
+          # replace missing values
+          tmpData <- as.matrix(tmpData) # important: line below will not work without having data as a matrix
+          tmpData[tmpData %in% studyList[[i]]$rawData$missingValues] <- NA
+          empraw[[i]] <- as.data.frame(tmpData)
+
+
           ## START correction of current lags if entire time point is missing for a case
+          # if called from ctmaOptimize
+          if (!(exists("n.var"))) n.var <- max(n.latent, n.manifest)
+          # change variable names
+          tmp1 <- dim(empraw[[i]])[2]; tmp1
+          currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
+          currentTpointsBackup <- currentTpoints # in case function is called from ctmaOptimizeInit
+          if (n.manifest > n.latent) {
+            colnames(empraw[[i]])[1:(currentTpoints * n.manifest)] <- paste0(paste0("x", 1:n.manifest), "_T", rep(0:(currentTpoints-1), each=n.manifest))
+          } else {
+            colnames(empraw[[i]])[1:(currentTpoints * n.latent)] <- paste0(paste0("V", 1:n.latent), "_T", rep(0:(currentTpoints-1), each=n.latent))
+          }
+
+          # wide to long
           emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames)
           emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
-          ## eliminate rows where ALL latents are NA
-          if (n.manifest > n.latent) targetCols <- paste0("y", 1:n.manifest) else targetCols <- paste0("V", 1:n.latent)
-          emprawLongTmp <- emprawLongTmp[, ][ apply(emprawLongTmp[, targetCols], 1, function(x) sum(is.na(x)) != n.var ), ]
+
+          # eliminate rows where ALL latents are NA
+          ## skipped on 31. Aug. 2022
+          #if (n.manifest > n.latent) {
+          #  emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("x", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
+          #} else {
+          #  emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+          #}
+
           # eliminate rows where time is NA
           emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
+          # 9. Aug. 2022: handle possibly reduced Tpoints (if some rows were eliminated for all cases)
+          currentTpoints <- max(table(emprawLongTmp[,1])); currentTpoints
+
           # make wide format
           emprawWide <- suppressMessages(ctsem::ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
           # intervalise
-          emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide, Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames))
+          emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide,
+                                                              Tpoints=currentTpoints,
+                                                              n.manifest=n.var,
+                                                              manifestNames=manifestNames,
+                                                              mininterval=minInterval))
           # restore
           empraw[[i]] <- as.data.frame(emprawWide)
-          # END correction
-          # add potential moderators
+
+          # Change the NAs provided for deltas if raw data are loaded
+          for (h in 1:(currentTpoints-1)) {
+            # temporarily replace dT = .001 by NA
+            tmp1 <- grep("dT", colnames(empraw[[i]])); tmp1
+            colnamesTmp <- colnames(empraw[[i]])[tmp1]; colnamesTmp
+            emprawTmp <- as.matrix(empraw[[i]][, tmp1])
+            colnames(emprawTmp) <- colnamesTmp
+            emprawTmp[emprawTmp == minInterval] <- NA
+            studyList[[i]]$delta_t[h] <- mean(emprawTmp[, paste0("dT", h)], na.rm=TRUE)
+          }
+
+
+          # change sample size if entire cases were deleted
+          studyList[[i]]$sampleSize <- (dim(empraw[[i]]))[1]
+          allSampleSizes[[i]] <- dim(empraw[[i]])[1]; allSampleSizes[[i]]
+          currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
+          currentTpoints <- allTpoints[[i]]; currentTpoints
+          if (is.null(currentTpoints)) currentTpoints <- currentTpointsBackup
+
+          #currentVarnames
+          colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
+
+          # standardize (variables - not time lags) if option is chosen
+          if (studyList[[i]]$rawData$standardize == TRUE) empraw[[i]][, currentVarnames] <- scale(empraw[[i]][, currentVarnames])
+
+
+          # replace missing values for time lags dTi by minInterval (has to be so because dTi are definition variables)
+          tmpData <- empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))]
+          tmpData[is.na(tmpData)] <- minInterval
+          empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))] <- tmpData
+
+          # add moderators to loaded raw data
+          # Save raw data  on request
+          if ( i %in% saveRawData$studyNumbers ) {
+            x1 <- paste0(saveRawData$fileName, i, ".dat"); x1
+            utils::write.table(empraw[[i]], file=x1, row.names=saveRawData$row.names, col.names=saveRawData$col.names,
+                               sep=saveRawData$sep, dec=saveRawData$dec)
+          }
+        }
       }
 
-        # load raw data on request
-        if (studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers) {
-          if ( (!(is.null(primaryStudies$emprawList[[i]]))) &
-               ((is.null(primaryStudies$empcovs[[i]]))) ) {  # if the function list of primary studies is already post-processed (ctmaSV) and called from ctmaOptimizeINit)
-            empraw[[i]] <- primaryStudies$emprawList[[i]]
-            if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
-            tmp1 <- dim(empraw[[i]])[2]; tmp1
-            currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
-            currentTpointsBackup <- currentTpoints # in case function is called from ctmaOptimizeInit
-            currentVarnames <- c()
-            for (j in 1:(currentTpoints)) {
-              if (n.manifest == 0) {
-                for (h in 1:n.latent) {
-                  currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
-                }
-              } else {
-                for (h in 1:n.manifest) {
-                  currentVarnames <- c(currentVarnames, paste0("y",h,"_T", (j-1)))
-                }
-              }
-            }
-            tmp1 <- empraw[[i]]
-            tmp2 <- tmp1[,grep("dT", colnames(tmp1))] == minInterval
-            tmp1[ ,grep("dT", colnames(tmp1))][tmp2] <- NA
-            for (h in 1:(currentTpoints-1)) studyList[[i]]$delta_t[h] <- mean(tmp1[, paste0("dT", h)], na.rm=TRUE)
-            #studyList[[i]]$delta_t
-          } else {
-            currentTpoints <- length((lapply(studyList, function(extract) extract$delta_t))[[i]])+1; currentTpoints
+      # augment pseudo raw data for stanct model
+      {
+        dataTmp <- empraw[[i]]
+        dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=currentTpoints, n.manifest=n.var, #n.TIpred = (n.studies-1),
+                                        manifestNames=manifestNames)
+        dataTmp3 <- suppressMessages(ctsem::ctDeintervalise(dataTmp2))
+        dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
 
-            tmp1 <- studyList[[i]]$rawData$fileName; tmp1
-            tmp2 <- studyList[[i]]$rawData$header; tmp2
-            tmp3 <- studyList[[i]]$rawData$dec; tmp3
-            tmp4 <- studyList[[i]]$rawData$sep; tmp4
-            if (activeDirectory != primaryStudies$activeDirectory) {
-              tmp1 <- gsub(primaryStudies$activeDirectory, activeDirectory, tmp1, fixed=TRUE)
-            }
-            tmpData <- utils::read.table(file=tmp1,
-                                         header=tmp2,
-                                         dec=tmp3,
-                                         sep=tmp4)
-
-            currentVarnames <- c()
-            for (j in 1:(currentTpoints)) {
-              if (n.manifest == 0) {
-                for (h in 1:n.latent) {
-                  currentVarnames <- c(currentVarnames, paste0("V",h,"_T", (j-1)))
-                }
-              } else {
-                for (h in 1:n.manifest) {
-                  currentVarnames <- c(currentVarnames, paste0("y",h,"_T", (j-1)))
-                }
-              }
-            }
-
-            # replace missing values
-            tmpData <- as.matrix(tmpData) # important: line below will not work without having data as a matrix
-            tmpData[tmpData %in% studyList[[i]]$rawData$missingValues] <- NA
-            empraw[[i]] <- as.data.frame(tmpData)
-
-
-            ## START correction of current lags if entire time point is missing for a case
-            # if called from ctmaOptimize
-            if (!(exists("n.var"))) n.var <- max(n.latent, n.manifest)
-            # change variable names
-            tmp1 <- dim(empraw[[i]])[2]; tmp1
-            currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
-            currentTpointsBackup <- currentTpoints # in case function is called from ctmaOptimizeInit
-            if (n.manifest > n.latent) {
-              colnames(empraw[[i]])[1:(currentTpoints * n.manifest)] <- paste0(paste0("x", 1:n.manifest), "_T", rep(0:(currentTpoints-1), each=n.manifest))
-            } else {
-              colnames(empraw[[i]])[1:(currentTpoints * n.latent)] <- paste0(paste0("V", 1:n.latent), "_T", rep(0:(currentTpoints-1), each=n.latent))
-            }
-
-            # wide to long
-            emprawLongTmp <- ctsem::ctWideToLong(empraw[[i]], Tpoints=currentTpoints, n.manifest=n.var, manifestNames=manifestNames)
-            emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
-
-            # eliminate rows where ALL latents are NA
-            ## skipped on 31. Aug. 2022
-            #if (n.manifest > n.latent) {
-            #  emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("x", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
-            #} else {
-            #  emprawLongTmp <- emprawLongTmp[apply(emprawLongTmp[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
-            #}
-
-            # eliminate rows where time is NA
-            emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
-            # 9. Aug. 2022: handle possibly reduced Tpoints (if some rows were eliminated for all cases)
-            currentTpoints <- max(table(emprawLongTmp[,1])); currentTpoints
-
-            # make wide format
-            emprawWide <- suppressMessages(ctsem::ctLongToWide(emprawLongTmp, id='id', time='time', manifestNames=manifestNames))
-            # intervalise
-            emprawWide <- suppressMessages(ctsem::ctIntervalise(emprawWide,
-                                                                Tpoints=currentTpoints,
-                                                                n.manifest=n.var,
-                                                                manifestNames=manifestNames,
-                                                                mininterval=minInterval))
-            # restore
-            empraw[[i]] <- as.data.frame(emprawWide)
-
-            # Change the NAs provided for deltas if raw data are loaded
-            for (h in 1:(currentTpoints-1)) {
-              # temporarily replace dT = .001 by NA
-              tmp1 <- grep("dT", colnames(empraw[[i]])); tmp1
-              colnamesTmp <- colnames(empraw[[i]])[tmp1]; colnamesTmp
-              emprawTmp <- as.matrix(empraw[[i]][, tmp1])
-              colnames(emprawTmp) <- colnamesTmp
-              emprawTmp[emprawTmp == minInterval] <- NA
-              studyList[[i]]$delta_t[h] <- mean(emprawTmp[, paste0("dT", h)], na.rm=TRUE)
-            }
-
-
-            # change sample size if entire cases were deleted
-            studyList[[i]]$sampleSize <- (dim(empraw[[i]]))[1]
-            allSampleSizes[[i]] <- dim(empraw[[i]])[1]; allSampleSizes[[i]]
-            currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
-            currentTpoints <- allTpoints[[i]]; currentTpoints
-            if (is.null(currentTpoints)) currentTpoints <- currentTpointsBackup
-
-            #currentVarnames
-            colnames(empraw[[i]]) <- c(c(currentVarnames, paste0("dT", seq(1:(currentTpoints-1)))))
-
-            # standardize (variables - not time lags) if option is chosen
-            if (studyList[[i]]$rawData$standardize == TRUE) empraw[[i]][, currentVarnames] <- scale(empraw[[i]][, currentVarnames])
-
-
-            # replace missing values for time lags dTi by minInterval (has to be so because dTi are definition variables)
-            tmpData <- empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))]
-            tmpData[is.na(tmpData)] <- minInterval
-            empraw[[i]][, paste0("dT", seq(1:(currentTpoints-1)))] <- tmpData
-
-            # add moderators to loaded raw data
-            # Save raw data  on request
-            if ( i %in% saveRawData$studyNumbers ) {
-              x1 <- paste0(saveRawData$fileName, i, ".dat"); x1
-              utils::write.table(empraw[[i]], file=x1, row.names=saveRawData$row.names, col.names=saveRawData$col.names,
-                                 sep=saveRawData$sep, dec=saveRawData$dec)
-            }
-          }
+        # eliminate rows where ALL latents are NA
+        if (n.manifest > n.latent) {
+          dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("y", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
+        } else {
+          dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
         }
-
-        # augment pseudo raw data for stanct model
-        {
-          dataTmp <- empraw[[i]]
-          dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=currentTpoints, n.manifest=n.var, #n.TIpred = (n.studies-1),
-                                          manifestNames=manifestNames)
-          dataTmp3 <- suppressMessages(ctsem::ctDeintervalise(dataTmp2))
-          dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
-
-          # eliminate rows where ALL latents are NA
-          if (n.manifest > n.latent) {
-            dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("y", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
-          } else {
-            dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
-          }
-          emprawLong[[i]] <- dataTmp3
-        }
-      } ### END for i ...
-    } ### END Read user provided data and create list with all study information ###
+        emprawLong[[i]] <- dataTmp3
+      }
+    } ### END for i ...
+  } ### END Read user provided data and create list with all study information ###
 
 
   # Check if sample sizes specified in prep file deviate from cases provided in possible raw data files
@@ -663,11 +677,13 @@ ctmaInit <- function(
     invariantDriftParams <- namesAndParams$invariantDriftParams; invariantDriftParams
     lambdaParams <- namesAndParams$lambdaParams; lambdaParams
     T0VARParams <- namesAndParams$T0VARParams; T0VARParams
-    #manifestmeansParams <- namesAndParams$manifestMeansParams; manifestmeansParams
+    manifestmeansParams <- namesAndParams$manifestMeansParams; manifestmeansParams
     manifestMeansParams <- namesAndParams$manifestMeansParams; manifestMeansParams
     T0meansParams=namesAndParams$T0meansParams; T0meansParams
     manifestVarsParams <- namesAndParams$manifestVarsParams; manifestVarsParams
-
+    #CHD 13.6.2023
+    T0VARParams <- T0var; T0VARParams
+    CINTParams <- cint; CINTParams
 
   } ### END Create ctsem model template to fit all primary studies ###
 
@@ -846,46 +862,150 @@ ctmaInit <- function(
             }
           }
         }
+
+        # CHD 13.6.2023
+        if ((indVarying == 'cint') | (indVarying == 'Cint')) indVarying <- 'CINT'
+
+        # CHD 9.6.2023
+
+        if ( (indVarying == 'CINT') & (indVaryingT0 == TRUE) ) {
+          print(paste0("#################################################################################"))
+          print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
+          print(paste0("#################################################################################"))
+
+          print(paste0("#################################################################################"))
+          print(paste0("# T0means are set to \'auto\'. T0(co-)variances not modelled nested in primaries.#"))
+          print(paste0("#################################################################################"))
+          T0meansParams <- 'auto'
+
+          print(paste0("#################################################################################"))
+          print(paste0("####################### CT intercepts are set free.  ########################"))
+          print(paste0("#################################################################################"))
+
+          CINTParams <- c()
+          for (c in 1:n.latent) {
+            CINTParams <- c(CINTParams, paste0("cintV", c))
+          }
+        }
+        #CINTParams
+
+        if ( (indVarying == 'CINT') & (indVaryingT0 == FALSE) ) {
+          print(paste0("#################################################################################"))
+          print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
+          print(paste0("#################################################################################"))
+
+          print(paste0("#################################################################################"))
+          print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
+          print(paste0("#################################################################################"))
+          T0meansParams <- 0
+
+          print(paste0("#################################################################################"))
+          print(paste0("####################### CT intercepts are set free.  ########################"))
+          print(paste0("#################################################################################"))
+
+          CINTParams <- c()
+          for (c in 1:n.latent) {
+            CINTParams <- c(CINTParams, paste0("cintV", c))
+          }
+        }
+
+        if ( (indVarying == TRUE) & (indVaryingT0 == TRUE) ) {
+          print(paste0("#################################################################################"))
+          print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
+          print(paste0("#################################################################################"))
+
+          print(paste0("#################################################################################"))
+          print(paste0("## T0means set to \'auto\'. T0(co-)variances not modelled nested in primaries. ##"))
+          print(paste0("#################### Consider setting \'indVaryingT0 = FALSE\' ####################"))
+          print(paste0("#################################################################################"))
+          T0meansParams <- 'auto'
+
+          print(paste0("#################################################################################"))
+          print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
+          print(paste0("#################################################################################"))
+
+          manifestMeansParams <- 'auto'
+        }
+
+
+        if ( (indVarying == TRUE) & (indVaryingT0 == FALSE) ) {
+          print(paste0("#################################################################################"))
+          print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
+          print(paste0("#################################################################################"))
+
+          print(paste0("#################################################################################"))
+          print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
+          print(paste0("#################################################################################"))
+          T0meansParams <- 0
+
+          print(paste0("#################################################################################"))
+          print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
+          print(paste0("#################################################################################"))
+
+          manifestMeansParams <- 'auto'
+        }
+        #manifestmeansParams
+
+
         currentModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
                                        DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
                                        DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
                                        LAMBDA=lambdaParams,
                                        T0VAR=T0VARParams,
                                        type='stanct',
-                                       CINT=matrix(0, nrow=n.latent, ncol=1),
-                                       #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                       #MANIFESTMEANS = matrix(manifestmeansParams, nrow = n.var, ncol = 1),
+                                       CINT=matrix(CINTParams, nrow=n.latent, ncol=1),
                                        T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
                                        MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
                                        MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var)
         )
-        currentModel$pars
-        currentModel$pars[, "indvarying"] <- FALSE
-
+        if (indVarying == FALSE) currentModel$pars[, "indvarying"] <- FALSE
+        #CHD 13.6.2023
+        if (indVaryingT0 == TRUE) {
+          currentModel$pars[currentModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
+        } else {
+          currentModel$pars[currentModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
+        }
+        # CHD 13.6.2023
+        if (indVarying == 'CINT') {
+          currentModel$pars[currentModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
+        } else {
+          currentModel$pars[currentModel$pars$matrix %in% 'CINT','indvarying'] <- FALSE
+        }
         if (indVarying == TRUE) {
-          Msg <- "################################################################################# \n######## Just a note: Individually varying intercepts model requested.  ######### \n#################################################################################"
-          message(Msg)
-          MANIFESTMEANS <- paste0("mean_", manifestNames); MANIFESTMEANS # if provided, indVarying is the default
-          # added 9. Aug. 2022
-          T0MEANS <- paste0("T0mean_", manifestNames); MANIFESTMEANS # if provided, indVarying is the default
+          currentModel$pars[currentModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- TRUE
+        } else {
+          currentModel$pars[currentModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- FALSE
+        }
+        #currentModel$pars
 
-          currentModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
-                                         DIFFUSION=matrix(diffParams, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
-                                         DRIFT=matrix(driftParams, nrow=n.latent, ncol=n.latent),
-                                         LAMBDA=lambdaParams,
-                                         T0VAR=T0VARParams,
-                                         type='stanct',
-                                         CINT=matrix(0, nrow=n.latent, ncol=1),
-                                         # changed 9. Aug. 2022/16. Aug
-                                         #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                         #T0MEANS = matrix(c(T0MEANS), nrow = n.latent, ncol = 1),
-                                         #MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.var, ncol = 1),
-                                         #T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
-                                         #MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
-                                         T0MEANS = "auto",
-                                         MANIFESTMEANS = "auto",
-                                         MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var)
-          )
+        # chd 13.6.2023
+        doIt <- FALSE
+        if (doIt == TRUE) {
+          if (indVarying == TRUE) {
+            Msg <- "################################################################################# \n######## Just a note: Individually varying intercepts model requested.  ######### \n#################################################################################"
+            message(Msg)
+            MANIFESTMEANS <- paste0("mean_", manifestNames); MANIFESTMEANS # if provided, indVarying is the default
+            # added 9. Aug. 2022
+            T0MEANS <- paste0("T0mean_", manifestNames); MANIFESTMEANS # if provided, indVarying is the default
+
+            currentModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
+                                           DIFFUSION=matrix(diffParams, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
+                                           DRIFT=matrix(driftParams, nrow=n.latent, ncol=n.latent),
+                                           LAMBDA=lambdaParams,
+                                           T0VAR=T0VARParams,
+                                           type='stanct',
+                                           CINT=matrix(0, nrow=n.latent, ncol=1),
+                                           # changed 9. Aug. 2022/16. Aug
+                                           #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                                           #T0MEANS = matrix(c(T0MEANS), nrow = n.latent, ncol = 1),
+                                           #MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.var, ncol = 1),
+                                           #T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
+                                           #MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
+                                           T0MEANS = "auto",
+                                           MANIFESTMEANS = "auto",
+                                           MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var)
+            )
+          }
         }
 
         # FIT STANCT MODEL
@@ -976,7 +1096,7 @@ ctmaInit <- function(
               stop(ErrorMsg)
             }
             all_loglik <- all_loglik[-(which(all_loglik > 0))]
-            }
+          }
           # CHD added 27 SEP 2022: changed min to max
           bestFit <- which(abs(all_loglik) == max(abs(all_loglik)))[1]; bestFit
           #
@@ -987,6 +1107,8 @@ ctmaInit <- function(
 
         studyFit[[i]] <- results
         studyFit[[i]]$resultsSummary <- summary(studyFit[[i]])
+        #studyFit[[i]]$resultsSummary
+        #results$ctstanmodelbase$pars
 
         df <- "deprecated"
         studyFit[[i]]$resultsSummary$'df (CoTiMA)' <- df
@@ -1117,7 +1239,7 @@ ctmaInit <- function(
         model_T0var_CI[[i]] <- c(rbind(tmp1, tmp2)); model_T0var_CI[[i]]
         if (length(tmp1) != n.latent^2) {
           tmp3 <- c(rbind(paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "LL"),
-                        paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
+                          paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
           names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
         } else {
           tmp3 <- c(rbind(paste0(T0covNames, "LL"),
@@ -1125,26 +1247,51 @@ ctmaInit <- function(
           names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
         }
       }
+
       # changed 17. Aug. 2022
-      if (indVarying == TRUE) {
-        model_popsd[[i]] <- resultsSummary$popsd
+      if ((indVarying == TRUE) | (indVarying == "CINT") | (indVarying == 'cint')) {
+        # CHD 12.6.2023
         e <- ctsem::ctExtract(studyFit[[i]])
-        model_popcov_m[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
-        model_popcov_sd[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
-        model_popcov_T[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
-        model_popcov_025[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
-        model_popcov_50[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
-        model_popcov_975[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975))
-        # convert to correlations and do the same (array to list then list to array)
-        e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
-        e$popcor <- lapply(e$popcor, stats::cov2cor)
-        e$popcor <- array(unlist(e$popcor), dim=c(n.latent*2, n.latent*2, length(e$popcor)))
-        model_popcor_m[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
-        model_popcor_sd[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
-        model_popcor_T[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
-        model_popcor_025[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
-        model_popcor_50[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
-        model_popcor_975[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
+        model_popsd <- resultsSummary$popsd
+        #if (indVaryingT0 == TRUE) {
+        #if ( (indVaryingT0 == TRUE) & (T0meansParams[1] != 0) ) {
+        if (dim(model_popsd)[1] != n.latent) {
+          model_popsd <- resultsSummary$popsd
+          model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
+          model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
+          model_popcov_T <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
+          model_popcov_025 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
+          model_popcov_50 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
+          model_popcov_975 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975))
+          # convert to correlations and do the same (array to list then list to array)
+          e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
+          e$popcor <- lapply(e$popcor, stats::cov2cor)
+          e$popcor <- array(unlist(e$popcor), dim=c(n.latent*2, n.latent*2, length(e$popcor)))
+          model_popcor_m <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
+          model_popcor_sd <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
+          model_popcor_T <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
+          model_popcor_025 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
+          model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
+          model_popcor_975 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
+          #model_popcor <- stats::cov2cor(model_popcov_m)
+        } else {
+          model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits); model_popcov_m
+          model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
+          model_popcov_T <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
+          model_popcov_025 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
+          model_popcov_50 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
+          model_popcov_975 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975))
+          # convert to correlations and do the same (array to list then list to array)
+          e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
+          e$popcor <- lapply(e$popcor, stats::cov2cor)
+          e$popcor <- array(unlist(e$popcor), dim=c(n.latent   , n.latent  , length(e$popcor)))
+          model_popcor_m <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
+          model_popcor_sd <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
+          model_popcor_T <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
+          model_popcor_025 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
+          model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
+          model_popcor_975 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
+        }
       } else {
         model_popsd <- "no random effects estimated"
         model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- "no random effects estimated"

@@ -4,10 +4,12 @@
 \alias{ctmaFitToPrep}
 \title{ctmaFitToPrep}
 \usage{
-ctmaFitToPrep(ctmaFitObject = NULL)
+ctmaFitToPrep(ctmaFitObject = NULL, reUseEmprawData = FALSE)
 }
 \arguments{
 \item{ctmaFitObject}{ctmaFitObject}
+
+\item{reUseEmprawData}{whether data should be transferred (will be re-used in subsequent fit attempts)}
 }
 \value{
 list that could be used for fitting new CoTiMA models with \code{\link{ctmaInit}} or \code{\link{ctmaFit}}.

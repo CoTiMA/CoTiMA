@@ -34,10 +34,13 @@ ctmaInit(
   doPar = 1,
   useSV = FALSE,
   experimental = FALSE,
-  T0means = 0,
   manifestMeans = 0,
   CoTiMAStanctArgs = NULL,
-  posLL = TRUE
+  posLL = TRUE,
+  T0means = 0,
+  cint = 0,
+  T0var = "auto",
+  indVaryingT0 = FALSE
 )
 }
 \arguments{
@@ -99,13 +102,19 @@ ctmaInit(
 
 \item{experimental}{set TRUE to try new pairwise N function}
 
-\item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
-
 \item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 
 \item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
 
 \item{posLL}{logical. Allows (default = TRUE) of positive loglik (neg -2ll) values}
+
+\item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
+\item{cint}{default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')}
+
+\item{T0var}{(default = 'auto')}
+
+\item{indVaryingT0}{Forces T0MEANS (T0 scores) to vary interindividually (default = FALSE).}
 }
 \value{
 ctmaFit returns a list containing some arguments supplied, the fitted models, different elements summarizing the main results,

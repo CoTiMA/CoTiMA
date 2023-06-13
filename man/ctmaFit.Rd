@@ -38,9 +38,9 @@ ctmaFit(
   catsToCompare = NULL,
   driftsToCompare = NULL,
   useSampleFraction = NULL,
-  T0means = 0,
   CoTiMAStanctArgs = NULL,
   lambda = NULL,
+  T0means = 0,
   cint = 0,
   T0var = "auto",
   manifestMeans = 0,
@@ -115,11 +115,11 @@ ctmaFit(
 
 \item{useSampleFraction}{to speed up debugging. Provided as fraction (e.g., 1/10).}
 
-\item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
-
 \item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
 
 \item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
+
+\item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 
 \item{cint}{default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')}
 
