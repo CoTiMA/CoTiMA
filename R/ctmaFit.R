@@ -684,7 +684,7 @@ ctmaFit <- function(
       # CHD 14. Jun 2023
       if ((indVarying == TRUE) & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
       if ((indVarying == 'CINT') & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
-
+      if (is.null(indVaryingT0)) indVaryingT0 <- FALSE
 
       #if ((allInvModel == FALSE) & ((indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT') ) ) {
       if (allInvModel == FALSE)  {
@@ -1238,11 +1238,11 @@ ctmaFit <- function(
 
   #######################################################################################################################
 
-  end.time <- Sys.time()
-  time.taken <- end.time - start.time
-  st <- paste0("Computation started at: ", start.time); st
-  et <- paste0("Computation ended at: ", end.time); et
-  tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
+  #end.time <- Sys.time()
+  #time.taken <- end.time - start.time
+  #st <- paste0("Computation started at: ", start.time); st
+  #et <- paste0("Computation ended at: ", end.time); et
+  #tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
 
   meanDeltas <- mean(ctmaInitFit$statisticsList$allDeltas, na.rm=TRUE); meanDeltas
   largeDelta <- which(ctmaInitFit$statisticsList$allDeltas >= meanDeltas); largeDelta

@@ -119,7 +119,7 @@ ctmaInit <- function(
 {  # begin function definition (until end of file)
 
 
-  start.time <- Sys.time()
+  #start.time <- Sys.time()
 
   original.options <- options("scipen"); original.options
   options(scipen = 999); options("scipen") # turn scientific notation off.
@@ -294,7 +294,7 @@ ctmaInit <- function(
     }
 
     for (i in 1:n.studies) {
-      #i <- 38
+      #i <- 1
       studyList[[i]] <- list(studyNumber=i, empcov=primaryStudies$empcovs[[i]], delta_t=primaryStudies$deltas[[i]],
                              sampleSize=primaryStudies$sampleSizes[[i]], originalStudyNo=primaryStudies$studyNumber[[i]],
                              timePoints=sum(length(primaryStudies$deltas[[i]]), 1), moderators=primaryStudies$moderators[[i]],
@@ -423,17 +423,18 @@ ctmaInit <- function(
       }
 
       # load raw data on request
+      # CHD 13.6.2023 changed to allow raw data that are recovered by ctmaFitToList to be used (is.na was added)
       if (studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers) {
         # CHD 13.6.2023 changed to allow raw data that are recovered by ctmaFitToList to be used (is.na was added)
         if ( (!(is.null(primaryStudies$emprawList[[i]]))) &
              (
                ((is.null(primaryStudies$empcovs[[i]]))
                 |
-                (is.na(primaryStudies$empcovs[[i]]))
+                (length(primaryStudies$empcovs[[i]]) <= 1) # could be NA or 0x0 matrix
                )
              )
-        )
-        {  # if the function list of primary studies is already post-processed (ctmaSV) and called from ctmaOptimizeINit)
+        ) {
+          # if the function list of primary studies is already post-processed (ctmaSV) and called from ctmaOptimizeINit)
           empraw[[i]] <- primaryStudies$emprawList[[i]]
           if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
           tmp1 <- dim(empraw[[i]])[2]; tmp1
@@ -869,6 +870,7 @@ ctmaInit <- function(
         # CHD 14. Jun 2023
         if ((indVarying == TRUE) & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
         if ((indVarying == 'CINT') & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
+        if (is.null(indVaryingT0)) indVaryingT0 <- FALSE
 
         # CHD 9.6.2023
 
