@@ -45,7 +45,7 @@ ctmaFit(
   T0var = "auto",
   manifestMeans = 0,
   manifestVars = 0,
-  indVaryingT0 = TRUE
+  indVaryingT0 = NULL
 )
 }
 \arguments{
@@ -129,7 +129,7 @@ ctmaFit(
 
 \item{manifestVars}{define the error variances (default = 0) of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
 
-\item{indVaryingT0}{Forces T0MEANS (T0 scores) to vary interindividually, which undos the nesting of T0(co-)variances in primary studies (default = TRUE). Was standard until Aug. 2022. Could provide better/worse estimates if set to FALSE.}
+\item{indVaryingT0}{(default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE forces T0MEANS (T0 scores) to vary interindividually, which undos the nesting of T0(co-)variances in primary studies. Was standard until Aug. 2022. Could provide better estimates if set to FALSE.}
 }
 \value{
 ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,

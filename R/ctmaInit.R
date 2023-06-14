@@ -14,7 +14,7 @@
 #' @param drift labels for drift effects. Have to be either of the character strings of the type V1toV2 (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
 #' @param diff labels for diffusion effects. Have to be either of the character strings of the type "diff_eta1" or "diff_eta2_eta1" (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
 #' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
-#' @param indVaryingT0 Forces T0MEANS (T0 scores) to vary interindividually (default = FALSE).
+#' @param indVaryingT0 (default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE fits the regular random intercept models.
 #' @param saveRawData save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
 #' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
 #' @param silentOverwrite overwrite old files without asking
@@ -113,7 +113,7 @@ ctmaInit <- function(
     T0means=0,
     cint=0,
     T0var='auto',
-    indVaryingT0=FALSE
+    indVaryingT0=NULL
 )
 
 {  # begin function definition (until end of file)
@@ -865,6 +865,10 @@ ctmaInit <- function(
 
         # CHD 13.6.2023
         if ((indVarying == 'cint') | (indVarying == 'Cint')) indVarying <- 'CINT'
+
+        # CHD 14. Jun 2023
+        if ((indVarying == TRUE) & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
+        if ((indVarying == 'CINT') & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
 
         # CHD 9.6.2023
 

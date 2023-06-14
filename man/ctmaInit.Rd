@@ -40,7 +40,7 @@ ctmaInit(
   T0means = 0,
   cint = 0,
   T0var = "auto",
-  indVaryingT0 = FALSE
+  indVaryingT0 = NULL
 )
 }
 \arguments{
@@ -114,7 +114,7 @@ ctmaInit(
 
 \item{T0var}{(default = 'auto')}
 
-\item{indVaryingT0}{Forces T0MEANS (T0 scores) to vary interindividually (default = FALSE).}
+\item{indVaryingT0}{(default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE fits the regular random intercept models.}
 }
 \value{
 ctmaFit returns a list containing some arguments supplied, the fitted models, different elements summarizing the main results,

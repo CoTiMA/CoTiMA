@@ -17,7 +17,7 @@
 #' @param mod.names vector of names for moderators used in output
 #' @param coresToUse if negative, the value is subtracted from available cores, else value = cores to use
 #' @param indVarying allows continuous time intercepts to vary at the individual level (random intercepts model, accounts for unobserved heterogeneity)
-#' @param indVaryingT0 Forces T0MEANS (T0 scores) to vary interindividually, which undos the nesting of T0(co-)variances in primary studies (default = TRUE). Was standard until Aug. 2022. Could provide better/worse estimates if set to FALSE.
+#' @param indVaryingT0 (default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE forces T0MEANS (T0 scores) to vary interindividually, which undos the nesting of T0(co-)variances in primary studies. Was standard until Aug. 2022. Could provide better estimates if set to FALSE.
 #' @param scaleTI scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dummies representing primary studies.
 #' @param scaleClus scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster
 #' @param scaleMod scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts
@@ -139,7 +139,7 @@ ctmaFit <- function(
     T0var='auto',
     manifestMeans=0,
     manifestVars=0,
-    indVaryingT0=TRUE
+    indVaryingT0=NULL
 )
 
 
@@ -599,11 +599,6 @@ ctmaFit <- function(
   ############################################# CoTiMA (ctsem multigroup) ###############################################
   #######################################################################################################################
 
-  #check <- 0
-  #if (check == 1) {
-  #indVarying=TRUE
-  #indVaryingT0=TRUE
-  #}
 
 
   # define Names (labels in compiled output) and Params (= labels for ctsem models)
@@ -685,6 +680,11 @@ ctmaFit <- function(
     {
       # CHD 9.6.2023
       if ((indVarying == 'cint') | (indVarying == 'Cint')) indVarying <- 'CINT'
+
+      # CHD 14. Jun 2023
+      if ((indVarying == TRUE) & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
+      if ((indVarying == 'CINT') & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
+
 
       #if ((allInvModel == FALSE) & ((indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT') ) ) {
       if (allInvModel == FALSE)  {
