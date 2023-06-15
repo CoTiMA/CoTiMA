@@ -34,7 +34,7 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
     stop(ErrorMsg)
   }
 
-  if (!(is.null((is.null(CoTiMAFit$studyFitList$stanfit))))) {
+  if (!(is.null(CoTiMAFit$studyFitList$stanfit))) {
     fit <- CoTiMAFit$studyFitList
     CoTiMA <- TRUE
   } else  {
@@ -66,7 +66,10 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   tmp2 <- ctsem::ctCollapse(e$pop_CINT, 1, sd); tmp2
   tmp3 <- ctsem::ctCollapse(e$pop_MANIFESTMEANS, 1, mean); tmp3
   tmp4 <- ctsem::ctCollapse(e$pop_MANIFESTMEANS, 1, sd); tmp4
-  if ( (n.latent == n.manifest) & (!(any(c(tmp3, tmp4) == 0))) & (all(c(tmp1, tmp2) == 0)) ) { # if random intercepts are modelled as manifest means instead cint
+  if ( (n.latent == n.manifest) & (!(any(c(tmp3, tmp4) == 0))) & (all(c(tmp1, tmp2) == 0)) ) mmRI <- TRUE else mmRI <- FALSE
+
+
+  if ( mmRI ) { # if random intercepts are modelled as manifest means instead cint
     #### IDEA: Transformation matrix describing popcov_MM into popciv_cint transformations and then popcov_cint <- trans %*% popcov_mm %*% t(trans) (see: #https://stats.stackexchange.com/questions/113700/covariance-of-a-random-vector-after-a-linear-transformation)
     print("Cints (slope means), T0means (initial means), and T0covs (initial (co-)vars) are calculated based on a model with individually varying manifest means instead of Cints.")
     e$popcov_est <- e$popcov
@@ -81,7 +84,7 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
     e$popcov <- e$popcov_est
     message <- "Cints (slope means), T0means (initial means), and T0covs (initial (co-)vars) were inferred from a model with individually varying manifest means instead of Cints."
   }
-  #ctCollapse(e$popcov, 1, mean)
+  ctCollapse(e$popcov, 1, mean)
 
   model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits); model_popcov_m
   model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits); model_popcov_sd
@@ -119,11 +122,13 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
     }
   }
   #driftNames; diffNames; T0varNames
+
   manifestVarNames <- c()
   for (i in 1:(length(manifestNames))) {
     manifestVarNames <- c(manifestVarNames, paste0(manifestNames[i], "_with_", manifestNames[i]))
   }
   #manifestVarNames
+
   manifestCovNames <- c()
   for (i in 1:(length(manifestNames)-1)) {
     for (j in (i+1):length(manifestNames)) {
@@ -139,7 +144,7 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   tmp <- summary(fit)
   fit$summary <- tmp
 
-  if ( (n.latent == n.manifest) & (!(any(c(tmp3, tmp4) == 0))) & (all(c(tmp1, tmp2) == 0)) ) { # if random intercepts are modelled as manifest means instead cint
+  if ( mmRI ) { # if random intercepts are modelled as manifest means instead cint
     e$pop_T0MEANS_est <- e$pop_T0MEANS[ ,1:n.latent, ]        # 1.n.latent => eliminates last diminsion, which is not required
     e$pop_T0MEANS_est[!(is.na(e$pop_T0MEANS_est))] <- NA
     e$pop_T0MEANS <- e$pop_T0MEANS[ ,1:n.latent, ]
@@ -150,7 +155,7 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
     e$pop_MANIFESTMEANS[e$pop_MANIFESTMEANS != 0] <- 0
   }
   #
-  if ( (n.latent == n.manifest) & (!(any(c(tmp3, tmp4) == 0))) & (all(c(tmp1, tmp2) == 0)) ) { # if random intercepts are modelled as manifest means instead cint
+  if ( mmRI ) { # if random intercepts are modelled as manifest means instead cint
     initialMeans <- round(ctsem::ctCollapse(e$pop_T0MEANS, 1, mean), digits = digits); initialMeans
     initialMeansSD <- round(ctsem::ctCollapse(e$pop_T0MEANS, 1, stats::sd), digits = digits); initialMeansSD
     initialMeansLL <- ctsem::ctCollapse(e$pop_T0MEANS, 1, function(x) stats::quantile(x, .025)); initialMeansLL
@@ -171,7 +176,7 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   names(manifestMeans) <- paste0("ManifestMean_", latentNames); manifestMeans
 
   #
-  if ( (n.latent == n.manifest) & (!(any(c(tmp3, tmp4) == 0))) & (all(c(tmp1, tmp2) == 0)) ) { # if random intercepts are modelled as manifest means instead cint
+  if ( mmRI ) { # if random intercepts are modelled as manifest means instead cint
     for (k in 1:dim(e$pop_MANIFESTMEANS_backup)[1]) {
       e$pop_CINT[k,,1] <- -e$pop_DRIFT[k,,] %*% e$pop_MANIFESTMEANS_backup[k,]
     }
@@ -331,10 +336,10 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   #
   InitialVars <- InitialVarsSD <- InitialVarsLL <- InitialVarsUL <- c()
   for (i in 1:n.latent) {
-    InitialVars[i] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, mean), digits = digits)[i,i];
-    InitialVarsSD[i] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, sd), digits = digits)[i,i]
-    InitialVarsLL[i] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, function(x) stats::quantile(x, .025)), digits = digits)[i,i]
-    InitialVarsUL[i] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, function(x) stats::quantile(x, .975)), digits = digits)[i,i]
+    InitialVars[i] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)[i,i];
+    InitialVarsSD[i] <- round(ctsem::ctCollapse(e$popcov, 1, sd), digits = digits)[i,i]
+    InitialVarsLL[i] <- round(ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025)), digits = digits)[i,i]
+    InitialVarsUL[i] <- round(ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975)), digits = digits)[i,i]
   }
   names(InitialVars) <- paste0("InitialVar_", latentNames); InitialVars
   #
@@ -344,10 +349,10 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
     for (j in (i+1):n.latent) {
       if (i != j) {
         counter <- counter + 1
-        InitialCovs[counter] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, mean), digits = digits)[j,i];
-        InitialCovsSD[counter] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, sd), digits = digits)[j,i]
-        InitialCovsLL[counter] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, function(x) stats::quantile(x, .025)), digits = digits)[j,i]
-        InitialCovsUL[counter] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, function(x) stats::quantile(x, .975)), digits = digits)[j,i]
+        InitialCovs[counter] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)[j,i];
+        InitialCovsSD[counter] <- round(ctsem::ctCollapse(e$popcov, 1, sd), digits = digits)[j,i]
+        InitialCovsLL[counter] <- round(ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025)), digits = digits)[j,i]
+        InitialCovsUL[counter] <- round(ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975)), digits = digits)[j,i]
       }
     }
   }
@@ -389,7 +394,6 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   names(SlopeCov_TraitCov) <- gsub("Diffusion", "SlopeCov_TraitCov", names(SlopeCov_TraitCov)); SlopeCov_TraitCov
   names(SlopeCor_TraitCor) <- names(diffusionCovs); SlopeCov_TraitCov
   names(SlopeCor_TraitCor) <- gsub("Diffusion", "SlopeCor_TraitCor", names(SlopeCor_TraitCor)); SlopeCor_TraitCor
-  #SlopeCor_TraitCorSD <- rep(NA, length(SlopeCor_TraitCor)); SlopeCor_TraitCorSD
   names(SlopeCor_TraitCorSD) <- names(SlopeCov_TraitCov)
   names(SlopeCor_TraitCorSD) <- gsub("Cov", "Cor", names(SlopeCor_TraitCorSD) )
 
