@@ -885,7 +885,7 @@ ctmaInit <- function(
           T0meansParams <- 'auto'
 
           print(paste0("#################################################################################"))
-          print(paste0("####################### CT intercepts are set free.  ########################"))
+          print(paste0("######################### CT intercepts are set free.  ##########################"))
           print(paste0("#################################################################################"))
 
           CINTParams <- c()
@@ -1514,8 +1514,8 @@ ctmaInit <- function(
 
 
   ##############################################################################################################
-  end.time <- Sys.time()
-  time.taken <- end.time - start.time
+  #end.time <- Sys.time()
+  #time.taken <- end.time - start.time
   message1 <- c()
 
   if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
