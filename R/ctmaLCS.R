@@ -37,10 +37,10 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   if (!(is.null((is.null(CoTiMAFit$studyFitList$stanfit))))) {
     fit <- CoTiMAFit$studyFitList
     CoTiMA <- TRUE
-    } else  {
-      fit <- CoTiMAFit
-      CoTiMA <- FALSE
-    }
+  } else  {
+    fit <- CoTiMAFit
+    CoTiMA <- FALSE
+  }
 
   if (is.null(fit$stanfit$transformedpars$popsd)) {
     ErrorMsg <- "\nAThe fitted CoTiMA object or ctsem object did not include T0means and ct intercepts. LCS results cannot be computed. Fit an appropriate CoTiMA/ctsem model. nGood luck for the next try!"
@@ -50,42 +50,55 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   n.latent <- fit$ctstanmodelbase$n.latent; n.latent
   n.manifest <- fit$ctstanmodelbase$n.manifest; n.manifest
 
-  if (dim(fit$stanfit$transformedpars$popsd)[1] != (n.latent*2)) {
+  if (dim(fit$stanfit$transformedpars$popsd)[2] != (n.latent*2)) {
     ErrorMsg <- "\nAThe fitted CoTiMA object or ctsem object did not included both(!) T0means and ct intercepts. LCS results cannot be computed. Fit an appropriate CoTiMA/ctsem model. nGood luck for the next try!"
     stop(ErrorMsg)
   }
 
+  if ((undoTimeScaling == TRUE) & (CoTiMA == TRUE)) scaleTime <- CoTiMAFit$argumentList$scaleTime else scaleTime <- 1
 
-  if ((undoTimeScaling == TRUE) & CoTiMA) scaleTime <- CoTiMAFit$argumentList$scaleTime else scaleTime <- 1
-
+  #e <- ctExtract(CoTiMAFullFit_Ov4_0531_CHD_mmri$studyFitList)
   e <- ctExtract(fit)
   e$pop_DRIFT <- e$pop_DRIFT * scaleTime
 
   # get random intercept stats
-  if (!(is.null(fit$stanfit$transformedpars$popsd))) {
-    model_popsd <- apply(fit$stanfit$transformedpars$popsd, 2, mean); model_popsd
-    model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
-    model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
-    model_popcov_T <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
-    model_popcov_025 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
-    model_popcov_50 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
-    model_popcov_975 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975))
-    # convert to correlations and do the same (array to list then list to array)
-    e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
-    e$popcor <- lapply(e$popcor, stats::cov2cor)
-    e$popcor <- array(unlist(e$popcor), dim=c(n.latent*2, n.latent*2, length(e$popcor)))
-    model_popcor_m <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
-    model_popcor_sd <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
-    model_popcor_T <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
-    model_popcor_025 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
-    model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
-    model_popcor_975 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
-    #model_popcor <- stats::cov2cor(model_popcov_m)
-  } else {
-    model_popsd <- "no random effects estimated"
-    model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- "no random effects estimated"
-    model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- "no random effects estimated"
+  tmp1 <- ctsem::ctCollapse(e$pop_CINT, 1, mean); tmp1
+  tmp2 <- ctsem::ctCollapse(e$pop_CINT, 1, sd); tmp2
+  tmp3 <- ctsem::ctCollapse(e$pop_MANIFESTMEANS, 1, mean); tmp3
+  tmp4 <- ctsem::ctCollapse(e$pop_MANIFESTMEANS, 1, sd); tmp4
+  if ( (n.latent == n.manifest) & (!(any(c(tmp3, tmp4) == 0))) & (all(c(tmp1, tmp2) == 0)) ) { # if random intercepts are modelled as manifest means instead cint
+    #### IDEA: Transformation matrix describing popcov_MM into popciv_cint transformations and then popcov_cint <- trans %*% popcov_mm %*% t(trans) (see: #https://stats.stackexchange.com/questions/113700/covariance-of-a-random-vector-after-a-linear-transformation)
+    print("Cints (slope means), T0means (initial means), and T0covs (initial (co-)vars) are calculated based on a model with individually varying manifest means instead of Cints.")
+    e$popcov_est <- e$popcov
+    e$popcov_est[!(is.na(e$popcov_est))] <- NA
+    UL <- UR <- diag(1, n.latent, n.latent); UL
+    LL <- matrix(0, n.latent, n.latent); LL
+    for (k in 1:(dim(e$popcov_est)[1])) {
+      LR <- -e$pop_DRIFT[k,,]; LR
+      trans <- rbind(cbind(UL, UR), cbind(LL, LR)); trans
+      e$popcov_est[k, , ] <- trans %*% e$popcov[k, , ] %*% t(trans)
+    }
+    e$popcov <- e$popcov_est
+    message <- "Cints (slope means), T0means (initial means), and T0covs (initial (co-)vars) were inferred from a model with individually varying manifest means instead of Cints."
   }
+  #ctCollapse(e$popcov, 1, mean)
+
+  model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits); model_popcov_m
+  model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits); model_popcov_sd
+  model_popcov_T <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
+  model_popcov_025 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
+  model_popcov_50 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
+  model_popcov_975 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975))
+  # convert to correlations and do the same (array to list then list to array)
+  e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
+  e$popcor <- lapply(e$popcor, stats::cov2cor)
+  e$popcor <- array(unlist(e$popcor), dim=c(n.latent*2, n.latent*2, length(e$popcor)))
+  model_popcor_m <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
+  model_popcor_sd <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
+  model_popcor_T <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
+  model_popcor_025 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
+  model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
+  model_popcor_975 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
 
   latentNames <- fit$ctstanmodelbase$latentNames; latentNames
   manifestNames <- fit$ctstanmodelbase$manifestNames; manifestNames
@@ -126,61 +139,55 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   tmp <- summary(fit)
   fit$summary <- tmp
 
-  est <- fit$summary$parmatrices; est
-  colNames <- colnames(est); colNames
-  rowNames <- est$matrix; rowNames
-  targetColEst <- grep("ean", colNames); targetColEst
-  targetColSD <- grep("sd", colNames); targetColSD
-  targetColLL <- grep("2.5%", colNames); targetColLL
-  targetColUL <- grep("97.5%", colNames); targetColUL
-  #
-  targetRow <- grep("T0MEAN", rowNames); targetRow
-  initialMeans <- est[targetRow, targetColEst]; initialMeans
-  initialMeansSD <- est[targetRow, targetColSD]; initialMeansSD
-  initialMeansLL <- est[targetRow, targetColLL]; initialMeansLL
-  initialMeansUL <- est[targetRow, targetColUL]; initialMeansUL
-  names(initialMeans) <- paste0("InitialMean_", latentNames); initialMeans
-  #
-  targetRow <- grep("MANIFESTMEANS", rowNames); targetRow
-  manifestMeans <- est[targetRow, targetColEst]; manifestMeans
-  manifestMeansSD <- est[targetRow, targetColSD]; manifestMeansSD
-  manifestMeansLL <- est[targetRow, targetColLL]; manifestMeansLL
-  manifestMeansUL <- est[targetRow, targetColUL]; manifestMeansUL
-  names(manifestMeans) <- paste0("ManifestMean_", latentNames); manifestMeans
-  #
-  tmp1 <- grep("CINT", rowNames); tmp1
-  tmp2 <- grep("asym", rowNames); tmp2
-  targetRow <- tmp1[!(tmp1 %in% tmp2)]; targetRow
-  cints <- est[targetRow, targetColEst]; cints
-  cintsSD <- est[targetRow, targetColSD]; cintsSD
-  cintsLL <- est[targetRow, targetColLL]; cintsLL
-  cintsUL <- est[targetRow, targetColUL]; cintsUL
-  #
-  tmp1 <- which(fit$ctstanmodelbase$pars$matrix == "MANIFESTMEANS"); tmp1
-  tmp2 <- fit$ctstanmodelbase$pars$param[tmp1]; tmp2
-  tmp1 <- which(fit$ctstanmodelbase$pars$matrix == "CINT"); tmp1
-  tmp3 <- fit$ctstanmodelbase$pars$param[tmp1]; tmp3
-  if ( (n.latent == n.manifest) & (!(any(is.na(manifestMeans)))) & (all(is.na(cints))) ) {
-    slopeMeans_Cint <- manifestMeans
-    slopeMeans_CintSD <- manifestMeansSD
-    slopeMeans_CintLL <- manifestMeansLL
-    slopeMeans_CintUL <- manifestMeansUL
-  } else {
-    slopeMeans_Cint <- cints
-    slopeMeans_CintSD <- cintsSD
-    slopeMeans_CintLL <- cintsLL
-    slopeMeans_CintUL <- cintsUL
+  if ( (n.latent == n.manifest) & (!(any(c(tmp3, tmp4) == 0))) & (all(c(tmp1, tmp2) == 0)) ) { # if random intercepts are modelled as manifest means instead cint
+    e$pop_T0MEANS_est <- e$pop_T0MEANS[ ,1:n.latent, ]        # 1.n.latent => eliminates last diminsion, which is not required
+    e$pop_T0MEANS_est[!(is.na(e$pop_T0MEANS_est))] <- NA
+    e$pop_T0MEANS <- e$pop_T0MEANS[ ,1:n.latent, ]
+    e$pop_MANIFESTMEANS <- e$pop_MANIFESTMEANS[ ,1:n.latent,]
+    for (i in 1:(dim(e$pop_T0MEANS_est)[1])) e$pop_T0MEANS_est[i,] <- e$pop_T0MEANS[i,] + e$pop_MANIFESTMEANS[i,]
+    e$pop_T0MEANS <- e$pop_T0MEANS_est
+    e$pop_MANIFESTMEANS_backup <- e$pop_MANIFESTMEANS
+    e$pop_MANIFESTMEANS[e$pop_MANIFESTMEANS != 0] <- 0
   }
-  names(slopeMeans_Cint) <- paste0("SlopeMean_Cint_", latentNames); slopeMeans_Cint
   #
-  drift <- matrix(fit$summary$popmeans[grep("to", rownames(fit$summary$popmeans)), 1], n.latent, n.latent, byrow=TRUE) * scaleTime; drift
+  if ( (n.latent == n.manifest) & (!(any(c(tmp3, tmp4) == 0))) & (all(c(tmp1, tmp2) == 0)) ) { # if random intercepts are modelled as manifest means instead cint
+    initialMeans <- round(ctsem::ctCollapse(e$pop_T0MEANS, 1, mean), digits = digits); initialMeans
+    initialMeansSD <- round(ctsem::ctCollapse(e$pop_T0MEANS, 1, stats::sd), digits = digits); initialMeansSD
+    initialMeansLL <- ctsem::ctCollapse(e$pop_T0MEANS, 1, function(x) stats::quantile(x, .025)); initialMeansLL
+    initialMeansUL <- ctsem::ctCollapse(e$pop_T0MEANS, 1, function(x) stats::quantile(x, .975)); initialMeansUL
+  } else {
+    initialMeans <- round(ctsem::ctCollapse(e$pop_T0MEANS, 1, mean), digits = digits)[1:n.latent]; initialMeans
+    initialMeansSD <- round(ctsem::ctCollapse(e$pop_T0MEANS, 1, stats::sd), digits = digits)[1:n.latent]; initialMeansSD
+    initialMeansLL <- ctsem::ctCollapse(e$pop_T0MEANS, 1, function(x) stats::quantile(x, .025))[1:n.latent]; initialMeansLL
+    initialMeansUL <- ctsem::ctCollapse(e$pop_T0MEANS, 1, function(x) stats::quantile(x, .975))[1:n.latent]; initialMeansUL
+  }
+  names(initialMeans) <- paste0("InitialMean_", latentNames); initialMeans
 
-  ## get SDs
-  tmp1 <- grep("DRIFT", rowNames); tmp1
-  tmp2 <- grep("dt", rowNames); tmp2
-  driftSD <- matrix(est[tmp1[!(tmp1 %in% tmp2)], targetColSD] * scaleTime, n.latent, n.latent, byrow=TRUE); driftSD
-  driftLL <- matrix(est[tmp1[!(tmp1 %in% tmp2)], targetColLL] * scaleTime, n.latent, n.latent, byrow=TRUE); driftLL
-  driftUL <- matrix(est[tmp1[!(tmp1 %in% tmp2)], targetColUL] * scaleTime, n.latent, n.latent, byrow=TRUE); driftUL
+  #
+  manifestMeans <- round(ctsem::ctCollapse(e$pop_MANIFESTMEANS, 1, mean), digits = digits); manifestMeans
+  manifestMeansSD <- round(ctsem::ctCollapse(e$pop_MANIFESTMEANS, 1, stats::sd), digits = digits); manifestMeansSD
+  manifestMeansLL <- ctsem::ctCollapse(e$pop_MANIFESTMEANS, 1, function(x) stats::quantile(x, .025)); manifestMeansLL
+  manifestMeansUL <- ctsem::ctCollapse(e$pop_MANIFESTMEANS, 1, function(x) stats::quantile(x, .975)); manifestMeansUL
+  names(manifestMeans) <- paste0("ManifestMean_", latentNames); manifestMeans
+
+  #
+  if ( (n.latent == n.manifest) & (!(any(c(tmp3, tmp4) == 0))) & (all(c(tmp1, tmp2) == 0)) ) { # if random intercepts are modelled as manifest means instead cint
+    for (k in 1:dim(e$pop_MANIFESTMEANS_backup)[1]) {
+      e$pop_CINT[k,,1] <- -e$pop_DRIFT[k,,] %*% e$pop_MANIFESTMEANS_backup[k,]
+    }
+  }
+  slopeMeans_Cint <- round(ctsem::ctCollapse(e$pop_CINT, 1, mean), digits = digits); slopeMeans_Cint
+  slopeMeans_CintSD <- round(ctsem::ctCollapse(e$pop_CINT, 1, stats::sd), digits = digits); slopeMeans_CintSD
+  slopeMeans_CintLL <- ctsem::ctCollapse(e$pop_CINT, 1, function(x) stats::quantile(x, .025)); slopeMeans_CintLL
+  slopeMeans_CintUL <- ctsem::ctCollapse(e$pop_CINT, 1, function(x) stats::quantile(x, .975)); slopeMeans_CintUL
+  names(slopeMeans_Cint) <- paste0("SlopeMean_Cint_", latentNames); slopeMeans_Cint
+
+  #
+  #drift <- matrix(fit$summary$popmeans[grep("to", rownames(fit$summary$popmeans)), 1], n.latent, n.latent, byrow=TRUE) * scaleTime; drift
+  drift <- ctCollapse(e$pop_DRIFT, 1, mean); drift
+  driftSD <- ctCollapse(e$pop_DRIFT, 1, sd); driftSD
+  driftLL <- ctsem::ctCollapse(e$pop_DRIFT, 1, function(x) stats::quantile(x, .025)); driftLL
+  driftUL <- ctsem::ctCollapse(e$pop_DRIFT, 1, function(x) stats::quantile(x, .975)); driftUL
   #
   autos <- diag(drift); autos
   autosSD <- diag(driftSD); autosSD
@@ -226,10 +233,6 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
     for (j in 1:n.latent) {
       if (i != j) {
         counter <- counter + 1
-        #couplings[counter] <- mean(unlist(lapply(drift_samples, function(x) x[j,i])))
-        #couplingsSD[counter] <- sd(unlist(lapply(drift_samples, function(x) x[j,i])))
-        #couplingsLL[counter] <- stats::quantile(unlist(lapply(drift_samples, function(x) x[j,i])), prob=.025)
-        #couplingsUL[counter] <- stats::quantile(unlist(lapply(drift_samples, function(x) x[j,i])), prob=.975)
         crosslaggeds[counter] <- mean(unlist(lapply(expm_drift_samples, function(x) x[j,i])))
         crosslaggedsSD[counter] <- sd(unlist(lapply(expm_drift_samples, function(x) x[j,i])))
         crosslaggedsLL[counter] <- stats::quantile(unlist(lapply(expm_drift_samples, function(x) x[j,i])), prob=.025)
@@ -295,11 +298,10 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   names(DynErrCovs) <- gsub("Diffusion", "DynErrCov", names(DynErrCovs)); DynErrCovs
   names(DynErrCovs) <- paste0(names(DynErrCovs), " (Delta=1)" ); DynErrCovs
   #
-  targetRow <- grep("MANIFESTcov", rowNames); targetRow
-  measurementErrorVarsMatrix <- matrix(est[targetRow, targetColEst], n.latent, n.latent); measurementErrorVarsMatrix
-  measurementErrorVarsSDMatrix <- matrix(est[targetRow, targetColSD], n.latent, n.latent); measurementErrorVarsSDMatrix
-  measurementErrorVarsLLMatrix <- matrix(est[targetRow, targetColLL], n.latent, n.latent); measurementErrorVarsLLMatrix
-  measurementErrorVarsULMatrix <- matrix(est[targetRow, targetColUL], n.latent, n.latent); measurementErrorVarsULMatrix
+  measurementErrorVarsMatrix <- round(ctsem::ctCollapse(e$pop_MANIFESTcov, 1, mean), digits = digits); measurementErrorVarsMatrix
+  measurementErrorVarsSDMatrix <- round(ctsem::ctCollapse(e$pop_MANIFESTcov, 1, sd), digits = digits); measurementErrorVarsSDMatrix
+  measurementErrorVarsLLMatrix <- ctsem::ctCollapse(e$pop_MANIFESTcov, 1, function(x) stats::quantile(x, .025)); measurementErrorVarsLLMatrix
+  measurementErrorVarsULMatrix <- ctsem::ctCollapse(e$pop_MANIFESTcov, 1, function(x) stats::quantile(x, .975)); measurementErrorVarsULMatrix
   measurementErrorVars <- measurementErrorVarsSD <- c()
   measurementErrorVarsLL <- measurementErrorVarsUL <- c()
   for (i in 1:n.latent) {
@@ -327,130 +329,71 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   names(measurementErrorCovs) <- paste0("measurementError_", manifestCovNames); measurementErrorCovs
 
   #
-  targetRow <- grep("T0cov", rowNames); targetRow
-  T0covMatrix <- matrix(est[targetRow, targetColEst], n.latent, n.latent); T0covMatrix
-  T0covSDMatrix <- matrix(est[targetRow, targetColSD], n.latent, n.latent); T0covSDMatrix
-  T0covLLMatrix <- matrix(est[targetRow, targetColLL], n.latent, n.latent); T0covLLMatrix
-  T0covULMatrix <- matrix(est[targetRow, targetColUL], n.latent, n.latent); T0covULMatrix
-  T0Vars <- T0VarsSD <- T0VarsLL <- T0VarsUL <- c()
+  InitialVars <- InitialVarsSD <- InitialVarsLL <- InitialVarsUL <- c()
   for (i in 1:n.latent) {
-    T0Vars[i] <- T0covMatrix[i,i]
-    T0VarsSD[i] <- T0covSDMatrix[i,i]
-    T0VarsLL[i] <- T0covLLMatrix[i,i]
-    T0VarsUL[i] <- T0covULMatrix[i,i]
+    InitialVars[i] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, mean), digits = digits)[i,i];
+    InitialVarsSD[i] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, sd), digits = digits)[i,i]
+    InitialVarsLL[i] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, function(x) stats::quantile(x, .025)), digits = digits)[i,i]
+    InitialVarsUL[i] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, function(x) stats::quantile(x, .975)), digits = digits)[i,i]
   }
-  names(T0Vars) <- paste0("T0Var_", latentNames); T0Vars
+  names(InitialVars) <- paste0("InitialVar_", latentNames); InitialVars
   #
-  T0Covs <- T0CovsSD <- T0CovsLL <- T0CovsUL <- c()
+  InitialCovs <- InitialCovsSD <- InitialCovsLL <- InitialCovsUL <- c()
   counter <- 0
   for (i in 1:(n.latent-1)) {
     for (j in (i+1):n.latent) {
       if (i != j) {
         counter <- counter + 1
-        T0Covs[i] <- T0covMatrix[j,i]
-        T0CovsSD[i] <- T0covSDMatrix[j,i]
-        T0CovsLL[i] <- T0covLLMatrix[j,i]
-        T0CovsUL[i] <- T0covULMatrix[j,i]
+        InitialCovs[counter] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, mean), digits = digits)[j,i];
+        InitialCovsSD[counter] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, sd), digits = digits)[j,i]
+        InitialCovsLL[counter] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, function(x) stats::quantile(x, .025)), digits = digits)[j,i]
+        InitialCovsUL[counter] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, function(x) stats::quantile(x, .975)), digits = digits)[j,i]
       }
     }
   }
-  names(T0Covs) <- names(diffusionCovs); T0Covs
-  names(T0Covs) <- gsub("Diffusion", "T0Cov", names(T0Covs)); T0Covs
+  names(InitialCovs) <- names(diffusionCovs); InitialCovs
+  names(InitialCovs) <- gsub("Diffusion", "InitialCov", names(InitialCovs)); InitialCovs
   #
-  # overwrite previous results in case random intercepts were modelled
-  InitialVars <- InitialVarsSD <- InitialVarsLL <- InitialVarsUL <- c()
-  if(model_popsd[1] != "no random effects estimated") {
-    for (i in 1:n.latent) {
-      InitialVars[i] <- model_popcov_m[i,i]
-      InitialVarsSD[i] <- model_popcov_sd[i,i]
-      InitialVarsLL[i] <- model_popcov_025[i,i]
-      InitialVarsUL[i] <- model_popcov_975[i,i]
-    }
-    names(InitialVars) <- paste0("InitialVar_", latentNames); InitialVars
-    InitialCovs <- InitialCovsSD <- InitialCovsLL <- InitialCovsUL <- c()
-    counter <- 0
-    for (i in 1:(n.latent-1)) {
-      for (j in (i+1):n.latent) {
-        if (i != j) {
-          counter <- counter + 1
-          T0CovsLL
-          InitialCovs[counter] <- model_popcov_m[j,i]
-          InitialCovsSD[counter] <- model_popcov_sd[i,i]
-          InitialCovsLL[i] <- model_popcov_025[i,i]
-          InitialCovsUL[i] <- model_popcov_975[i,i]
-        }
-      }
-    }
-    names(InitialCovs) <- names(diffusionCovs); InitialCovs
-    names(InitialCovs) <- gsub("Diffusion", "InitialCov", names(InitialCovs)); InitialCovs
-    #
-    SlopeVariance_TraitVariance <- SlopeVariance_TraitVarianceSD <- c()
-    SlopeVariance_TraitVarianceLL <- SlopeVariance_TraitVarianceUL <- c()
-    counter <- 0
-    for (i in (n.latent+1):(2*n.latent)) {
-      counter <- counter + 1
-      SlopeVariance_TraitVariance[counter] <- model_popcov_m[i,i]
-      SlopeVariance_TraitVarianceSD[counter] <- model_popcov_sd[i,i]
-      SlopeVariance_TraitVarianceLL[counter] <- model_popcov_025[i,i]
-      SlopeVariance_TraitVarianceUL[counter] <- model_popcov_975[i,i]
-    }
-    names(SlopeVariance_TraitVariance) <-paste0("SlopeVariance_TraitVariance_", latentNames); SlopeVariance_TraitVariance
-    #
-    SlopeCov_TraitCov <- SlopeCov_TraitCovSD <- SlopeCor_TraitCor <- SlopeCor_TraitCorSD <- c()
-    SlopeCov_TraitCovLL <- SlopeCov_TraitCovUL <- c()
-    SlopeCor_TraitCorLL <- SlopeCor_TraitCorUL <- c()
-    counter <- 0
-    for (i in (n.latent+1):(2*n.latent-1)) {
-      for (j in (i+1):(2*n.latent)) {
-        if (i != j) {
-          counter <- counter + 1
-          SlopeCov_TraitCov[counter] <- model_popcov_m[j,i]
-          SlopeCov_TraitCovSD[counter] <- model_popcov_sd[j,i]
-          SlopeCov_TraitCovLL[counter] <- model_popcov_025[j,i]
-          SlopeCov_TraitCovUL[counter] <- model_popcov_975[j,i]
-          SlopeCor_TraitCor[counter] <- model_popcor_m[j,i]
-          SlopeCor_TraitCorSD[counter]  <- NA
-          SlopeCor_TraitCorLL[counter]  <- NA
-          SlopeCor_TraitCorUL[counter]  <- NA
-        }
-      }
-    }
-    names(SlopeCov_TraitCov) <- names(diffusionCovs); SlopeCov_TraitCov
-    names(SlopeCov_TraitCov) <- gsub("Diffusion", "SlopeCov_TraitCov", names(SlopeCov_TraitCov)); SlopeCov_TraitCov
-    names(SlopeCor_TraitCor) <- names(diffusionCovs); SlopeCov_TraitCov
-    names(SlopeCor_TraitCor) <- gsub("Diffusion", "SlopeCor_TraitCor", names(SlopeCor_TraitCor)); SlopeCor_TraitCor
-    #SlopeCor_TraitCorSD <- rep(NA, (n.latent*n.latent-n.latent))
-    SlopeCor_TraitCorSD <- rep(NA, length(SlopeCor_TraitCor)); SlopeCor_TraitCorSD
-  } else {
-    InitialVar <- T0Vars; InitialVar
-    InitialVarLL <- T0VarsLL; InitialVarLL
-    InitialVarUL <- T0VarsUL; InitialVarUL
-    InitialCovs <- T0Covs; InitialCovs
-    InitialCovsLL <- T0CovsLL; InitialCovsLL
-    InitialCovsUL <- T0CovsUL; InitialCovsUL
-    SlopeVariance_TraitVariance <- NA
-    SlopeVariance_TraitVarianceLL <- NA
-    SlopeVariance_TraitVarianceUL <- NA
-    SlopeCov_TraitCov <- rep(NA, length(InitialCovs))
-    SlopeCov_TraitCovLL <- rep(NA, length(InitialCovs))
-    SlopeCov_TraitCovUL <- rep(NA, length(InitialCovs))
-    InitialVarSD <- T0VarsSD; InitialVarSD
-    InitialVarLL <- T0VarsLL; InitialVarLL
-    InitialVarUL <- T0VarsUL; InitialVarUL
-    InitialCovsSD <- T0CovsSD; InitialCovsSD
-    InitialCovsLL <- T0CovsLL; InitialCovsLL
-    InitialCovsUL <- T0CovsUL; InitialCovsUL
-    SlopeVariance_TraitVarianceSD <- NA
-    SlopeVariance_TraitVarianceLL <- NA
-    SlopeVariance_TraitVarianceUL <- NA
-    SlopeCov_TraitCovSD <- rep(NA, length(InitialCovs))
-    SlopeCov_TraitCovLL <- rep(NA, length(InitialCovs))
-    SlopeCov_TraitCovUL <- rep(NA, length(InitialCovs))
-    SlopeCor_TraitCor <- rep(NA, length(InitialCovs))
-    SlopeCor_TraitCorSD <- rep(NA, length(InitialCovs))
-    SlopeCor_TraitCorLL <- rep(NA, length(InitialCovs))
-    SlopeCor_TraitCorUL <- rep(NA, length(InitialCovs))
+  SlopeVariance_TraitVariance <- SlopeVariance_TraitVarianceSD <- c()
+  SlopeVariance_TraitVarianceLL <- SlopeVariance_TraitVarianceUL <- c()
+  counter <- 0
+  for (i in (n.latent+1):(2*n.latent)) {
+    counter <- counter + 1
+    SlopeVariance_TraitVariance[counter] <- model_popcov_m[i,i]
+    SlopeVariance_TraitVarianceSD[counter] <- model_popcov_sd[i,i]
+    SlopeVariance_TraitVarianceLL[counter] <- model_popcov_025[i,i]
+    SlopeVariance_TraitVarianceUL[counter] <- model_popcov_975[i,i]
   }
+  names(SlopeVariance_TraitVariance) <-paste0("SlopeVariance_TraitVariance_", latentNames); SlopeVariance_TraitVariance
+  #
+  SlopeCov_TraitCov <- SlopeCov_TraitCovSD <- SlopeCor_TraitCor <- SlopeCor_TraitCorSD <- c()
+  SlopeCov_TraitCovLL <- SlopeCov_TraitCovUL <- c()
+  SlopeCor_TraitCorLL <- SlopeCor_TraitCorUL <- c()
+  counter <- 0
+  for (i in (n.latent+1):(2*n.latent-1)) {
+    for (j in (i+1):(2*n.latent)) {
+      if (i != j) {
+        counter <- counter + 1
+        SlopeCov_TraitCov[counter] <- model_popcov_m[j,i]
+        SlopeCov_TraitCovSD[counter] <- model_popcov_sd[j,i]
+        SlopeCov_TraitCovLL[counter] <- model_popcov_025[j,i]
+        SlopeCov_TraitCovUL[counter] <- model_popcov_975[j,i]
+        SlopeCor_TraitCor[counter] <- model_popcor_m[j,i]
+        SlopeCor_TraitCorSD[counter]  <- model_popcor_sd[j,i]
+        SlopeCor_TraitCorLL[counter]  <- model_popcor_025[j,i]
+        SlopeCor_TraitCorUL[counter]  <- model_popcor_975[j,i]
+      }
+    }
+  }
+  names(SlopeCov_TraitCov) <- names(diffusionCovs); SlopeCov_TraitCov
+  names(SlopeCov_TraitCov) <- gsub("Diffusion", "SlopeCov_TraitCov", names(SlopeCov_TraitCov)); SlopeCov_TraitCov
+  names(SlopeCor_TraitCor) <- names(diffusionCovs); SlopeCov_TraitCov
+  names(SlopeCor_TraitCor) <- gsub("Diffusion", "SlopeCor_TraitCor", names(SlopeCor_TraitCor)); SlopeCor_TraitCor
+  #SlopeCor_TraitCorSD <- rep(NA, length(SlopeCor_TraitCor)); SlopeCor_TraitCorSD
+  names(SlopeCor_TraitCorSD) <- names(SlopeCov_TraitCov)
+  names(SlopeCor_TraitCorSD) <- gsub("Cov", "Cor", names(SlopeCor_TraitCorSD) )
+
+
   Minus2LL <- fit$summary$loglik *-2; Minus2LL
   names(Minus2LL) <- "Minus2LL"
   NumEstParams <- fit$summary$npars; NumEstParams
@@ -479,6 +422,7 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
                   SlopeCor_TraitCor,
                   Minus2LL,
                   NumEstParams), digits); length(tmp1)
+  tmp1
   tmp2 <- round(c(initialMeansSD,
                   manifestMeansSD,
                   slopeMeans_CintSD,
@@ -498,7 +442,7 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
                   InitialCovsSD,
                   SlopeVariance_TraitVarianceSD,
                   SlopeCov_TraitCovSD,
-                  SlopeCov_TraitCovSD,
+                  SlopeCor_TraitCorSD,
                   NA,
                   NA), digits); length(tmp2)
 
