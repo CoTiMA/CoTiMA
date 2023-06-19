@@ -323,6 +323,7 @@ ctmaInit <- function(
     ### create pseudo raw data for all studies or load raw data if available & specified
     empraw <- lags <- moderators <- emprawMod <- allSampleSizes <- lostN <- overallNDiff <- relativeNDiff <- list()
     emprawLong <- list()
+    empraw.ind.mod <- list() # CHD 19.6.2023
 
     if (n.studies > 1) {
       if (is.na(primaryStudies$deltas[length(primaryStudies$deltas)])) primaryStudies$deltas <- primaryStudies$deltas[-length(primaryStudies$deltas)]
@@ -337,6 +338,7 @@ ctmaInit <- function(
       manifestNames <- paste0("V", 1:n.latent); manifestNames
       latentNames <- paste0("V", 1:n.latent); latentNames
     }
+
     for (i in 1:n.studies) {
       #i <- 1
       if (!(studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers)) {
@@ -458,6 +460,7 @@ ctmaInit <- function(
           for (h in 1:(currentTpoints-1)) studyList[[i]]$delta_t[h] <- mean(tmp1[, paste0("dT", h)], na.rm=TRUE)
           #studyList[[i]]$delta_t
         } else {
+          #i <- 3
           currentTpoints <- length((lapply(studyList, function(extract) extract$delta_t))[[i]])+1; currentTpoints
 
           tmp1 <- studyList[[i]]$rawData$fileName; tmp1
@@ -471,7 +474,6 @@ ctmaInit <- function(
                                        header=tmp2,
                                        dec=tmp3,
                                        sep=tmp4)
-
           currentVarnames <- c()
           for (j in 1:(currentTpoints)) {
             if (n.manifest == 0) {
@@ -485,11 +487,23 @@ ctmaInit <- function(
             }
           }
 
+          # CHD 19.6.2023 extract possible ind level moderators
+          if (studyList[[i]]$rawData$n.ind.mod != 0) {
+            targetCols <- (n.var * currentTpoints + currentTpoints -1 + 1): ncol(tmpData); targetCols
+            empraw.ind.mod[[i]] <- list()
+            empraw.ind.mod[[i]] <- tmpData[, targetCols]
+            empraw.ind.mod[[i]][empraw.ind.mod[[i]] == studyList[[i]]$rawData$missingValues] <- NA
+            tmpData <- tmpData[, -targetCols]
+          } else {
+            empraw.ind.mod[[i]] <- NA
+          }
+        #}
+
+
           # replace missing values
           tmpData <- as.matrix(tmpData) # important: line below will not work without having data as a matrix
           tmpData[tmpData %in% studyList[[i]]$rawData$missingValues] <- NA
           empraw[[i]] <- as.data.frame(tmpData)
-
 
           ## START correction of current lags if entire time point is missing for a case
           # if called from ctmaOptimize
@@ -497,6 +511,14 @@ ctmaInit <- function(
           # change variable names
           tmp1 <- dim(empraw[[i]])[2]; tmp1
           currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
+
+          # CHD 19.6.2023 this is an error check (n.ind.mod set to 0 but data set includes TI at the end)
+          if (currentTpoints != round(currentTpoints, 0)) {
+            if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+            ErrorMsg <- "\nI have problems with the raw data set. Possibly you specified n.ind.mod incorrectly before doing ctmaPrep. The n.ind.mod should by > 0 if the raw data set does not have the last time interval as last column.\nGood luck for the next try!"
+            stop(ErrorMsg)
+          }
+
           currentTpointsBackup <- currentTpoints # in case function is called from ctmaOptimizeInit
           if (n.manifest > n.latent) {
             colnames(empraw[[i]])[1:(currentTpoints * n.manifest)] <- paste0(paste0("x", 1:n.manifest), "_T", rep(0:(currentTpoints-1), each=n.manifest))
@@ -1573,6 +1595,7 @@ ctmaInit <- function(
                   primaryStudyList=primaryStudies,
                   studyList=studyList, studyFitList=studyFit,
                   emprawList=empraw, statisticsList=statisticsList,
+                  ind.mod.List=empraw.ind.mod,
                   modelResults=list(DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef,
                                     DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
                                     DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale),

@@ -44,6 +44,10 @@
 #' @param manifestMeans default = 0. Are automatically set free is indvarying is set to TRUE. Can be assigned labels to estimate them freely.
 #' @param cint default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')
 #' @param T0var (default = 'auto')
+#' @param ind.mod.number which in the vector of individual level (!) moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
+#' @param ind.mod.type 'cont' or 'cat' of the individual level (!) modeartors (mixing them in a single model not yet possible)
+#' @param ind.mod.names vector of names for individual level (!) moderators used in output
+
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  parallel detectCores
@@ -139,7 +143,10 @@ ctmaFit <- function(
     T0var='auto',
     manifestMeans=0,
     manifestVars=0,
-    indVaryingT0=NULL
+    indVaryingT0=NULL,
+    ind.mod.number=NULL,
+    ind.mod.type="cont",
+    ind.mod.names=NULL
 )
 
 
@@ -300,6 +307,11 @@ ctmaFit <- function(
 
   # check moderator information
   {
+    n.ind.moderators <- length(ind.mod.number); n.ind.moderators
+    if (ind.mod.number == 0 ) n.ind.moderators <- 0
+    n.ind.moderators
+
+    if (n.ind.moderators == 0) { # proceed if only moderators at the study level are used
     n.moderators <- length(mod.number); n.moderators
     { # check if transfMod is as long as n.moderators
       if ( (!(is.null(transfMod))) ) {
@@ -330,6 +342,46 @@ ctmaFit <- function(
         stop(ErrorMsg)
       }
     }
+    }
+
+    if (n.ind.moderators > 0) { #
+      n.moderators <- n.ind.moderators; n.moderators
+
+      tmpMods <- lapply(ctmaInitFit$ind.mod.List, function(x) x)
+      tmp1 <- unlist(lapply(tmpMods, function(x) dim(x)[2])); tmp1
+      if (length(ind.mod.number) > min(tmp1)) {
+          if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+          ErrorMsg <- "\nIndividual level moderation model requested. At least one study has fewer individual level moderators in the raw data file than the number
+          specified via ind.mod.number . Check your data, redo ctmaPrep and ctmaInit again. \nGood luck for the next try!"
+          stop(ErrorMsg)
+      }
+      if (!(is.null(primaryStudyList))) {
+        if (length(primaryStudyList$deltas) != n.studies) {
+          if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+          ErrorMsg <- "\nYou provided a list to the argument primaryStudyList. The number of studies in this list is not identical to the number of
+          studies fitted with ctmaInit as provided in the argument ctmaInitFit. \nGood luck for the next try!"
+          stop(ErrorMsg)
+        }
+        }
+      #str(currentModerators)
+      currentModerators <- tmpMods[[1]]
+      for ( i in 2:length(tmpMods)) currentModerators <- rbind(currentModerators, tmpMods[[i]])
+      currentModerators <- currentModerators[, ind.mod.number]
+      currentModerators <- as.matrix(currentModerators)
+
+      #if (any(is.na(currentModerators)) == TRUE) {
+      #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      #  ErrorMsg <- "\nAt least one of the primary studies does not have a valid value for the requested moderator. \nGood luck for the next try!"
+      #  stop(ErrorMsg)
+      #}
+      #if (var(currentModerators) == 0) {
+      #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      #  ErrorMsg <- "\nModerator is constant across cases.\nGood luck for the next try!"
+      #  stop(ErrorMsg)
+      #}
+    }
+  #}
+
   }
 
   #######################################################################################################################
@@ -349,7 +401,17 @@ ctmaFit <- function(
     # combine pseudo raw data
     {
       if (n.moderators > 0) {
-        tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit, moderatorValues= currentModerators)
+        if (n.ind.moderators != 0) {
+          tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit)
+          casesToDelete <- which(is.na(currentModerators)); casesToDelete
+          currentModerators <- as.matrix(currentModerators[-casesToDelete,]); dim(currentModerators)
+          tmp$moderatorGroups <- currentModerators; length(tmp$moderatorGroups)
+          tmp$groups <- tmp$groups[-casesToDelete]; length(tmp$alldata)
+          tmp$alldata <- tmp$alldata[-casesToDelete,]; dim(tmp$alldata)
+        } else {
+          tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit, moderatorValues= currentModerators)
+          #str(tmp)
+        }
       } else {
         tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit)
       }
@@ -364,6 +426,7 @@ ctmaFit <- function(
         datawide_all <- datawide_all[-casesToDelete, ]
         groups <- groups[-casesToDelete]
         n.studies <- length(unique(groups))
+        currentModerators <- currentModerators[-casesToDelete,]
       }
     }
 
@@ -454,7 +517,7 @@ ctmaFit <- function(
         dataTmp <- cbind(dataTmp, tmp); dim(dataTmp)
         dataTmp <- dataTmp[ ,-grep("mod", colnames(dataTmp))]
       }
-      if (mod.type=="cat") {
+      if ((mod.type=="cat") | (ind.mod.type=="cat")) {
         tmp1 <- paste0("mod", 1:n.moderators); tmp1
         if (length(tmp1) == 1) tmp <- matrix(dataTmp[ , tmp1], ncol=length(tmp1)) else tmp <- dataTmp[ , tmp1]
         if (n.moderators > 1) {
@@ -568,6 +631,7 @@ ctmaFit <- function(
 
     # make long data format
     {
+      head(dataTmp)
       dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.var, n.TIpred = (n.studies-1+tmp1),
                                       manifestNames=manifestNames)
 
@@ -602,7 +666,7 @@ ctmaFit <- function(
 
 
   # define Names (labels in compiled output) and Params (= labels for ctsem models)
-  if (is.null(moderatedDrift) & (!(is.null(mod.number)))) moderatedDrift <- "all" # will be changed by ctmaLabels
+  if (is.null(moderatedDrift) & ( (!(is.null(mod.number))) | (!(is.null(ind.mod.number)))) ) moderatedDrift <- "all" # will be changed by ctmaLabels
 
   namesAndParams <- ctmaLabels(
     n.latent=n.latent,
@@ -884,8 +948,8 @@ ctmaFit <- function(
     tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftNames); tmp2
     stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
 
-    stanctModel$pars[1:14,1:10]
-    stanctModel$pars[14:28,1:10]
+    #stanctModel$pars[1:14,1:10]
+    #stanctModel$pars[14:28,1:10]
 
     if (!(optimize)) {
       customPar <- FALSE

@@ -29,6 +29,7 @@
 #' @param summary if TRUE (default) creates summary table and xlsx sheets. Could be set to FALSE in case of errors.
 #' @param activeDirectory Mandatory. If subsequent fitting is done using different folders or on different computers, it can be
 #' changed so that raw data files can be loaded.
+#' @param n.ind.mod number of individual-level (person-level) moderators in raw data file (default = 0)
 #'
 #' @importFrom crayon red
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
@@ -124,8 +125,12 @@ ctmaPrep <- function(selectedStudies=NULL,
     stop(ErrorMsg)
   }
 
-  insideRawData <- list(NULL, NULL, -99, TRUE, FALSE, ".", " ")
-  names(insideRawData) <- list("fileName", "studyNumbers", "missingValues", "standardize", "header", "dec", "sep")
+  #insideRawData <- list(NULL, NULL, -99, TRUE, FALSE, ".", " ")
+  #names(insideRawData) <- list("fileName", "studyNumbers", "missingValues", "standardize", "header", "dec", "sep")
+  insideRawData <- list(fileName=NULL, studyNumbers=NULL, missingValues=-99,
+                        standardize=TRUE, header=FALSE, dec =".", sep=" ",
+                        n.ind.mod=0)
+
   for (i in 1:(length(selectedStudies)+1)) {
     deltas[[i]] <- NA
     sampleSizes[[i]] <- NA
@@ -164,7 +169,7 @@ ctmaPrep <- function(selectedStudies=NULL,
     if (exists(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
       tmp1 <- get(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE); tmp1
       if (!(is.null(tmp1))) sampleSizes[[i]] <- get(paste0("sampleSize", selectedStudies[i]),
-                                                         envir =parent.frame(), inherits=FALSE) else sampleSizes[[i]] <- NA
+                                                    envir =parent.frame(), inherits=FALSE) else sampleSizes[[i]] <- NA
     } else {
       sampleSizes[[i]] <- NA
     }
@@ -233,6 +238,8 @@ ctmaPrep <- function(selectedStudies=NULL,
     if (exists(paste0("rawData", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
       rawData[[i]] <- get(paste0("rawData", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)
       rawData[[i]]$studyNumbers <- selectedStudies[i]
+      # CHD 19.6.2023 to allow separating ind level moderators from rest of data file in ctmaInit
+      if (is.null(rawData[[i]]$n.ind.mod)) rawData[[i]]$n.ind.mod <- 0
     }
     if ( (is.na(sampleSizes[[i]]) & (is.null(dim(pairwiseNs[[i]]))) & (is.null(rawData[[i]])) ) ) {
       cat(crayon::red$bold("Neither sample size nor matrix of pairwise N nor rawData was provided for primary study ", i, sep=""))
@@ -280,240 +287,240 @@ ctmaPrep <- function(selectedStudies=NULL,
   primaryStudies$n.studies <- length(selectedStudies)
 
   if (summary == TRUE) {
-  # create summary
-  # values required for printing matrix values in a single row
-  primaryStudies2 <- primaryStudies
-  n.studies  <- primaryStudies$n.studies
-  maxWaves <- max(unlist(lapply(primaryStudies$deltas, length)))+1; maxWaves
-  maxEmpcov <- max(unlist(lapply(primaryStudies$empcovs, length)))^.5; maxEmpcov
-  #maxPairwiseNs <- max(unlist(lapply(primaryStudies$pairwiseNs, length)))^.5; maxPairwiseNs
-  n.variables <- maxEmpcov/maxWaves; n.variables
+    # create summary
+    # values required for printing matrix values in a single row
+    primaryStudies2 <- primaryStudies
+    n.studies  <- primaryStudies$n.studies
+    maxWaves <- max(unlist(lapply(primaryStudies$deltas, length)))+1; maxWaves
+    maxEmpcov <- max(unlist(lapply(primaryStudies$empcovs, length)))^.5; maxEmpcov
+    #maxPairwiseNs <- max(unlist(lapply(primaryStudies$pairwiseNs, length)))^.5; maxPairwiseNs
+    n.variables <- maxEmpcov/maxWaves; n.variables
 
-  studyListCategories <- vector("list", length=length(names(primaryStudies2))); studyListCategories
-  names(studyListCategories) <- names(primaryStudies2); studyListCategories
-  studyListCategories$n.studies <- NULL # do not summarize n.studies (is constant)
-  primaryStudies2$n.studies <- NULL #
-  studyListCategories$startValues <- NULL # do not summarize start values
-  primaryStudies2$startValues <- NULL
-  studyListCategories$rawData <- NULL # do not summarize raw data
-  primaryStudies2$rawData <- NULL #
-  studyListCategories$empMeans <- NULL # do not summarize means
-  primaryStudies2$empMeans <- NULL
-  studyListCategories$empVars <- NULL # do not summarize variances
-  primaryStudies2$empVars <- NULL
+    studyListCategories <- vector("list", length=length(names(primaryStudies2))); studyListCategories
+    names(studyListCategories) <- names(primaryStudies2); studyListCategories
+    studyListCategories$n.studies <- NULL # do not summarize n.studies (is constant)
+    primaryStudies2$n.studies <- NULL #
+    studyListCategories$startValues <- NULL # do not summarize start values
+    primaryStudies2$startValues <- NULL
+    studyListCategories$rawData <- NULL # do not summarize raw data
+    primaryStudies2$rawData <- NULL #
+    studyListCategories$empMeans <- NULL # do not summarize means
+    primaryStudies2$empMeans <- NULL
+    studyListCategories$empVars <- NULL # do not summarize variances
+    primaryStudies2$empVars <- NULL
 
-  summaryTable <- matrix(NA, nrow=n.studies, ncol=0); summaryTable
-  for (i in 1:length(studyListCategories)) {
-    if (any(!(is.na(primaryStudies2[[i]])))) {
-      # check max length of list elements across studies
-      maxLength <- max(unlist(lapply(primaryStudies2[[i]], length))); maxLength
-      object <- "vector"
-      if (names(studyListCategories)[i] %in% c("empcovs", "pairwiseNs")) object <- "matrix"
-      if (names(studyListCategories)[i] %in% c("combineVariables")) object <- "list"
-      if (object == "matrix") {
-        maxLength <- maxLength ^.5; maxLength # correction if input is matrix
-        maxDim <- maxLength # CHD 2.2.23
-        maxLength <- maxLength * (maxLength - 1) / 2; maxLength
-      }
-      if (names(studyListCategories)[i] %in% c("alphas")) maxLength <- maxWaves * n.variables
+    summaryTable <- matrix(NA, nrow=n.studies, ncol=0); summaryTable
+    for (i in 1:length(studyListCategories)) {
+      if (any(!(is.na(primaryStudies2[[i]])))) {
+        # check max length of list elements across studies
+        maxLength <- max(unlist(lapply(primaryStudies2[[i]], length))); maxLength
+        object <- "vector"
+        if (names(studyListCategories)[i] %in% c("empcovs", "pairwiseNs")) object <- "matrix"
+        if (names(studyListCategories)[i] %in% c("combineVariables")) object <- "list"
+        if (object == "matrix") {
+          maxLength <- maxLength ^.5; maxLength # correction if input is matrix
+          maxDim <- maxLength # CHD 2.2.23
+          maxLength <- maxLength * (maxLength - 1) / 2; maxLength
+        }
+        if (names(studyListCategories)[i] %in% c("alphas")) maxLength <- maxWaves * n.variables
 
-      if (maxLength > 0) {
-        tmpTable <- matrix(NA, nrow=n.studies, ncol=maxLength); tmpTable
-        for (j in (1:n.studies)) {
-         #j <- 1
-          if (length(primaryStudies2[[i]][[j]]) > 0) {
-            if (object == "matrix") {
-              # currentLength <- length(primaryStudies2[[i]][[j]])^.5; currentLength
-              # currentLength <- currentLength * (currentLength-1) / 2; currentLength
-              # for (k in 1:currentLength) tmpTable[j, k] <- round(primaryStudies2[[i]][[j]][lower.tri(primaryStudies2[[i]][[j]])][k], digits)
-              # new CHD 2.2.23
-              tmp1 <- primaryStudies2[[i]][[j]]
-              currentDim <- length(tmp1)^.5; currentDim
-              tmp2 <- maxDim - currentDim; tmp2
-              if (tmp2 > 0) {
-                tmp1 <- cbind(tmp1, matrix(NA, nrow=currentDim, ncol=tmp2))
-                tmp1 <- rbind(tmp1, matrix(NA, nrow=tmp2, ncol=maxDim))
+        if (maxLength > 0) {
+          tmpTable <- matrix(NA, nrow=n.studies, ncol=maxLength); tmpTable
+          for (j in (1:n.studies)) {
+            #j <- 1
+            if (length(primaryStudies2[[i]][[j]]) > 0) {
+              if (object == "matrix") {
+                # currentLength <- length(primaryStudies2[[i]][[j]])^.5; currentLength
+                # currentLength <- currentLength * (currentLength-1) / 2; currentLength
+                # for (k in 1:currentLength) tmpTable[j, k] <- round(primaryStudies2[[i]][[j]][lower.tri(primaryStudies2[[i]][[j]])][k], digits)
+                # new CHD 2.2.23
+                tmp1 <- primaryStudies2[[i]][[j]]
+                currentDim <- length(tmp1)^.5; currentDim
+                tmp2 <- maxDim - currentDim; tmp2
+                if (tmp2 > 0) {
+                  tmp1 <- cbind(tmp1, matrix(NA, nrow=currentDim, ncol=tmp2))
+                  tmp1 <- rbind(tmp1, matrix(NA, nrow=tmp2, ncol=maxDim))
+                }
+                currentLength <- length(tmp1)^.5; currentLength
+                currentLength <- currentLength * (currentLength-1) / 2; currentLength
+                tmp1[lower.tri(tmp1)]
+                for (k in 1:currentLength) if (!(is.na(tmp1[lower.tri(tmp1)][k]))) tmpTable[j, k] <- round(tmp1[lower.tri(tmp1)][k], digits)
               }
-              currentLength <- length(tmp1)^.5; currentLength
-              currentLength <- currentLength * (currentLength-1) / 2; currentLength
-              tmp1[lower.tri(tmp1)]
-              for (k in 1:currentLength) if (!(is.na(tmp1[lower.tri(tmp1)][k]))) tmpTable[j, k] <- round(tmp1[lower.tri(tmp1)][k], digits)
-            }
-            if (object == "vector") {
-              for (k in 1:maxLength) tmpTable[j, k] <- primaryStudies2[[i]][[j]][k]
-            }
-            if (object == "list") {
-              tmp1 <- primaryStudies2[[i]][[j]]; tmp1
-              if (length(tmp1) > 0) {
-                tmp2 <- c()
-                for (l in 1:length(tmp1)) {
-                  tmp3 <- c()
-                  for (m in 1:length(tmp1[[l]])) {
-                    tmp3 <- paste0(tmp3, tmp1[[l]][m]); tmp3
+              if (object == "vector") {
+                for (k in 1:maxLength) tmpTable[j, k] <- primaryStudies2[[i]][[j]][k]
+              }
+              if (object == "list") {
+                tmp1 <- primaryStudies2[[i]][[j]]; tmp1
+                if (length(tmp1) > 0) {
+                  tmp2 <- c()
+                  for (l in 1:length(tmp1)) {
+                    tmp3 <- c()
+                    for (m in 1:length(tmp1[[l]])) {
+                      tmp3 <- paste0(tmp3, tmp1[[l]][m]); tmp3
+                    }
+                    tmp2[l] <- tmp3
                   }
-                  tmp2[l] <- tmp3
-                }
-                for (m in 1:maxLength) tmpTable[j, m] <- tmp2[m]
-              }
-            }
-          }
-        } # end for (j in (1:n.studies))
-        #tmpTable
-
-        if (names(studyListCategories)[i] %in% c("ageM", "ageSD", "malePercent")) tmpTable <- round(tmpTable, digits)
-        tmpTableNames <- tmpTableNamesBackup <- gsub("$", "", names(studyListCategories[i])); tmpTableNames
-        if (tmpTableNamesBackup == "deltas") tmpTableNames <- paste0("Delta", " Lag ", seq(1, maxLength, 1)); tmpTableNames
-        if (tmpTableNamesBackup == "moderators") tmpTableNames <- paste0("Moderator", " # ", seq(1, maxLength, 1)); tmpTableNames
-        if (tmpTableNamesBackup == "sampleSizes") tmpTableNames <- "N"; tmpTableNames
-        if (tmpTableNamesBackup == "pairwiseNs") tmpTableNames <- "pairwise N"; tmpTableNames
-        if (tmpTableNamesBackup == "studyNumbers") tmpTableNames <- "Orig. Study No."; tmpTableNames
-        if (tmpTableNamesBackup == "source") tmpTableNames <- paste0("Source Info ", seq(1, maxLength, 1)); tmpTableNames
-        if (tmpTableNamesBackup == "occupation") tmpTableNames <- paste0("Occupation ", seq(1, maxLength, 1)); tmpTableNames
-        if (tmpTableNamesBackup == "targetVariables") tmpTableNames <- paste0("Variable ", seq(1, maxLength, 1)); tmpTableNames
-        if (tmpTableNamesBackup == "country") tmpTableNames <- paste0("Country ", seq(1, maxLength, 1)); tmpTableNames
-        if (tmpTableNamesBackup == "recodeVariables") tmpTableNames <- paste0("recodeVariables Nr.", seq(1, maxLength, 1)); tmpTableNames
-        if (tmpTableNamesBackup == "combineVariables") tmpTableNames <- paste0("combineVariables ", seq(1, maxLength, 1)); tmpTableNames
-        if (tmpTableNamesBackup == "combineVariablesNames") tmpTableNames <- paste0("combineVariablesNames ", seq(1, maxLength, 1)); tmpTableNames
-        if (tmpTableNamesBackup == "missingVariables") tmpTableNames <- paste0("missingVariables", seq(1, maxLength, 1)); tmpTableNames
-
-        if (tmpTableNamesBackup == "alphas") {
-          tmpTableNames <- c()
-          for (k in 1:maxWaves) {
-            for (l in 1:n.variables) {
-              tmpTableNames <- c(tmpTableNames, paste0("alpha Y", l, "_T", k-1)); tmpTableNames
-            }
-          }
-        }
-
-        if (tmpTableNamesBackup == "empcovs") {
-          tmpTableNames <- c()
-          for (k in 1:maxWaves) {
-            for (l in 1:n.variables) {
-              for (m in 1:maxWaves) {
-                for (n in 1:n.variables) {
-                  tmpTableNames <- c(tmpTableNames, paste0("r(Y", l, "_T", k-1, ") (Y", n, "_T", m-1, ")"))
+                  for (m in 1:maxLength) tmpTable[j, m] <- tmp2[m]
                 }
               }
             }
-          }
-          tmpTableNamesMat <- matrix(tmpTableNames, n.variables*maxWaves, n.variables*maxWaves); tmpTableNamesMat
-          tmpTableNames <- tmpTableNamesMat[lower.tri(tmpTableNamesMat)]; tmpTableNames
-          tmpTableNames <- tmpTableNames[1:maxLength] # test
-        }
+          } # end for (j in (1:n.studies))
+          #tmpTable
 
-        if (tmpTableNamesBackup == "pairwiseNs") {
-          tmpTableNames <- c()
-          for (k in 1:maxWaves) {
-            for (l in 1:n.variables) {
-              for (m in 1:maxWaves) {
-                for (n in 1:n.variables) {
-                  tmpTableNames <- c(tmpTableNames, paste0("N(Y", l, "_T", k-1, ") (Y", n, "_T", m-1, ")"))
-                }
+          if (names(studyListCategories)[i] %in% c("ageM", "ageSD", "malePercent")) tmpTable <- round(tmpTable, digits)
+          tmpTableNames <- tmpTableNamesBackup <- gsub("$", "", names(studyListCategories[i])); tmpTableNames
+          if (tmpTableNamesBackup == "deltas") tmpTableNames <- paste0("Delta", " Lag ", seq(1, maxLength, 1)); tmpTableNames
+          if (tmpTableNamesBackup == "moderators") tmpTableNames <- paste0("Moderator", " # ", seq(1, maxLength, 1)); tmpTableNames
+          if (tmpTableNamesBackup == "sampleSizes") tmpTableNames <- "N"; tmpTableNames
+          if (tmpTableNamesBackup == "pairwiseNs") tmpTableNames <- "pairwise N"; tmpTableNames
+          if (tmpTableNamesBackup == "studyNumbers") tmpTableNames <- "Orig. Study No."; tmpTableNames
+          if (tmpTableNamesBackup == "source") tmpTableNames <- paste0("Source Info ", seq(1, maxLength, 1)); tmpTableNames
+          if (tmpTableNamesBackup == "occupation") tmpTableNames <- paste0("Occupation ", seq(1, maxLength, 1)); tmpTableNames
+          if (tmpTableNamesBackup == "targetVariables") tmpTableNames <- paste0("Variable ", seq(1, maxLength, 1)); tmpTableNames
+          if (tmpTableNamesBackup == "country") tmpTableNames <- paste0("Country ", seq(1, maxLength, 1)); tmpTableNames
+          if (tmpTableNamesBackup == "recodeVariables") tmpTableNames <- paste0("recodeVariables Nr.", seq(1, maxLength, 1)); tmpTableNames
+          if (tmpTableNamesBackup == "combineVariables") tmpTableNames <- paste0("combineVariables ", seq(1, maxLength, 1)); tmpTableNames
+          if (tmpTableNamesBackup == "combineVariablesNames") tmpTableNames <- paste0("combineVariablesNames ", seq(1, maxLength, 1)); tmpTableNames
+          if (tmpTableNamesBackup == "missingVariables") tmpTableNames <- paste0("missingVariables", seq(1, maxLength, 1)); tmpTableNames
+
+          if (tmpTableNamesBackup == "alphas") {
+            tmpTableNames <- c()
+            for (k in 1:maxWaves) {
+              for (l in 1:n.variables) {
+                tmpTableNames <- c(tmpTableNames, paste0("alpha Y", l, "_T", k-1)); tmpTableNames
               }
             }
           }
-          tmpTableNamesMat <- matrix(tmpTableNames, n.variables*maxWaves, n.variables*maxWaves); tmpTableNamesMat
-          tmpTableNames <- tmpTableNamesMat[lower.tri(tmpTableNamesMat)]; tmpTableNames
-          tmpTableNames <- tmpTableNames[1:maxLength] # test
-        }
 
-        # if less columnames than columns are present
-        if (length(tmpTableNames) < dim(tmpTable)[2]) tmpTableNames <- rep(tmpTableNames[1], dim(tmpTable)[2])
-        colnames(tmpTable) <- tmpTableNames
+          if (tmpTableNamesBackup == "empcovs") {
+            tmpTableNames <- c()
+            for (k in 1:maxWaves) {
+              for (l in 1:n.variables) {
+                for (m in 1:maxWaves) {
+                  for (n in 1:n.variables) {
+                    tmpTableNames <- c(tmpTableNames, paste0("r(Y", l, "_T", k-1, ") (Y", n, "_T", m-1, ")"))
+                  }
+                }
+              }
+            }
+            tmpTableNamesMat <- matrix(tmpTableNames, n.variables*maxWaves, n.variables*maxWaves); tmpTableNamesMat
+            tmpTableNames <- tmpTableNamesMat[lower.tri(tmpTableNamesMat)]; tmpTableNames
+            tmpTableNames <- tmpTableNames[1:maxLength] # test
+          }
 
-        if (tmpTableNamesBackup == "source") summaryTable <- cbind(tmpTable,summaryTable) else summaryTable <- cbind(summaryTable, tmpTable)
-      } # end if (maxLength > 0)
-    }
-  }
+          if (tmpTableNamesBackup == "pairwiseNs") {
+            tmpTableNames <- c()
+            for (k in 1:maxWaves) {
+              for (l in 1:n.variables) {
+                for (m in 1:maxWaves) {
+                  for (n in 1:n.variables) {
+                    tmpTableNames <- c(tmpTableNames, paste0("N(Y", l, "_T", k-1, ") (Y", n, "_T", m-1, ")"))
+                  }
+                }
+              }
+            }
+            tmpTableNamesMat <- matrix(tmpTableNames, n.variables*maxWaves, n.variables*maxWaves); tmpTableNamesMat
+            tmpTableNames <- tmpTableNamesMat[lower.tri(tmpTableNamesMat)]; tmpTableNames
+            tmpTableNames <- tmpTableNames[1:maxLength] # test
+          }
 
-  primaryStudies$summary <- as.data.frame(summaryTable)
+          # if less columnames than columns are present
+          if (length(tmpTableNames) < dim(tmpTable)[2]) tmpTableNames <- rep(tmpTableNames[1], dim(tmpTable)[2])
+          colnames(tmpTable) <- tmpTableNames
 
-  moderatorLabelsBackup <- moderatorLabels; moderatorLabelsBackup
-  moderatorValuesBackup <- moderatorValues; moderatorValuesBackup
-  if (is.null(moderatorLabels)) moderatorLabels <- NA
-  if (is.null(moderatorValues)) moderatorValues <- NA
-  primaryStudies$moderatorLabels <- moderatorLabels; primaryStudies$moderatorLabels
-  primaryStudies$moderatorValues <- moderatorValues; primaryStudies$moderatorValues
-
-
-  ### prepare Excel Workbook with several sheets ################################################################
-  wb <- openxlsx::createWorkbook()
-  sheet1 <- openxlsx::addWorksheet(wb, sheetName="All Primary Study Information")
-  sheet2 <- openxlsx::addWorksheet(wb, sheetName="Deltas")
-  sheet3 <- openxlsx::addWorksheet(wb, sheetName="Sample Sizes")
-  sheet4 <- openxlsx::addWorksheet(wb, sheetName="Correlations")
-  sheet5 <- openxlsx::addWorksheet(wb, sheetName="Moderators")
-  sheet6 <- openxlsx::addWorksheet(wb, sheetName="Countries")
-  sheet7 <- openxlsx::addWorksheet(wb, sheetName="Occupations")
-  sheet8 <- openxlsx::addWorksheet(wb, sheetName="Demographics")
-  sheet9 <- openxlsx::addWorksheet(wb, sheetName="Variable Information")
-
-  openxlsx::writeData(wb, 1, primaryStudies$summary)
-
-  tmp1 <- grep("Source", colnames(primaryStudies$summary)); tmp1
-  tmp2 <- grep("Orig.", colnames(primaryStudies$summary)); tmp2
-  tmp3 <- grep("Delta", colnames(primaryStudies$summary)); tmp3
-  openxlsx::writeData(wb, sheet2, primaryStudies$summary[c(tmp1, tmp2, tmp3)])
-
-  tmp3 <- which(colnames(primaryStudies$summary) == "N")
-  tmp4 <- grep("N\\(", colnames(primaryStudies$summary)); tmp4
-  openxlsx::writeData(wb, sheet3, primaryStudies$summary[c(tmp1, tmp2, tmp3, tmp4)])
-
-
-  tmp3 <- grep("r\\(", colnames(primaryStudies$summary)); tmp3
-  tmp4 <- grep("N\\(", colnames(primaryStudies$summary)); tmp4
-  openxlsx::writeData(wb, sheet4, primaryStudies$summary[c(tmp1, tmp2, tmp3, tmp4)])
-
-  tmp3 <- grep("Moderator", colnames(primaryStudies$summary)); tmp3
-  tmp8 <- primaryStudies$summary[c(tmp1, tmp2, tmp3)]; tmp8
-  openxlsx::writeData(wb, sheet5, tmp8)
-  if (!(is.null(moderatorLabelsBackup))) {
-    tmp5 <- grep("Moderator", colnames(tmp8)); tmp5
-    tmp6 <- rep("", (min(tmp5)-1)); tmp6
-    tmp7 <- c(tmp6, moderatorLabelsBackup); tmp7
-    tmp8 <- rbind(tmp8, tmp7); tmp8
-    openxlsx::writeData(wb, sheet5, tmp8)
-  }
-  if (!(is.null(moderatorValuesBackup))) {
-    maxCategories <- max(unlist(lapply(moderatorValuesBackup, function(extract) length(extract)))); maxCategories
-    tmp5 <- grep("Moderator", colnames(tmp8)); tmp5
-    tmp6 <- rep("", (min(tmp5)-1)); tmp6   # empty leading columns
-    tmp7 <- c()
-    for (j in 1: maxCategories){
-      for (i in 1:length(moderatorValuesBackup)){
-        tmp7 <- cbind(tmp7, paste0(moderatorValuesBackup[[i]][j]))
+          if (tmpTableNamesBackup == "source") summaryTable <- cbind(tmpTable,summaryTable) else summaryTable <- cbind(summaryTable, tmpTable)
+        } # end if (maxLength > 0)
       }
     }
-    tmp7 <- matrix(tmp7, ncol=length(tmp5), byrow=TRUE); tmp7  # matrix with labels
-    tmp6b <- tmp6; tmp6b
-    #if ((dim(tmp7)[1]-1) > 1) {
-    if ((dim(tmp7)[1]-1) > 0) {
-      for (i in 1:(dim(tmp7)[1]-1)) tmp6b <- rbind(tmp6b, tmp6); tmp6b
-      tmp7 <- cbind(tmp6b, tmp7); tmp7
-    } else {
-      tmp7 <- matrix(c(tmp6b,tmp7), nrow=1)
-    }
-    tmp7[which(tmp7 =="NA")] <- ""
-    colnames(tmp7) <- colnames(tmp8)
-    rownames(tmp7) <- NULL
-    tmp8 <- rbind(tmp8, tmp7); tmp8
-    openxlsx::writeData(wb, sheet5, tmp8)
-  }
-  tmp3 <- grep("Country", colnames(primaryStudies$summary)); tmp3
-  openxlsx::writeData(wb, sheet6, primaryStudies$summary[c(tmp1, tmp2, tmp3)])
-  tmp3 <- grep("Occupation", colnames(primaryStudies$summary)); tmp3
-  openxlsx::writeData(wb, sheet7, primaryStudies$summary[c(tmp1, tmp2, tmp3)])
-  tmp3 <- grep("age", colnames(primaryStudies$summary)); tmp3
-  tmp3 <- c(tmp3, grep("male", colnames(primaryStudies$summary))); tmp3
-  openxlsx::writeData(wb, sheet8, primaryStudies$summary[c(tmp1, tmp2, tmp3)])
-  tmp3 <- grep("Variable ", colnames(primaryStudies$summary)); tmp3  # space behind Variable is important
-  tmp3 <- c(tmp3, grep("alpha", colnames(primaryStudies$summary))); tmp3
-  tmp3 <- c(tmp3, grep("recodeVariables", colnames(primaryStudies$summary))); tmp3
-  tmp3 <- c(tmp3, grep("combineVariables ", colnames(primaryStudies$summary))); tmp3
-  tmp3 <- c(tmp3, grep("combineVariablesNames", colnames(primaryStudies$summary))); tmp3
-  openxlsx::writeData(wb, sheet9, primaryStudies$summary[c(tmp1, tmp2, tmp3)])
 
-  primaryStudies$excelSheets <- wb
+    primaryStudies$summary <- as.data.frame(summaryTable)
+
+    moderatorLabelsBackup <- moderatorLabels; moderatorLabelsBackup
+    moderatorValuesBackup <- moderatorValues; moderatorValuesBackup
+    if (is.null(moderatorLabels)) moderatorLabels <- NA
+    if (is.null(moderatorValues)) moderatorValues <- NA
+    primaryStudies$moderatorLabels <- moderatorLabels; primaryStudies$moderatorLabels
+    primaryStudies$moderatorValues <- moderatorValues; primaryStudies$moderatorValues
+
+
+    ### prepare Excel Workbook with several sheets ################################################################
+    wb <- openxlsx::createWorkbook()
+    sheet1 <- openxlsx::addWorksheet(wb, sheetName="All Primary Study Information")
+    sheet2 <- openxlsx::addWorksheet(wb, sheetName="Deltas")
+    sheet3 <- openxlsx::addWorksheet(wb, sheetName="Sample Sizes")
+    sheet4 <- openxlsx::addWorksheet(wb, sheetName="Correlations")
+    sheet5 <- openxlsx::addWorksheet(wb, sheetName="Moderators")
+    sheet6 <- openxlsx::addWorksheet(wb, sheetName="Countries")
+    sheet7 <- openxlsx::addWorksheet(wb, sheetName="Occupations")
+    sheet8 <- openxlsx::addWorksheet(wb, sheetName="Demographics")
+    sheet9 <- openxlsx::addWorksheet(wb, sheetName="Variable Information")
+
+    openxlsx::writeData(wb, 1, primaryStudies$summary)
+
+    tmp1 <- grep("Source", colnames(primaryStudies$summary)); tmp1
+    tmp2 <- grep("Orig.", colnames(primaryStudies$summary)); tmp2
+    tmp3 <- grep("Delta", colnames(primaryStudies$summary)); tmp3
+    openxlsx::writeData(wb, sheet2, primaryStudies$summary[c(tmp1, tmp2, tmp3)])
+
+    tmp3 <- which(colnames(primaryStudies$summary) == "N")
+    tmp4 <- grep("N\\(", colnames(primaryStudies$summary)); tmp4
+    openxlsx::writeData(wb, sheet3, primaryStudies$summary[c(tmp1, tmp2, tmp3, tmp4)])
+
+
+    tmp3 <- grep("r\\(", colnames(primaryStudies$summary)); tmp3
+    tmp4 <- grep("N\\(", colnames(primaryStudies$summary)); tmp4
+    openxlsx::writeData(wb, sheet4, primaryStudies$summary[c(tmp1, tmp2, tmp3, tmp4)])
+
+    tmp3 <- grep("Moderator", colnames(primaryStudies$summary)); tmp3
+    tmp8 <- primaryStudies$summary[c(tmp1, tmp2, tmp3)]; tmp8
+    openxlsx::writeData(wb, sheet5, tmp8)
+    if (!(is.null(moderatorLabelsBackup))) {
+      tmp5 <- grep("Moderator", colnames(tmp8)); tmp5
+      tmp6 <- rep("", (min(tmp5)-1)); tmp6
+      tmp7 <- c(tmp6, moderatorLabelsBackup); tmp7
+      tmp8 <- rbind(tmp8, tmp7); tmp8
+      openxlsx::writeData(wb, sheet5, tmp8)
+    }
+    if (!(is.null(moderatorValuesBackup))) {
+      maxCategories <- max(unlist(lapply(moderatorValuesBackup, function(extract) length(extract)))); maxCategories
+      tmp5 <- grep("Moderator", colnames(tmp8)); tmp5
+      tmp6 <- rep("", (min(tmp5)-1)); tmp6   # empty leading columns
+      tmp7 <- c()
+      for (j in 1: maxCategories){
+        for (i in 1:length(moderatorValuesBackup)){
+          tmp7 <- cbind(tmp7, paste0(moderatorValuesBackup[[i]][j]))
+        }
+      }
+      tmp7 <- matrix(tmp7, ncol=length(tmp5), byrow=TRUE); tmp7  # matrix with labels
+      tmp6b <- tmp6; tmp6b
+      #if ((dim(tmp7)[1]-1) > 1) {
+      if ((dim(tmp7)[1]-1) > 0) {
+        for (i in 1:(dim(tmp7)[1]-1)) tmp6b <- rbind(tmp6b, tmp6); tmp6b
+        tmp7 <- cbind(tmp6b, tmp7); tmp7
+      } else {
+        tmp7 <- matrix(c(tmp6b,tmp7), nrow=1)
+      }
+      tmp7[which(tmp7 =="NA")] <- ""
+      colnames(tmp7) <- colnames(tmp8)
+      rownames(tmp7) <- NULL
+      tmp8 <- rbind(tmp8, tmp7); tmp8
+      openxlsx::writeData(wb, sheet5, tmp8)
+    }
+    tmp3 <- grep("Country", colnames(primaryStudies$summary)); tmp3
+    openxlsx::writeData(wb, sheet6, primaryStudies$summary[c(tmp1, tmp2, tmp3)])
+    tmp3 <- grep("Occupation", colnames(primaryStudies$summary)); tmp3
+    openxlsx::writeData(wb, sheet7, primaryStudies$summary[c(tmp1, tmp2, tmp3)])
+    tmp3 <- grep("age", colnames(primaryStudies$summary)); tmp3
+    tmp3 <- c(tmp3, grep("male", colnames(primaryStudies$summary))); tmp3
+    openxlsx::writeData(wb, sheet8, primaryStudies$summary[c(tmp1, tmp2, tmp3)])
+    tmp3 <- grep("Variable ", colnames(primaryStudies$summary)); tmp3  # space behind Variable is important
+    tmp3 <- c(tmp3, grep("alpha", colnames(primaryStudies$summary))); tmp3
+    tmp3 <- c(tmp3, grep("recodeVariables", colnames(primaryStudies$summary))); tmp3
+    tmp3 <- c(tmp3, grep("combineVariables ", colnames(primaryStudies$summary))); tmp3
+    tmp3 <- c(tmp3, grep("combineVariablesNames", colnames(primaryStudies$summary))); tmp3
+    openxlsx::writeData(wb, sheet9, primaryStudies$summary[c(tmp1, tmp2, tmp3)])
+
+    primaryStudies$excelSheets <- wb
   } # end if (summary == TRUE)
 
   primaryStudies$plot.type="none"

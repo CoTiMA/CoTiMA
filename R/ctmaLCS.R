@@ -56,6 +56,7 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   }
 
   if ((undoTimeScaling == TRUE) & (CoTiMA == TRUE)) scaleTime <- CoTiMAFit$argumentList$scaleTime else scaleTime <- 1
+  if (is.numeric(undoTimeScaling)) scaleTime <- undoTimeScaling
 
   #e <- ctExtract(CoTiMAFullFit_Ov4_0531_CHD_mmri$studyFitList)
   e <- ctExtract(fit)
