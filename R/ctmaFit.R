@@ -372,7 +372,7 @@ ctmaFit <- function(
       #str(currentModerators)
       currentModerators <- tmpMods[[1]]
       for ( i in 2:length(tmpMods)) currentModerators <- rbind(currentModerators, tmpMods[[i]])
-      currentModerators <- currentModerators[, ind.mod.number]
+      #currentModerators <- currentModerators[, ind.mod.number]
       currentModerators <- as.matrix(currentModerators)
       colnames(currentModerators) <- paste0("mod", 1:dim(currentModerators)[2])
     }
@@ -399,8 +399,8 @@ ctmaFit <- function(
       if (n.moderators > 0) {
         if (n.ind.moderators != 0) {
           tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit)
-          #head(tmp$alldata)
-          #head(tmp$groups)
+          head(tmp$alldata)
+          head(tmp$groups)
           #casesToDelete <- which(is.na(currentModerators)); casesToDelete
           casesToDelete <- which(is.na(currentModerators[, ind.mod.number])); casesToDelete
           if (length(casesToDelete) > 0)  {
@@ -409,6 +409,7 @@ ctmaFit <- function(
             tmp$alldata <- tmp$alldata[-casesToDelete,]; dim(tmp$alldata)
           }
           #dim(currentModerators)
+          #tmp$moderatorGroups <- currentModerators[, ind.mod.number]; length(tmp$moderatorGroups)
           tmp$moderatorGroups <- currentModerators; dim(tmp$moderatorGroups)
         } else {
           tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit, moderatorValues= currentModerators)
@@ -438,6 +439,13 @@ ctmaFit <- function(
       moderatorGroups <- tmp$moderatorGroups
       if (!(is.matrix(moderatorGroups))) moderatorGroups <- matrix(moderatorGroups, ncol=1)
       colnames(moderatorGroups) <- paste0("mod", 1:(dim(currentModerators)[2])); colnames(moderatorGroups)
+
+      if (n.ind.moderators != 0 ) {
+        tmp1 <- as.matrix(moderatorGroups[, ind.mod.number], ncol=1)
+        colnames(tmp1) <- colnames(moderatorGroups)[1]
+        moderatorGroups <- tmp1
+        tmp$moderatorGroups <- tmp$moderatorGroups
+      }
 
       # change category values for making specific contrasts
       if (!(is.null(catsToCompare))) { # change category values to make the cats to compare the largest ones
@@ -505,7 +513,7 @@ ctmaFit <- function(
     if (n.moderators > 0) {
       # make TI predictors as replacements for each moderator
       if (mod.type=="cont") {
-        tmp1 <- paste0("mod", 1:n.moderators); tmp1; dim(tmp1)
+        tmp1 <- paste0("mod", 1:n.moderators); tmp1
         if (length(tmp1) == 1) tmp <- matrix(dataTmp[ , tmp1], ncol=length(tmp1)) else tmp <- dataTmp[ , tmp1]
         if (CoTiMAStanctArgs$scaleMod == TRUE) tmp[ , 1:ncol(tmp)] <- scale(tmp[ , 1:ncol(tmp)])
         if (!(is.null(transfMod))) {
