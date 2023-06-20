@@ -377,6 +377,8 @@ ctmaFit <- function(
       colnames(currentModerators) <- paste0("mod", 1:dim(currentModerators)[2])
     }
   }
+  #currentModerators_backup <- currentModerators
+  #currentModerators <- currentModerators_backup; dim(currentModerators)
 
   #######################################################################################################################
   ################################################# data preparation ####################################################
@@ -397,11 +399,17 @@ ctmaFit <- function(
       if (n.moderators > 0) {
         if (n.ind.moderators != 0) {
           tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit)
-          casesToDelete <- which(is.na(currentModerators)); casesToDelete
-          currentModerators <- as.matrix(currentModerators[-casesToDelete,]); dim(currentModerators)
-          tmp$moderatorGroups <- currentModerators; length(tmp$moderatorGroups)
-          tmp$groups <- tmp$groups[-casesToDelete]; length(tmp$alldata)
-          tmp$alldata <- tmp$alldata[-casesToDelete,]; dim(tmp$alldata)
+          #head(tmp$alldata)
+          #head(tmp$groups)
+          #casesToDelete <- which(is.na(currentModerators)); casesToDelete
+          casesToDelete <- which(is.na(currentModerators[, ind.mod.number])); casesToDelete
+          if (length(casesToDelete) > 0)  {
+            currentModerators <- as.matrix(currentModerators[-casesToDelete,])
+            tmp$groups <- tmp$groups[-casesToDelete]; length(tmp$alldata)
+            tmp$alldata <- tmp$alldata[-casesToDelete,]; dim(tmp$alldata)
+          }
+          #dim(currentModerators)
+          tmp$moderatorGroups <- currentModerators; dim(tmp$moderatorGroups)
         } else {
           tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit, moderatorValues= currentModerators)
           #str(tmp)
