@@ -309,6 +309,12 @@ ctmaFit <- function(
   {
     n.ind.moderators <- length(ind.mod.number); n.ind.moderators
     if (ind.mod.number == 0 ) n.ind.moderators <- 0
+    if (n.ind.moderators > 0) {
+      mod.number <- NULL
+      mod.type=ind.mod.type
+      mod.names <- NULL
+
+    }
     #n.ind.moderators
 
     if (n.ind.moderators == 0) { # proceed if only moderators at the study level are used
