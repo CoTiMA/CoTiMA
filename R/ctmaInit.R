@@ -489,6 +489,7 @@ ctmaInit <- function(
 
           # CHD 19.6.2023 extract possible ind level moderators
           if (studyList[[i]]$rawData$n.ind.mod != 0) {
+            if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
             targetCols <- (n.var * currentTpoints + currentTpoints -1 + 1): ncol(tmpData); targetCols
             empraw.ind.mod[[i]] <- list()
             empraw.ind.mod[[i]] <- tmpData[, targetCols]
