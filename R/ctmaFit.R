@@ -368,6 +368,7 @@ ctmaFit <- function(
       for ( i in 2:length(tmpMods)) currentModerators <- rbind(currentModerators, tmpMods[[i]])
       currentModerators <- currentModerators[, ind.mod.number]
       currentModerators <- as.matrix(currentModerators)
+      colnames(currentModerators) <- paste0("mod", 1:dim(currentModerators)[2])
     }
   }
 
@@ -471,6 +472,7 @@ ctmaFit <- function(
       dataTmp <- cbind(datawide_all, groups)
     }
 
+
     # make TI out of group membership
     for (i in 1:(n.studies-1)) {
       tmp <- matrix(0, nrow=nrow(dataTmp)); tmp
@@ -482,6 +484,7 @@ ctmaFit <- function(
     }
     targetCols <- which(colnames(dataTmp) == "groups"); targetCols
     dataTmp <- dataTmp[ ,-targetCols]
+    #head(dataTmp)
 
     # make TI out of moderators
     modTIstartNum <- n.studies; modTIstartNum
@@ -515,6 +518,7 @@ ctmaFit <- function(
           unique.mod <- sort(c(unique(tmp)))
         }
 
+
         # determine number of required dummies
         if (n.moderators > 1) {
           catCounter <- 0
@@ -542,6 +546,7 @@ ctmaFit <- function(
           }
         }
 
+
         if (CoTiMAStanctArgs$scaleMod == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)], scale=FALSE)
         currentStartNumber <- modTIstartNum; currentStartNumber
         currentEndNumber <- currentStartNumber + ncol(tmpTI)-1; currentEndNumber
@@ -551,6 +556,7 @@ ctmaFit <- function(
         dataTmp <- dataTmp[ ,-grep("mod", colnames(dataTmp))]
       }
     } # END if (n.moderators > 0)
+    #head(dataTmp)
 
     # add clusters as dummy moderators
     if (!(is.null(cluster))) {
