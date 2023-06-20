@@ -460,7 +460,7 @@ ctmaInit <- function(
           for (h in 1:(currentTpoints-1)) studyList[[i]]$delta_t[h] <- mean(tmp1[, paste0("dT", h)], na.rm=TRUE)
           #studyList[[i]]$delta_t
         } else {
-          #i <- 3
+          if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
           currentTpoints <- length((lapply(studyList, function(extract) extract$delta_t))[[i]])+1; currentTpoints
 
           tmp1 <- studyList[[i]]$rawData$fileName; tmp1
