@@ -313,6 +313,10 @@ ctmaAllInvFit <- function(
 
 
   # all fixed model is a model with no TI predictors (identical to ctsemModel)
+  # CHD added on 24.6.2023 to prevent warning messages
+  if (T0MEANS == 0) T0MEANS <- matrix(0, nrow=n.latent, ncol=1)
+  if (MANIFESTMEANS == 0) MANIFESTMEANS <- matrix(0, nrow=n.latent, ncol=1)
+  if (MANIFESTVAR == 0) MANIFESTVAR <- matrix(0, nrow=n.latent, ncol=n.latent)
   # CHD allFixedModel <- ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpointsModel, manifestNames=manifestNames,    # 2 waves in the template only
   allFixedModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.latent, Tpoints=maxTpoints, manifestNames=manifestNames,    # 2 waves in the template only
                            DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
