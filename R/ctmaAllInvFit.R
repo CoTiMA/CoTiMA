@@ -327,20 +327,20 @@ ctmaAllInvFit <- function(
   if (indVarying == FALSE) allFixedModel$pars[, "indvarying"] <- FALSE
   #CHD 13.6.2023
   if (indVaryingT0 == TRUE) {
-    stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
+    allFixedModel$pars[allFixedModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
   } else {
-    stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
+    allFixedModel$pars[allFixedModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
   }
   # CHD 13.6.2023
   if (indVarying == 'CINT') {
-    stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
+    allFixedModel$pars[allFixedModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
   } else {
-    stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- FALSE
+    allFixedModel$pars[allFixedModel$pars$matrix %in% 'CINT','indvarying'] <- FALSE
   }
   if (indVarying == TRUE) {
-    stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- TRUE
+    allFixedModel$pars[allFixedModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- TRUE
   } else {
-    stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- FALSE
+    allFixedModel$pars[allFixedModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- FALSE
   }
 
 
