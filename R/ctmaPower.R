@@ -821,7 +821,7 @@ ctmaPower <- function(
   # shortcut: eliminate effects that were fixed to zero (if props = .25 or .005 = by chance)
   # deactivated on 2.6.2023
   skip <- 1
-  if (skip == 1) {
+  if (skip != 1) {
   for (l in length(listPowerAlpha05):1) {
     tmp1 <- apply(listPowerAlpha05[[l]], 2, mean, na.rm=TRUE); tmp1
     (round(tmp1[2], 4) == .0250)
