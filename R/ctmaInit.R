@@ -946,8 +946,8 @@ ctmaInit <- function(
 
           print(paste0("#################################################################################"))
           print(paste0("## T0means set to \'auto\'. T0(co-)variances not modelled nested in primaries. ##"))
-          print(paste0("#################### Consider setting \'indVaryingT0 = FALSE\' ####################"))
-          print(paste0("#################################################################################"))
+          print(paste0("##### Consider setting \'indVaryingT0 = FALSE\' if estimation problems occur, ###"))
+          print(paste0("##### however, be aware that this is not the regular RI model anymore then. ####"))
           T0meansParams <- 'auto'
 
           print(paste0("#################################################################################"))
