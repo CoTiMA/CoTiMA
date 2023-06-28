@@ -488,16 +488,18 @@ ctmaInit <- function(
             }
           }
 
-          # CHD 19.6.2023 extract possible ind level moderators
-          if (studyList[[i]]$rawData$n.ind.mod != 0) {
-            if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
-            targetCols <- (n.var * currentTpoints + currentTpoints -1 + 1): ncol(tmpData); targetCols
-            empraw.ind.mod[[i]] <- list()
-            empraw.ind.mod[[i]] <- tmpData[, targetCols]
-            empraw.ind.mod[[i]][empraw.ind.mod[[i]] == studyList[[i]]$rawData$missingValues] <- NA
-            tmpData <- tmpData[, -targetCols]
-          } else {
-            empraw.ind.mod[[i]] <- NA
+          # CHD 19.6.2023 extract possible ind level moderators 28.6.2023
+          if ("n.ind.mod" %in% names(studyList[[i]]$rawData)) {
+            if (studyList[[i]]$rawData$n.ind.mod != 0) {
+              if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
+              targetCols <- (n.var * currentTpoints + currentTpoints -1 + 1): ncol(tmpData); targetCols
+              empraw.ind.mod[[i]] <- list()
+              empraw.ind.mod[[i]] <- tmpData[, targetCols]
+              empraw.ind.mod[[i]][empraw.ind.mod[[i]] == studyList[[i]]$rawData$missingValues] <- NA
+              tmpData <- tmpData[, -targetCols]
+            } else {
+              empraw.ind.mod[[i]] <- NA
+            }
           }
         #}
 
