@@ -705,6 +705,16 @@ ctmaFit <- function(
   diffFullNames <- namesAndParams$diffFullNames; diffFullNames
   invariantDriftNames <- namesAndParams$invariantDriftNames; invariantDriftNames
   invariantDriftParams <- namesAndParams$invariantDriftParams; invariantDriftParams
+  # CHD added 28.6.2023
+  if ( (invariantDrift == "none") | (invariantDrift == "None") | (invariantDrift == "NONE")  ) {
+    invariantDriftNames <- invariantDriftParams <- 'none'
+  }
+  if ( (invariantDrift == "all") | (invariantDrift == "All") | (invariantDrift == "ALL")  ){
+    invariantDriftNames <- invariantDriftParams <- driftFullNames
+  }
+  driftNames
+  invariantDriftNames
+  invariantDriftParams
   moderatedDriftNames <- namesAndParams$moderatedDriftNames; moderatedDriftNames
   equalDriftNames <- namesAndParams$equalDriftNames; equalDriftNames
   equalDriftParams <- namesAndParams$equalDriftParams; equalDriftParams
@@ -915,10 +925,6 @@ ctmaFit <- function(
     #stanctModel$pars
 
     # general setting for params
-    # CHD 9.6.2023 (just a single trial)
-    #tmp1 <- which(stanctModel$pars[stanctModel$pars$matrix %in% 'T0VAR', "row"] == stanctModel$pars[stanctModel$pars$matrix %in% 'T0VAR', "col"]); tmp1
-    #stanctModel$pars[(stanctModel$pars$matrix %in% 'T0VAR'), ][tmp1,paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-
     stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'LAMBDA',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
@@ -963,11 +969,14 @@ ctmaFit <- function(
 
     # the target effects
     tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
+    # CHD changes 28.6.2023
     tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftNames); tmp2
-    stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
+    varyingDrifts <- tmp1[!(tmp1 %in% tmp1[tmp2])]; varyingDrifts
+    if (length(varyingDrifts) > 0) stanctModel$pars[varyingDrifts, paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- TRUE
+    #tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftNames); tmp2
+    #stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
+    stanctModel$pars
 
-    #stanctModel$pars[1:14,1:10]
-    #stanctModel$pars[14:28,1:10]
 
     if (!(optimize)) {
       customPar <- FALSE
@@ -1027,7 +1036,6 @@ ctmaFit <- function(
       #fitStanctModel <- readRDS(paste0(activeDirectory, "fitStanctModel.rds"))
     }
     fitStanctModel_summary <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
-    #fitStanctModel_summary
   } # end if else (allInvModel)
 
   # Extract estimates & statistics
