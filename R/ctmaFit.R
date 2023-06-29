@@ -162,6 +162,17 @@ ctmaFit <- function(
     stop(ErrorMsg)
   }
 
+  # check if invariantDrift == 'none', which is used to mimic ctmaInit
+  if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+    Msg <- "The argument invariantDrift=\'none\' was used. I assume you want to mimic ctmaInit with all drift effects varying across primary studis.
+    Therefore, I set the argument scaleTI=FALSE."
+    message(Msg)
+    scaleTI <- FALSE
+  }
+
+
+
   { # set fitting params
     # Added 17. Aug 2022
     tmp1 <- names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs); tmp1
@@ -706,10 +717,10 @@ ctmaFit <- function(
   invariantDriftNames <- namesAndParams$invariantDriftNames; invariantDriftNames
   invariantDriftParams <- namesAndParams$invariantDriftParams; invariantDriftParams
   # CHD added 28.6.2023
-  if ( (invariantDrift == "none") | (invariantDrift == "None") | (invariantDrift == "NONE")  ) {
+  if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
     invariantDriftNames <- invariantDriftParams <- 'none'
   }
-  if ( (invariantDrift == "all") | (invariantDrift == "All") | (invariantDrift == "ALL")  ){
+  if ( (invariantDrift[1] == "all") | (invariantDrift[1] == "All") | (invariantDrift[1] == "ALL")  ){
     invariantDriftNames <- invariantDriftParams <- driftFullNames
   }
   driftNames
@@ -975,7 +986,7 @@ ctmaFit <- function(
     if (length(varyingDrifts) > 0) stanctModel$pars[varyingDrifts, paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- TRUE
     #tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftNames); tmp2
     #stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
-    stanctModel$pars
+    #stanctModel$pars
 
 
     if (!(optimize)) {

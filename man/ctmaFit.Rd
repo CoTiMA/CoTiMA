@@ -45,7 +45,10 @@ ctmaFit(
   T0var = "auto",
   manifestMeans = 0,
   manifestVars = 0,
-  indVaryingT0 = NULL
+  indVaryingT0 = NULL,
+  ind.mod.number = NULL,
+  ind.mod.type = "cont",
+  ind.mod.names = NULL
 )
 }
 \arguments{
@@ -130,6 +133,12 @@ ctmaFit(
 \item{manifestVars}{define the error variances (default = 0) of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
 
 \item{indVaryingT0}{(default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE forces T0MEANS (T0 scores) to vary interindividually, which undos the nesting of T0(co-)variances in primary studies. Was standard until Aug. 2022. Could provide better estimates if set to FALSE.}
+
+\item{ind.mod.number}{which in the vector of individual level (!) moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)}
+
+\item{ind.mod.type}{'cont' or 'cat' of the individual level (!) modeartors (mixing them in a single model not yet possible)}
+
+\item{ind.mod.names}{vector of names for individual level (!) moderators used in output}
 }
 \value{
 ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,
