@@ -14,6 +14,7 @@
 #' @importFrom ctsem ctExtract
 #' @importFrom stats var lm pnorm
 #'
+#' @export ctmaRedHet
 #'
 ctmaRedHet <- function(ctmaFitObject=NULL, ctmaFitObjectMod=NULL, digits=4, undoTimeScaling=TRUE, dt=NULL,
                        activeDirectory=NULL, activateRPB=FALSE)
