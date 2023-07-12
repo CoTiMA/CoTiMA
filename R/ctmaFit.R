@@ -390,8 +390,6 @@ ctmaFit <- function(
       colnames(currentModerators) <- paste0("mod", 1:dim(currentModerators)[2])
     }
   }
-  #currentModerators_backup <- currentModerators
-  #currentModerators <- currentModerators_backup; dim(currentModerators)
 
   #######################################################################################################################
   ################################################# data preparation ####################################################
@@ -519,7 +517,6 @@ ctmaFit <- function(
     }
     targetCols <- which(colnames(dataTmp) == "groups"); targetCols
     dataTmp <- dataTmp[ ,-targetCols]
-    #head(dataTmp)
 
     # make TI out of moderators
     modTIstartNum <- n.studies; modTIstartNum
@@ -591,7 +588,6 @@ ctmaFit <- function(
         dataTmp <- dataTmp[ ,-grep("mod", colnames(dataTmp))]
       }
     } # END if (n.moderators > 0)
-    #head(dataTmp)
 
     # add clusters as dummy moderators
     if (!(is.null(cluster))) {
@@ -717,6 +713,7 @@ ctmaFit <- function(
   diffFullNames <- namesAndParams$diffFullNames; diffFullNames
   invariantDriftNames <- namesAndParams$invariantDriftNames; invariantDriftNames
   invariantDriftParams <- namesAndParams$invariantDriftParams; invariantDriftParams
+  invariantDriftNames
   # CHD added 28.6.2023
   if (!(is.null(invariantDrift))) { # added 12.7.2023
     if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
