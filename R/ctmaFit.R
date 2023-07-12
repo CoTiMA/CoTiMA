@@ -718,15 +718,14 @@ ctmaFit <- function(
   invariantDriftNames <- namesAndParams$invariantDriftNames; invariantDriftNames
   invariantDriftParams <- namesAndParams$invariantDriftParams; invariantDriftParams
   # CHD added 28.6.2023
-  if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
-    invariantDriftNames <- invariantDriftParams <- 'none'
+  if (!(is.null(invariantDrift))) { # added 12.7.2023
+    if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
+      invariantDriftNames <- invariantDriftParams <- 'none'
+    }
+    if ( (invariantDrift[1] == "all") | (invariantDrift[1] == "All") | (invariantDrift[1] == "ALL")  ){
+      invariantDriftNames <- invariantDriftParams <- driftFullNames
+    }
   }
-  if ( (invariantDrift[1] == "all") | (invariantDrift[1] == "All") | (invariantDrift[1] == "ALL")  ){
-    invariantDriftNames <- invariantDriftParams <- driftFullNames
-  }
-  driftNames
-  invariantDriftNames
-  invariantDriftParams
   moderatedDriftNames <- namesAndParams$moderatedDriftNames; moderatedDriftNames
   equalDriftNames <- namesAndParams$equalDriftNames; equalDriftNames
   equalDriftParams <- namesAndParams$equalDriftParams; equalDriftParams
