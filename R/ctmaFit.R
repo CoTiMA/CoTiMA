@@ -713,7 +713,6 @@ ctmaFit <- function(
   diffFullNames <- namesAndParams$diffFullNames; diffFullNames
   invariantDriftNames <- namesAndParams$invariantDriftNames; invariantDriftNames
   invariantDriftParams <- namesAndParams$invariantDriftParams; invariantDriftParams
-  invariantDriftNames
   # CHD added 28.6.2023
   if (!(is.null(invariantDrift))) { # added 12.7.2023
     if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
@@ -867,17 +866,6 @@ ctmaFit <- function(
           manifestMeansParams <- 'auto'
         }
 
-
-        #if ( ((indVarying == TRUE) | (indVarying != 'CINT')  ) & (T0meansParams[1] == 0) & (indVaryingT0 == TRUE) ) {
-        #  #T0meansParams <- 'auto'
-        #  T0meansParams <- 0
-        #  print(paste0("#################################################################################"))
-        #  #print(paste0("### Note: T0means were set free to estimate random intercepts with manifests. ###"))
-        #  print(paste0("# Note: T0means were fixed to 0 to estimate random \'intercepts\' with manifests. #"))
-        #  print(paste0("#################################################################################"))
-        #}
-        #T0meansParams
-
         stanctModel <- suppressMessages(
           ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, #Tpoints=maxTpoints,
                          manifestNames=manifestNames,
@@ -979,12 +967,14 @@ ctmaFit <- function(
     tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
     # CHD changes 28.6.2023
     tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftNames); tmp2
-    varyingDrifts <- tmp1[!(tmp1 %in% tmp1[tmp2])]; varyingDrifts
-    if (length(varyingDrifts) > 0) stanctModel$pars[varyingDrifts, paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- TRUE
-    #tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftNames); tmp2
-    #stanctModel$pars[tmp1[tmp2], paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
-    #stanctModel$pars
+    # CHD changes 12.7.2023 to include drift effects that were set to 0.0
+    #varyingDrifts <- tmp1[!(tmp1 %in% tmp1[tmp2])]; varyingDrifts
+    tmp3 <- which(is.na(stanctModel$pars[tmp1, "param"])); tmp3
+    tmp4 <- sort(unique(c(tmp2, tmp3))); tmp4
+    varyingDrifts <- tmp1[!(tmp1 %in% tmp1[tmp4])]; varyingDrifts
 
+    if (length(varyingDrifts) > 0) stanctModel$pars[varyingDrifts, paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- TRUE
+    #stanctModel$pars
 
     if (!(optimize)) {
       customPar <- FALSE
@@ -1282,7 +1272,7 @@ ctmaFit <- function(
   } else {
     driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE); driftMatrix # byrow set because order is different compared to mx model
   }
-  #print("HALLO1")
+
   if (length(invariantDriftNames) == length(driftNames)) {
     OTL <- function(timeRange) {
       OpenMx::expm(tmpDriftMatrix * timeRange)[targetRow, targetCol]}
@@ -1325,10 +1315,10 @@ ctmaFit <- function(
     maxCrossEffect <- "Drift Matrix is only partially invariant. (Generalizable) Largest effects cannot be computed."
   }
   #} ## END  fit stanct model
-  #print("HALLO2")
 
-
-  if (!(is.null(scaleTime))) {
+  # CHD 12.7.23
+  #if (!(is.null(scaleTime))) {
+  if ( (!(is.null(scaleTime))) & (length(invariantDriftNames) == length(driftNames)) ) {
     optimalCrossLag_scaledTime <- optimalCrossLag * CoTiMAStanctArgs$scaleTime
   } else {
     optimalCrossLag_scaledTime <- optimalCrossLag
