@@ -263,7 +263,10 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         customPar = c(TRUE, FALSE)[tmp1]
       }
-      fits <- ctmaInit(newStudyList, coresToUse = 1, n.latent=n.latent,
+      fits <- ctmaInit(newStudyList,
+                       #coresToUse = 1,
+                       coresToUse = coresToUse, # changed Aug 2023
+                       n.latent=n.latent,
                        indVarying = indVarying,
                        scaleTime = scaleTime,
                        activeDirectory = activeDirectory,
@@ -306,7 +309,8 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
                       #n.manifest=0,
                       indVarying=ctmaFitFit$argumentList$indVarying,
                       #coresToUse=ctmaFitFit$argumentList$coresToUse,
-                      coresToUse=1,
+                      #coresToUse=1,
+                      coresToUse=coresToUse, # changed Aug 2023
                       scaleTI=ctmaFitFit$argumentList$scaleTI,
                       scaleMod=ctmaFitFit$argumentList$scaleMod,
                       transfMod=ctmaFitFit$argumentList$transfMod,
