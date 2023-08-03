@@ -114,6 +114,7 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
   if (!(is.null(reFits))) {
     parProces <- min(c(coresToUse, reFits))
     coresToUse <- coresToUse%/%reFits # integer division
+    if (coresToUse < 1) coresToUse <- 1
   } else {
     parProces <- coresToUse
   }
