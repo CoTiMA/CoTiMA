@@ -25,8 +25,8 @@ In most cases probably a model in which (only) two effects were specified with i
 \item{coresToUse}{If neg., the value is subtracted from available cores, else value = cores to use}
 }
 \value{
-returns a model where two or more parameteres were set equal across primary studies and a log-liklihood difference test
-informing about the probablity that the equality assumption is correct.
+returns a model where two or more parameters were set equal across primary studies and a log-likelihood difference test
+informing about the probability that the equality assumption is correct.
 }
 \description{
 test if the two or more invariant drift parameters in the CoTiMAFit object supplied are equal. The supplied CoTiMA fit-object

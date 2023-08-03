@@ -3,50 +3,51 @@
 #' @description Fits a ctsem model with invariant drift effects across primary studies, possible multiple moderators (but all of them of the
 #' the same type, either "cont" or "cat"), and possible cluster (e.g., countries where primary studies were conducted).
 #'
-#' @param ctmaInitFit object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by \code{\link{ctmaInit}})
-#' @param primaryStudyList  could be a list of primary studies compiled with \code{\link{ctmaPrep}} that defines the subset of studies in ctmaInitFit that should actually be used
-#' @param cluster  vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in \code{\link{ctmaPrep}} in later 'CoTiMA' versions.
-#' @param activeDirectory  defines another active directory than the one used in ctmaInitFit
 #' @param activateRPB  set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
-#' @param digits Number of digits used for rounding (in outputs)
-#' @param invariantDrift  drift labels for drift effects that are set invariant across primary studies (default = all drift effects).
-#' @param drift labels for drift effects. Have to be either of the type 'V1toV2' or '0' for effects to be excluded.
-#' @param moderatedDrift labels for drift effects that are moderated (default = all drift effects)
-#' @param mod.number which in the vector of moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
-#' @param mod.type 'cont' or 'cat' (mixing them in a single model not yet possible)
-#' @param mod.names vector of names for moderators used in output
+#' @param activeDirectory  defines another active directory than the one used in ctmaInitFit
+#' @param allInvModel estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR) if set TRUE (defautl = FALSE)
+#' @param catsToCompare when performing contrasts for categorical moderators, the categories (values, not positions) for which effects are set equal
+#' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
+#' @param cint default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')
+#' @param cluster  vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in \code{\link{ctmaPrep}} in later 'CoTiMA' versions.
 #' @param coresToUse if negative, the value is subtracted from available cores, else value = cores to use
+#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
+#' @param ctmaInitFit object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by \code{\link{ctmaInit}})
+#' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
+#' @param digits Number of digits used for rounding (in outputs)
+#' @param drift labels for drift effects. Have to be either of the type 'V1toV2' or '0' for effects to be excluded.
+#' @param driftsToCompare when performing contrasts for categorical moderators, the (subset of) drift effects analyzed
+#' @param equalDrift Constrains all listed effects to be equal (e.g., equalDrift = c("V1toV2", "V2toV1")). Note that this is not required for testing the assumtion that two effects are equal in the population. use the invariantDrift argument and then \code{\link{ctmaEqual}})
+#' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
+#' @param ind.mod.names vector of names for individual level (!) moderators used in output
+#' @param ind.mod.number which in the vector of individual level (!) moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
+#' @param ind.mod.type 'cont' or 'cat' of the individual level (!) moderators (mixing them in a single model not yet possible)
 #' @param indVarying allows continuous time intercepts to vary at the individual level (random intercepts model, accounts for unobserved heterogeneity)
 #' @param indVaryingT0 (default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE forces T0MEANS (T0 scores) to vary interindividually, which undos the nesting of T0(co-)variances in primary studies. Was standard until Aug. 2022. Could provide better estimates if set to FALSE.
-#' @param scaleTI scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dummies representing primary studies.
+#' @param inits vector of start values
+#' @param invariantDrift  drift labels for drift effects that are set invariant across primary studies (default = all drift effects).
+#' @param iter number of iterations (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
+#' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
+#' @param manifestMeans default = 0. Are automatically set free is indvarying is set to TRUE. Can be assigned labels to estimate them freely.
+#' @param manifestVars define the error variances (default = 0) of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
+#' @param mod.names vector of names for moderators used in output
+#' @param mod.number which in the vector of moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
+#' @param mod.type 'cont' or 'cat' (mixing them in a single model not yet possible)
+#' @param moderatedDrift labels for drift effects that are moderated (default = all drift effects)
+#' @param modsToCompare when performing contrasts for categorical moderators, the moderator numbers (position in mod.number) that is used
+#' @param nopriors Deprecated, but still working. If TRUE, any priors are disabled – sometimes desirable for optimization
+#' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
+#' @param primaryStudyList  could be a list of primary studies compiled with \code{\link{ctmaPrep}} that defines the subset of studies in ctmaInitFit that should actually be used
+#' @param priors if FALSE, any priors are disabled – sometimes desirable for optimization
 #' @param scaleClus scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster
 #' @param scaleMod scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts
-#' @param transfMod more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))
+#' @param scaleTI scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dummies representing primary studies.
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
-#' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
-#' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
-#' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
-#' @param iter number of iterations (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
-#' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
-#' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
-#' @param allInvModel estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR) if set TRUE (defautl = FALSE)
-#' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
-#' @param equalDrift Not enabled
-#' @param inits vector of start values
-#' @param modsToCompare when performing contrasts for categorical moderators, the moderator numbers (position in mod.number) that is used
-#' @param catsToCompare when performing contrasts for categorical moderators, the categories (values, not positions) for which effects are set equal
-#' @param driftsToCompare when performing contrasts for categorical moderators, the (subset of) drift effects analyzed
-#' @param useSampleFraction to speed up debugging. Provided as fraction (e.g., 1/10).
 #' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
-#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
-#' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
-#' @param manifestVars define the error variances (default = 0) of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
-#' @param manifestMeans default = 0. Are automatically set free is indvarying is set to TRUE. Can be assigned labels to estimate them freely.
-#' @param cint default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')
 #' @param T0var (default = 'auto')
-#' @param ind.mod.number which in the vector of individual level (!) moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
-#' @param ind.mod.type 'cont' or 'cat' of the individual level (!) modeartors (mixing them in a single model not yet possible)
-#' @param ind.mod.names vector of names for individual level (!) moderators used in output
+#' @param transfMod more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))
+#' @param useSampleFraction to speed up debugging. Provided as fraction (e.g., 1/10).
+#' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 
 #'
 #' @importFrom  RPushbullet pbPost
@@ -102,51 +103,52 @@
 #' plot.type=c("drift") and model.type="stanct" ("omx" was deprecated).
 #'
 ctmaFit <- function(
-    ctmaInitFit=NULL,
-    primaryStudyList=NULL,
-    cluster=NULL,
-    activeDirectory=NULL,
-    activateRPB=FALSE,
-    digits=4,
-    drift=NULL,
-    invariantDrift=NULL,
-    moderatedDrift=NULL,
-    equalDrift=NULL,
-    mod.number=NULL,
-    mod.type="cont",
-    mod.names=NULL,
     #n.manifest=0,
-    indVarying=FALSE,
-    coresToUse=c(1),
-    scaleTI=TRUE,
-    scaleMod=NULL,
-    transfMod=NULL,
-    scaleClus=TRUE,
-    scaleTime=NULL,
-    optimize=TRUE,
-    nopriors=TRUE,
-    finishsamples=NULL,
-    iter=NULL,
-    chains=NULL,
-    verbose=NULL,
-    allInvModel=FALSE,
-    customPar=FALSE,
-    inits=NULL,
-    modsToCompare=NULL,
-    catsToCompare=NULL,
-    driftsToCompare=NULL,
-    useSampleFraction=NULL,
-    CoTiMAStanctArgs=NULL,
-    lambda=NULL,
-    T0means=0,
-    cint=0,
-    T0var='auto',
-    manifestMeans=0,
-    manifestVars=0,
-    indVaryingT0=NULL,
-    ind.mod.number=NULL,
-    ind.mod.type="cont",
-    ind.mod.names=NULL
+  activateRPB=FALSE,
+  activeDirectory=NULL,
+  allInvModel=FALSE,
+  catsToCompare=NULL,
+  chains=NULL,
+  cint=0,
+  cluster=NULL,
+  coresToUse=c(2),
+  CoTiMAStanctArgs=NULL,
+  ctmaInitFit=NULL,
+  customPar=FALSE,
+  digits=4,
+  drift=NULL,
+  driftsToCompare=NULL,
+  equalDrift=NULL,
+  finishsamples=NULL,
+  ind.mod.names=NULL,
+  ind.mod.number=NULL,
+  ind.mod.type="cont",
+  indVarying=FALSE,
+  indVaryingT0=NULL,
+  inits=NULL,
+  invariantDrift=NULL,
+  iter=NULL,
+  lambda=NULL,
+  manifestMeans=0,
+  manifestVars=0,
+  mod.names=NULL,
+  mod.number=NULL,
+  mod.type="cont",
+  moderatedDrift=NULL,
+  modsToCompare=NULL,
+  nopriors=NA,
+  optimize=TRUE,
+  primaryStudyList=NULL,
+  priors=FALSE,
+  scaleClus=TRUE,
+  scaleMod=NULL,
+  scaleTI=TRUE,
+  scaleTime=NULL,
+  T0means=0,
+  T0var='auto',
+  transfMod=NULL,
+  useSampleFraction=NULL,
+  verbose=NULL
 )
 
 
@@ -186,7 +188,9 @@ ctmaFit <- function(
     if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
     if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
     if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
-    if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
+    if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
+    if ( (!(is.null(nopriors))) & (!(is.null(nopriors))) ) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
+    if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
     if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
     if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
     if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
@@ -1017,6 +1021,7 @@ ctmaFit <- function(
       optimcontrol=CoTiMAStanctArgs$optimcontrol,
       nlcontrol=CoTiMAStanctArgs$nlcontrol,
       nopriors=CoTiMAStanctArgs$nopriors,
+      priors=CoTiMAStanctArgs$priors, # added Aug 2023
       chains=CoTiMAStanctArgs$chains,
       forcerecompile=CoTiMAStanctArgs$forcerecompile,
       savescores=CoTiMAStanctArgs$savescores,

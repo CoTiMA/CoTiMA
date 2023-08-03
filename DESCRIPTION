@@ -27,7 +27,8 @@ Depends:
     OpenMx (>= 2.18.1),
     ctsem (>= 3.3.11),
     lavaan (>= 0.6),
-    foreach (>= 1.5.1)
+    foreach (>= 1.5.1),
+    R (>= 2.10)
 Imports: 
     MBESS (>= 4.6.0),
     crayon (>= 1.3.4),

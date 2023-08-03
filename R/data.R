@@ -391,6 +391,14 @@
 "CoTiMAstudyList_6_new"
 
 
+#' object created to store standard parameters passed forward to ctStanFit
+#' @name CoTiMAStanctArgs
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"CoTiMAStanctArgs"
+
+
 #' country2 example vector
 #' @name country2
 #' @docType data

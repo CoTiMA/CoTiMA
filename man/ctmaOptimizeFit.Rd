@@ -21,12 +21,17 @@ ctmaOptimizeFit(
   T0means = 0,
   manifestMeans = 0,
   CoTiMAStanctArgs = NULL,
-  CoTiMAFit = NULL,
-  CoTiMAInitFit = NULL,
+  ctmaFitFit = NULL,
+  ctmaInitFit = NULL,
   randomPar = FALSE,
   posLL = TRUE,
   lambda = NULL,
-  manifestVars = NULL
+  manifestVars = NULL,
+  mod.number = NULL,
+  mod.type = "cont",
+  mod.names = NULL,
+  scaleMod = NULL,
+  transfMod = NULL
 )
 }
 \arguments{
@@ -62,9 +67,9 @@ ctmaOptimizeFit(
 
 \item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
 
-\item{CoTiMAFit}{a object fitted with \code{\link{ctmaFit}}}
+\item{ctmaFitFit}{a object fitted with \code{\link{ctmaFit}}}
 
-\item{CoTiMAInitFit}{the ctmaInitFit object that was used to create the CoTiMAFit object with \code{\link{ctmaFit}}}
+\item{ctmaInitFit}{the ctmaInitFit object that was used to create the ctmaFitFit object with \code{\link{ctmaFit}}}
 
 \item{randomPar}{logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE}
 
@@ -73,6 +78,16 @@ ctmaOptimizeFit(
 \item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
 
 \item{manifestVars}{define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest. Useful to check estimates before they are saved.}
+
+\item{mod.number}{which in the vector of moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)}
+
+\item{mod.type}{'cont' or 'cat' (mixing them in a single model not yet possible)}
+
+\item{mod.names}{vector of names for moderators used in output}
+
+\item{scaleMod}{scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts}
+
+\item{transfMod}{more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))}
 }
 \value{
 returns a list with bestFit (= the best fit achieved), all_minus2ll (= all -2ll values for all fitted models), and summary, which
