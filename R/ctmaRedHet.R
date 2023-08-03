@@ -59,7 +59,7 @@ ctmaRedHet <- function(ctmaFitObject=NULL, ctmaFitObjectMod=NULL, digits=4, undo
       message(Msg)
     }
 
-    ### main effects stimated ##############################################################################
+    ### main effects estimated ##############################################################################
     tmp1 <- which(!(is.na(ctmaFitObject$studyFitList$ctstanmodelbase$pars$param))); tmp1
     pars1 <- ctmaFitObject$studyFitList$ctstanmodelbase$pars[tmp1, ]; pars1
     ## determine the positions where the study_dummy moderators of the drift effects are located ####
@@ -75,7 +75,6 @@ ctmaRedHet <- function(ctmaFitObject=NULL, ctmaFitObjectMod=NULL, digits=4, undo
     TIpredEffectsList1 <- list()
     e1 <- ctsem::ctExtract(ctmaFitObject$studyFitList)
     for (s in 2:n.studies1) TIpredEffectsList1[[s-1]] <- e1$TIPREDEFFECT[,referenceTargetCols1, (s-1)]
-
 
     ## extract model params ctmaFitMod #####################################################################
     driftNames2 <- ctmaFitObjectMod$parameterNames$DRIFT; driftNames2
@@ -745,7 +744,7 @@ ctmaRedHet <- function(ctmaFitObject=NULL, ctmaFitObjectMod=NULL, digits=4, undo
 
 
 
-  fixedEffectDriftResults
+  #fixedEffectDriftResults
   FE <- round(fixedEffectDriftResults[1:8,], digits); FE
   RE <- round(randomEffectDriftResults[1:8,], digits); RE
 
@@ -755,13 +754,13 @@ ctmaRedHet <- function(ctmaFitObject=NULL, ctmaFitObjectMod=NULL, digits=4, undo
   colnames(fitObjDriftAndSE) <- paste0("fitObject ", c(names11, names11)); fitObjDriftAndSE
   colnames(fitObjDriftAndSE) <- gsub("DRIFT ", "", colnames(fitObjDriftAndSE)); fitObjDriftAndSE
   colnames(fitObjDriftAndSE)[(n.latent1^2+1):(2*n.latent1^2)] <- paste0(colnames(fitObjDriftAndSE)[(n.latent1^2+1):(2*n.latent1^2)], " SE"); fitObjDriftAndSE
-  fitObjDriftAndSE
+  #fitObjDriftAndSE
 
   fitObjModDriftAndSE <- round(cbind(modelResultsList2[[1]], modelResultsList2[[2]]), digits); fitObjModDriftAndSE
   colnames(fitObjModDriftAndSE) <- paste0("fitObjectMod ", c(names11, names11)); fitObjModDriftAndSE
   colnames(fitObjModDriftAndSE)[(n.latent2^2+1):(2*n.latent2^2)] <- paste0(colnames(fitObjModDriftAndSE)[(n.latent2^2+1):(2*n.latent2^2)], " SE"); fitObjModDriftAndSE
   colnames(fitObjModDriftAndSE) <- gsub("DRIFT ", "", colnames(fitObjModDriftAndSE)); fitObjModDriftAndSE
-  fitObjModDriftAndSE
+  #fitObjModDriftAndSE
 
   # Analysis of Reduction in Heterogeneity by means of moderators #####
   redHet <- round(heterogeneity2/heterogeneity1, digits)[c(2,3,6),]; redHet

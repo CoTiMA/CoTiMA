@@ -43,7 +43,7 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
   }
 
   if (is.null(fit$stanfit$transformedpars$popsd)) {
-    ErrorMsg <- "\nAThe fitted CoTiMA object or ctsem object did not include T0means and ct intercepts. LCS results cannot be computed. Fit an appropriate CoTiMA/ctsem model. nGood luck for the next try!"
+    ErrorMsg <- "\nThe fitted CoTiMA object or ctsem object did not include T0means and ct intercepts. LCS results cannot be computed. Fit an appropriate CoTiMA/ctsem model. \nGood luck for the next try!"
     stop(ErrorMsg)
   }
 

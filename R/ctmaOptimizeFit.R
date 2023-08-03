@@ -25,12 +25,18 @@
 #' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
 #' @param checkSingleStudyResults displays estimates from single study 'ctsem' models and waits for user input to continue.
-#' @param CoTiMAFit a object fitted with \code{\link{ctmaFit}}
-#' @param CoTiMAInitFit the ctmaInitFit object that was used to create the CoTiMAFit object with \code{\link{ctmaFit}}
+#' @param ctmaFitFit a object fitted with \code{\link{ctmaFit}}
+#' @param ctmaInitFit the ctmaInitFit object that was used to create the ctmaFitFit object with \code{\link{ctmaFit}}
 #' @param randomPar logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE
 #' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
 #' @param manifestVars define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest. Useful to check estimates before they are saved.
+#' @param mod.number which in the vector of moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
+#' @param mod.type 'cont' or 'cat' (mixing them in a single model not yet possible)
+#' @param mod.names vector of names for moderators used in output
+#' @param scaleMod scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts
+#' @param transfMod more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))
+
 #'
 #' @importFrom doParallel registerDoParallel
 #' @importFrom parallel makeCluster
@@ -74,12 +80,17 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
                             T0means=0,
                             manifestMeans=0,
                             CoTiMAStanctArgs=NULL,
-                            CoTiMAFit=NULL,
-                            CoTiMAInitFit=NULL,
+                            ctmaFitFit=NULL,
+                            ctmaInitFit=NULL,
                             randomPar=FALSE,
                             posLL=TRUE,
                             lambda=NULL,
-                            manifestVars=NULL)
+                            manifestVars=NULL,
+                            mod.number=NULL,
+                            mod.type="cont",
+                            mod.names=NULL,
+                            scaleMod=NULL,
+                            transfMod=NULL)
 {
 
   #######################################################################################################################
@@ -129,25 +140,68 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
     stop(ErrorMsg)
   }
 
-  if( (!(is.null(CoTiMAFit))) & (!(is.null(primaryStudies))) ) {
-    ErrorMsg <- "Arguments for both CoTiMAFit and primaryStudies were provided. Only one out of the two can be chosen!"
+  if( (!(is.null(ctmaFitFit))) & (!(is.null(primaryStudies))) ) {
+    ErrorMsg <- "Arguments for both ctmaFitFit and primaryStudies were provided. Only one out of the two can be chosen!"
     stop(ErrorMsg)
   }
 
-  if( (!(is.null(CoTiMAFit))) & ((is.null(CoTiMAInitFit))) ) {
-    ErrorMsg <- "Argument for CoTiMAFit was provided but not for CoTiMAInitFit. Need the latter, too!"
+  if( (!(is.null(ctmaFitFit))) & ((is.null(ctmaInitFit))) ) {
+    ErrorMsg <- "Argument for ctmaFitFit was provided but not for ctmaInitFit. Need the latter, too!"
     stop(ErrorMsg)
   }
 
-  if( (!(is.null(CoTiMAFit))) & (!(is.null(CoTiMAInitFit))) ) {
-    if (CoTiMAFit$argumentList$ctmaInitFit != deparse(substitute(CoTiMAInitFit)))  {
-    ErrorMsg <- paste0("The wrong CoTiMAInitFit object was provided. I need ",  CoTiMAFit$argumentList$ctmaInitFit, "!")
+  if( (!(is.null(ctmaFitFit))) & (!(is.null(ctmaInitFit))) ) {
+    if (ctmaFitFit$argumentList$ctmaInitFit != deparse(substitute(ctmaInitFit)))  {
+    ErrorMsg <- paste0("The wrong ctmaInitFit object was provided. I need ",  ctmaFitFit$argumentList$ctmaInitFit, "!")
     stop(ErrorMsg)
   }
   }
+
+  { # check if scaleMod is not used in combination with transfMod
+    if ( (!(is.null(scaleMod))) & (!(is.null(transfMod))) ) {
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+      ErrorMsg <- "The arguments scaleMod and transfMod cannot be used in combination. Set one of them NULL (leave out)."
+      stop(ErrorMsg)
+    }
+  }
+
+  n.ind.moderators <- 0 # shortcut until n.ind.moderators is enabled as argument
+  if (n.ind.moderators == 0) { # proceed if only moderators at the study level are used
+    n.moderators <- length(mod.number); n.moderators
+    { # check if transfMod is as long as n.moderators
+      if ( (!(is.null(transfMod))) ) {
+        if ( length(transfMod) != n.moderators ) {
+          if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+          ErrorMsg <- "More transformations for moderators (transfMod) provided than moderators."
+          stop(ErrorMsg)
+        }
+      }
+    }
+    if (n.moderators > 0) {
+      currentModerators <- matrix(as.numeric(unlist(lapply(ctmaInitFit$studyList, function(extract) extract$moderators[mod.number]))), ncol=n.moderators); currentModerators
+      #if (!(is.null(primaryStudyList))) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE)
+      #currentModerators
+      #if (!is.null(primaryStudyList)) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE); currentModerators
+      if (is.na((currentModerators[length(currentModerators)])[[1]][1])) currentModerators <- currentModerators[-dim(currentModerators)[1],]; currentModerators
+      if (is.null(dim(currentModerators)[1])) currentModerators <- matrix(currentModerators, ncol=1); currentModerators
+      #table(currentModerators)
+
+      if (any(is.na(currentModerators)) == TRUE) {
+        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+        ErrorMsg <- "\nAt least one of the primary studies does not have a valid value for the requested moderator. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if (var(currentModerators) == 0) {
+        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+        ErrorMsg <- "\nModerator is constant across cases.\nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+    }
+  }
+
 
   # INIT Fit
-  if(is.null(CoTiMAFit)) {
+  if(is.null(ctmaFitFit)) {
     # CHD changed 21 SEP 2022
     ErrorMsg <- "argument primaryStudies is missing"
     if (is.null(primaryStudies))  stop(ErrorMsg)
@@ -213,11 +267,10 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
     }
   }
 
-  # CoTiMAFit
-  if(!(is.null(CoTiMAFit))) {
-    #if (class(CoTiMAFit) != "CoTiMAFit") {
-    if (!(is(CoTiMAFit, "CoTiMAFit"))) {
-      ErrorMsg <- "The CoTiMAfit object provided is not of class CoTiMAFit. Probably it was not created with ctmaFit."
+  # ctmaFitFit
+  if(!(is.null(ctmaFitFit))) {
+    if (!(is(ctmaFitFit, "CoTiMAFit"))) {
+      ErrorMsg <- "The ctmaFitFit object provided is not of class CoTiMAFit. Probably it was not created with ctmaFit."
       stop(ErrorMsg)
     }
 
@@ -227,54 +280,45 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         customPar = c(TRUE, FALSE)[tmp1]
       }
-      #ctmaInitFitBackup <- CoTiMAInitFit
-      #primaryStudyListBackup <- CoTiMAInitFit$primaryStudyList
-      ##
-      #for (l in 1:length(CoTiMAFit$argumentList)) {
-      #  assign(names(CoTiMAFit$argumentList)[[l]], CoTiMAFit$argumentList[[l]]) #, envir = as.environment(-1))
-      #  }
-      ##
-      #ctmaInitFit <- ctmaInitFitBackup
-      #primaryStudyList <- primaryStudyListBackup
-      #
-      fits <- ctmaFit(ctmaInitFit=CoTiMAInitFit,
-                      primaryStudyList=CoTiMAInitFit$primaryStudyList,
-                      cluster=CoTiMAFit$argumentList$cluster,
+
+      fits <- ctmaFit(ctmaInitFit=ctmaInitFit,
+                      primaryStudyList=ctmaInitFit$primaryStudyList,
+                      cluster=ctmaFitFit$argumentList$cluster,
                       activeDirectory=activeDirectory,
-                      activateRPB=CoTiMAFit$argumentList$activateRPB,
-                      digits=CoTiMAFit$argumentList$digits,
-                      drift=CoTiMAFit$argumentList$drift,
-                      invariantDrift=CoTiMAFit$argumentList$invariantDrift,
-                      moderatedDrift=CoTiMAFit$argumentList$moderatedDrift,
-                      equalDrift=CoTiMAFit$argumentList$equalDrift,
-                      mod.number=CoTiMAFit$argumentList$mod.number,
-                      mod.type=CoTiMAFit$argumentList$mod.type,
-                      mod.names=CoTiMAFit$argumentList$mod.names,
+                      activateRPB=ctmaFitFit$argumentList$activateRPB,
+                      digits=ctmaFitFit$argumentList$digits,
+                      drift=ctmaFitFit$argumentList$drift,
+                      invariantDrift=ctmaFitFit$argumentList$invariantDrift,
+                      moderatedDrift=ctmaFitFit$argumentList$moderatedDrift,
+                      equalDrift=ctmaFitFit$argumentList$equalDrift,
+                      mod.number=ctmaFitFit$argumentList$mod.number,
+                      mod.type=ctmaFitFit$argumentList$mod.type,
+                      mod.names=ctmaFitFit$argumentList$mod.names,
                       #n.manifest=0,
-                      indVarying=CoTiMAFit$argumentList$indVarying,
-                      #coresToUse=CoTiMAFit$argumentList$coresToUse,
+                      indVarying=ctmaFitFit$argumentList$indVarying,
+                      #coresToUse=ctmaFitFit$argumentList$coresToUse,
                       coresToUse=1,
-                      scaleTI=CoTiMAFit$argumentList$scaleTI,
-                      scaleMod=CoTiMAFit$argumentList$scaleMod,
-                      transfMod=CoTiMAFit$argumentList$transfMod,
-                      scaleClus=CoTiMAFit$argumentList$scaleClus,
-                      scaleTime=CoTiMAFit$argumentList$scaleTime,
-                      optimize=CoTiMAFit$argumentList$optimize,
-                      nopriors=CoTiMAFit$argumentList$nopriors,
-                      finishsamples=CoTiMAFit$argumentList$finishsamples,
-                      iter=CoTiMAFit$argumentList$iter,
-                      chains=CoTiMAFit$argumentList$chains,
-                      verbose=CoTiMAFit$argumentList$verbose,
-                      allInvModel=CoTiMAFit$argumentList$allInvModel,
-                      customPar=CoTiMAFit$argumentList$customPar,
-                      inits=CoTiMAFit$argumentList$inits,
-                      modsToCompare=CoTiMAFit$argumentList$modsToCompare,
-                      catsToCompare=CoTiMAFit$argumentList$catsToCompare,
-                      driftsToCompare=CoTiMAFit$argumentList$driftsToCompare,
-                      useSampleFraction=CoTiMAFit$argumentList$useSampleFraction,
-                      T0means=CoTiMAFit$argumentList$T0means,
-                      manifestMeans=CoTiMAFit$argumentList$manifestMeans,
-                      CoTiMAStanctArgs=CoTiMAFit$argumentList$CoTiMAStanctArgs
+                      scaleTI=ctmaFitFit$argumentList$scaleTI,
+                      scaleMod=ctmaFitFit$argumentList$scaleMod,
+                      transfMod=ctmaFitFit$argumentList$transfMod,
+                      scaleClus=ctmaFitFit$argumentList$scaleClus,
+                      scaleTime=ctmaFitFit$argumentList$scaleTime,
+                      optimize=ctmaFitFit$argumentList$optimize,
+                      nopriors=ctmaFitFit$argumentList$nopriors,
+                      finishsamples=ctmaFitFit$argumentList$finishsamples,
+                      iter=ctmaFitFit$argumentList$iter,
+                      chains=ctmaFitFit$argumentList$chains,
+                      verbose=ctmaFitFit$argumentList$verbose,
+                      allInvModel=ctmaFitFit$argumentList$allInvModel,
+                      customPar=ctmaFitFit$argumentList$customPar,
+                      inits=ctmaFitFit$argumentList$inits,
+                      modsToCompare=ctmaFitFit$argumentList$modsToCompare,
+                      catsToCompare=ctmaFitFit$argumentList$catsToCompare,
+                      driftsToCompare=ctmaFitFit$argumentList$driftsToCompare,
+                      useSampleFraction=ctmaFitFit$argumentList$useSampleFraction,
+                      T0means=ctmaFitFit$argumentList$T0means,
+                      manifestMeans=ctmaFitFit$argumentList$manifestMeans,
+                      CoTiMAStanctArgs=ctmaFitFit$argumentList$CoTiMAStanctArgs
       )
       return(fits)
     }
