@@ -110,8 +110,17 @@ ctmaOptimizeFit <- function(primaryStudies=NULL,
     }
   }
 
-  # CHD added 20 SEP 2020
-  myCluster <- parallel::makeCluster(coresToUse)
+  # CHD ADDED Aug. 2023
+  if (!(is.null(reFits))) {
+    parProces <- min(c(coresToUse, reFits))
+    coresToUse <- coresToUse%/%reFits # integer division
+  } else {
+    parProces <- coresToUse
+  }
+
+  # CHD added 20 SEP 2020, changed Aug 2023
+  #myCluster <- parallel::makeCluster(coresToUse)
+  myCluster <- parallel::makeCluster(parProces)
   on.exit(parallel::stopCluster(myCluster))
   # CHD deleted 20. Sep 2022
   #if (.Platform$OS.type == "unix") {
