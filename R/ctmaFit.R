@@ -103,7 +103,6 @@
 #' plot.type=c("drift") and model.type="stanct" ("omx" was deprecated).
 #'
 ctmaFit <- function(
-    #n.manifest=0,
   activateRPB=FALSE,
   activeDirectory=NULL,
   allInvModel=FALSE,
@@ -136,7 +135,7 @@ ctmaFit <- function(
   mod.type="cont",
   moderatedDrift=NULL,
   modsToCompare=NULL,
-  nopriors=NA,
+  nopriors=TRUE,
   optimize=TRUE,
   primaryStudyList=NULL,
   priors=FALSE,
@@ -187,7 +186,6 @@ ctmaFit <- function(
     if (!(is.null(scaleClus))) CoTiMAStanctArgs$scaleClus <- scaleClus
     if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
     if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
-    if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
     if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
     if ( (!(is.null(nopriors))) & (!(is.null(nopriors))) ) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
     if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
@@ -750,6 +748,7 @@ ctmaFit <- function(
                                     scaleTime=scaleTime,
                                     optimize=optimize,
                                     nopriors=nopriors,
+                                    priors=priors,
                                     finishsamples=finishsamples,
                                     iter=iter,
                                     chains=chains,
@@ -905,7 +904,8 @@ ctmaFit <- function(
           stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- FALSE
         }
       } else {
-        stanctModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, #Tpoints=maxTpoints,
+        stanctModel <- suppressMessages(
+          ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, #Tpoints=maxTpoints,
                                       manifestNames=manifestNames,
                                       DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
                                       DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
@@ -919,6 +919,7 @@ ctmaFit <- function(
                                       type = 'stanct',
                                       n.TIpred = n.TIpred,
                                       TIpredNames = paste0("TI", 1:n.TIpred))
+        )
         stanctModel$pars[, "indvarying"] <- FALSE
       }
     }
@@ -1004,7 +1005,7 @@ ctmaFit <- function(
     }
     #stanctModel$pars
 
-    fitStanctModel <- ctsem::ctStanFit(
+    fitStanctModel <- suppressMessages(ctsem::ctStanFit(
       datalong = datalong_all,
       ctstanmodel = stanctModel,
       savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
@@ -1016,7 +1017,7 @@ ctmaFit <- function(
       intoverpop=CoTiMAStanctArgs$intoverpop,
       stationary=CoTiMAStanctArgs$stationary,
       plot=CoTiMAStanctArgs$plot,
-      derrind=CoTiMAStanctArgs$derrind,
+      #derrind=CoTiMAStanctArgs$derrind, # CHD deprecated, deleted Aug 2023
       optimize=CoTiMAStanctArgs$optimize,
       optimcontrol=CoTiMAStanctArgs$optimcontrol,
       nlcontrol=CoTiMAStanctArgs$nlcontrol,
@@ -1030,7 +1031,7 @@ ctmaFit <- function(
       verbose=CoTiMAStanctArgs$verbose,
       warmup=CoTiMAStanctArgs$warmup,
       cores=coresToUse,
-      inits=inits)
+      inits=inits))
 
     ### resample in parcels to avoid memory crash and speed up
     if (!(is.null(CoTiMAStanctArgs$resample))) {
