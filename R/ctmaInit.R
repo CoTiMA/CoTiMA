@@ -23,7 +23,8 @@
 #' @param scaleTI scale TI predictors
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
 #' @param optimize if set to FALSE, Stan's Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
-#' @param nopriors if TRUE, any priors are disabled - sometimes desirable for optimization
+#' @param nopriors Deprecated, but still working. If TRUE, any priors are disabled – sometimes desirable for optimization
+#' @param priors if FALSE, any priors are disabled – sometimes desirable for optimization
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param iter number of interation (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
@@ -98,7 +99,8 @@ ctmaInit <- function(
     scaleTI=NULL,
     scaleTime=NULL,
     optimize=TRUE,
-    nopriors=TRUE,
+    nopriors=NA,
+    priors=FALSE,
     finishsamples=NULL,
     chains=NULL,
     iter=NULL,
@@ -234,7 +236,8 @@ ctmaInit <- function(
       if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
       if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
-      if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
+      if ( (!(is.null(nopriors))) & (!(is.null(nopriors))) ) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
+      if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
       if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
       if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
       if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
@@ -979,16 +982,18 @@ ctmaInit <- function(
         #manifestmeansParams
 
 
-        currentModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
-                                       DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
-                                       DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
-                                       LAMBDA=lambdaParams,
-                                       T0VAR=T0VARParams,
-                                       type='stanct',
-                                       CINT=matrix(CINTParams, nrow=n.latent, ncol=1),
-                                       T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
-                                       MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
-                                       MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var)
+        currentModel <- suppressMessages(
+          ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
+                         DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
+                         DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
+                         LAMBDA=lambdaParams,
+                         T0VAR=T0VARParams,
+                         type='stanct',
+                         CINT=matrix(CINTParams, nrow=n.latent, ncol=1),
+                         T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
+                         MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
+                         MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var)
+          )
         )
         if (indVarying == FALSE) currentModel$pars[, "indvarying"] <- FALSE
         #CHD 13.6.2023
@@ -1020,22 +1025,24 @@ ctmaInit <- function(
             # added 9. Aug. 2022
             T0MEANS <- paste0("T0mean_", manifestNames); MANIFESTMEANS # if provided, indVarying is the default
 
-            currentModel <- ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
-                                           DIFFUSION=matrix(diffParams, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
-                                           DRIFT=matrix(driftParams, nrow=n.latent, ncol=n.latent),
-                                           LAMBDA=lambdaParams,
-                                           T0VAR=T0VARParams,
-                                           type='stanct',
-                                           CINT=matrix(0, nrow=n.latent, ncol=1),
-                                           # changed 9. Aug. 2022/16. Aug
-                                           #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
-                                           #T0MEANS = matrix(c(T0MEANS), nrow = n.latent, ncol = 1),
-                                           #MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.var, ncol = 1),
-                                           #T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
-                                           #MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
-                                           T0MEANS = "auto",
-                                           MANIFESTMEANS = "auto",
-                                           MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var)
+            currentModel <- suppressMessages(
+              ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
+                             DIFFUSION=matrix(diffParams, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
+                             DRIFT=matrix(driftParams, nrow=n.latent, ncol=n.latent),
+                             LAMBDA=lambdaParams,
+                             T0VAR=T0VARParams,
+                             type='stanct',
+                             CINT=matrix(0, nrow=n.latent, ncol=1),
+                             # changed 9. Aug. 2022/16. Aug
+                             #T0MEANS = matrix(c(0), nrow = n.latent, ncol = 1),
+                             #T0MEANS = matrix(c(T0MEANS), nrow = n.latent, ncol = 1),
+                             #MANIFESTMEANS = matrix(MANIFESTMEANS, nrow = n.var, ncol = 1),
+                             #T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
+                             #MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
+                             T0MEANS = "auto",
+                             MANIFESTMEANS = "auto",
+                             MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var)
+              )
             )
           }
         }
@@ -1063,6 +1070,7 @@ ctmaInit <- function(
             optimcontrol=CoTiMAStanctArgs$optimcontrol,
             nlcontrol=CoTiMAStanctArgs$nlcontrol,
             nopriors=CoTiMAStanctArgs$nopriors,
+            priors=CoTiMAStanctArgs$priors,
             chains=CoTiMAStanctArgs$chains,
             forcerecompile=CoTiMAStanctArgs$forcerecompile,
             savescores=CoTiMAStanctArgs$savescores,
@@ -1110,6 +1118,7 @@ ctmaInit <- function(
               optimcontrol=CoTiMAStanctArgs$optimcontrol,
               nlcontrol=CoTiMAStanctArgs$nlcontrol,
               nopriors=CoTiMAStanctArgs$nopriors,
+              priors=CoTiMAStanctArgs$priors,
               chains=CoTiMAStanctArgs$chains,
               forcerecompile=CoTiMAStanctArgs$forcerecompile,
               savescores=CoTiMAStanctArgs$savescores,

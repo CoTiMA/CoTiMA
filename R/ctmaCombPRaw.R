@@ -42,6 +42,15 @@ ctmaCombPRaw <- function(listOfStudyFits=NULL, moderatorValues=NULL) {
   for (i in 1:length(listOfStudyFits$studyFitList)) {
     #i <- 1
     tmp <- listOfStudyFits$emprawList[[i]]
+    # CHD Aug 2023
+    # check of data file is loaded that has been created with old ctmaInit function (that did not save empraw data)
+    tmp2 <- grep("V", colnames(tmp))
+    tmp3 <- mean(apply(tmp[tmp2], 2, mean))
+    if (tmp3 == 0) {
+      ErrorMsg <- "\nIt seems you used an outdated version of ctmaInit for initial fitting. I do not have access to pseudo raw data. Please update CoTiMA and run ctmaInit again."
+      stop(ErrorMsg)
+    }
+    #
     tmp2 <- colnames(tmp); tmp2
     if (n.manifest > 0) colnames(tmp) <- gsub("V", "y", tmp2)
     tmp <- tmp[, colnames(tmp) %in% targetColNames]
