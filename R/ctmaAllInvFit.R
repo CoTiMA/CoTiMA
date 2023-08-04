@@ -13,7 +13,8 @@
 #' @param indVaryingT0 Forces T0MEANS (T0 scores) to vary interindividually, which undos the nesting of T0(co-)variances in primary studies (default = TRUE). Was standard until Aug. 2022. Could provide better/worse estimates if set to FALSE.
 #' @param scaleTime scaleTime
 #' @param optimize optimize
-#' @param nopriors nopriors
+#' @param nopriors nopriors (TRUE, but deprecated)
+#' @param priors priors (FALSE)
 #' @param finishsamples finishsamples
 #' @param iter iter
 #' @param chains chains
@@ -44,6 +45,7 @@ ctmaAllInvFit <- function(
   scaleTime=NULL,
   optimize=TRUE,
   nopriors=TRUE,
+  priors=FALSE,
   finishsamples=NULL,
   iter=NULL,
   chains=NULL,
