@@ -412,21 +412,15 @@ ctmaFit <- function(
       if (n.moderators > 0) {
         if (n.ind.moderators != 0) {
           tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit)
-          head(tmp$alldata)
-          head(tmp$groups)
-          #casesToDelete <- which(is.na(currentModerators)); casesToDelete
           casesToDelete <- which(is.na(currentModerators[, ind.mod.number])); casesToDelete
           if (length(casesToDelete) > 0)  {
             currentModerators <- as.matrix(currentModerators[-casesToDelete,])
             tmp$groups <- tmp$groups[-casesToDelete]; length(tmp$alldata)
             tmp$alldata <- tmp$alldata[-casesToDelete,]; dim(tmp$alldata)
           }
-          #dim(currentModerators)
-          #tmp$moderatorGroups <- currentModerators[, ind.mod.number]; length(tmp$moderatorGroups)
           tmp$moderatorGroups <- currentModerators; dim(tmp$moderatorGroups)
         } else {
           tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit, moderatorValues= currentModerators)
-          #str(tmp)
         }
       } else {
         tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit)
