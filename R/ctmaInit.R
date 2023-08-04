@@ -2,43 +2,44 @@
 #'
 #' @description Fits ctsem models to each primary study in the supplied list of primary studies prepared by \code{\link{ctmaPrep}}.
 #'
-#' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}}
-#' @param activeDirectory defines another active directory than the one used in \code{\link{ctmaPrep}}
 #' @param activateRPB set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
+#' @param activeDirectory defines another active directory than the one used in \code{\link{ctmaPrep}}
+#' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param checkSingleStudyResults Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.
-#' @param digits number of digits used for rounding (in outputs)
-#' @param n.latent number of latent variables of the model (hast to be specified)!
-#' @param n.manifest number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
-#' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
-#' @param manifestVars define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
-#' @param drift labels for drift effects. Have to be either of the character strings of the type V1toV2 (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
+#' @param cint default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')
+#' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
+#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
+#' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param diff labels for diffusion effects. Have to be either of the character strings of the type "diff_eta1" or "diff_eta2_eta1" (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
+#' @param digits number of digits used for rounding (in outputs)
+#' @param doPar parallel and multiple fitting if single studies. A value > 1 will fit each study doPar times in parallel mode during which no output is generated (screen remains silent). Useful to obtain best fit.
+#' @param drift labels for drift effects. Have to be either of the character strings of the type V1toV2 (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
+#' @param experimental set TRUE to try new pairwise N function
+#' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
 #' @param indVaryingT0 (default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE fits the regular random intercept models.
-#' @param saveRawData save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
-#' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
-#' @param silentOverwrite overwrite old files without asking
-#' @param saveSingleStudyModelFit save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
+#' @param iter number of interation (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
+#' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
 #' @param loadSingleStudyModelFit load the fit of single study ctsem models
+#' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
+#' @param manifestVars define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
+#' @param n.latent number of latent variables of the model (hast to be specified)!
+#' @param n.manifest number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
+#' @param nopriors Deprecated, but still working. If TRUE, any priors are disabled – sometimes desirable for optimization
+#' @param optimize if set to FALSE, Stan's Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
+#' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
+#' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}}
+#' @param priors if FALSE, any priors are disabled – sometimes desirable for optimization
+#' @param saveRawData save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
+#' @param saveSingleStudyModelFit save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
 #' @param scaleTI scale TI predictors
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
-#' @param optimize if set to FALSE, Stan's Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
-#' @param nopriors Deprecated, but still working. If TRUE, any priors are disabled – sometimes desirable for optimization
-#' @param priors if FALSE, any priors are disabled – sometimes desirable for optimization
-#' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
-#' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
-#' @param iter number of interation (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
-#' @param verbose integer from 0 to 2. Higher values print more information during model fit - for debugging
-#' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
-#' @param doPar parallel and multiple fitting if single studies. A value > 1 will fit each study doPar times in parallel mode during which no output is generated (screen remains silent). Useful to obtain best fit.
-#' @param useSV if TRUE (default=FALSE) start values will be used if provided in the list of primary studies
-#' @param experimental set TRUE to try new pairwise N function
+#' @param silentOverwrite overwrite old files without asking
 #' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
-#' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
-#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
-#' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
-#' @param cint default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')
 #' @param T0var (default = 'auto')
+#' @param useSV if TRUE (default=FALSE) start values will be used if provided in the list of primary studies
+#' @param verbose integer from 0 to 2. Higher values print more information during model fit - for debugging
+
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom crayon red blue
@@ -79,43 +80,43 @@
 #' ("omx" was deprecated).
 #'
 ctmaInit <- function(
-    primaryStudies=NULL,
-    activeDirectory=NULL,
     activateRPB=FALSE,
+    activeDirectory=NULL,
+    chains=NULL,
     checkSingleStudyResults=TRUE,
+    cint=0,
+    coresToUse=c(1),
+    CoTiMAStanctArgs=NULL,
+    customPar=FALSE,
+    diff=NULL,
     digits=4,
+    doPar=1,
+    drift=NULL,
+    experimental=FALSE,
+    finishsamples=NULL,
+    indVarying=FALSE,
+    indVaryingT0=NULL,
+    iter=NULL,
+    lambda=NULL,
+    loadSingleStudyModelFit=c(),
+    manifestMeans=0,
+    manifestVars=NULL,
     n.latent=NULL,
     n.manifest=0,
-    lambda=NULL,
-    manifestVars=NULL,
-    drift=NULL,
-    diff=NULL,
-    indVarying=FALSE,
+    nopriors=FALSE,
+    optimize=TRUE,
+    posLL=TRUE,
+    primaryStudies=NULL,
+    priors=FALSE,
     saveRawData=list(),
-    coresToUse=c(1),
-    silentOverwrite=FALSE,
     saveSingleStudyModelFit=c(),
-    loadSingleStudyModelFit=c(),
     scaleTI=NULL,
     scaleTime=NULL,
-    optimize=TRUE,
-    nopriors=NA,
-    priors=FALSE,
-    finishsamples=NULL,
-    chains=NULL,
-    iter=NULL,
-    verbose=NULL,
-    customPar=FALSE,
-    doPar=1,
-    useSV=FALSE,
-    experimental=FALSE,
-    manifestMeans=0,
-    CoTiMAStanctArgs=NULL,
-    posLL=TRUE,
+    silentOverwrite=FALSE,
     T0means=0,
-    cint=0,
     T0var='auto',
-    indVaryingT0=NULL
+    useSV=FALSE,
+    verbose=NULL
 )
 
 {  # begin function definition (until end of file)
@@ -1065,7 +1066,7 @@ ctmaInit <- function(
             intoverpop=CoTiMAStanctArgs$intoverpop,
             stationary=CoTiMAStanctArgs$stationary,
             plot=CoTiMAStanctArgs$plot,
-            derrind=CoTiMAStanctArgs$derrind,
+            #derrind=CoTiMAStanctArgs$derrind, # deprecated, CHD deleted Aug 2023
             optimize=CoTiMAStanctArgs$optimize,
             optimcontrol=CoTiMAStanctArgs$optimcontrol,
             nlcontrol=CoTiMAStanctArgs$nlcontrol,
