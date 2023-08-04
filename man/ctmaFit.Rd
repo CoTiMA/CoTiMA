@@ -37,7 +37,7 @@ ctmaFit(
   mod.type = "cont",
   moderatedDrift = NULL,
   modsToCompare = NULL,
-  nopriors = NA,
+  nopriors = TRUE,
   optimize = TRUE,
   primaryStudyList = NULL,
   priors = FALSE,

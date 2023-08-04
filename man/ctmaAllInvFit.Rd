@@ -16,6 +16,7 @@ ctmaAllInvFit(
   scaleTime = NULL,
   optimize = TRUE,
   nopriors = TRUE,
+  priors = FALSE,
   finishsamples = NULL,
   iter = NULL,
   chains = NULL,
@@ -53,7 +54,9 @@ ctmaAllInvFit(
 
 \item{optimize}{optimize}
 
-\item{nopriors}{nopriors}
+\item{nopriors}{nopriors (TRUE, but deprecated)}
+
+\item{priors}{priors (FALSE)}
 
 \item{finishsamples}{finishsamples}
 

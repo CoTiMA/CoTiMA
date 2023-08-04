@@ -5,116 +5,119 @@
 \title{ctmaInit}
 \usage{
 ctmaInit(
-  primaryStudies = NULL,
-  activeDirectory = NULL,
   activateRPB = FALSE,
+  activeDirectory = NULL,
+  chains = NULL,
   checkSingleStudyResults = TRUE,
+  cint = 0,
+  coresToUse = c(1),
+  CoTiMAStanctArgs = NULL,
+  customPar = FALSE,
+  diff = NULL,
   digits = 4,
+  doPar = 1,
+  drift = NULL,
+  experimental = FALSE,
+  finishsamples = NULL,
+  indVarying = FALSE,
+  indVaryingT0 = NULL,
+  iter = NULL,
+  lambda = NULL,
+  loadSingleStudyModelFit = c(),
+  manifestMeans = 0,
+  manifestVars = NULL,
   n.latent = NULL,
   n.manifest = 0,
-  lambda = NULL,
-  manifestVars = NULL,
-  drift = NULL,
-  diff = NULL,
-  indVarying = FALSE,
+  nopriors = FALSE,
+  optimize = TRUE,
+  posLL = TRUE,
+  primaryStudies = NULL,
+  priors = FALSE,
   saveRawData = list(),
-  coresToUse = c(1),
-  silentOverwrite = FALSE,
   saveSingleStudyModelFit = c(),
-  loadSingleStudyModelFit = c(),
   scaleTI = NULL,
   scaleTime = NULL,
-  optimize = TRUE,
-  nopriors = TRUE,
-  finishsamples = NULL,
-  chains = NULL,
-  iter = NULL,
-  verbose = NULL,
-  customPar = FALSE,
-  doPar = 1,
-  useSV = FALSE,
-  experimental = FALSE,
-  manifestMeans = 0,
-  CoTiMAStanctArgs = NULL,
-  posLL = TRUE,
+  silentOverwrite = FALSE,
   T0means = 0,
-  cint = 0,
   T0var = "auto",
-  indVaryingT0 = NULL
+  useSV = FALSE,
+  verbose = NULL
 )
 }
 \arguments{
-\item{primaryStudies}{list of primary study information created with \code{\link{ctmaPrep}}}
+\item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 
 \item{activeDirectory}{defines another active directory than the one used in \code{\link{ctmaPrep}}}
 
-\item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
+\item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
 
 \item{checkSingleStudyResults}{Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.}
 
+\item{cint}{default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')}
+
+\item{coresToUse}{if neg., the value is subtracted from available cores, else value = cores to use}
+
+\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
+
+\item{customPar}{logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
+
+\item{diff}{labels for diffusion effects. Have to be either of the character strings of the type "diff_eta1" or "diff_eta2_eta1" (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)}
+
 \item{digits}{number of digits used for rounding (in outputs)}
+
+\item{doPar}{parallel and multiple fitting if single studies. A value > 1 will fit each study doPar times in parallel mode during which no output is generated (screen remains silent). Useful to obtain best fit.}
+
+\item{drift}{labels for drift effects. Have to be either of the character strings of the type V1toV2 (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)}
+
+\item{experimental}{set TRUE to try new pairwise N function}
+
+\item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
+
+\item{indVarying}{control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
+
+\item{indVaryingT0}{(default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE fits the regular random intercept models.}
+
+\item{iter}{number of interation (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation}
+
+\item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
+
+\item{loadSingleStudyModelFit}{load the fit of single study ctsem models}
+
+\item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
+\item{manifestVars}{define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
 
 \item{n.latent}{number of latent variables of the model (hast to be specified)!}
 
 \item{n.manifest}{number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).}
 
-\item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
+\item{nopriors}{Deprecated, but still working. If TRUE, any priors are disabled – sometimes desirable for optimization}
 
-\item{manifestVars}{define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
+\item{optimize}{if set to FALSE, Stan's Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
 
-\item{drift}{labels for drift effects. Have to be either of the character strings of the type V1toV2 (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)}
+\item{posLL}{logical. Allows (default = TRUE) of positive loglik (neg -2ll) values}
 
-\item{diff}{labels for diffusion effects. Have to be either of the character strings of the type "diff_eta1" or "diff_eta2_eta1" (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)}
+\item{primaryStudies}{list of primary study information created with \code{\link{ctmaPrep}}}
 
-\item{indVarying}{control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
+\item{priors}{if FALSE, any priors are disabled – sometimes desirable for optimization}
 
 \item{saveRawData}{save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec}
 
-\item{coresToUse}{if neg., the value is subtracted from available cores, else value = cores to use}
-
-\item{silentOverwrite}{overwrite old files without asking}
-
 \item{saveSingleStudyModelFit}{save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)}
-
-\item{loadSingleStudyModelFit}{load the fit of single study ctsem models}
 
 \item{scaleTI}{scale TI predictors}
 
 \item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
 
-\item{optimize}{if set to FALSE, Stan's Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
-
-\item{nopriors}{if TRUE, any priors are disabled - sometimes desirable for optimization}
-
-\item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
-
-\item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
-
-\item{iter}{number of interation (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation}
-
-\item{verbose}{integer from 0 to 2. Higher values print more information during model fit - for debugging}
-
-\item{customPar}{logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
-
-\item{doPar}{parallel and multiple fitting if single studies. A value > 1 will fit each study doPar times in parallel mode during which no output is generated (screen remains silent). Useful to obtain best fit.}
-
-\item{useSV}{if TRUE (default=FALSE) start values will be used if provided in the list of primary studies}
-
-\item{experimental}{set TRUE to try new pairwise N function}
-
-\item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
-
-\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
-
-\item{posLL}{logical. Allows (default = TRUE) of positive loglik (neg -2ll) values}
+\item{silentOverwrite}{overwrite old files without asking}
 
 \item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 
-\item{cint}{default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')}
-
 \item{T0var}{(default = 'auto')}
 
-\item{indVaryingT0}{(default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE fits the regular random intercept models.}
+\item{useSV}{if TRUE (default=FALSE) start values will be used if provided in the list of primary studies}
+
+\item{verbose}{integer from 0 to 2. Higher values print more information during model fit - for debugging}
 }
 \value{
 ctmaFit returns a list containing some arguments supplied, the fitted models, different elements summarizing the main results,
