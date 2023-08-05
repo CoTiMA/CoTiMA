@@ -85,7 +85,7 @@ ctmaInit <- function(
     chains=NULL,
     checkSingleStudyResults=TRUE,
     cint=0,
-    coresToUse=c(1),
+    coresToUse=c(2),
     CoTiMAStanctArgs=NULL,
     customPar=FALSE,
     diff=NULL,

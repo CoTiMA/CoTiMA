@@ -2,13 +2,13 @@
 #'
 #' @description Computes the Reduction in Heterogeneity in drift effects after introducing study-level moderators
 #'
+#' @param activateRPB if TRUE, messages (warning, finished) could be send to smart phone (default = FALSE)
 #' @param activeDirectory the directory where to save results (if not specified, it is taken from ctmaInitFit)
 #' @param ctmaFitObject ctmaFit Object WITHOUT Moderators (obtained from \code{\link{ctmaFit}} with the arguments invariantDrift=\'none\' and scaleTI=FALSE)
 #' @param ctmaFitObjectMod ctmaFit Object WITH Moderators (obtained from \code{\link{ctmaFit}} with the arguments invariantDrift=\'none\' and scaleTI=FALSE)
 #' @param digits rounding (default = 4)
-#' @param undoTimeScaling if TRUE, the original time scale is used (timeScale argument possibly used in \code{\link{ctmaInit}} is undone )
-#' @param activateRPB if TRUE, messages (warning, finished) could be send to smart phone (default = FALSE)
 #' @param dt A scalar indicating a time interval across which discrete time effects should be estimated and then used for ctmaBiG.
+#' @param undoTimeScaling if TRUE, the original time scale is used (timeScale argument possibly used in \code{\link{ctmaInit}} is undone )
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom ctsem ctExtract
@@ -16,8 +16,13 @@
 #'
 #' @export ctmaRedHet
 #'
-ctmaRedHet <- function(ctmaFitObject=NULL, ctmaFitObjectMod=NULL, digits=4, undoTimeScaling=TRUE, dt=NULL,
-                       activeDirectory=NULL, activateRPB=FALSE)
+ctmaRedHet <- function(activateRPB=FALSE,
+                       activeDirectory=NULL,
+                       ctmaFitObject=NULL,
+                       ctmaFitObjectMod=NULL,
+                       digits=4,
+                       dt=NULL,
+                       undoTimeScaling=TRUE)
 {  # begin function definition (until end of file)
 
   # check if correct fit objects are specified ######################

@@ -35,18 +35,19 @@ ctmaCombPRaw <- function(listOfStudyFits=NULL, moderatorValues=NULL) {
   alldata <- matrix(NA, 0, (n.var*max(allTpoints)+max(allTpoints)-1)); dim(alldata)
   colnames(alldata) <- targetColNames; alldata
   groups <- c()
+  #moderatorValues
   if (!(is.null(moderatorValues))) {
     moderatorGroups <- matrix(NA, nrow=0, ncol=dim(moderatorValues)[[2]])
   }
 
   for (i in 1:length(listOfStudyFits$studyFitList)) {
-    #i <- 1
     tmp <- listOfStudyFits$emprawList[[i]]
     # CHD Aug 2023
     # check of data file is loaded that has been created with old ctmaInit function (that did not save empraw data)
     tmp2 <- grep("V", colnames(tmp))
-    tmp3 <- mean(apply(tmp[tmp2], 2, mean))
-    if (tmp3 == 0) {
+    #tmp3 <- mean(apply(tmp[tmp2], 2, mean, na.rm=TRUE))
+    tmp3 <- all(tmp[tmp2] == 0)
+    if (tmp3 == TRUE) {
       ErrorMsg <- "\nIt seems you used an outdated version of ctmaInit for initial fitting. I do not have access to pseudo raw data. Please update CoTiMA and run ctmaInit again."
       stop(ErrorMsg)
     }

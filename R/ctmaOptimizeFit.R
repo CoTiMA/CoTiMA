@@ -9,32 +9,29 @@
 #' \code{\link{ctmaOptimizeFit}} is like gambling, hoping that at least one set of starting values (the number it tries is specified in the reFits argument)
 #' enables finding the global optimal fit. On unix-like machines (e.g. MacOS), this could be done in parallel mode if coresToUse > 1.
 #'
-#' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}
-#' @param activeDirectory activeDirectory
-#' @param problemStudy number (position in list) where the problem study in primaryStudies is found
-#' @param reFits how many reFits should be done
-#' @param n.latent number of latent variables of the model (hast to be specified)!
-#' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
 #' @param activateRPB  set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
-#' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
-#' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
-#' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
-#' @param randomScaleTime lower and upper limit of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)
-#' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
-#' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
-#' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
-#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
+#' @param activeDirectory activeDirectory
 #' @param checkSingleStudyResults displays estimates from single study 'ctsem' models and waits for user input to continue.
+#' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
+#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
 #' @param ctmaFitFit a object fitted with \code{\link{ctmaFit}}
 #' @param ctmaInitFit the ctmaInitFit object that was used to create the ctmaFitFit object with \code{\link{ctmaFit}}
-#' @param randomPar logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE
-#' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
+#' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
+#' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
+#' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
+#' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param manifestVars define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest. Useful to check estimates before they are saved.
-#' @param mod.number which in the vector of moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
-#' @param mod.type 'cont' or 'cat' (mixing them in a single model not yet possible)
-#' @param mod.names vector of names for moderators used in output
+#' @param n.latent number of latent variables of the model (hast to be specified)!
+#' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
+#' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}
+#' @param problemStudy number (position in list) where the problem study in primaryStudies is found
+#' @param randomPar logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE
+#' @param randomScaleTime lower and upper limit of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)
+#' @param reFits how many reFits should be done
 #' @param scaleMod scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts
+#' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
+#' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param transfMod more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))
 
 #'
@@ -64,33 +61,34 @@
 #' is printed if the summary function is applied to the returned object, and which shows the summary information of the ctsem model with the
 #' best fit.
 #'
-ctmaOptimizeFit <- function(primaryStudies=NULL,
+ctmaOptimizeFit <- function(activateRPB=FALSE,
                             activeDirectory=NULL,
-                            problemStudy=NULL,
-                            reFits=NULL,
-                            finishsamples=NULL,
-                            n.latent=NULL,
-                            coresToUse=c(1),
-                            indVarying=FALSE,
-                            scaleTime=NULL,
-                            randomScaleTime=c(1,1),
-                            activateRPB=FALSE,
                             checkSingleStudyResults=FALSE,
-                            customPar=FALSE,
-                            T0means=0,
-                            manifestMeans=0,
+                            coresToUse=c(2),
                             CoTiMAStanctArgs=NULL,
                             ctmaFitFit=NULL,
                             ctmaInitFit=NULL,
-                            randomPar=FALSE,
-                            posLL=TRUE,
+                            customPar=FALSE,
+                            finishsamples=NULL,
+                            indVarying=FALSE,
                             lambda=NULL,
+                            manifestMeans=0,
                             manifestVars=NULL,
-                            mod.number=NULL,
-                            mod.type="cont",
-                            mod.names=NULL,
+                            #mod.names=NULL,
+                            #mod.number=NULL,
+                            #mod.type="cont",
+                            n.latent=NULL,
+                            posLL=TRUE,
+                            primaryStudies=NULL,
+                            problemStudy=NULL,
+                            randomPar=FALSE,
+                            randomScaleTime=c(1,1),
+                            reFits=NULL,
                             scaleMod=NULL,
-                            transfMod=NULL)
+                            scaleTime=NULL,
+                            T0means=0,
+                            transfMod=NULL
+                            )
 {
 
   #######################################################################################################################
