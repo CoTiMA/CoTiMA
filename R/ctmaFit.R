@@ -165,7 +165,7 @@ ctmaFit <- function(
 
   if (!(is.null(invariantDrift))) { # added 12.7.2023
     # check if invariantDrift == 'none', which is used to mimic ctmaInit
-    if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
+    if ( ((invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE"))  & (scaleTI == TRUE) ) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
       Msg <- "The argument invariantDrift=\'none\' was used. I assume you want to mimic ctmaInit with all drift effects varying across primary studis.
     Therefore, I set the argument scaleTI=FALSE."
