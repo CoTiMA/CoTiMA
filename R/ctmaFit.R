@@ -174,6 +174,15 @@ ctmaFit <- function(
     }
   }
 
+  # CHD added Aug 2023 because on github nopriors was replaced by priors argument
+  tmp1 <- formals(ctsem::ctStanFit)
+  if (is.na(tmp1$nopriors)) {
+    nopriors <-NA
+    CoTiMAStanctArgs$nopriors <- NA
+  }
+
+
+
 
   { # set fitting params
     # Added 17. Aug 2022
@@ -732,6 +741,78 @@ ctmaFit <- function(
   CINTParams <- cint; CINTParams
 
   if (is.null(invariantDriftNames)) invariantDriftNames <- driftNames
+
+
+
+  # CHD added AUG 2023: Start values for mimicing ctmaInit (RI not cannot be done because cov among random effects do not exist at sutdy level)
+  ctStanFitObject <- ctmaInitFit$studyFitList[[n.studies]]
+  inits <- ctStanFitObject$stanfit$rawest; round(inits, 3)
+  # get parameter positions in rawest vector
+  tmp1 <- which(!(is.na(ctStanFitObject$ctstanmodelbase$pars$param))); tmp1
+  tmpPars <- ctStanFitObject$ctstanmodelbase$pars[tmp1,]; tmpPars
+  RIPos <- which(tmpPars$indvarying == TRUE); RIPos
+  #
+  if (length(RIPos) > 0){
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    ErrorMsg <- "\nYou cannot mimic an cmtaInit using ctmaFit because your model has random intercepts. They cannot be estimated at the study-level with ctmaFit. \nGood luck for the next try!"
+    stop(ErrorMsg)
+  }
+
+
+  if (!(is.null(invariantDrift))) { # added 12.7.2023
+    if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
+
+      print(paste0("#################################################################################"))
+      print(paste0("###### Computing start values to improve convergence in mimicing ctmaInit. ######"))
+      print(paste0("#################################################################################"))
+
+      #
+      T0meansPos <- which(tmpPars$matrix == "T0MEANS"); T0meansPos
+      driftPos <- which(tmpPars$matrix == "DRIFT"); driftPos
+      T0varPos <- which(tmpPars$matrix == "T0VAR"); T0varPos
+      diffPos <- which(tmpPars$matrix == "DIFFUSION"); diffPos
+      mmPos <- which(tmpPars$matrix == "MANIFESTMEANS"); mmPos
+      cintPos <- which(tmpPars$matrix == "CINT"); cintPos
+
+      rawDrift <-  modDrift <-  rawT0var <-  modT0var <-  rawDiff <- modDiff <- list()
+      rawT0means <-  modT0means <-  rawMM <- modMM <- rawCint <- modCint <- list()
+      # get rawest of reference study
+      rawDrift[[n.studies]] <- ctStanFitObject$stanfit$rawest[driftPos]; rawDrift[[n.studies]]
+      rawT0var[[n.studies]] <- ctStanFitObject$stanfit$rawest[T0varPos]; #rawT0var[[n.studies]]
+      rawDiff[[n.studies]] <- ctStanFitObject$stanfit$rawest[diffPos]; rawDiff[[n.studies]]
+      if (length(T0meansPos) > 0) rawT0means[[n.studies]] <- ctStanFitObject$stanfit$rawest[T0meansPos]; #rawT0means
+      if (length(mmPos) > 0) rawMM[[n.studies]] <- ctStanFitObject$stanfit$rawest[mmPos]; #rawMM[[n.studies]]
+      if (length(cintPos) > 0) rawCint[[n.studies]] <- ctStanFitObject$stanfit$rawest[cintPos]; #rawCint[[n.studies]]
+      # rermaining studies
+      for (k in 1:(n.studies-1)) {
+        #k <- 1
+        ctStanFitObject <- ctmaInitFit$studyFitList[[k]]
+        rawDrift[[k]] <- ctStanFitObject$stanfit$rawest[driftPos]; rawDrift[[k]]
+        rawT0var[[k]] <- ctStanFitObject$stanfit$rawest[T0varPos]; #rawT0var[[k]]
+        rawDiff[[k]] <- ctStanFitObject$stanfit$rawest[diffPos]; rawDiff[[k]]
+        if (length(T0meansPos) > 0) {rawT0means[[k]] <- ctStanFitObject$stanfit$rawest[T0meansPos]; rawT0means[[k]]}
+        if (length(mmPos) > 0) {rawMM[[k]] <- ctStanFitObject$stanfit$rawest[mmPos]; rawMM[[k]]}
+        if (length(cintPos) > 0) {rawCint[[k]] <- ctStanFitObject$stanfit$rawest[cintPos]; rawCint[[k]]}
+
+        modDrift[[k]] <- rawDrift[[k]] - rawDrift[[n.studies]]; modDrift[[k]] # order of values is correct
+        modT0var[[k]] <- rawT0var[[k]] - rawT0var[[n.studies]]; modT0var[[k]]
+        modDiff[[k]] <- rawDiff[[k]] - rawDiff[[n.studies]]; modDiff[[k]]
+        if (length(T0meansPos) > 0) modT0means[[k]] <- rawT0means[[k]] - rawT0means[[n.studies]]
+        if (length(mmPos) > 0) modMM[[k]] <- rawMM[[k]] - rawMM[[n.studies]]
+        if (length(cintPos) > 0) modCint[[k]] <- rawCint[[k]] - rawCint[[n.studies]]
+
+      }
+
+      for (l in 1:length(T0meansPos)) inits <- c(inits, unlist(lapply(modT0means, function(x) x[l])))
+      for (l in 1:length(driftPos)) inits <- c(inits, unlist(lapply(modDrift, function(x) x[l])))
+      for (l in 1:length(diffPos)) inits <- c(inits, unlist(lapply(modDiff, function(x) x[l])))
+      for (l in 1:length(mmPos)) inits <- c(inits, unlist(lapply(modMM, function(x) x[l])))
+      for (l in 1:length(cintPos)) inits <- c(inits, unlist(lapply(modCint, function(x) x[l])))
+      for (l in 1:length(T0varPos)) inits <- c(inits, unlist(lapply(modT0var, function(x) x[l])))
+      }
+    }
+
+
 
   if (allInvModel) {
     allInvModelFit <- ctmaAllInvFit(ctmaInitFit=ctmaInitFit,
