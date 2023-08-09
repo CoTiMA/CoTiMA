@@ -74,9 +74,6 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             lambda=NULL,
                             manifestMeans=0,
                             manifestVars=NULL,
-                            mod.names=NULL,
-                            mod.number=NULL,
-                            mod.type="cont",
                             n.latent=NULL,
                             posLL=TRUE,
                             primaryStudies=NULL,
@@ -165,47 +162,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
   }
   }
 
-  { # check if scaleMod is not used in combination with transfMod
-    if ( (!(is.null(scaleMod))) & (!(is.null(transfMod))) ) {
-      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-      ErrorMsg <- "The arguments scaleMod and transfMod cannot be used in combination. Set one of them NULL (leave out)."
-      stop(ErrorMsg)
-    }
-  }
-
-  n.ind.moderators <- 0 # shortcut until n.ind.moderators is enabled as argument
-  if (n.ind.moderators == 0) { # proceed if only moderators at the study level are used
-    n.moderators <- length(mod.number); n.moderators
-    { # check if transfMod is as long as n.moderators
-      if ( (!(is.null(transfMod))) ) {
-        if ( length(transfMod) != n.moderators ) {
-          if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-          ErrorMsg <- "More transformations for moderators (transfMod) provided than moderators."
-          stop(ErrorMsg)
-        }
-      }
-    }
-    if (n.moderators > 0) {
-      currentModerators <- matrix(as.numeric(unlist(lapply(ctmaInitFit$studyList, function(extract) extract$moderators[mod.number]))), ncol=n.moderators); currentModerators
-      #if (!(is.null(primaryStudyList))) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE)
-      #currentModerators
-      #if (!is.null(primaryStudyList)) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE); currentModerators
-      if (is.na((currentModerators[length(currentModerators)])[[1]][1])) currentModerators <- currentModerators[-dim(currentModerators)[1],]; currentModerators
-      if (is.null(dim(currentModerators)[1])) currentModerators <- matrix(currentModerators, ncol=1); currentModerators
-      #table(currentModerators)
-
-      if (any(is.na(currentModerators)) == TRUE) {
-        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-        ErrorMsg <- "\nAt least one of the primary studies does not have a valid value for the requested moderator. \nGood luck for the next try!"
-        stop(ErrorMsg)
-      }
-      if (var(currentModerators) == 0) {
-        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-        ErrorMsg <- "\nModerator is constant across cases.\nGood luck for the next try!"
-        stop(ErrorMsg)
-      }
-    }
-  }
+  # Moderator Checks Moved to Sectioon where ctmaInit is optimized (not relevant if ctmaFit is optimized) # CHD Auf 2023
 
 
   # INIT Fit
@@ -221,6 +178,51 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     if (is.null(activeDirectory)) stop(ErrorMsg)
     ErrorMsg <- "argument n.latent is missing"
     if (is.null(n.latent)) stop(ErrorMsg)
+
+    # Moderator Checks Moved from above into ctmaInit-optimizinf section (not relevant if ctmaFit is optimized)
+    # Neither relevant for ctmaInit nor ctmaFit, therefore de-activated
+    #{ # check if scaleMod is not used in combination with transfMod
+    #  if ( (!(is.null(scaleMod))) & (!(is.null(transfMod))) ) {
+    #    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+    #    ErrorMsg <- "The arguments scaleMod and transfMod cannot be used in combination. Set one of them NULL (leave out)."
+    #    stop(ErrorMsg)
+    #  }
+    #}
+
+    #n.ind.moderators <- 0 # shortcut until n.ind.moderators is enabled as argument
+    #if (n.ind.moderators == 0) { # proceed if only moderators at the study level are used
+    #  n.moderators <- length(mod.number); n.moderators
+    #  { # check if transfMod is as long as n.moderators
+    #    if ( (!(is.null(transfMod))) ) {
+    #      if ( length(transfMod) != n.moderators ) {
+    #        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+    #        ErrorMsg <- "More transformations for moderators (transfMod) provided than moderators."
+    #        stop(ErrorMsg)
+    #      }
+    #    }
+    #  }
+    #  if (n.moderators > 0) {
+    #    currentModerators <- matrix(as.numeric(unlist(lapply(ctmaInitFit$studyList, function(extract) extract$moderators[mod.number]))), ncol=n.moderators); currentModerators
+    #    #if (!(is.null(primaryStudyList))) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE)
+    #    #currentModerators
+    #    #if (!is.null(primaryStudyList)) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE); currentModerators
+    #    if (is.na((currentModerators[length(currentModerators)])[[1]][1])) currentModerators <- currentModerators[-dim(currentModerators)[1],]; currentModerators
+    #    if (is.null(dim(currentModerators)[1])) currentModerators <- matrix(currentModerators, ncol=1); currentModerators
+    #    #table(currentModerators)
+
+    #    if (any(is.na(currentModerators)) == TRUE) {
+    #      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    #      ErrorMsg <- "\nAt least one of the primary studies does not have a valid value for the requested moderator. \nGood luck for the next try!"
+    #      stop(ErrorMsg)
+    #    }
+    #    if (var(currentModerators) == 0) {
+    #      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    #      ErrorMsg <- "\nModerator is constant across cases.\nGood luck for the next try!"
+    #      stop(ErrorMsg)
+    #    }
+    #  }
+    #}
+
 
     # create new study list with a single problem study only
     listElements <- names(primaryStudies); listElements
