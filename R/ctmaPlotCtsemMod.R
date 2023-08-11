@@ -6,6 +6,7 @@
 #' @param Tipred.pos the Tipred that represent the moderator. Could be more than one in case of categorical moderators (e.g., Tipred.pos = c(3,4))
 #' @param scaleTime factor to increase or decrease the time scale (e.g., 1/12 if estimates where based on yearly intervals and figure should show monthly intervals)
 #' @param activeDirectory defines the active directory (where to save plots)
+#' @param saveFilePrefix Prefix used for saved plots
 #' @param fitSummary Mainl ofr debugging purpose. Saves computation time if provided in addition to the fit object
 #' @param mod.sd.to.plot The standard deviation vlaues (default -1, 0, +1) for which the drift effects are plotted
 #' @param timeUnit Label for the x-axis
@@ -54,6 +55,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
                              fitSummary = NULL,
                              activeDirectory = NULL,
                              Tipred.pos=1,
+                             saveFilePrefix="Moderator Plot ",
                              scaleTime=1,
                              mod.sd.to.plot = -1:1,
                              timeUnit = "not specified",
@@ -363,19 +365,17 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
       graphics::par(new=T)
       axis(1, labels=x.labels,
            at = x.pos, las=2)
-      #graphics::par(new=T)
+
       # titel and axis labels
       if (i %in% autoEffects) tmp1 <- "Autoregressive" else tmp1 <- "Cross-lagged"
-      #graphics::par(new=T)
       graphics::title(main = paste0("Moderated ", tmp1, " Effects of ", driftNames[i]), sub = NULL,
                       xlab=paste0("Time Interval in ", timeUnit), ylab = paste0(tmp1, " Beta"))
-      #graphics::par(new=T)
 
-      #graphics::par(new=F)
-      tmp <- paste0(activeDirectory, "Moderator Plot "," ", driftNames[i], ".png"); tmp
+      #tmp <- paste0(activeDirectory, "Moderator Plot "," ", driftNames[i], ".png"); tmp
+      tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNamesTmp[i], ".png"); tmp
+
       grDevices::dev.copy(grDevices::png, tmp, width = 8, height = 8, units = 'in', res = 300)
       grDevices::dev.off()
-      #graphics::par(new=T)
     }
   }
   graphics::par(new=F)
