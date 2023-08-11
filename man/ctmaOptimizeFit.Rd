@@ -5,65 +5,40 @@
 \title{ctmaOptimizeFit}
 \usage{
 ctmaOptimizeFit(
-  primaryStudies = NULL,
-  activeDirectory = NULL,
-  problemStudy = NULL,
-  reFits = NULL,
-  finishsamples = NULL,
-  n.latent = NULL,
-  coresToUse = c(1),
-  indVarying = FALSE,
-  scaleTime = NULL,
-  randomScaleTime = c(1, 1),
   activateRPB = FALSE,
+  activeDirectory = NULL,
   checkSingleStudyResults = FALSE,
-  customPar = FALSE,
-  T0means = 0,
-  manifestMeans = 0,
+  coresToUse = c(2),
   CoTiMAStanctArgs = NULL,
   ctmaFitFit = NULL,
   ctmaInitFit = NULL,
-  randomPar = FALSE,
-  posLL = TRUE,
+  customPar = FALSE,
+  finishsamples = NULL,
+  indVarying = FALSE,
   lambda = NULL,
+  manifestMeans = 0,
   manifestVars = NULL,
-  mod.number = NULL,
-  mod.type = "cont",
-  mod.names = NULL,
+  n.latent = NULL,
+  posLL = TRUE,
+  primaryStudies = NULL,
+  problemStudy = NULL,
+  randomPar = FALSE,
+  randomScaleTime = c(1, 1),
+  reFits = NULL,
   scaleMod = NULL,
+  scaleTime = NULL,
+  T0means = 0,
   transfMod = NULL
 )
 }
 \arguments{
-\item{primaryStudies}{list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}}
+\item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 
 \item{activeDirectory}{activeDirectory}
 
-\item{problemStudy}{number (position in list) where the problem study in primaryStudies is found}
-
-\item{reFits}{how many reFits should be done}
-
-\item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
-
-\item{n.latent}{number of latent variables of the model (hast to be specified)!}
-
-\item{coresToUse}{if neg., the value is subtracted from available cores, else value = cores to use}
-
-\item{indVarying}{control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
-
-\item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
-
-\item{randomScaleTime}{lower and upper limit of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)}
-
-\item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
-
 \item{checkSingleStudyResults}{displays estimates from single study 'ctsem' models and waits for user input to continue.}
 
-\item{customPar}{logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
-
-\item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
-
-\item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+\item{coresToUse}{if neg., the value is subtracted from available cores, else value = cores to use}
 
 \item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
 
@@ -71,21 +46,37 @@ ctmaOptimizeFit(
 
 \item{ctmaInitFit}{the ctmaInitFit object that was used to create the ctmaFitFit object with \code{\link{ctmaFit}}}
 
-\item{randomPar}{logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE}
+\item{customPar}{logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
 
-\item{posLL}{logical. Allows (default = TRUE) of positive loglik (neg -2ll) values}
+\item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
+
+\item{indVarying}{control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
 
 \item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
 
+\item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
+
 \item{manifestVars}{define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest. Useful to check estimates before they are saved.}
 
-\item{mod.number}{which in the vector of moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)}
+\item{n.latent}{number of latent variables of the model (hast to be specified)!}
 
-\item{mod.type}{'cont' or 'cat' (mixing them in a single model not yet possible)}
+\item{posLL}{logical. Allows (default = TRUE) of positive loglik (neg -2ll) values}
 
-\item{mod.names}{vector of names for moderators used in output}
+\item{primaryStudies}{list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}}
+
+\item{problemStudy}{number (position in list) where the problem study in primaryStudies is found}
+
+\item{randomPar}{logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE}
+
+\item{randomScaleTime}{lower and upper limit of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)}
+
+\item{reFits}{how many reFits should be done}
 
 \item{scaleMod}{scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts}
+
+\item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
+
+\item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 
 \item{transfMod}{more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))}
 }

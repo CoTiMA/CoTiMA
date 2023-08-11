@@ -3,7 +3,10 @@
 #' @description Plots moderator models using \code{\link{ctsem}} fit objects
 #'
 #' @param ctStanFitObject The fit object with moderator (TIpred) effects to be plotted
+#' @param Tipred.pos the Tipred that represent the moderator. Could be more than one in case of categorical moderators (e.g., Tipred.pos = c(3,4))
+#' @param scaleTime factor to increase or decrease the time scale (e.g., 1/12 if estimates where based on yearly intervals and figure should show monthly intervals)
 #' @param activeDirectory defines the active directory (where to save plots)
+#' @param fitSummary Mainl ofr debugging purpose. Saves computation time if provided in addition to the fit object
 #' @param mod.sd.to.plot The standard deviation vlaues (default -1, 0, +1) for which the drift effects are plotted
 #' @param timeUnit Label for the x-axis
 #' @param timeRange time range across which drift effects are plotted
@@ -30,7 +33,7 @@
 #' @importFrom graphics plot plot.new polygon abline par rect axis title text legend
 #' @importFrom grDevices dev.copy png dev.off
 #'
-#' @export ctmaInit
+#' @export ctmaPlotCtsemMod
 #'
 #' @examples
 #' #Plot a categorical moderator
@@ -41,14 +44,17 @@
 #'                  timeUnit = "Months",
 #'                  timeRange = c(0, 12, .1),
 #'                  mod.type = "cat",
-#'                  no.mod.cats = NULL,
+#'                  no.mod.cats = NULL
 #' }
 #'
 #' @return writes png figures to disc using the path specified in the activeDirectory arguments.
 #'
 
 ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
+                             fitSummary = NULL,
                              activeDirectory = NULL,
+                             Tipred.pos=1,
+                             scaleTime=1,
                              mod.sd.to.plot = -1:1,
                              timeUnit = "not specified",
                              timeRange = NULL,
@@ -103,27 +109,37 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
     }
 
     if (is.null(timeRange))  {
-      tmp <- max(ctStanFitObject$standata$time)
-      timeRange <- seq(0, tmp, .1)
+      tmp <- max(ctStanFitObject$standata$time); tmp
+      timeRange <- seq(0, 1.5 * tmp, .1); timeRange
       Msg <- paste0("Note: Time range was not specified. I from 0 to 1.5 times the largest interval (", round(tmp, 2), ") in the data in .1 steps!")
       message(Msg)
+    } else { # CHD Aug 2023
+      timeRange <- seq(timeRange[1], timeRange[2], timeRange[3])
     }
 
-    if (is.null(n.x.labels)) n.x.labels <- max(timeRange)/3  # the 0 is added automatically later, so that e.g., 12 will becomes 13, and 4 X labels will be printed
+    # CHD Aug 2023
+    #if (is.null(n.x.labels)) n.x.labels <- max(timeRange)/3  # the 0 is added automatically later, so that e.g., 12 will becomes 13, and 4 X labels will be printed
+    if (is.null(n.x.labels)) n.x.labels <- length(timeRange)/3  # the 0 is added automatically later, so that e.g., 12 will becomes 13, and 4 X labels will be printed
+    #n.x.labels
 
-    if (n.x.labels < 1)  {
+    # CHD Aug 2023
+    #if (n.x.labels < 1)  {
+    if (max(timeRange) < 1)  {
       ErrorMsg <- "\nThe largest time interval is < 1. Cannot plot. Please specify larger time range, e.g., timeRange=seq(0, 10, .1). \nGood luck for the next try!"
       stop(ErrorMsg)
     }
 
-    mod.no.to.plot <- 1 # only a single categorical continuous moderator can be plotted in a single plot, e.g., 1st, 3rd ...
-    #                     note that each categorical moderator counts as k, with k = number of moderator categories - 1. (i.e., dummies)
+    mod.no.to.plot <- Tipred.pos # only a single continuous moderator can be plotted in a single plot, e.g., 1st, 3rd ...
+    #                             note that each categorical moderator counts as k, with k = number of moderator categories - 1. (i.e., dummies)
   }
 
 
   # some derivations from input
   {
-    ctStanFitObject_summary <- summary(ctStanFitObject)
+    print(paste0("#################################################################################"))
+    print(paste0("####################### Computing model fit summary. ############################"))
+    print(paste0("#################################################################################"))
+    if (is.null(fitSummary)) ctStanFitObject_summary <- summary(ctStanFitObject) else ctStanFitObject_summary <- fitSummary
     n.latent <- ctStanFitObject$ctstanmodelbase$n.latent; n.latent
     tmp1 <- which(!(is.na(ctStanFitObject$ctstanmodelbase$pars$param)))
     tmpPars <- ctStanFitObject$ctstanmodelbase$pars[tmp1,]; tmpPars
@@ -131,7 +147,6 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
     driftNames <- tmpPars$param[driftPos]; driftNames # this is row wise
     if (mod.type == "cat") modPos <- mod.no.to.plot:(mod.no.to.plot - 1 + no.mod.cats - 1)
     if (mod.type == "cont") modPos <- mod.no.to.plot
-    #modPos
     TIpred.values <- matrix(ctStanFitObject$data$tipredsdata[, modPos], ncol=length(modPos)); head(TIpred.values)
     m.TIpred<- apply(TIpred.values, 2, mean); m.TIpred
     sd.TIpred <- apply(TIpred.values, 2, sd); sd.TIpred
@@ -155,8 +170,8 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
       tmp5 <- length(tmp4)/length(TIpred.values); tmp5
       tmp6 <- max(mod.sd.to.plot); tmp6
 
-      print(paste0("(Note: In your sample ", length(tmp1), " ( = ", round(tmp2*100, 4), "%) people have smaller moderator values than ", tmp3, "SD below the sample mean"))
-      print(paste0("(Note: In your sample ", length(tmp4), " ( = ", round(tmp5*100, 4), "%) people have larger moderator values than ", tmp6, "SD above the sample mean"))
+      print(paste0("Note: In your sample ", length(tmp1), " ( = ", round(tmp2*100, 4), "%) people have smaller moderator values than ", tmp3, "SD below the sample mean"))
+      print(paste0("Note: In your sample ", length(tmp4), " ( = ", round(tmp5*100, 4), "%) people have larger moderator values than ", tmp6, "SD above the sample mean"))
     }
 
     if ((mod.type == "cat") & (!(is.null(no.mod.cats))) ) {
@@ -169,7 +184,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
   }
 
   {
-    # poke moderator values that should be plotted into time range (for placing moderator lables in the plot)
+    # poke moderator values that should be plotted into time range (for placing moderator labels in the plot)
     xValueForModValue <- stats::quantile(timeRange, probs = seq(0, 1, 1/(toPlot+1))); xValueForModValue # used for positioning of moderator value in plot
     usedTimeRange <- unique(sort(c(xValueForModValue, timeRange))); usedTimeRange # correcting for added time points
     noOfSteps <- length(usedTimeRange); noOfSteps # can be placed later when generation plotPairs
@@ -190,7 +205,13 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
       # raw moderator effects (could be partial - therefore the complex code)
       if (mod.type == "cont") {
         tmp2 <- ctStanFitObject$stanfit$transformedparsfull$TIPREDEFFECT[,driftPos, modPos]; tmp2 # (rowwise extracted)
-        tmp3 <- rownames(ctStanFitObject_summary$tipreds); tmp3
+        #tmp3 <- rownames(ctStanFitObject_summary$tipreds); tmp3
+        # CHD 10. Aug 2023
+        tmp3 <- which(colnames(ctStanFitObject$ctstanmodelbase$pars) == "sdscale") + modPos ; tmp3
+        modName <- colnames(ctStanFitObject$ctstanmodelbase$pars)[tmp3]; modName
+        modName <- gsub("_effect", "", modName); modName
+        tmp3 <- rownames(ctStanFitObject_summary$tipreds)[grep(modName, rownames(ctStanFitObject_summary$tipreds))]; tmp3
+        #
         if (length(driftNames) != (n.latent^2)) { # if some drift effects were specified as NA; CHD added 28.4.23
           tmp4 <- c()
           for (l in 1:length(driftNames)) {
@@ -206,7 +227,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
         rawMod <- matrix(tmp4, n.latent, byrow=TRUE); rawMod # raw moderator effect to be added to raw main effect (followed by tform) (correct order in matrix)
         tmpNames <- paste0("Raw Drift for Moderator Value = ", mod.sd.to.plot[counter], " SD from mean of moderator"); tmpNames
         DRIFTCoeff[[tmpNames]] <- rawDrift + mod.values.to.plot[counter] * rawMod; DRIFTCoeff[[counter]]
-        }
+      }
       #
       if (mod.type == "cat") {
         if (counter == 1) {
@@ -221,6 +242,8 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
       }
     }
     #DRIFTCoeff
+    #DRIFTCoeffBackup <- DRIFTCoeff
+    #lapply(DRIFTCoeff, function(x) x * 12)
 
     ### apply tform to drift elements that should be tformed (extracted into tforms) (tforms are rowwise) (effects in correct order)
     # get tforms for drift (rowwise extraction)
@@ -237,9 +260,12 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
           counter <- counter + 1
           param <- DRIFTCoeff[[k]][l,m]; param
           DRIFTCoeff[[k]][l,m] <- eval(parse(text=transforms[counter])); DRIFTCoeff[[k]][l,m]
+          DRIFTCoeff[[k]][l,m] <- DRIFTCoeff[[k]][l,m] * scaleTime
         }
       }
     }
+    #DRIFTCoeff
+    #DRIFTCoeffBackup
 
     # compute dt drift coefficients (extracted rowumnwise; in the order of driftnames, not yet in ctmaPlot)
     # Function to compute discrete parameters using drift parameters and time-scaling factors
@@ -276,6 +302,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
     plot.xMax <- length(plotPairs[1, ,1]); plot.xMax
 
     for (i in 1:n.latent^2) {
+      #i <- 2
       graphics::plot.new()
       graphics::par(new=F)
       if (i %in% autoEffects) {
@@ -286,16 +313,17 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
         plot.yMax <- max(plotPairs[, ,crossEffects])[1]; plot.yMax
       }
       for (h in 1:toPlot) {
+        #h <- 1
         # slopes
         currentPlotPair <- plotPairs[h, ,i]
         currentPlotPair <- cbind(1:length(usedTimeRange), currentPlotPair)
+        graphics::par(new=T)
         if (h == 1) {
           plot(currentPlotPair, type=plot..type, col=plot.col, lwd=plot.lwd, lty=plot.lty,
                xlim = c(0, plot.xMax),
                ylim = c(plot.yMin, plot.yMax),
                xaxt='n',
                ann=FALSE)
-          graphics::par(new=T)
         } else  {
           plot(currentPlotPair, type=plot..type, col=plot.col, lwd=plot.lwd, lty=plot.lty,
                xlim = c(0, plot.xMax),
@@ -303,7 +331,6 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
                xaxt='n',
                yaxt='n',
                ann=FALSE)
-          graphics::par(new=T)
         }
         # dots
         currentPlotPair <- dotPlotPairs[h, ,i]
@@ -311,30 +338,35 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
         tmp1 <- which(!(is.na(currentPlotPair[,2]))); tmp1 #retain only first and the dot position
         tmp1 <- c(1, tmp1); tmp1
         currentPlotPair <- currentPlotPair[tmp1,]
+        graphics::par(new=T)
         plot(currentPlotPair[,], type=dot.plot.type, col=dot.plot.col, lwd=dot.plot.lwd,
              pch=dot.plot.pch, lty=dot.plot.lty, cex=dot.plot.cex,
              xlim = c(0, plot.xMax), ylim = c(plot.yMin, plot.yMax),
              xaxt='n', yaxt='n', ann=FALSE)
-        graphics::par(new=T)
         #
         currentLabel <- ""
         if (mod.type == "cont") currentLabel <- mod.sd.to.plot[h]; currentLabel
         if (mod.type == "cat") currentLabel <- h-1; currentLabel
+        #graphics::par(new=T)
         if (nchar(currentLabel) == 1) graphics::text(currentPlotPair, labels=currentLabel, cex=1.2, col="white")
-        if (nchar(currentLabel) == 2) graphics::text(currentPlotPair, labels=currentLabel, cex=.7, col="white")
-        if (nchar(currentLabel) > 2) graphics::text(currentPlotPair, labels=currentLabel, cex=.4, col="white")
-        graphics::par(new=T)
+        if (nchar(currentLabel) == 2) graphics::text(currentPlotPair, labels=currentLabel, cex=.8, col="white")
+        if (nchar(currentLabel) == 3) graphics::text(currentPlotPair, labels=currentLabel, cex=.6, col="white")
+        if (nchar(currentLabel) == 4) graphics::text(currentPlotPair, labels=currentLabel, cex=.6, col="white")
+        if (nchar(currentLabel) > 4) graphics::text(currentPlotPair, labels=currentLabel, cex=.4, col="white")
+        #graphics::par(new=T)
       }
       # axis
       x.labels <- seq(0, max(timeRange),(max(timeRange)/ n.x.labels))[-1]; x.labels # without 0
       stepSize <- (plot.xMax/length(x.labels)); stepSize
       x.pos <- seq(0, plot.xMax, stepSize); x.pos
-      x.labels <- seq(0, max(timeRange),(max(timeRange)/ n.x.labels)); x.labels # now with 0
+      x.labels <- round(seq(0, max(timeRange),(max(timeRange)/ n.x.labels)), 2); x.labels # now with 0
+      graphics::par(new=T)
       axis(1, labels=x.labels,
            at = x.pos, las=2)
-      graphics::par(new=T)
+      #graphics::par(new=T)
       # titel and axis labels
       if (i %in% autoEffects) tmp1 <- "Autoregressive" else tmp1 <- "Cross-lagged"
+      #graphics::par(new=T)
       graphics::title(main = paste0("Moderated ", tmp1, " Effects of ", driftNames[i]), sub = NULL,
                       xlab=paste0("Time Interval in ", timeUnit), ylab = paste0(tmp1, " Beta"))
       #graphics::par(new=T)
@@ -343,10 +375,9 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
       tmp <- paste0(activeDirectory, "Moderator Plot "," ", driftNames[i], ".png"); tmp
       grDevices::dev.copy(grDevices::png, tmp, width = 8, height = 8, units = 'in', res = 300)
       grDevices::dev.off()
-      graphics::par(new=T)
-
-
+      #graphics::par(new=T)
     }
   }
+  graphics::par(new=F)
 }
 

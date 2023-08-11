@@ -5,29 +5,29 @@
 \title{ctmaRedHet}
 \usage{
 ctmaRedHet(
+  activateRPB = FALSE,
+  activeDirectory = NULL,
   ctmaFitObject = NULL,
   ctmaFitObjectMod = NULL,
   digits = 4,
-  undoTimeScaling = TRUE,
   dt = NULL,
-  activeDirectory = NULL,
-  activateRPB = FALSE
+  undoTimeScaling = TRUE
 )
 }
 \arguments{
+\item{activateRPB}{if TRUE, messages (warning, finished) could be send to smart phone (default = FALSE)}
+
+\item{activeDirectory}{the directory where to save results (if not specified, it is taken from ctmaInitFit)}
+
 \item{ctmaFitObject}{ctmaFit Object WITHOUT Moderators (obtained from \code{\link{ctmaFit}} with the arguments invariantDrift=\'none\' and scaleTI=FALSE)}
 
 \item{ctmaFitObjectMod}{ctmaFit Object WITH Moderators (obtained from \code{\link{ctmaFit}} with the arguments invariantDrift=\'none\' and scaleTI=FALSE)}
 
 \item{digits}{rounding (default = 4)}
 
-\item{undoTimeScaling}{if TRUE, the original time scale is used (timeScale argument possibly used in \code{\link{ctmaInit}} is undone )}
-
 \item{dt}{A scalar indicating a time interval across which discrete time effects should be estimated and then used for ctmaBiG.}
 
-\item{activeDirectory}{the directory where to save results (if not specified, it is taken from ctmaInitFit)}
-
-\item{activateRPB}{if TRUE, messages (warning, finished) could be send to smart phone (default = FALSE)}
+\item{undoTimeScaling}{if TRUE, the original time scale is used (timeScale argument possibly used in \code{\link{ctmaInit}} is undone )}
 }
 \description{
 Computes the Reduction in Heterogeneity in drift effects after introducing study-level moderators

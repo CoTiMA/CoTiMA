@@ -6,7 +6,10 @@
 \usage{
 ctmaPlotCtsemMod(
   ctStanFitObject = NULL,
+  fitSummary = NULL,
   activeDirectory = NULL,
+  Tipred.pos = 1,
+  scaleTime = 1,
   mod.sd.to.plot = -1:1,
   timeUnit = "not specified",
   timeRange = NULL,
@@ -32,7 +35,13 @@ ctmaPlotCtsemMod(
 \arguments{
 \item{ctStanFitObject}{The fit object with moderator (TIpred) effects to be plotted}
 
+\item{fitSummary}{Mainl ofr debugging purpose. Saves computation time if provided in addition to the fit object}
+
 \item{activeDirectory}{defines the active directory (where to save plots)}
+
+\item{Tipred.pos}{the Tipred that represent the moderator. Could be more than one in case of categorical moderators (e.g., Tipred.pos = c(3,4))}
+
+\item{scaleTime}{factor to increase or decrease the time scale (e.g., 1/12 if estimates where based on yearly intervals and figure should show monthly intervals)}
 
 \item{mod.sd.to.plot}{The standard deviation vlaues (default -1, 0, +1) for which the drift effects are plotted}
 
@@ -89,7 +98,7 @@ ctmaPlotCtsemMod(ctStanFitObject = ctsemFit,
                  timeUnit = "Months",
                  timeRange = c(0, 12, .1),
                  mod.type = "cat",
-                 no.mod.cats = NULL,
+                 no.mod.cats = NULL
 }
 
 }
