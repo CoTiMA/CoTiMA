@@ -372,7 +372,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
                       xlab=paste0("Time Interval in ", timeUnit), ylab = paste0(tmp1, " Beta"))
 
       #tmp <- paste0(activeDirectory, "Moderator Plot "," ", driftNames[i], ".png"); tmp
-      tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNamesTmp[i], ".png"); tmp
+      tmp <- paste0(activeDirectory, saveFilePrefix," ", driftNames[i], ".png"); tmp
 
       grDevices::dev.copy(grDevices::png, tmp, width = 8, height = 8, units = 'in', res = 300)
       grDevices::dev.off()
