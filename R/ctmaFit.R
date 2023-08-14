@@ -949,10 +949,13 @@ ctmaFit <- function(
                          DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
                          DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
                          LAMBDA=lambdaParams,
-                         # CHD 9.6.2023
-                         CINT=CINTParams, #matrix(0, nrow=n.latent, ncol=1),
-                         T0MEANS = T0meansParams,
-                         MANIFESTMEANS = manifestMeansParams,
+                         # CHD 9.6.2023; AUG 2023
+                         #CINT=CINTParams, #matrix(0, nrow=n.latent, ncol=1),
+                         CINT=matrix(CINTParams, nrow=n.latent, ncol=1),
+                         #T0MEANS = T0meansParams,
+                         T0MEANS = matrix(T0meansParams, nrow=n.latent, ncol=1),
+                         #MANIFESTMEANS = manifestMeansParams,
+                         MANIFESTMEANS = matrix(manifestMeansParams, nrow=n.latent, ncol=n.var),
                          MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var),
                          T0VAR = T0VARParams,
                          type = 'stanct',
