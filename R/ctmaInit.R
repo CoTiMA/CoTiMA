@@ -1582,6 +1582,7 @@ ctmaInit <- function(
     tmp2 <- which(tmp1 == (max(tmp1))); tmp2
     suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
     #message1 <- c()
+    # maxDeltas hast already been time scaled above
     if (maxDeltas > 6) {
       tmp2 <- paste0("Maximum time interval was ", maxDeltas, "."); tmp2
       tmp3 <- paste0("timeScale=1/", suggestedScaleTime); tmp3

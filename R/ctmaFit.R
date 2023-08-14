@@ -1411,7 +1411,9 @@ ctmaFit <- function(
   tmp2 <- which(names(tmp1) == (max(as.numeric(names(tmp1))))); tmp2
   suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
   message <- c()
-  if (meanDeltas > 3) {
+  #if (meanDeltas > 3) {
+  # CHD AUG 2023
+  if ((meanDeltas * CoTiMAStanctArgs$scaleTime) > 3) { #xxx
     tmp2 <- paste0("Mean time interval was ", meanDeltas, "."); tmp2
     tmp3 <- paste0("scaleTime=1/", suggestedScaleTime); tmp3
     tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, " and customPar=FALSE. "); tmp4
@@ -1575,7 +1577,7 @@ ctmaFit <- function(
                                     model_popcor_50=model_popcor_50, model_popcor_975=model_popcor_975),
                  minus2ll= invariantDrift_Minus2LogLikelihood,
                  n.parameters = invariantDrift_estimatedParameters,
-                 optimalLagInfo = "Optimal lag and effect was calculated for original time scale (i.e., ignoring possible scaleTime argument).",
+                 #optimalLagInfo = "Optimal lag and effect was calculated for original time scale (i.e., ignoring possible scaleTime argument).",
                  opt.lag.orig.time = optimalCrossLag,
                  opt.lag.scaled.time = optimalCrossLag_scaledTime,
                  max.effects = maxCrossEffect,
