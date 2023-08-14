@@ -980,19 +980,22 @@ ctmaFit <- function(
       } else {
         stanctModel <- suppressMessages(
           ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, #Tpoints=maxTpoints,
-                                      manifestNames=manifestNames,
-                                      DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
-                                      DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
-                                      LAMBDA=lambdaParams,
-                                      # CHD 9.6.2023
-                                      CINT=CINTParams, #matrix(0, nrow=n.latent, ncol=1),
-                                      T0MEANS = T0meansParams,
-                                      MANIFESTMEANS = manifestMeansParams,
-                                      MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var),
-                                      T0VAR = T0VARParams,
-                                      type = 'stanct',
-                                      n.TIpred = n.TIpred,
-                                      TIpredNames = paste0("TI", 1:n.TIpred))
+                         manifestNames=manifestNames,
+                         DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
+                         DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
+                         LAMBDA=lambdaParams,
+                         # CHD 9.6.2023; Aug 2023
+                         # CINT=CINTParams, #matrix(0, nrow=n.latent, ncol=1),
+                         CINT=matrix(CINTParams, nrow=n.latent, ncol=1),
+                         #T0MEANS = T0meansParams,
+                         T0MEANS = matrix(T0meansParams, nrow=n.latent, ncol=1),
+                         #MANIFESTMEANS = manifestMeansParams,
+                         MANIFESTMEANS = matrix(manifestMeansParams, nrow=n.latent, ncol=n.var),
+                         MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var),
+                         T0VAR = T0VARParams,
+                         type = 'stanct',
+                         n.TIpred = n.TIpred,
+                         TIpredNames = paste0("TI", 1:n.TIpred))
         )
         stanctModel$pars[, "indvarying"] <- FALSE
       }
@@ -1275,33 +1278,18 @@ ctmaFit <- function(
         counter <- 0
         modNameCounter <- 1
         for (j in modTIs) {
-          #j <- modTIs[1]; j
           if (n.moderators == 1) unique.mod.tmp <- unique.mod else unique.mod.tmp <- unique.mod[[counter+1]]
-          #modCatOrder <- unique.mod.tmp; modCatOrder
           if (!(is.null(catsToCompare))) {
             origCats <- c(unique.mod.tmp[1:2] + moderatorGroupsOffset, unique.mod.tmp[-c(1:2)]); origCats
           } else {
             origCats <- unique.mod.tmp
           }
-          #if (!(is.null(catsToCompare))) {
-          #  tmp1 <- which(1:length(unique.mod.tmp) %in% unique.mod.tmp); tmp1
-          #  tmp2 <- which(!(1:length(unique.mod.tmp) %in% unique.mod.tmp)); tmp2
-          #  modCatOrder <- c(tmp2, tmp1); modCatOrder
-          #}
-          #moderatorGroupsOffset
-          #modTI_Coeff
-          #unique.mod.tmp
           for (i in 1:(length(unique.mod.tmp)-1)) {
-            #i <- 1
             counter <- counter + 1; counter
             current.mod.names <- mod.names[modNameCounter]; current.mod.names
             targetNamePart <- paste0("tip_", modTIs[i]); targetNamePart
             tmp1 <- grep(targetNamePart, rownames(modTI_Coeff)); tmp1
-            #rownames(modTI_Coeff) <- sub(targetNamePart, paste0(modCatOrder[counter+1], ". smallest value (category) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
-            #rownames(modTI_Coeff) <- sub(targetNamePart, paste0(modCatOrder[counter+1], "  (category value) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
             rownames(modTI_Coeff) <- sub(targetNamePart, paste0(origCats[counter+1], "  (category value) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
-            #origCats[counter+1]
-            #rownames(modTI_Coeff)
           }
           counter <- 0
           modNameCounter <- modNameCounter + 1
@@ -1473,16 +1461,16 @@ ctmaFit <- function(
     estimates_original_time_scale <- tmp1
     mod_effects_original_time_scale <- modTI_Coeff_original_time_scale
     if (!(is.null(clusTI_Coeff))) {
-      clus_effects_original_time_scale <- clusTI_Coeff_original_time_scale
+      clus_effects_original_time_scale <- round(clusTI_Coeff_original_time_scale, digits)
     } else {
       clus_effects_original_time_scale <- NULL
     }
   } else {
-    model_Drift_Coef_original_time_scale <- model_Drift_Coef; model_Drift_Coef_original_time_scale
-    model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef; model_Diffusion_Coef_original_time_scale
+    model_Drift_Coef_original_time_scale <- round(model_Drift_Coef, digits); model_Drift_Coef_original_time_scale
+    model_Diffusion_Coef_original_time_scale <- round(model_Diffusion_Coef, digits); model_Diffusion_Coef_original_time_scale
     if (!(is.null(modTI_Coeff))) { # new 9.7.20222
-      modTI_Coeff_original_time_scale <- modTI_Coeff
-      mod_effects_original_time_scale <- modTI_Coeff # doubled (why?)
+      modTI_Coeff_original_time_scale <- round(modTI_Coeff, digits)
+      mod_effects_original_time_scale <- round(modTI_Coeff, digits)  # doubled (why?)
     } else {
       modTI_Coeff_original_time_scale <- NULL
       mod_effects_original_time_scale <- NULL
@@ -1496,11 +1484,11 @@ ctmaFit <- function(
       tmp3 <- tmp3[!(tmp3%in% tmp4)]
       tmp1 <- tmp1[c(tmp2, tmp3),]
       tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] <- tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] * 1
-      estimates_original_time_scale <- tmp1
+      estimates_original_time_scale <- round(tmp1, digits)
     }
     clus_effects_original_time_scale <- NULL
     if (!(is.null(clusTI_Coeff))) {
-      clusTI_Coeff_original_time_scale <- clusTI_Coeff
+      clusTI_Coeff_original_time_scale <- round(clusTI_Coeff, digits)
     } else {
       clusTI_Coeff_original_time_scale <- NULL
     }
