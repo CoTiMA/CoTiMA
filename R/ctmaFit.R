@@ -182,8 +182,6 @@ ctmaFit <- function(
   }
 
 
-
-
   { # set fitting params
     # Added 17. Aug 2022
     tmp1 <- names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs); tmp1
@@ -746,7 +744,6 @@ ctmaFit <- function(
 
   # CHD added AUG 2023: Start values for mimicing ctmaInit (RI not cannot be done because cov among random effects do not exist at sutdy level)
   ctStanFitObject <- ctmaInitFit$studyFitList[[n.studies]]
-  inits <- ctStanFitObject$stanfit$rawest; round(inits, 3)
   # get parameter positions in rawest vector
   tmp1 <- which(!(is.na(ctStanFitObject$ctstanmodelbase$pars$param))); tmp1
   tmpPars <- ctStanFitObject$ctstanmodelbase$pars[tmp1,]; tmpPars
@@ -766,6 +763,7 @@ ctmaFit <- function(
       print(paste0("###### Computing start values to improve convergence in mimicing ctmaInit. ######"))
       print(paste0("#################################################################################"))
 
+      inits <- ctStanFitObject$stanfit$rawest; round(inits, 3)
       #
       T0meansPos <- which(tmpPars$matrix == "T0MEANS"); T0meansPos
       driftPos <- which(tmpPars$matrix == "DRIFT"); driftPos
@@ -1372,19 +1370,12 @@ ctmaFit <- function(
     for (j in 1:n.latent) {
       for (h in 1:n.latent) {
         if (j != h) {
-          #j<-2;h<-1
           targetRow <- j
           targetCol <- h
-          #if (driftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
           if (tmpDriftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
             targetParameters <- sapply(usedTimeRange, OTL); targetParameters
             maxCrossEffect[j,h] <- max(abs(targetParameters))[1]; maxCrossEffect[j,h]
-            #if (!(is.na(maxCrossEffect[j,h]))) {
             optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])[1]*1 - tmp1 # first targetParam is calculated for lag=0
-            #} else {
-            #  optimalCrossLag[j,h] <- NA
-            #}
-            #  optimalCrossLag[j,h]
           } else {
             optimalCrossLag[j,h] <- NA
           }
