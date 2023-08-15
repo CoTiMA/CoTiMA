@@ -742,22 +742,24 @@ ctmaFit <- function(
 
 
 
-  # CHD added AUG 2023: Start values for mimicing ctmaInit (RI not cannot be done because cov among random effects do not exist at sutdy level)
-  ctStanFitObject <- ctmaInitFit$studyFitList[[n.studies]]
-  # get parameter positions in rawest vector
-  tmp1 <- which(!(is.na(ctStanFitObject$ctstanmodelbase$pars$param))); tmp1
-  tmpPars <- ctStanFitObject$ctstanmodelbase$pars[tmp1,]; tmpPars
-  RIPos <- which(tmpPars$indvarying == TRUE); RIPos
-  #
-  if (length(RIPos) > 0){
-    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    ErrorMsg <- "\nYou cannot mimic an cmtaInit using ctmaFit because your model has random intercepts. They cannot be estimated at the study-level with ctmaFit. \nGood luck for the next try!"
-    stop(ErrorMsg)
-  }
-
 
   if (!(is.null(invariantDrift))) { # added 12.7.2023
     if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
+
+      # CHD added AUG 2023: Start values for mimicing ctmaInit (RI not cannot be done because cov among random effects do not exist at sutdy level)
+      ctStanFitObject <- ctmaInitFit$studyFitList[[n.studies]]
+      # get parameter positions in rawest vector
+      tmp1 <- which(!(is.na(ctStanFitObject$ctstanmodelbase$pars$param))); tmp1
+      tmpPars <- ctStanFitObject$ctstanmodelbase$pars[tmp1,]; tmpPars
+      RIPos <- which(tmpPars$indvarying == TRUE); RIPos
+      #
+      if (length(RIPos) > 0){
+        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+        ErrorMsg <- "\nYou cannot mimic an cmtaInit using ctmaFit because your model has random intercepts. They cannot be estimated at the study-level with ctmaFit. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+
+
 
       print(paste0("#################################################################################"))
       print(paste0("###### Computing start values to improve convergence in mimicing ctmaInit. ######"))
