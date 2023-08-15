@@ -83,7 +83,7 @@ ctmaInit <- function(
     activateRPB=FALSE,
     activeDirectory=NULL,
     chains=NULL,
-    checkSingleStudyResults=TRUE,
+    checkSingleStudyResults=FALSE,
     cint=0,
     coresToUse=c(2),
     CoTiMAStanctArgs=NULL,
@@ -1535,7 +1535,7 @@ ctmaInit <- function(
       print(allStudies_Minus2LogLikelihood)
       #
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-      cat(crayon::blue(" Press 'q' to quit or any other key to continue. Press ENTER afterwards."))
+      cat(crayon::blue(" Press 'q' to quit and prevent saving or any other key to continue. Press ENTER afterwards."))
       char <- readline(" ")
       if (char == 'q' | char == 'Q') stop("Good luck for the next try!")
     }
