@@ -384,7 +384,8 @@ ctmaFit <- function(
         stop(ErrorMsg)
       }
       if (!(is.null(primaryStudyList))) {
-        if (length(primaryStudyList$deltas) != n.studies) {
+        #if (length(primaryStudyList$deltas) != n.studies) {
+        if (length(primaryStudyList$deltas) > n.studies) { # CHD changed Aug 2023
           if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
           ErrorMsg <- "\nYou provided a list to the argument primaryStudyList. The number of studies in this list is not identical to the number of
           studies fitted with ctmaInit as provided in the argument ctmaInitFit. \nGood luck for the next try!"
@@ -743,7 +744,7 @@ ctmaFit <- function(
 
 
 
-  if (!(is.null(invariantDrift))) { # added 12.7.2023
+  if ( (!(is.null(invariantDrift))) & (indVarying != TRUE) ) { # added 12.7.2023, added AUG 2023
     if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
 
       # CHD added AUG 2023: Start values for mimicing ctmaInit (RI not cannot be done because cov among random effects do not exist at sutdy level)
