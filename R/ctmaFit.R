@@ -328,9 +328,13 @@ ctmaFit <- function(
 
   # check moderator information
   {
+    if (ind.mod.number == 0) {  # CHD 16.8.2023
+      ind.mod.number<-NULL
+      n.ind.moderators <- 0
+    }
     n.ind.moderators <- length(ind.mod.number); n.ind.moderators
     #if (ind.mod.number == 0 )  n.ind.moderators <- 0 # CHD 27.6. 2023
-    if ( is.null(ind.mod.number == 0 ) ) n.ind.moderators <- 0
+    #if ( is.null(ind.mod.number == 0 ) ) n.ind.moderators <- 0
     if (n.ind.moderators > 0) {
       mod.number <- NULL
       mod.type=ind.mod.type
