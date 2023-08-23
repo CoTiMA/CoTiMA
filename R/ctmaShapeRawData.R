@@ -336,9 +336,11 @@ ctmaShapeRawData <- function(
       stop(ErrorMsg)
     }
     for (i in 1:(Tpoints-1)) {
-      tmp1 <- tmpData[, paste0("time", i)] == minInterval
       tmpData[, paste0("time", i)] <- tmpData[ , paste0("time", i-1)] + tmpData[ , paste0("time", i)]
-      tmpData[tmp1, paste0("time", i)] <- 0
+      # CHD 23. AUG 2023
+      #tmp1 <- tmpData[, paste0("time", i)] == minInterval
+      #tmpData[tmp1, paste0("time", i)] <- 0
+      if (length(tmp1) > 0) tmpData[tmp1, paste0("time", i)] <- 0
       }
     allOutputTimeVariablesNames <- colnames(tmpData)[grep("time", colnames(tmpData))]; allOutputTimeVariablesNames
     tmp1 <- which(tmpData[, allOutputTimeVariablesNames[-1]] == 0, arr.ind = TRUE)
