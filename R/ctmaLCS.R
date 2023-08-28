@@ -57,8 +57,12 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
 
   if ((undoTimeScaling == TRUE) & (CoTiMA == TRUE)) scaleTime <- CoTiMAFit$argumentList$scaleTime else scaleTime <- 1
   if (is.numeric(undoTimeScaling)) scaleTime <- undoTimeScaling
+  if (is.null(scaleTime)) scaleTime <- 1
 
   #e <- ctExtract(CoTiMAFullFit_Ov4_0531_CHD_mmri$studyFitList)
+  # CHD 28. Aug 2023 (not really necessary, but for documentation that nopriors argument in ctsem changed to priors argument)
+  if (is.null(fit$standata$priors)) fit$standata$priors <- 0
+  #
   e <- ctExtract(fit)
   e$pop_DRIFT <- e$pop_DRIFT * scaleTime
 
