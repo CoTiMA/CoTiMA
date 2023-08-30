@@ -754,7 +754,7 @@ ctmaFit <- function(
   if ( (!(is.null(invariantDrift))) & (indVarying != TRUE) ) { # added 12.7.2023, added AUG 2023
     if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
 
-      # CHD added AUG 2023: Start values for mimicing ctmaInit (RI not cannot be done because cov among random effects do not exist at sutdy level)
+      # CHD added AUG 2023: Start values for mimicing ctmaInit (RI not cannot be done because cov among random effects do not exist at study level)
       ctStanFitObject <- ctmaInitFit$studyFitList[[n.studies]]
       # get parameter positions in rawest vector
       tmp1 <- which(!(is.na(ctStanFitObject$ctstanmodelbase$pars$param))); tmp1
@@ -763,8 +763,14 @@ ctmaFit <- function(
       #
       if (length(RIPos) > 0){
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-        ErrorMsg <- "\nYou cannot mimic an cmtaInit using ctmaFit because your model has random intercepts. They cannot be estimated at the study-level with ctmaFit. \nGood luck for the next try!"
-        stop(ErrorMsg)
+        #ErrorMsg <- "\nYou cannot mimic an cmtaInit using ctmaFit because your model has random intercepts. They cannot be estimated at the study-level with ctmaFit. \nGood luck for the next try!"
+        #stop(ErrorMsg)
+        # CHD 30. Aug. 2023
+        Msg <- "nYou cannot mimic an cmtaInit using ctmaFit because your model has random intercepts.
+        Covariance among random effects is only estimated once - they do not exist at study level.
+        I will fit the model anyway, but take care you correctly interpret the results."
+        message(Msg)
+
       }
 
 
