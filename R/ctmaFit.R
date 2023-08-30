@@ -766,9 +766,9 @@ ctmaFit <- function(
         #ErrorMsg <- "\nYou cannot mimic an cmtaInit using ctmaFit because your model has random intercepts. They cannot be estimated at the study-level with ctmaFit. \nGood luck for the next try!"
         #stop(ErrorMsg)
         # CHD 30. Aug. 2023
-        Msg <- "nYou cannot mimic an cmtaInit using ctmaFit because your model has random intercepts.
-        Covariance among random effects is only estimated once - they do not exist at study level.
-        I will fit the model anyway, but take care you correctly interpret the results."
+        Msg <- "\nYou cannot mimic an cmtaInit using ctmaFit because your model has random intercepts.
+        \nCovariance among random effects is only estimated once - they do not exist at study level.
+        \nI will fit the model anyway, but take care you correctly interpret the results."
         message(Msg)
 
       }
