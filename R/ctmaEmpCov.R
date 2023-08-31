@@ -180,6 +180,7 @@ ctmaEmpCov <- function(targetVariables=NULL, recodeVariables=c(), combineVariabl
   }
   results <- list()
   results$r <- tmpMat
+  results$rNew <- tmpMat   # CHD added 31. Auf 2023 (to be consistent with pairwiseNNew)
   results$pairwiseNNew <- pairwiseNNew
   return(results)
 }
