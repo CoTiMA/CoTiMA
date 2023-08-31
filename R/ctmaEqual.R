@@ -145,11 +145,12 @@ ctmaEqual <- function(
     intoverpop=CoTiMAStanctArgs$intoverpop,
     stationary=CoTiMAStanctArgs$stationary,
     plot=CoTiMAStanctArgs$plot,
-    derrind=CoTiMAStanctArgs$derrind,
+    #derrind=CoTiMAStanctArgs$derrind, # CHD deprecated, deleted Aug 2023
     optimize=CoTiMAStanctArgs$optimize,
     optimcontrol=CoTiMAStanctArgs$optimcontrol,
     nlcontrol=CoTiMAStanctArgs$nlcontrol,
     nopriors=CoTiMAStanctArgs$nopriors,
+    priors=CoTiMAStanctArgs$priors, # added Aug 2023
     chains=CoTiMAStanctArgs$chains,
     forcerecompile=CoTiMAStanctArgs$forcerecompile,
     savescores=CoTiMAStanctArgs$savescores,

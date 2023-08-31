@@ -17,7 +17,7 @@
 #' @param digits Number of digits used for rounding (in outputs)
 #' @param drift labels for drift effects. Have to be either of the type 'V1toV2' or '0' for effects to be excluded.
 #' @param driftsToCompare when performing contrasts for categorical moderators, the (subset of) drift effects analyzed
-#' @param equalDrift Constrains all listed effects to be equal (e.g., equalDrift = c("V1toV2", "V2toV1")). Note that this is not required for testing the assumtion that two effects are equal in the population. use the invariantDrift argument and then \code{\link{ctmaEqual}})
+#' @param equalDrift Constrains all listed effects to be equal (e.g., equalDrift = c("V1toV2", "V2toV1")). Note that this is not required for testing the assumption that two effects are equal in the population. Use the invariantDrift argument and then \code{\link{ctmaEqual}})
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param ind.mod.names vector of names for individual level (!) moderators used in output
 #' @param ind.mod.number which in the vector of individual level (!) moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
