@@ -501,7 +501,7 @@ ctmaLCS <- function(CoTiMAFit=NULL, undoTimeScaling=TRUE, digits=4, activateRPB=
                   NA), digits); length(tmp4)
 
   resultsTable <- as.matrix(cbind(tmp1, tmp2, tmp3, tmp4))
-  resultsTable
+  #resultsTable
 
   rownames(resultsTable) <- names(tmp1)
   colnames(resultsTable) <- c("est", "SD", "LL", "UL")
