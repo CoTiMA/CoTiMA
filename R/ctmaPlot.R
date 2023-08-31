@@ -256,14 +256,14 @@ ctmaPlot <- function(
 
       if (n.studies[i] == 1) {
         DRIFTCoeff[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFT); DRIFTCoeff[[i]]
-        if (undoTimeScaling) {
+        if (undoTimeScaling == TRUE) {
           if (!(is.null(ctmaFitObject[[i]]$modelResults$DRIFToriginal_time_scale))) {
             DRIFTCoeff[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFToriginal_time_scale)
           }
         }
       } else {
         DRIFTCoeff[[i]] <- ctmaFitObject[[i]]$modelResults$DRIFT; DRIFTCoeff[[i]]
-        if (undoTimeScaling) {
+        if (undoTimeScaling == TRUE) {
           if (!(is.null(ctmaFitObject[[i]]$modelResults$DRIFToriginal_time_scale))) {
             DRIFTCoeff[[i]] <- ctmaFitObject[[i]]$modelResults$DRIFToriginal_time_scale
           }
@@ -275,13 +275,13 @@ ctmaPlot <- function(
       if ( ("funnel" %in% plot.type[[i]]) || ("forest" %in% plot.type[[i]]) ) {
 
         if (n.studies[i] == 1) {
-          if (undoTimeScaling) {
+          if (undoTimeScaling == TRUE) {
             DRIFTSE[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFTSE); DRIFTSE[[i]]
           } else {
             DRIFTSE[[i]] <- list(ctmaFitObject[[i]]$modelResults$DRIFTSE_timeScaled); DRIFTSE[[i]]
           }
         } else {
-          if (undoTimeScaling) {
+          if (undoTimeScaling == TRUE) {
             DRIFTSE[[i]] <- ctmaFitObject[[i]]$modelResults$DRIFTSE; DRIFTSE[[i]]
           } else {
             DRIFTSE[[i]] <- ctmaFitObject[[i]]$modelResults$DRIFTSE_timeScaled; DRIFTSE[[i]]
@@ -728,7 +728,7 @@ ctmaPlot <- function(
                   param <- DRIFTlo[[g]][[k]][l,m]; param
                   DRIFTlo[[g]][[k]][l,m] <- eval(parse(text=transforms[counter]))
                   # undoTimScaling after tform
-                  if (undoTimeScaling & (!(is.null(ctmaFitObject[[g]]$summary$scaledTime)) ) ) {
+                  if ((undoTimeScaling == TRUE) & (!(is.null(ctmaFitObject[[g]]$summary$scaledTime)) ) ) {
                     DRIFTCoeff[[g]][[k]][l,m] <- DRIFTCoeff[[g]][[k]][l,m] * ctmaFitObject[[g]]$summary$scaledTime
                     DRIFThi[[g]][[k]][l,m] <- DRIFThi[[g]][[k]][l,m] * ctmaFitObject[[g]]$summary$scaledTime
                     DRIFTlo[[g]][[k]][l,m] <- DRIFTlo[[g]][[k]][l,m] * ctmaFitObject[[g]]$summary$scaledTime
