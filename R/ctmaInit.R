@@ -246,6 +246,7 @@ ctmaInit <- function(
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
       if ( (!(is.null(nopriors))) & (!(is.null(nopriors))) ) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
       if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
+      if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
       if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
       if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
       if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
@@ -512,7 +513,7 @@ ctmaInit <- function(
               empraw.ind.mod[[i]] <- NA
             }
           }
-        #}
+          #}
 
 
           # replace missing values
@@ -1155,6 +1156,7 @@ ctmaInit <- function(
         gc() # tryout garbage collector to avoid memory issues
 
         studyFit[[i]] <- results
+        if (is.null(studyFit[[i]]$standata$priors)) studyFit[[i]]$standata$priors <- 0 # CHD added Sep 2023
         studyFit[[i]]$resultsSummary <- summary(studyFit[[i]])
         #studyFit[[i]]$resultsSummary
         #results$ctstanmodelbase$pars

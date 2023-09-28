@@ -1143,9 +1143,10 @@ ctmaFit <- function(
       #saveRDS(fitStanctModel, paste0(activeDirectory, "fitStanctModel.rds"))
       #fitStanctModel <- readRDS(paste0(activeDirectory, "fitStanctModel.rds"))
     }
+    if (is.null(fitStanctModel$standata$priors)) fitStanctModel$standata$priors <- 0 # CHD added Sep 2023)
     fitStanctModel_summary <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
   } # end if else (allInvModel)
-  fitStanctModel_summary
+  #fitStanctModel_summary
 
   # Extract estimates & statistics
   # CHD 9.6.2023
