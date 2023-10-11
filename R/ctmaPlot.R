@@ -607,6 +607,7 @@ ctmaPlot <- function(
         # discrete effects across time range
         discreteDriftCoeff <- linearizedTIpredEffect <- DRIFThi <- DRIFTlo <- list()
 
+        #g <- 1
         for (g in 1:n.fitted.obj) {
           toPlot <- n.studies[[g]]; toPlot
 
@@ -625,13 +626,18 @@ ctmaPlot <- function(
             originalStudyNo <- delta_t <- c()
 
             for (i in unlist(mod.values[[g]]) ) {
-              #i <- unlist(mod.values[[g]])[3]; i
+              #i <- unlist(mod.values[[g]])[1]; i
               originalStudyNo[counter] <- i # used for labeling in plot
               delta_t[counter] <- xValueForModValue[counter+1]
 
               ### compute moderated drift matrices
               # main effects
-              tmp1 <- ctmaFitObject[[g]]$studyFitList$stanfit$rawest[1:(n.latent^2)]; tmp1
+              # CHD 11. Oct 203
+              tmp1a <- which(ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars$matrix == "DRIFT"); tmp1a
+              tmp1b <- which(!(is.na(ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars$param))); tmp1b
+              tmp1c <- which(tmp1b %in% tmp1a); tmp1c
+              #tmp1 <- ctmaFitObject[[g]]$studyFitList$stanfit$rawest[1:(n.latent^2)]; tmp1
+              tmp1 <- ctmaFitObject[[g]]$studyFitList$stanfit$rawest[tmp1c]; tmp1
               tmp1 <- matrix(tmp1, n.latent[[g]], byrow=TRUE); tmp1
 
               # moderator effects (could be partial)
@@ -642,11 +648,17 @@ ctmaPlot <- function(
               }
 
               if (ctmaFitObject[[g]]$mod.type == "cont") {
-                ctmaFitObject[[g]]$studyFitList$stanfit$transformedpars$TIPREDEFFECT
+                #ctmaFitObject[[g]]$studyFitList$stanfit$transformedpars$TIPREDEFFECT
                 # could become necessary in newest ctsem version (look at ctsem 2022 workshop for getting moderated drift matrces)
                 #tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedpars$TIPREDEFFECT[,1:(n.latent^2),
                 #                                                                                 ((n.TIpreds+1):(n.TIpreds+mod.number))]; tmp2
-                tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,1:(n.latent^2),
+                # CHD 11. Oct 203
+                tmp1a <- which(ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars$matrix == "DRIFT"); tmp1a
+                tmp1b <- which(!(is.na(ctmaFitObject[[g]]$studyFitList$ctstanmodelbase$pars$param))); tmp1b
+                tmp1c <- which(tmp1b %in% tmp1a); tmp1c
+                #tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,1:(n.latent^2),
+                #                                                                                 ((n.TIpreds+1):(n.TIpreds+mod.number))]; tmp2
+                tmp2 <- ctmaFitObject[[g]]$studyFitList$stanfit$transformedparsfull$TIPREDEFFECT[,tmp1c,
                                                                                                  ((n.TIpreds+1):(n.TIpreds+mod.number))]; tmp2
                 tmp3 <- rownames(ctmaFitObject[[g]]$modelResults$MOD); tmp3
                 tmp4 <- c()
@@ -795,16 +807,20 @@ ctmaPlot <- function(
         if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD))) {
           xValueForModValue2 <- xValueForModValue[-length(xValueForModValue)]; xValueForModValue2
           xValueForModValue2 <- xValueForModValue[-1]; xValueForModValue2
+          # CHD 11. Oct 2023
+          xValueForModValue2 <- xValueForModValue2[-length(xValueForModValue2)]; xValueForModValue2
         }
 
         for (h in 1:toPlot) {
-          #h <- 2
+          #h <- 5
           for (stepCounter in 1:length(usedTimeRange)){
+            #stepCounter <- 64
             timeValue <- usedTimeRange[stepCounter]; timeValue
             plotPairs[[g]][h,stepCounter,1] <- timeValue; plotPairs[[g]][h,stepCounter,1]
             for (j in 1:(n.latent[[g]]^2)) {
-              #j <- 1
+              #j <- 2
               plotPairs[[g]][h,stepCounter,(1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
+              #plotPairs[[g]][h,,]
               if (toPlot == 1) {
                 tmp <- round(meanDelta[[1]],0)
               } else {
@@ -835,25 +851,30 @@ ctmaPlot <- function(
               }
               # CHD added 5 Nov 2022
               tmp <- round(tmp, noDecims); tmp
-              if (timeValue == tmp) { # plot only if the (used) time range includes the current study's mean time lag
+              # CHD 11. Oct 2023
+              #if (timeValue == tmp) { # plot only if the (used) time range includes the current study's mean time lag
+              if ( (is.null(ctmaFitObject[[g]]$modelResults$MOD)) & (timeValue == tmp) )  { # set dots if NO moderator is plotted
                 dotPlotPairs[[g]][h, stepCounter, 1] <- timeValue
                 dotPlotPairs[[g]][h, stepCounter, (1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
-                #print(dotPlotPairs[[g]][h, stepCounter, 1])
-                #print(dotPlotPairs[[g]][h, stepCounter, (1+j)])
               }
               if (!(is.null(ctmaFitObject[[g]]$modelResults$MOD)))  { # set dots if moderator is plotted
                 if (timeValue == xValueForModValue2[h]) {
                   tmp1 <- xValueForModValue[h+1]; tmp1
+                  # CHD 11. Oct 2023
+                  if (!(is.null(ctmaFitObject[[g]]$summary$scaleTime))) {
+                    tmp1 <- tmp1 * ctmaFitObject[[g]]$summary$scaleTime
+                  }
                   dotPlotPairs[[g]][h, stepCounter, 1] <- tmp1
                   dotPlotPairs[[g]][h, stepCounter, (1+j)] <- discreteDrift(matrix(unlist(DriftForPlot[[g]][h]), n.latent, n.latent), timeValue, j)
                 }
               }
             }
           } # END for (stepCounter in 0:noOfSteps)
+          dotPlotPairs[[g]][h, ,]
         } # END for (h in 1:toPlot)
       } # END for (g in 1:n.fitted.obj)
 
-
+      #dotPlotPairs[[1]][1,,]
       ##################################### PLOTTING PARAMETERS ##########################################
       {
         autoCols <- seq(1, nlatent^2, (nlatent+1)); autoCols
@@ -907,7 +928,7 @@ ctmaPlot <- function(
             if (is.null(ctmaFitObject[[g]]$type)) plot..type <- "l" else plot..type <- ctmaFitObject[[g]]$type; plot..type
             if (is.null(ctmaFitObject[[g]]$col)) {
               plot.col <- "grey"
-                if (toPlot == 1) plot.col <- "black"
+              if (toPlot == 1) plot.col <- "black"
             } else {
               plot.col <- ctmaFitObject[[g]]$col; plot.col
             }
@@ -938,6 +959,7 @@ ctmaPlot <- function(
 
 
             for (h in 1:toPlot) {
+              #h <- 2
               currentPlotPair <- cbind(plotPairs[[g]][h, , 1], plotPairs[[g]][h, , 1+j])
               plot(currentPlotPair, type=plot..type, col=plot.col, lwd=plot.lwd, lty=plot.lty,
                    xlim = c(plot.xMin, plot.xMax),
@@ -1033,7 +1055,7 @@ ctmaPlot <- function(
             if (is.null(ctmaFitObject[[g]]$type)) plot..type <- "l" else plot..type <- ctmaFitObject[[g]]$type; plot..type
             if (is.null(ctmaFitObject[[g]]$col)) {
               plot.col <- "grey"
-                if (n.studies[[g]] == 1) plot.col <- "black"
+              if (n.studies[[g]] == 1) plot.col <- "black"
             } else {
               plot.col <- ctmaFitObject[[g]]$col; plot.col
             }
