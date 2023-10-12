@@ -917,9 +917,9 @@ ctmaInit <- function(
           print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
           print(paste0("#################################################################################"))
 
-          print(paste0("#################################################################################"))
-          print(paste0("# T0means are set to \'auto\'. T0(co-)variances not modelled nested in primaries.#"))
-          print(paste0("#################################################################################"))
+          #print(paste0("#################################################################################"))
+          #print(paste0("# T0means are set to \'auto\'. T0(co-)variances not modelled nested in primaries.#"))
+          #print(paste0("#################################################################################"))
           T0meansParams <- 'auto'
 
           print(paste0("#################################################################################"))
@@ -938,9 +938,9 @@ ctmaInit <- function(
           print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
           print(paste0("#################################################################################"))
 
-          print(paste0("#################################################################################"))
-          print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
-          print(paste0("#################################################################################"))
+          #print(paste0("#################################################################################"))
+          #print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
+          #print(paste0("#################################################################################"))
           T0meansParams <- 0
 
           print(paste0("#################################################################################"))
@@ -958,10 +958,10 @@ ctmaInit <- function(
           print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
           print(paste0("#################################################################################"))
 
-          print(paste0("#################################################################################"))
-          print(paste0("## T0means set to \'auto\'. T0(co-)variances not modelled nested in primaries. ##"))
-          print(paste0("##### Consider setting \'indVaryingT0 = FALSE\' if estimation problems occur, ###"))
-          print(paste0("##### however, be aware that this is not the regular RI model anymore then. ####"))
+          #print(paste0("#################################################################################"))
+          #print(paste0("## T0means set to \'auto\'. T0(co-)variances not modelled nested in primaries. ##"))
+          #print(paste0("##### Consider setting \'indVaryingT0 = FALSE\' if estimation problems occur, ###"))
+          #print(paste0("##### however, be aware that this is not the regular RI model anymore then. ####"))
           T0meansParams <- 'auto'
 
           print(paste0("#################################################################################"))
@@ -977,9 +977,9 @@ ctmaInit <- function(
           print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
           print(paste0("#################################################################################"))
 
-          print(paste0("#################################################################################"))
-          print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
-          print(paste0("#################################################################################"))
+          #print(paste0("#################################################################################"))
+          #print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
+          #print(paste0("#################################################################################"))
           T0meansParams <- 0
 
           print(paste0("#################################################################################"))
@@ -1303,10 +1303,10 @@ ctmaInit <- function(
       if ((indVarying == TRUE) | (indVarying == "CINT") | (indVarying == 'cint')) {
         # CHD 12.6.2023
         e <- ctsem::ctExtract(studyFit[[i]])
-        model_popsd <- resultsSummary$popsd
+        model_popsd_tmp <- resultsSummary$popsd
         #if (indVaryingT0 == TRUE) {
         #if ( (indVaryingT0 == TRUE) & (T0meansParams[1] != 0) ) {
-        if (dim(model_popsd)[1] != n.latent) {
+        if (dim(model_popsd_tmp)[1] != n.latent) {
           model_popsd[[i]] <- resultsSummary$popsd
           model_popcov_m[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
           model_popcov_sd[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
@@ -1344,12 +1344,11 @@ ctmaInit <- function(
           model_popcor_975[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
         }
       } else {
-        model_popsd <- "no random effects estimated"
-        model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- "no random effects estimated"
-        model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- "no random effects estimated"
+        model_popsd[[i]] <- "no random effects estimated"
+        model_popcov_m[[i]] <- model_popcov_sd[[i]] <- model_popcov_T[[i]] <- model_popcov_025[[i]] <- model_popcov_50[[i]] <- model_popcov_975[[i]] <- "no random effects estimated"
+        model_popcor_m[[i]] <- model_popcor_sd[[i]] <- model_popcor_T[[i]] <- model_popcor_025[[i]] <- model_popcor_50[[i]] <- model_popcor_975[[i]] <- "no random effects estimated"
       }
       #}
-
     } # END     for (i in 1:n.studies)
 
     # Combine summary information and fit statistics
@@ -1556,7 +1555,6 @@ ctmaInit <- function(
     }
 
   } ### END fit ctsem model to each primary study
-
 
   ##############################################################################################################
   #end.time <- Sys.time()
