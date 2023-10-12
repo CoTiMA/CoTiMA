@@ -264,7 +264,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         customPar = c(TRUE, FALSE)[tmp1]
       }
-      fits <- ctmaInit(newStudyList,
+      fits <- ctmaInit(primaryStudies=newStudyList,
                        #coresToUse = 1,
                        coresToUse = coresToUse, # changed Aug 2023
                        n.latent=n.latent,

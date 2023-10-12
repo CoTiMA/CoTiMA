@@ -151,7 +151,8 @@ ctmaOptimizeInit <- function(primaryStudies=NULL,
   # parallel re-fitting of problem study
   allfits <- foreach::foreach(i=1:reFits) %dopar% {
     scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
-    fits <- ctmaInit(newStudyList, coresToUse = 1, n.latent=n.latent,
+    fits <- ctmaInit(primaryStudies=newStudyList,
+                     coresToUse = 1, n.latent=n.latent,
                      indVarying = indVarying,
                      scaleTime = scaleTime,
                      activeDirectory = activeDirectory,

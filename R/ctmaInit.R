@@ -1720,6 +1720,8 @@ ctmaInit <- function(
     startCol <- 2; startCol
     startRow <- 1; startRow
     # CHD 7. Sep 2022: Quickfix: do not report all random effect matrices
+    # CHD 12. Oct 2023: Quickfix: do not report all random effect matrices
+    results$summary$randomEffects[[1]][1] <- "random effect are no longer reported in excel sheets"
     openxlsx::writeData(wb, sheet5, startCol=startCol, startRow = startRow, results$summary$randomEffects[[1]][1], colNames = FALSE)
     ### stats
     startCol <- 2; startCol
