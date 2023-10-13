@@ -18,18 +18,18 @@
 #' parameters when fitting a 'CoTiMA' model
 #'
 ctmaLabels <- function(
-  n.latent=NULL,
-  n.manifest=0,
-  lambda=NULL,
-  manifestVars=NULL,
-  drift=NULL,
-  diff=NULL,
-  invariantDrift=NULL,
-  moderatedDrift=NULL,
-  equalDrift=NULL,
-  T0means=0,
-  manifestMeans=0)
-  {
+    n.latent=NULL,
+    n.manifest=0,
+    lambda=NULL,
+    manifestVars=NULL,
+    drift=NULL,
+    diff=NULL,
+    invariantDrift=NULL,
+    moderatedDrift=NULL,
+    equalDrift=NULL,
+    T0means=0,
+    manifestMeans=0)
+{
 
   n.var <- max(c(n.manifest, n.latent)); n.var
 
@@ -40,8 +40,8 @@ ctmaLabels <- function(
       driftNames <- c(driftNames, paste0("V",i,"toV", j))
       if (i != j) diffNames <- c(diffNames, paste0("diff_eta", j, "_eta", i))
       if (i == j) diffNames <- c(diffNames, paste0("diff_eta", j))
-      }
     }
+  }
 
   #driftNames <- c(t(matrix(driftNames, n.latent))); driftNames
   driftParams <- driftNames; driftParams
@@ -101,8 +101,26 @@ ctmaLabels <- function(
   }
 
   equalDriftParams <- equalDriftNames <- equalDrift; equalDriftParams
-  tmp1 <- which(driftNames %in% equalDriftNames); tmp1
-  driftNames[tmp1] <- paste0(driftNames[tmp1], " (equal)"); driftNames
+  if (!(is.null(equalDrift))) {
+    #tmp1 <- which(driftNames %in% equalDriftNames); tmp1
+    #driftNames[tmp1] <- paste0(driftNames[tmp1], " (equal)"); driftNames
+    tmp1 <- which(driftParams %in% equalDriftNames); tmp1
+    tmpNames <- driftParams[tmp1[1]]; tmpNames
+    for (t in 2:length(tmp1)) tmpNames <- c(tmpNames, "_eq_", driftParams[tmp1[t]])
+    tmpNames <- paste(tmpNames,collapse=""); tmpNames
+    driftParams[tmp1] <- tmpNames; driftParams
+    tmpNames <- paste(tmpNames, "(invariant)", collapse=""); tmpNames
+    driftNames[tmp1] <- tmpNames; driftNames
+    # ensure that equal params are invarant params, too.
+    invariantDriftNames <- unique(c(invariantDrift, equalDriftNames))
+    tmp1 <- c()
+    for (t in 1:length(equalDrift)) tmp1 <- c(tmp1,  grep(equalDrift[t], invariantDriftNames))
+    invariantDriftParams[tmp1] <- invariantDriftNames[tmp1] <- driftParams[tmp1]
+    invariantDriftNames <- paste0(invariantDriftNames, " (invariant)"); invariantDriftNames
+  }
+  driftNames; driftParams; invariantDriftNames
+  invariantDriftParams
+
 
   tmp0 <- matrix(diffParams, n.latent); tmp0
   tmp0[upper.tri(tmp0, diag=FALSE)] <- 0; tmp0
@@ -193,4 +211,3 @@ ctmaLabels <- function(
 
   invisible(results)
 }
-

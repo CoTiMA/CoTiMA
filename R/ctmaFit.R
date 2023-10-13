@@ -747,7 +747,6 @@ ctmaFit <- function(
 
   if (is.null(invariantDriftNames)) invariantDriftNames <- driftNames
 
-
   if ( (!(is.null(invariantDrift))) &
        ( (indVarying != TRUE) | (indVarying != 'CINT') | (indVarying != 'cint' | (indVarying != 'Cint') ))  ) { # added 12.7.2023, added AUG 2023
     if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
@@ -1069,13 +1068,15 @@ ctmaFit <- function(
 
     # the target effects
     tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
-    # CHD changes 28.6.2023
-    tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftNames); tmp2
+    # CHD changes 28.6.2023; 13. =ct 2023
+    tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftParams); tmp2
     # CHD changes 12.7.2023 to include drift effects that were set to 0.0
     #varyingDrifts <- tmp1[!(tmp1 %in% tmp1[tmp2])]; varyingDrifts
     tmp3 <- which(is.na(stanctModel$pars[tmp1, "param"])); tmp3
     tmp4 <- sort(unique(c(tmp2, tmp3))); tmp4
     varyingDrifts <- tmp1[!(tmp1 %in% tmp1[tmp4])]; varyingDrifts
+
+
 
     if (length(varyingDrifts) > 0) stanctModel$pars[varyingDrifts, paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- TRUE
     #stanctModel$pars
@@ -1709,4 +1710,3 @@ ctmaFit <- function(
   invisible(results)
 
 } ### END function definition
-
