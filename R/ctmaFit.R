@@ -19,6 +19,7 @@
 #' @param driftsToCompare when performing contrasts for categorical moderators, the (subset of) drift effects analyzed
 #' @param equalDrift Constrains all listed effects to be equal (e.g., equalDrift = c("V1toV2", "V2toV1")). Note that this is not required for testing the assumption that two effects are equal in the population. Use the invariantDrift argument and then \code{\link{ctmaEqual}})
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
+#' @param fit TRUE (default) fits the requested model. FALSE returns the \code{\link{ctsem} code CoTiMA uses to set up the model, the ctsemmodelbase which can be modified to match users requirements, and the data set (in long format created). The model can then be fitted using \code{\link{ctStanFit}})
 #' @param ind.mod.names vector of names for individual level (!) moderators used in output
 #' @param ind.mod.number which in the vector of individual level (!) moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
 #' @param ind.mod.type 'cont' or 'cat' of the individual level (!) moderators (mixing them in a single model not yet possible)
@@ -119,6 +120,7 @@ ctmaFit <- function(
     driftsToCompare=NULL,
     equalDrift=NULL,
     finishsamples=NULL,
+    fit=TRUE,
     ind.mod.names=NULL,
     ind.mod.number=NULL,
     ind.mod.type="cont",
@@ -700,7 +702,6 @@ ctmaFit <- function(
   #######################################################################################################################
 
 
-
   # define Names (labels in compiled output) and Params (= labels for ctsem models)
   if (is.null(moderatedDrift) & ( (!(is.null(mod.number))) | (!(is.null(ind.mod.number)))) ) moderatedDrift <- "all" # will be changed by ctmaLabels
 
@@ -982,6 +983,7 @@ ctmaFit <- function(
                          TIpredNames = paste0("TI", 1:n.TIpred))
         )
 
+
         #CHD 13.6.2023
         if (indVaryingT0 == TRUE) {
           stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
@@ -1019,7 +1021,7 @@ ctmaFit <- function(
                          n.TIpred = n.TIpred,
                          TIpredNames = paste0("TI", 1:n.TIpred))
         )
-        stanctModel$pars[, "indvarying"] <- FALSE
+
       }
     }
     #stanctModel$pars
@@ -1031,6 +1033,7 @@ ctmaFit <- function(
     stanctModel$pars[stanctModel$pars$matrix %in% 'CINT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTVAR',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+
 
     if (!(is.null(cluster))) {
       stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[(n.studies++n.all.moderators):(n.studies+n.all.moderators+clusCounter-1)],'_effect')] <- TRUE
@@ -1063,6 +1066,8 @@ ctmaFit <- function(
         targetCols3 <- c()
         for (c4 in targetCols2) targetCols3 <- c(targetCols3, grep(c4, colnames(stanctModel$pars)))
         stanctModel$pars[targetRows2, targetCols3] <- FALSE
+
+
       }
     }
 
@@ -1111,6 +1116,7 @@ ctmaFit <- function(
     stanctModel$pars
 
     fitStanctModel <- suppressMessages(ctsem::ctStanFit(
+      fit=fit,
       datalong = datalong_all,
       ctstanmodel = stanctModel,
       savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
@@ -1118,7 +1124,7 @@ ctmaFit <- function(
       iter=CoTiMAStanctArgs$iter,
       intoverstates=CoTiMAStanctArgs$intoverstates,
       binomial=CoTiMAStanctArgs$binomial,
-      fit=CoTiMAStanctArgs$fit,
+      #fit=CoTiMAStanctArgs$fit,
       intoverpop=CoTiMAStanctArgs$intoverpop,
       stationary=CoTiMAStanctArgs$stationary,
       plot=CoTiMAStanctArgs$plot,
@@ -1139,573 +1145,590 @@ ctmaFit <- function(
       inits=inits))
 
     ### resample in parcels to avoid memory crash and speed up
-    if (!(is.null(CoTiMAStanctArgs$resample))) {
-      fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel)
-      #saveRDS(fitStanctModel, paste0(activeDirectory, "fitStanctModel.rds"))
-      #fitStanctModel <- readRDS(paste0(activeDirectory, "fitStanctModel.rds"))
+    if (fit == TRUE) {
+      if (!(is.null(CoTiMAStanctArgs$resample))) {
+        fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel)
+        #saveRDS(fitStanctModel, paste0(activeDirectory, "fitStanctModel.rds"))
+        #fitStanctModel <- readRDS(paste0(activeDirectory, "fitStanctModel.rds"))
+      }
+      if (is.null(fitStanctModel$standata$priors)) fitStanctModel$standata$priors <- 0 # CHD added Sep 2023)
+      fitStanctModel_summary <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
+    } # end if (fit == TRUE)
+
+    if (fit == FALSE) {
+      print(paste0("#################################################################################"))
+      print(paste0("#############  No model is fitted, only data and code are generated. ############"))
+      print(paste0("#################################################################################"))
+
     }
-    if (is.null(fitStanctModel$standata$priors)) fitStanctModel$standata$priors <- 0 # CHD added Sep 2023)
-    fitStanctModel_summary <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
   } # end if else (allInvModel)
-  #fitStanctModel_summary
 
   # Extract estimates & statistics
-  # CHD 9.6.2023
-  #if (indVarying == TRUE) {
-  if ( (indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT') ) {
-    e <- ctsem::ctExtract(fitStanctModel)
-    # CHD 12.6.2023
-    model_popsd <- fitStanctModel_summary$popsd
-    #if (indVaryingT0 == TRUE) {
-    #if ( (indVaryingT0 == TRUE) & (T0meansParams[1] != 0) ) {
-    if (dim(model_popsd)[1] != n.latent) {
+  if (fit == TRUE) { # CHD 16. Oct 2023 (end ~line 1534)
+    # CHD 9.6.2023
+    if ( (indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT') ) {
+      e <- ctsem::ctExtract(fitStanctModel)
+      # CHD 12.6.2023
       model_popsd <- fitStanctModel_summary$popsd
-      model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
-      model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
-      model_popcov_T <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
-      model_popcov_025 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
-      model_popcov_50 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
-      model_popcov_975 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975))
-      # convert to correlations and do the same (array to list then list to array)
-      e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
-      e$popcor <- lapply(e$popcor, stats::cov2cor)
-      e$popcor <- array(unlist(e$popcor), dim=c(n.latent*2, n.latent*2, length(e$popcor)))
-      model_popcor_m <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
-      model_popcor_sd <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
-      model_popcor_T <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
-      model_popcor_025 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
-      model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
-      model_popcor_975 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
-      #model_popcor <- stats::cov2cor(model_popcov_m)
+      #if (indVaryingT0 == TRUE) {
+      #if ( (indVaryingT0 == TRUE) & (T0meansParams[1] != 0) ) {
+      if (dim(model_popsd)[1] != n.latent) {
+        model_popsd <- fitStanctModel_summary$popsd
+        model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
+        model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
+        model_popcov_T <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
+        model_popcov_025 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
+        model_popcov_50 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
+        model_popcov_975 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975))
+        # convert to correlations and do the same (array to list then list to array)
+        e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
+        e$popcor <- lapply(e$popcor, stats::cov2cor)
+        e$popcor <- array(unlist(e$popcor), dim=c(n.latent*2, n.latent*2, length(e$popcor)))
+        model_popcor_m <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
+        model_popcor_sd <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
+        model_popcor_T <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
+        model_popcor_025 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
+        model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
+        model_popcor_975 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
+        #model_popcor <- stats::cov2cor(model_popcov_m)
+      } else {
+        model_popsd <- fitStanctModel_summary$popsd; model_popsd
+        model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits); model_popcov_m
+        model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
+        model_popcov_T <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
+        model_popcov_025 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
+        model_popcov_50 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
+        model_popcov_975 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975))
+        # convert to correlations and do the same (array to list then list to array)
+        e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
+        e$popcor <- lapply(e$popcor, stats::cov2cor)
+        e$popcor <- array(unlist(e$popcor), dim=c(n.latent   , n.latent  , length(e$popcor)))
+        model_popcor_m <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
+        model_popcor_sd <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
+        model_popcor_T <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
+        model_popcor_025 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
+        model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
+        model_popcor_975 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
+      }
     } else {
-      model_popsd <- fitStanctModel_summary$popsd; model_popsd
-      model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits); model_popcov_m
-      model_popcov_sd <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
-      model_popcov_T <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
-      model_popcov_025 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
-      model_popcov_50 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
-      model_popcov_975 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975))
-      # convert to correlations and do the same (array to list then list to array)
-      e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
-      e$popcor <- lapply(e$popcor, stats::cov2cor)
-      e$popcor <- array(unlist(e$popcor), dim=c(n.latent   , n.latent  , length(e$popcor)))
-      model_popcor_m <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
-      model_popcor_sd <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
-      model_popcor_T <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
-      model_popcor_025 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
-      model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
-      model_popcor_975 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
+      model_popsd <- "no random effects estimated"
+      model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- "no random effects estimated"
+      model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- "no random effects estimated"
     }
-  } else {
-    model_popsd <- "no random effects estimated"
-    model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- "no random effects estimated"
-    model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- "no random effects estimated"
-  }
-  #model_popcov_m
+    #model_popcov_m
 
-  # account for changes in ctsem 3.4.1
-  if ("matrix" %in% colnames(fitStanctModel_summary$parmatrices)) ctsem341 <- TRUE else ctsem341 <- FALSE
-  tmpMean <- grep("ean", colnames(fitStanctModel_summary$parmatrices)); tmpMean
-  tmpSd <- tmpMean+1; tmpSd
-  Tvalues <- fitStanctModel_summary$parmatrices[,tmpMean]/fitStanctModel_summary$parmatrices[,tmpSd]; Tvalues
-  invariantDrift_Coeff <- cbind(fitStanctModel_summary$parmatrices, Tvalues); invariantDrift_Coeff
-  invariantDrift_Coeff[, tmpMean:(dim(invariantDrift_Coeff)[2])] <- round(invariantDrift_Coeff[, tmpMean:(dim(invariantDrift_Coeff)[2])], digits); invariantDrift_Coeff
+    # account for changes in ctsem 3.4.1
+    if ("matrix" %in% colnames(fitStanctModel_summary$parmatrices)) ctsem341 <- TRUE else ctsem341 <- FALSE
+    tmpMean <- grep("ean", colnames(fitStanctModel_summary$parmatrices)); tmpMean
+    tmpSd <- tmpMean+1; tmpSd
+    Tvalues <- fitStanctModel_summary$parmatrices[,tmpMean]/fitStanctModel_summary$parmatrices[,tmpSd]; Tvalues
+    invariantDrift_Coeff <- cbind(fitStanctModel_summary$parmatrices, Tvalues); invariantDrift_Coeff
+    invariantDrift_Coeff[, tmpMean:(dim(invariantDrift_Coeff)[2])] <- round(invariantDrift_Coeff[, tmpMean:(dim(invariantDrift_Coeff)[2])], digits); invariantDrift_Coeff
 
-  # (create & ) re-label rownames
-  {
-    if (ctsem341) {
-      tmp1 <- which(invariantDrift_Coeff[, "matrix"] == "DRIFT"); tmp1
-      # replace row numbers by newly created names
-      rownames(invariantDrift_Coeff) <- paste0(invariantDrift_Coeff[, c("matrix")], "_",
-                                               invariantDrift_Coeff[, c("row")], "_",
-                                               invariantDrift_Coeff[, c("col")])
-    } else {
-      tmp1 <- which(rownames(invariantDrift_Coeff) == "DRIFT")
-    }
-    rownames(invariantDrift_Coeff)[tmp1] <- driftFullNames; invariantDrift_Coeff
-    # relabel if param is invariant
-    tmp2 <- which(rownames(invariantDrift_Coeff) %in% invariantDriftNames); tmp2
-    tmp3 <- paste0("DRIFT ", rownames(invariantDrift_Coeff)[tmp2] , " (invariant)"); tmp3
-    rownames(invariantDrift_Coeff)[tmp2] <- tmp3; invariantDrift_Coeff
-    # relabel if param is equal
-    tmp2b <- which(rownames(invariantDrift_Coeff) %in% equalDriftNames); tmp2b
-    if (length(tmp2b) > 0) {
-      tmp3b <- paste0("DRIFT ", rownames(invariantDrift_Coeff)[tmp2b] , " (equal)"); tmp3b
-      rownames(invariantDrift_Coeff)[tmp2b] <- tmp3b; invariantDrift_Coeff
-    }
-
-    tmp4 <- tmp1[which(!(tmp1 %in% tmp2))]; tmp4 # change to "DRIFT " for later extraction
-    rownames(invariantDrift_Coeff)[tmp4] <- paste0("DRIFT ", driftFullNames[which(!(tmp1 %in% tmp2))]); invariantDrift_Coeff
-
-    if (allInvModel == TRUE) {
-      tmp5 <- (grep("DIFFUSIONcov", rownames(invariantDrift_Coeff))); tmp5
-      tmp6 <- (grep("asymDIFFUSIONcov", rownames(invariantDrift_Coeff))); tmp6
-      targetRows <- tmp5[which(!(tmp5 %in% tmp6))]; targetRows
-      rownames(invariantDrift_Coeff)[targetRows] <- paste0(rownames(invariantDrift_Coeff)[targetRows], " (invariant)")
-
-      targetRows <- (grep("T0cov", rownames(invariantDrift_Coeff))); targetRows
-      rownames(invariantDrift_Coeff)[targetRows] <- paste0(rownames(invariantDrift_Coeff)[targetRows], " (invariant)")
-
-      targetRows <- (grep("T0MEANS", rownames(invariantDrift_Coeff))); targetRows
-      rownames(invariantDrift_Coeff)[targetRows] <- paste0(rownames(invariantDrift_Coeff)[targetRows], " (invariant)")
-
-      targetRows <- (grep("MANIFESTMEANS", rownames(invariantDrift_Coeff))); targetRows
-      rownames(invariantDrift_Coeff)[targetRows] <- paste0(rownames(invariantDrift_Coeff)[targetRows], " (invariant)")
-    }
-
-  }
-
-  # extract fit
-  invariantDrift_Minus2LogLikelihood  <- -2*fitStanctModel_summary$loglik; invariantDrift_Minus2LogLikelihood
-  invariantDrift_estimatedParameters  <- fitStanctModel_summary$npars; invariantDrift_estimatedParameters
-  invariantDrift_df <- "deprecated"
-
-  # extract params
-  {
-    model_Drift_Coef <- invariantDrift_Coeff[(grep("DRIFT ", rownames(invariantDrift_Coeff))), tmpMean]; model_Drift_Coef
-    tmp <- grep("DRIFT ", rownames(invariantDrift_Coeff)); tmp
-    names(model_Drift_Coef) <- rownames(invariantDrift_Coeff)[tmp]; model_Drift_Coef
-
-
-    model_Diffusion_Coef <- invariantDrift_Coeff[(rownames(invariantDrift_Coeff) == "DIFFUSIONcov"), tmpMean]; model_Diffusion_Coef
-    if (length(model_Diffusion_Coef) < 1) {
-      model_Diffusion_Coef <- invariantDrift_Coeff[invariantDrift_Coeff[, "matrix"] == "DIFFUSIONcov",  tmpMean]; model_Diffusion_Coef
-    } else {
-      model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
-    }
-    names(model_Diffusion_Coef) <- diffFullNames; model_Diffusion_Coef
-
-    model_T0var_Coef <- invariantDrift_Coeff[(rownames(invariantDrift_Coeff) == "T0VAR"), 3]; model_T0var_Coef
-    if (length(model_T0var_Coef) < 1) {
-      model_T0var_Coef <- invariantDrift_Coeff[invariantDrift_Coeff[, "matrix"] == "T0cov",  tmpMean]; model_T0var_Coef
-    } else {
-      model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
-    }
-    names(model_T0var_Coef) <- driftFullNames; model_T0var_Coef
-  }
-
-
-  ## moderator effects
-  modTI_Coeff <- NULL
-  if (n.moderators > 0) {
-    tmp1 <- c()
-    for (i in modTIs) tmp1 <- c(tmp1, grep(i, rownames(fitStanctModel_summary$tipreds)))
-    Tvalues <- fitStanctModel_summary$tipreds[tmp1, ][,6]; Tvalues
-    modTI_Coeff <- round(cbind(fitStanctModel_summary$tipreds[tmp1, ], Tvalues), digits); modTI_Coeff
-
-    # re-label
-    if (!(is.null(mod.names))) {
-      if (mod.type == "cont") {
-        counter <- 0
-        for (i in modTIs) {
-          counter <- counter + 1
-          targetNamePart <- paste0("tip_", modTIs[counter]); targetNamePart
-          rownames(modTI_Coeff) <- sub(targetNamePart, paste0(mod.names[counter], "_on_"), rownames(modTI_Coeff))
-        }
+    # (create & ) re-label rownames
+    {
+      if (ctsem341) {
+        tmp1 <- which(invariantDrift_Coeff[, "matrix"] == "DRIFT"); tmp1
+        # replace row numbers by newly created names
+        rownames(invariantDrift_Coeff) <- paste0(invariantDrift_Coeff[, c("matrix")], "_",
+                                                 invariantDrift_Coeff[, c("row")], "_",
+                                                 invariantDrift_Coeff[, c("col")])
+      } else {
+        tmp1 <- which(rownames(invariantDrift_Coeff) == "DRIFT")
+      }
+      rownames(invariantDrift_Coeff)[tmp1] <- driftFullNames; invariantDrift_Coeff
+      # relabel if param is invariant
+      tmp2 <- which(rownames(invariantDrift_Coeff) %in% invariantDriftNames); tmp2
+      tmp3 <- paste0("DRIFT ", rownames(invariantDrift_Coeff)[tmp2] , " (invariant)"); tmp3
+      rownames(invariantDrift_Coeff)[tmp2] <- tmp3; invariantDrift_Coeff
+      # relabel if param is equal
+      tmp2b <- which(rownames(invariantDrift_Coeff) %in% equalDriftNames); tmp2b
+      if (length(tmp2b) > 0) {
+        tmp3b <- paste0("DRIFT ", rownames(invariantDrift_Coeff)[tmp2b] , " (equal)"); tmp3b
+        rownames(invariantDrift_Coeff)[tmp2b] <- tmp3b; invariantDrift_Coeff
       }
 
-      if (mod.type == "cat") {
-        counter <- 0
-        modNameCounter <- 1
-        for (j in modTIs) {
-          if (n.moderators == 1) unique.mod.tmp <- unique.mod else unique.mod.tmp <- unique.mod[[counter+1]]
-          if (!(is.null(catsToCompare))) {
-            origCats <- c(unique.mod.tmp[1:2] + moderatorGroupsOffset, unique.mod.tmp[-c(1:2)]); origCats
-          } else {
-            origCats <- unique.mod.tmp
-          }
-          for (i in 1:(length(unique.mod.tmp)-1)) {
-            counter <- counter + 1; counter
-            current.mod.names <- mod.names[modNameCounter]; current.mod.names
-            targetNamePart <- paste0("tip_", modTIs[i]); targetNamePart
-            tmp1 <- grep(targetNamePart, rownames(modTI_Coeff)); tmp1
-            rownames(modTI_Coeff) <- sub(targetNamePart, paste0(origCats[counter+1], "  (category value) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
-          }
+      tmp4 <- tmp1[which(!(tmp1 %in% tmp2))]; tmp4 # change to "DRIFT " for later extraction
+      rownames(invariantDrift_Coeff)[tmp4] <- paste0("DRIFT ", driftFullNames[which(!(tmp1 %in% tmp2))]); invariantDrift_Coeff
+
+      if (allInvModel == TRUE) {
+        tmp5 <- (grep("DIFFUSIONcov", rownames(invariantDrift_Coeff))); tmp5
+        tmp6 <- (grep("asymDIFFUSIONcov", rownames(invariantDrift_Coeff))); tmp6
+        targetRows <- tmp5[which(!(tmp5 %in% tmp6))]; targetRows
+        rownames(invariantDrift_Coeff)[targetRows] <- paste0(rownames(invariantDrift_Coeff)[targetRows], " (invariant)")
+
+        targetRows <- (grep("T0cov", rownames(invariantDrift_Coeff))); targetRows
+        rownames(invariantDrift_Coeff)[targetRows] <- paste0(rownames(invariantDrift_Coeff)[targetRows], " (invariant)")
+
+        targetRows <- (grep("T0MEANS", rownames(invariantDrift_Coeff))); targetRows
+        rownames(invariantDrift_Coeff)[targetRows] <- paste0(rownames(invariantDrift_Coeff)[targetRows], " (invariant)")
+
+        targetRows <- (grep("MANIFESTMEANS", rownames(invariantDrift_Coeff))); targetRows
+        rownames(invariantDrift_Coeff)[targetRows] <- paste0(rownames(invariantDrift_Coeff)[targetRows], " (invariant)")
+      }
+
+    }
+
+    # extract fit
+    invariantDrift_Minus2LogLikelihood  <- -2*fitStanctModel_summary$loglik; invariantDrift_Minus2LogLikelihood
+    invariantDrift_estimatedParameters  <- fitStanctModel_summary$npars; invariantDrift_estimatedParameters
+    invariantDrift_df <- "deprecated"
+
+    # extract params
+    {
+      model_Drift_Coef <- invariantDrift_Coeff[(grep("DRIFT ", rownames(invariantDrift_Coeff))), tmpMean]; model_Drift_Coef
+      tmp <- grep("DRIFT ", rownames(invariantDrift_Coeff)); tmp
+      names(model_Drift_Coef) <- rownames(invariantDrift_Coeff)[tmp]; model_Drift_Coef
+
+
+      model_Diffusion_Coef <- invariantDrift_Coeff[(rownames(invariantDrift_Coeff) == "DIFFUSIONcov"), tmpMean]; model_Diffusion_Coef
+      if (length(model_Diffusion_Coef) < 1) {
+        model_Diffusion_Coef <- invariantDrift_Coeff[invariantDrift_Coeff[, "matrix"] == "DIFFUSIONcov",  tmpMean]; model_Diffusion_Coef
+      } else {
+        model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
+      }
+      names(model_Diffusion_Coef) <- diffFullNames; model_Diffusion_Coef
+
+      model_T0var_Coef <- invariantDrift_Coeff[(rownames(invariantDrift_Coeff) == "T0VAR"), 3]; model_T0var_Coef
+      if (length(model_T0var_Coef) < 1) {
+        model_T0var_Coef <- invariantDrift_Coeff[invariantDrift_Coeff[, "matrix"] == "T0cov",  tmpMean]; model_T0var_Coef
+      } else {
+        model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
+      }
+      names(model_T0var_Coef) <- driftFullNames; model_T0var_Coef
+    }
+
+
+    ## moderator effects
+    modTI_Coeff <- NULL
+    if (n.moderators > 0) {
+      tmp1 <- c()
+      for (i in modTIs) tmp1 <- c(tmp1, grep(i, rownames(fitStanctModel_summary$tipreds)))
+      Tvalues <- fitStanctModel_summary$tipreds[tmp1, ][,6]; Tvalues
+      modTI_Coeff <- round(cbind(fitStanctModel_summary$tipreds[tmp1, ], Tvalues), digits); modTI_Coeff
+
+      # re-label
+      if (!(is.null(mod.names))) {
+        if (mod.type == "cont") {
           counter <- 0
-          modNameCounter <- modNameCounter + 1
+          for (i in modTIs) {
+            counter <- counter + 1
+            targetNamePart <- paste0("tip_", modTIs[counter]); targetNamePart
+            rownames(modTI_Coeff) <- sub(targetNamePart, paste0(mod.names[counter], "_on_"), rownames(modTI_Coeff))
+          }
         }
-      }
-    }
-    # eliminate z
-    modTI_Coeff[, "z"] <- NULL; modTI_Coeff
-  }
 
-  ## cluster effects
-  if (!(is.null(cluster))) {
-    cluster.specific.effect <- matrix(NA, clusCounter, n.latent^2)
-    tmp <- grep("DRIFT ", rownames(invariantDrift_Coeff)); tmp
-    colnames(cluster.specific.effect) <- rownames(invariantDrift_Coeff)[tmp]; cluster.specific.effect
-    rownames(cluster.specific.effect) <- paste0("Cluster No. ", seq(1,clusCounter, 1)); cluster.specific.effect
-    tmp1 <- c()
-    for (i in clusTIs) tmp1 <- c(tmp1, (grep(i, rownames(fitStanctModel_summary$tipreds))))
-    Tvalues <- fitStanctModel_summary$tipreds[tmp1, ][,6]; Tvalues
-    clusTI_Coeff <- round(cbind(fitStanctModel_summary$tipreds[tmp1, ], Tvalues), digits); clusTI_Coeff
-    # re-label
-    targetCluster <- which(table(cluster) > 1); targetCluster
-    for (i in 1:clusCounter) {
-      #i <- 2
-      targetNamePart <- paste0("tip_", clusTIs[i]); targetNamePart
-      rownames(clusTI_Coeff) <- sub(targetNamePart, paste0("Cluster_", targetCluster[i], "_on_"), rownames(clusTI_Coeff))
-      for (j in 1:length(driftNames)) {
-        if (driftNames[j] != 0) {
-          tmp0 <- driftNames[j]; tmp0
-          tmp0 <- gsub(" \\(invariant\\)", "", tmp0); tmp0
-          tmp1 <- grep(tmp0, rownames((clusTI_Coeff))); tmp1
-          tmp2 <- grep(tmp0, names((model_Drift_Coef))); tmp2
-          # CHD changed 7.6.2023
-          # cluster.specific.effect[i,j] <- round(model_Drift_Coef[tmp2] + clusTI_Coeff[tmp1, 1] * cluster.weights[i, 2], digits)
-          cluster.specific.effect[i,j] <- round(model_Drift_Coef[tmp2] + clusTI_Coeff[tmp1[i], 1] * cluster.weights[i, 2], digits)
-        }
-      }
-    }
-  } else {
-    clusTI_Coeff <- NULL
-  }
-
-  if (ctsem341) invariantDrift_Coeff[, "matrix"] <- NULL
-
-  ### Numerically compute Optimal Time lag sensu Dormann & Griffin (2015)
-  if (ctsem341) {
-    driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=TRUE); driftMatrix # byrow set because order is different compared to mx model
-  } else {
-    driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE); driftMatrix # byrow set because order is different compared to mx model
-  }
-
-  if (length(invariantDriftNames) == length(driftNames)) {
-    OTL <- function(timeRange) {
-      OpenMx::expm(tmpDriftMatrix * timeRange)[targetRow, targetCol]}
-    # use original time scale
-    if (!(is.null(scaleTime))) {
-      tmpDriftMatrix <- driftMatrix * scaleTime
-    } else {
-      tmpDriftMatrix <- driftMatrix
-    }
-    # loop through all cross effects
-    tmp1 <- 0
-    if (0 %in% usedTimeRange) tmp1 <- 1
-    optimalCrossLag <- matrix(NA, n.latent, n.latent)
-    maxCrossEffect <- matrix(NA, n.latent, n.latent)
-    for (j in 1:n.latent) {
-      for (h in 1:n.latent) {
-        if (j != h) {
-          targetRow <- j
-          targetCol <- h
-          if (tmpDriftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
-            targetParameters <- sapply(usedTimeRange, OTL); targetParameters
-            maxCrossEffect[j,h] <- max(abs(targetParameters))[1]; maxCrossEffect[j,h]
-            optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])[1]*1 - tmp1 # first targetParam is calculated for lag=0
-          } else {
-            optimalCrossLag[j,h] <- NA
+        if (mod.type == "cat") {
+          counter <- 0
+          modNameCounter <- 1
+          for (j in modTIs) {
+            if (n.moderators == 1) unique.mod.tmp <- unique.mod else unique.mod.tmp <- unique.mod[[counter+1]]
+            if (!(is.null(catsToCompare))) {
+              origCats <- c(unique.mod.tmp[1:2] + moderatorGroupsOffset, unique.mod.tmp[-c(1:2)]); origCats
+            } else {
+              origCats <- unique.mod.tmp
+            }
+            for (i in 1:(length(unique.mod.tmp)-1)) {
+              counter <- counter + 1; counter
+              current.mod.names <- mod.names[modNameCounter]; current.mod.names
+              targetNamePart <- paste0("tip_", modTIs[i]); targetNamePart
+              tmp1 <- grep(targetNamePart, rownames(modTI_Coeff)); tmp1
+              rownames(modTI_Coeff) <- sub(targetNamePart, paste0(origCats[counter+1], "  (category value) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
+            }
+            counter <- 0
+            modNameCounter <- modNameCounter + 1
           }
         }
       }
+      # eliminate z
+      modTI_Coeff[, "z"] <- NULL; modTI_Coeff
     }
-    maxCrossEffect <- round(maxCrossEffect, digits); maxCrossEffect
-  } else {
-    optimalCrossLag <- "Drift Matrix is only partially invariant. (Generalizable) optimal intervall cannot be computed."
-    maxCrossEffect <- "Drift Matrix is only partially invariant. (Generalizable) Largest effects cannot be computed."
-  }
-  #} ## END  fit stanct model
 
-  # CHD 12.7.23
-  #if (!(is.null(scaleTime))) {
-  if ( (!(is.null(scaleTime))) & (length(invariantDriftNames) == length(driftNames)) ) {
-    optimalCrossLag_scaledTime <- optimalCrossLag * CoTiMAStanctArgs$scaleTime
-  } else {
-    optimalCrossLag_scaledTime <- optimalCrossLag
-  }
-
-  #######################################################################################################################
-
-  #end.time <- Sys.time()
-  #time.taken <- end.time - start.time
-  #st <- paste0("Computation started at: ", start.time); st
-  #et <- paste0("Computation ended at: ", end.time); et
-  #tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
-
-  meanDeltas <- mean(ctmaInitFit$statisticsList$allDeltas, na.rm=TRUE); meanDeltas
-  largeDelta <- which(ctmaInitFit$statisticsList$allDeltas >= meanDeltas); largeDelta
-  tmp1 <- table(ctmaInitFit$statisticsList$allDeltas[largeDelta]); tmp1
-  tmp2 <- which(names(tmp1) == (max(as.numeric(names(tmp1))))); tmp2
-  suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
-  message <- c()
-  #if (meanDeltas > 3) {
-  # CHD AUG 2023
-  if ((meanDeltas * CoTiMAStanctArgs$scaleTime) > 3) { #xxx
-    tmp2 <- paste0("Mean time interval was ", meanDeltas, "."); tmp2
-    tmp3 <- paste0("scaleTime=1/", suggestedScaleTime); tmp3
-    tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, " and customPar=FALSE. "); tmp4
-    message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using, e.g.,", tmp3, "in all subsequent models.", collapse="\n"); message
-  }
-
-
-  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
-
-  if (ctsem341) { # new 8.7.2022
-    tmp1 <- grep("CINT", fitStanctModel_summary$parmatrices[,"matrix"]); tmp1
-    tmp2 <- grep("asym", fitStanctModel_summary$parmatrices[,"matrix"]); tmp2
-    tmp3 <- grep("dt", fitStanctModel_summary$parmatrices[,"matrix"]); tmp3
-    tmp4 <- tmp1[(tmp1 %in% c(tmp2, tmp3)) == FALSE]; tmp4
-    model_Cint_Coef <- fitStanctModel_summary$parmatrices[tmp4, 4]; model_Cint_Coef
-  } else {
-    tmp1 <- grep("CINT", rownames(fitStanctModel_summary$parmatrices)); tmp1
-    tmp2 <- grep("asym", rownames(fitStanctModel_summary$parmatrices)); tmp2
-    tmp3 <- grep("dt", rownames(fitStanctModel_summary$parmatrices)); tmp3
-    tmp4 <- tmp1[(tmp1 %in% c(tmp2, tmp3)) == FALSE]; tmp4
-    model_Cint_Coef <- fitStanctModel_summary$parmatrices[tmp4, 3]; model_Cint_Coef
-  }
-
-  if (!(is.null(cluster))) {
-    clus.effects=list(effects=clusTI_Coeff, weights=cluster.weights, sizes=cluster.sizes,
-                      cluster.specific.effect=cluster.specific.effect, note=cluster.note)
-  } else {
-    clus.effects <- NULL
-  }
-
-  if (is.null(primaryStudyList)) primaryStudies <- ctmaInitFit$primaryStudyList else primaryStudies <- primaryStudyList
-
-  if (is.null(scaleTime)) scaleTime2 <- 1 else scaleTime2 <- scaleTime
-
-  if (!(is.null(scaleTime))) {
-    model_Drift_Coef_original_time_scale <- model_Drift_Coef * scaleTime
-    model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef * scaleTime
-    if (!(is.null(modTI_Coeff))) {
-      modTI_Coeff_original_time_scale <- modTI_Coeff * scaleTime
-      modTI_Coeff_original_time_scale[, "Tvalues"] <- modTI_Coeff[, "Tvalues"]
+    ## cluster effects
+    if (!(is.null(cluster))) {
+      cluster.specific.effect <- matrix(NA, clusCounter, n.latent^2)
+      tmp <- grep("DRIFT ", rownames(invariantDrift_Coeff)); tmp
+      colnames(cluster.specific.effect) <- rownames(invariantDrift_Coeff)[tmp]; cluster.specific.effect
+      rownames(cluster.specific.effect) <- paste0("Cluster No. ", seq(1,clusCounter, 1)); cluster.specific.effect
+      tmp1 <- c()
+      for (i in clusTIs) tmp1 <- c(tmp1, (grep(i, rownames(fitStanctModel_summary$tipreds))))
+      Tvalues <- fitStanctModel_summary$tipreds[tmp1, ][,6]; Tvalues
+      clusTI_Coeff <- round(cbind(fitStanctModel_summary$tipreds[tmp1, ], Tvalues), digits); clusTI_Coeff
+      # re-label
+      targetCluster <- which(table(cluster) > 1); targetCluster
+      for (i in 1:clusCounter) {
+        #i <- 2
+        targetNamePart <- paste0("tip_", clusTIs[i]); targetNamePart
+        rownames(clusTI_Coeff) <- sub(targetNamePart, paste0("Cluster_", targetCluster[i], "_on_"), rownames(clusTI_Coeff))
+        for (j in 1:length(driftNames)) {
+          if (driftNames[j] != 0) {
+            tmp0 <- driftNames[j]; tmp0
+            tmp0 <- gsub(" \\(invariant\\)", "", tmp0); tmp0
+            tmp1 <- grep(tmp0, rownames((clusTI_Coeff))); tmp1
+            tmp2 <- grep(tmp0, names((model_Drift_Coef))); tmp2
+            # CHD changed 7.6.2023
+            # cluster.specific.effect[i,j] <- round(model_Drift_Coef[tmp2] + clusTI_Coeff[tmp1, 1] * cluster.weights[i, 2], digits)
+            cluster.specific.effect[i,j] <- round(model_Drift_Coef[tmp2] + clusTI_Coeff[tmp1[i], 1] * cluster.weights[i, 2], digits)
+          }
+        }
+      }
     } else {
-      modTI_Coeff_original_time_scale <- NULL
-    }
-    if (!(is.null(clusTI_Coeff))) {
-      clusTI_Coeff_original_time_scale <- clusTI_Coeff * scaleTime
-      clusTI_Coeff_original_time_scale[, "Tvalues"] <- clusTI_Coeff[, "Tvalues"]
-    } else {
-      clusTI_Coeff_original_time_scale <- NULL
-    }
-    tmp1<- invariantDrift_Coeff
-    tmp2 <- grep("toV", rownames(tmp1))
-    tmp3 <- grep("DIFFUSIONcov", rownames(tmp1))
-    tmp4 <- grep("asym", rownames(tmp1))
-    tmp3 <- tmp3[!(tmp3%in% tmp4)]
-    tmp1 <- tmp1[c(tmp2, tmp3),]
-    tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] <- tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] * scaleTime
-    estimates_original_time_scale <- tmp1
-    mod_effects_original_time_scale <- modTI_Coeff_original_time_scale
-    if (!(is.null(clusTI_Coeff))) {
-      clus_effects_original_time_scale <- round(clusTI_Coeff_original_time_scale, digits)
-    } else {
-      clus_effects_original_time_scale <- NULL
-    }
-  } else {
-    model_Drift_Coef_original_time_scale <- round(model_Drift_Coef, digits); model_Drift_Coef_original_time_scale
-    model_Diffusion_Coef_original_time_scale <- round(model_Diffusion_Coef, digits); model_Diffusion_Coef_original_time_scale
-    if (!(is.null(modTI_Coeff))) { # new 9.7.20222
-      modTI_Coeff_original_time_scale <- round(modTI_Coeff, digits)
-      mod_effects_original_time_scale <- round(modTI_Coeff, digits)  # doubled (why?)
-    } else {
-      modTI_Coeff_original_time_scale <- NULL
-      mod_effects_original_time_scale <- NULL
+      clusTI_Coeff <- NULL
     }
 
-    { # new 8.7.2022
+    if (ctsem341) invariantDrift_Coeff[, "matrix"] <- NULL
+
+    ### Numerically compute Optimal Time lag sensu Dormann & Griffin (2015)
+    if (ctsem341) {
+      driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=TRUE); driftMatrix # byrow set because order is different compared to mx model
+    } else {
+      driftMatrix <- matrix(model_Drift_Coef, n.latent, n.latent, byrow=FALSE); driftMatrix # byrow set because order is different compared to mx model
+    }
+
+    if (length(invariantDriftNames) == length(driftNames)) {
+      OTL <- function(timeRange) {
+        OpenMx::expm(tmpDriftMatrix * timeRange)[targetRow, targetCol]}
+      # use original time scale
+      if (!(is.null(scaleTime))) {
+        tmpDriftMatrix <- driftMatrix * scaleTime
+      } else {
+        tmpDriftMatrix <- driftMatrix
+      }
+      # loop through all cross effects
+      tmp1 <- 0
+      if (0 %in% usedTimeRange) tmp1 <- 1
+      optimalCrossLag <- matrix(NA, n.latent, n.latent)
+      maxCrossEffect <- matrix(NA, n.latent, n.latent)
+      for (j in 1:n.latent) {
+        for (h in 1:n.latent) {
+          if (j != h) {
+            targetRow <- j
+            targetCol <- h
+            if (tmpDriftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
+              targetParameters <- sapply(usedTimeRange, OTL); targetParameters
+              maxCrossEffect[j,h] <- max(abs(targetParameters))[1]; maxCrossEffect[j,h]
+              optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])[1]*1 - tmp1 # first targetParam is calculated for lag=0
+            } else {
+              optimalCrossLag[j,h] <- NA
+            }
+          }
+        }
+      }
+      maxCrossEffect <- round(maxCrossEffect, digits); maxCrossEffect
+    } else {
+      optimalCrossLag <- "Drift Matrix is only partially invariant. (Generalizable) optimal intervall cannot be computed."
+      maxCrossEffect <- "Drift Matrix is only partially invariant. (Generalizable) Largest effects cannot be computed."
+    }
+
+    # CHD 12.7.23
+    #if (!(is.null(scaleTime))) {
+    if ( (!(is.null(scaleTime))) & (length(invariantDriftNames) == length(driftNames)) ) {
+      optimalCrossLag_scaledTime <- optimalCrossLag * CoTiMAStanctArgs$scaleTime
+    } else {
+      optimalCrossLag_scaledTime <- optimalCrossLag
+    }
+
+    #######################################################################################################################
+
+    #end.time <- Sys.time()
+    #time.taken <- end.time - start.time
+    #st <- paste0("Computation started at: ", start.time); st
+    #et <- paste0("Computation ended at: ", end.time); et
+    #tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
+
+    meanDeltas <- mean(ctmaInitFit$statisticsList$allDeltas, na.rm=TRUE); meanDeltas
+    largeDelta <- which(ctmaInitFit$statisticsList$allDeltas >= meanDeltas); largeDelta
+    tmp1 <- table(ctmaInitFit$statisticsList$allDeltas[largeDelta]); tmp1
+    tmp2 <- which(names(tmp1) == (max(as.numeric(names(tmp1))))); tmp2
+    suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
+    message <- c()
+    #if (meanDeltas > 3) {
+    # CHD AUG 2023
+    if ((meanDeltas * CoTiMAStanctArgs$scaleTime) > 3) { #xxx
+      tmp2 <- paste0("Mean time interval was ", meanDeltas, "."); tmp2
+      tmp3 <- paste0("scaleTime=1/", suggestedScaleTime); tmp3
+      tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, " and customPar=FALSE. "); tmp4
+      message <- paste(tmp2, tmp4, "If the model fit (-2ll) is better (lower), continue using, e.g.,", tmp3, "in all subsequent models.", collapse="\n"); message
+    }
+
+
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","CoTiMA has finished!"))}
+
+    if (ctsem341) { # new 8.7.2022
+      tmp1 <- grep("CINT", fitStanctModel_summary$parmatrices[,"matrix"]); tmp1
+      tmp2 <- grep("asym", fitStanctModel_summary$parmatrices[,"matrix"]); tmp2
+      tmp3 <- grep("dt", fitStanctModel_summary$parmatrices[,"matrix"]); tmp3
+      tmp4 <- tmp1[(tmp1 %in% c(tmp2, tmp3)) == FALSE]; tmp4
+      model_Cint_Coef <- fitStanctModel_summary$parmatrices[tmp4, 4]; model_Cint_Coef
+    } else {
+      tmp1 <- grep("CINT", rownames(fitStanctModel_summary$parmatrices)); tmp1
+      tmp2 <- grep("asym", rownames(fitStanctModel_summary$parmatrices)); tmp2
+      tmp3 <- grep("dt", rownames(fitStanctModel_summary$parmatrices)); tmp3
+      tmp4 <- tmp1[(tmp1 %in% c(tmp2, tmp3)) == FALSE]; tmp4
+      model_Cint_Coef <- fitStanctModel_summary$parmatrices[tmp4, 3]; model_Cint_Coef
+    }
+
+    if (!(is.null(cluster))) {
+      clus.effects=list(effects=clusTI_Coeff, weights=cluster.weights, sizes=cluster.sizes,
+                        cluster.specific.effect=cluster.specific.effect, note=cluster.note)
+    } else {
+      clus.effects <- NULL
+    }
+
+    if (is.null(primaryStudyList)) primaryStudies <- ctmaInitFit$primaryStudyList else primaryStudies <- primaryStudyList
+
+    if (is.null(scaleTime)) scaleTime2 <- 1 else scaleTime2 <- scaleTime
+
+    if (!(is.null(scaleTime))) {
+      model_Drift_Coef_original_time_scale <- model_Drift_Coef * scaleTime
+      model_Diffusion_Coef_original_time_scale <- model_Diffusion_Coef * scaleTime
+      if (!(is.null(modTI_Coeff))) {
+        modTI_Coeff_original_time_scale <- modTI_Coeff * scaleTime
+        modTI_Coeff_original_time_scale[, "Tvalues"] <- modTI_Coeff[, "Tvalues"]
+      } else {
+        modTI_Coeff_original_time_scale <- NULL
+      }
+      if (!(is.null(clusTI_Coeff))) {
+        clusTI_Coeff_original_time_scale <- clusTI_Coeff * scaleTime
+        clusTI_Coeff_original_time_scale[, "Tvalues"] <- clusTI_Coeff[, "Tvalues"]
+      } else {
+        clusTI_Coeff_original_time_scale <- NULL
+      }
       tmp1<- invariantDrift_Coeff
       tmp2 <- grep("toV", rownames(tmp1))
       tmp3 <- grep("DIFFUSIONcov", rownames(tmp1))
       tmp4 <- grep("asym", rownames(tmp1))
       tmp3 <- tmp3[!(tmp3%in% tmp4)]
       tmp1 <- tmp1[c(tmp2, tmp3),]
-      tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] <- tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] * 1
-      estimates_original_time_scale <- round(tmp1, digits)
-    }
-    clus_effects_original_time_scale <- NULL
-    if (!(is.null(clusTI_Coeff))) {
-      clusTI_Coeff_original_time_scale <- round(clusTI_Coeff, digits)
+      tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] <- tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] * scaleTime
+      estimates_original_time_scale <- tmp1
+      mod_effects_original_time_scale <- modTI_Coeff_original_time_scale
+      if (!(is.null(clusTI_Coeff))) {
+        clus_effects_original_time_scale <- round(clusTI_Coeff_original_time_scale, digits)
+      } else {
+        clus_effects_original_time_scale <- NULL
+      }
     } else {
-      clusTI_Coeff_original_time_scale <- NULL
-    }
-  }
+      model_Drift_Coef_original_time_scale <- round(model_Drift_Coef, digits); model_Drift_Coef_original_time_scale
+      model_Diffusion_Coef_original_time_scale <- round(model_Diffusion_Coef, digits); model_Diffusion_Coef_original_time_scale
+      if (!(is.null(modTI_Coeff))) { # new 9.7.20222
+        modTI_Coeff_original_time_scale <- round(modTI_Coeff, digits)
+        mod_effects_original_time_scale <- round(modTI_Coeff, digits)  # doubled (why?)
+      } else {
+        modTI_Coeff_original_time_scale <- NULL
+        mod_effects_original_time_scale <- NULL
+      }
 
-  results <- list(#activeDirectory=activeDirectory,
-    plot.type="drift",  model.type="stanct",
-    n.studies=1,
-    n.latent=n.latent,
-    n.moderators=length(mod.number),
-    studyList=ctmaInitFit$studyList,
-    studyFitList=fitStanctModel,
-    data=datalong_all,
-    statisticsList=ctmaInitFit$statisticsList,
-    argumentList=list(ctmaInitFit=deparse(substitute(ctmaInitFit)),
-                      primaryStudyList=primaryStudies,
-                      cluster=cluster,
-                      activeDirectory=activeDirectory,
-                      activateRPB=activateRPB,
-                      digits=digits,
-                      drift=drift,
-                      invariantDrift=invariantDrift,
-                      moderatedDrift=moderatedDrift,
-                      equalDrift=equalDrift,
-                      ind.mod.names=ind.mod.names,
-                      ind.mod.number=ind.mod.number,
-                      ind.mod.type=ind.mod.type,
-                      mod.number=mod.number,
-                      mod.type=mod.type,
-                      mod.names=mod.names,
-                      indVarying=indVarying,
-                      coresToUse=coresToUse,
-                      scaleTI=scaleTI,
-                      scaleMod=scaleMod,
-                      transfMod=transfMod,
-                      scaleClus=scaleClus,
-                      scaleTime=scaleTime,
-                      optimize=optimize,
-                      nopriors=nopriors,
-                      finishsamples=finishsamples,
-                      iter=iter,
-                      chains=chains,
-                      verbose=verbose,
-                      allInvModel=allInvModel,
-                      customPar=customPar,
-                      inits=inits,
-                      modsToCompare=modsToCompare,
-                      catsToCompare=catsToCompare,
-                      driftsToCompare=driftsToCompare,
-                      useSampleFraction=useSampleFraction,
-                      T0means=T0means,
-                      manifestMeans=manifestMeans,
-                      CoTiMAStanctArgs=CoTiMAStanctArgs),
-    modelResults=list(DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
-                      DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale,
-                      T0VAR=model_T0var_Coef,
-                      CINT=model_Cint_Coef,
-                      MOD=modTI_Coeff_original_time_scale,
-                      CLUS=clusTI_Coeff_original_time_scale,
-                      DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef),
-    parameterNames=ctmaInitFit$parameterNames,
-    CoTiMAStanctArgs=CoTiMAStanctArgs,
-    invariantDrift=invariantDrift,
-    summary=list(model="Model name not specified", # paste(invariantDrift, "unequal but invariant across samples", collapse=" "),
-                 scaledTime=scaleTime2,
-                 estimates=invariantDrift_Coeff,
-                 # changed 17. Aug. 2022
-                 randomEffects=list(popsd=model_popsd,
-                                    popcov_mean=model_popcov_m, model_popcov_sd=model_popcov_sd,
-                                    model_popcov_T=model_popcov_T, model_popcov_025=model_popcov_025,
-                                    model_popcov_50=model_popcov_50, model_popcov_975=model_popcov_975,
-                                    popcor_mean=model_popcor_m, model_popcor_sd=model_popcor_sd,
-                                    model_popcor_T=model_popcor_T, model_popcor_025=model_popcor_025,
-                                    model_popcor_50=model_popcor_50, model_popcor_975=model_popcor_975),
-                 minus2ll= invariantDrift_Minus2LogLikelihood,
-                 n.parameters = invariantDrift_estimatedParameters,
-                 #optimalLagInfo = "Optimal lag and effect was calculated for original time scale (i.e., ignoring possible scaleTime argument).",
-                 opt.lag.orig.time = optimalCrossLag,
-                 opt.lag.scaled.time = optimalCrossLag_scaledTime,
-                 max.effects = maxCrossEffect,
-                 clus.effects=clus.effects,
-                 mod.effects=modTI_Coeff,
-                 message=message,
-                 estimates_original_time_scale =estimates_original_time_scale,
-                 mod_effects_original_time_scale=mod_effects_original_time_scale,
-                 clus_effects_original_time_scale=clus_effects_original_time_scale)
-    # excel workbook is added later
-  )
+      { # new 8.7.2022
+        tmp1<- invariantDrift_Coeff
+        tmp2 <- grep("toV", rownames(tmp1))
+        tmp3 <- grep("DIFFUSIONcov", rownames(tmp1))
+        tmp4 <- grep("asym", rownames(tmp1))
+        tmp3 <- tmp3[!(tmp3%in% tmp4)]
+        tmp1 <- tmp1[c(tmp2, tmp3),]
+        tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] <- tmp1[, c("Mean", "sd", "2.5%", "50%", "97.5%")] * 1
+        estimates_original_time_scale <- round(tmp1, digits)
+      }
+      clus_effects_original_time_scale <- NULL
+      if (!(is.null(clusTI_Coeff))) {
+        clusTI_Coeff_original_time_scale <- round(clusTI_Coeff, digits)
+      } else {
+        clusTI_Coeff_original_time_scale <- NULL
+      }
+    }
+
+    results <- list(#activeDirectory=activeDirectory,
+      plot.type="drift",  model.type="stanct",
+      n.studies=1,
+      n.latent=n.latent,
+      n.moderators=length(mod.number),
+      studyList=ctmaInitFit$studyList,
+      studyFitList=fitStanctModel,
+      data=datalong_all,
+      statisticsList=ctmaInitFit$statisticsList,
+      argumentList=list(ctmaInitFit=deparse(substitute(ctmaInitFit)),
+                        primaryStudyList=primaryStudies,
+                        cluster=cluster,
+                        activeDirectory=activeDirectory,
+                        activateRPB=activateRPB,
+                        digits=digits,
+                        drift=drift,
+                        invariantDrift=invariantDrift,
+                        moderatedDrift=moderatedDrift,
+                        equalDrift=equalDrift,
+                        ind.mod.names=ind.mod.names,
+                        ind.mod.number=ind.mod.number,
+                        ind.mod.type=ind.mod.type,
+                        mod.number=mod.number,
+                        mod.type=mod.type,
+                        mod.names=mod.names,
+                        indVarying=indVarying,
+                        coresToUse=coresToUse,
+                        scaleTI=scaleTI,
+                        scaleMod=scaleMod,
+                        transfMod=transfMod,
+                        scaleClus=scaleClus,
+                        scaleTime=scaleTime,
+                        optimize=optimize,
+                        nopriors=nopriors,
+                        finishsamples=finishsamples,
+                        iter=iter,
+                        chains=chains,
+                        verbose=verbose,
+                        allInvModel=allInvModel,
+                        customPar=customPar,
+                        inits=inits,
+                        modsToCompare=modsToCompare,
+                        catsToCompare=catsToCompare,
+                        driftsToCompare=driftsToCompare,
+                        useSampleFraction=useSampleFraction,
+                        T0means=T0means,
+                        manifestMeans=manifestMeans,
+                        CoTiMAStanctArgs=CoTiMAStanctArgs),
+      modelResults=list(DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
+                        DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale,
+                        T0VAR=model_T0var_Coef,
+                        CINT=model_Cint_Coef,
+                        MOD=modTI_Coeff_original_time_scale,
+                        CLUS=clusTI_Coeff_original_time_scale,
+                        DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef),
+      parameterNames=ctmaInitFit$parameterNames,
+      CoTiMAStanctArgs=CoTiMAStanctArgs,
+      invariantDrift=invariantDrift,
+      summary=list(model="Model name not specified", # paste(invariantDrift, "unequal but invariant across samples", collapse=" "),
+                   scaledTime=scaleTime2,
+                   estimates=invariantDrift_Coeff,
+                   # changed 17. Aug. 2022
+                   randomEffects=list(popsd=model_popsd,
+                                      popcov_mean=model_popcov_m, model_popcov_sd=model_popcov_sd,
+                                      model_popcov_T=model_popcov_T, model_popcov_025=model_popcov_025,
+                                      model_popcov_50=model_popcov_50, model_popcov_975=model_popcov_975,
+                                      popcor_mean=model_popcor_m, model_popcor_sd=model_popcor_sd,
+                                      model_popcor_T=model_popcor_T, model_popcor_025=model_popcor_025,
+                                      model_popcor_50=model_popcor_50, model_popcor_975=model_popcor_975),
+                   minus2ll= invariantDrift_Minus2LogLikelihood,
+                   n.parameters = invariantDrift_estimatedParameters,
+                   #optimalLagInfo = "Optimal lag and effect was calculated for original time scale (i.e., ignoring possible scaleTime argument).",
+                   opt.lag.orig.time = optimalCrossLag,
+                   opt.lag.scaled.time = optimalCrossLag_scaledTime,
+                   max.effects = maxCrossEffect,
+                   clus.effects=clus.effects,
+                   mod.effects=modTI_Coeff,
+                   message=message,
+                   estimates_original_time_scale =estimates_original_time_scale,
+                   mod_effects_original_time_scale=mod_effects_original_time_scale,
+                   clus_effects_original_time_scale=clus_effects_original_time_scale)
+      # excel workbook is added later
+    )
+
+  } #end if (fit == TRUE) { # CHD 16. Oct 2023 (end ~line 1115)
+
+
+  if (fit == FALSE) {
+    results <- list(summary=c("No model was fitted, only data and code were generated. See $data & $ctModel section."),
+                    data = datalong_all,
+                    ctModel = fitStanctModel$ctstanmodelbase)
+  }
 
   class(results) <- "CoTiMAFit"
-  results$summary
 
   ### prepare Excel Workbook with several sheets ################################################################
-  {
-    wb <- openxlsx::createWorkbook()
-    sheet1 <- openxlsx::addWorksheet(wb, sheetName="model")
-    sheet2 <- openxlsx::addWorksheet(wb, sheetName="modelResults")
-    sheet3 <- openxlsx::addWorksheet(wb, sheetName="estimates")
-    sheet7 <- openxlsx::addWorksheet(wb, sheetName="mod.effects")
-    sheet4 <- openxlsx::addWorksheet(wb, sheetName="clus.effects")
-    sheet5 <- openxlsx::addWorksheet(wb, sheetName="randomEffects")
-    sheet6 <- openxlsx::addWorksheet(wb, sheetName="stats")
-    openxlsx::writeData(wb, sheet1, results$summary$model)
+  if (fit == TRUE) {
+    {
+      wb <- openxlsx::createWorkbook()
+      sheet1 <- openxlsx::addWorksheet(wb, sheetName="model")
+      sheet2 <- openxlsx::addWorksheet(wb, sheetName="modelResults")
+      sheet3 <- openxlsx::addWorksheet(wb, sheetName="estimates")
+      sheet7 <- openxlsx::addWorksheet(wb, sheetName="mod.effects")
+      sheet4 <- openxlsx::addWorksheet(wb, sheetName="clus.effects")
+      sheet5 <- openxlsx::addWorksheet(wb, sheetName="randomEffects")
+      sheet6 <- openxlsx::addWorksheet(wb, sheetName="stats")
+      openxlsx::writeData(wb, sheet1, results$summary$model)
 
-    ### modelResults
-    # DRIFT
-    startCol <- 2; startCol
-    startRow <- 1; startRow
-    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, matrix(driftNames, nrow=1), colNames = FALSE)
-    startCol <- 2; startCol
-    startRow <- 2; startRow
-    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
-                        t(c(t(matrix(unlist(results$modelResults$DRIFT),
-                                     nrow=n.latent, ncol=n.latent)))))
-    startCol <- 1; startCol
-    startRow <- 2; startRow
-    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
-                        matrix("Aggregated Drift Effects", ncol=1))
-    # DIFFUSION
-    offset <-  1 + 1
-    startCol <- 2; startCol
-    startRow <- 2 + offset; startRow
-    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow,
-                        matrix(names(results$modelResults$DIFFUSION), nrow=1), colNames = FALSE)
-    startCol <- 2; startCol
-    startRow <- 2 + offset + 1# offset; startRow
-    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
-                        matrix(results$modelResults$DIFFUSION,
-                               nrow=1, byrow=TRUE))
-    results$modelResults$DIFFUSION
-    startCol <- 1; startCol
-    startRow <- 2 + offset + 1; startRow
-    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
-                        matrix("Diffusion Population Means (not aggregated)", nrow=1, byrow=TRUE))
-    # T0Var
-    offset <-  offset + 1 + 2
-    startCol <- 2; startCol
-    startRow <- 2 + offset; startRow
-    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow,
-                        matrix(names(results$modelResults$T0VAR), nrow=1), colNames = FALSE)
-    startCol <- 2; startCol
-    startRow <- 2 + offset + 1# offset; startRow
-    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
-                        matrix(unlist(results$modelResults$T0VAR), nrow=1, byrow=TRUE))
-    startCol <- 1; startCol
-    startRow <- 2 + offset + 1; startRow
-    openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
-                        matrix("T0VAR Population Mean (not aggregated)", nrow=1, byrow=TRUE))
-    ### estimates
-    startCol <- 2; startCol
-    startRow <- 1; startRow
-    openxlsx::writeData(wb, sheet3, startCol=startCol, startRow = startRow + 1,
-                        rownames(results$summary$estimates), colNames = FALSE)
-    openxlsx::writeData(wb, sheet3, startCol=startCol+1, startRow = startRow, results$summary$estimates,
-                        colNames = TRUE)
-    ### moderator Effects
-    startCol <- 1; startCol
-    startRow <- 1; startRow
-    results$summary$mod.effects
-    openxlsx::writeData(wb, sheet7, startCol=startCol, startRow = startRow + 1,
-                        results$summary$mod.effects, colNames = TRUE, rowNames = TRUE)
-
-    ### cluster Effects
-    if (!(is.null(cluster))) {
+      ### modelResults
+      # DRIFT
       startCol <- 2; startCol
       startRow <- 1; startRow
-      tmp1 <- dim(results$summary$clus.effects$effects); tmp1
-      openxlsx::writeData(wb, sheet4, startCol=startCol, startRow = startRow + 1,
-                          rownames(results$summary$clus.effects$effects), colNames = FALSE)
-      openxlsx::writeData(wb, sheet4, startCol=startCol+1, startRow = startRow, results$summary$clus.effects$effects,
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, matrix(driftNames, nrow=1), colNames = FALSE)
+      startCol <- 2; startCol
+      startRow <- 2; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                          t(c(t(matrix(unlist(results$modelResults$DRIFT),
+                                       nrow=n.latent, ncol=n.latent)))))
+      startCol <- 1; startCol
+      startRow <- 2; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                          matrix("Aggregated Drift Effects", ncol=1))
+      # DIFFUSION
+      offset <-  1 + 1
+      startCol <- 2; startCol
+      startRow <- 2 + offset; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow,
+                          matrix(names(results$modelResults$DIFFUSION), nrow=1), colNames = FALSE)
+      startCol <- 2; startCol
+      startRow <- 2 + offset + 1# offset; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                          matrix(results$modelResults$DIFFUSION,
+                                 nrow=1, byrow=TRUE))
+      results$modelResults$DIFFUSION
+      startCol <- 1; startCol
+      startRow <- 2 + offset + 1; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                          matrix("Diffusion Population Means (not aggregated)", nrow=1, byrow=TRUE))
+      # T0Var
+      offset <-  offset + 1 + 2
+      startCol <- 2; startCol
+      startRow <- 2 + offset; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow,
+                          matrix(names(results$modelResults$T0VAR), nrow=1), colNames = FALSE)
+      startCol <- 2; startCol
+      startRow <- 2 + offset + 1# offset; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                          matrix(unlist(results$modelResults$T0VAR), nrow=1, byrow=TRUE))
+      startCol <- 1; startCol
+      startRow <- 2 + offset + 1; startRow
+      openxlsx::writeData(wb, sheet2, startCol=startCol, startRow = startRow, colNames = FALSE,
+                          matrix("T0VAR Population Mean (not aggregated)", nrow=1, byrow=TRUE))
+      ### estimates
+      startCol <- 2; startCol
+      startRow <- 1; startRow
+      openxlsx::writeData(wb, sheet3, startCol=startCol, startRow = startRow + 1,
+                          rownames(results$summary$estimates), colNames = FALSE)
+      openxlsx::writeData(wb, sheet3, startCol=startCol+1, startRow = startRow, results$summary$estimates,
                           colNames = TRUE)
-      openxlsx::writeData(wb, sheet4, startCol=startCol+1, startRow = startRow+tmp1[1] + 2,
-                          results$summary$clus.effects$cluster.specific.effect,
-                          colNames = TRUE, rowNames = TRUE)
-    }
-    ### random Effects
-    startCol <- 2; startCol
-    startRow <- 1; startRow
-    openxlsx::writeData(wb, sheet5, startCol=startCol, startRow = startRow, results$summary$randomEffects, colNames = FALSE)
-    ### stats
-    startCol <- 2; startCol
-    startRow <- 1; startRow
-    tmp <- cbind("-2ll = ", results$summary$minus2ll, "Number of Parameters = ", results$summary$n.parameters)
-    openxlsx::writeData(wb, sheet6, startCol=startCol, startRow = startRow, t(tmp), colNames = FALSE)
-  }
+      ### moderator Effects
+      startCol <- 1; startCol
+      startRow <- 1; startRow
+      results$summary$mod.effects
+      openxlsx::writeData(wb, sheet7, startCol=startCol, startRow = startRow + 1,
+                          results$summary$mod.effects, colNames = TRUE, rowNames = TRUE)
 
-  results$excelSheets <- wb
+      ### cluster Effects
+      if (!(is.null(cluster))) {
+        startCol <- 2; startCol
+        startRow <- 1; startRow
+        tmp1 <- dim(results$summary$clus.effects$effects); tmp1
+        openxlsx::writeData(wb, sheet4, startCol=startCol, startRow = startRow + 1,
+                            rownames(results$summary$clus.effects$effects), colNames = FALSE)
+        openxlsx::writeData(wb, sheet4, startCol=startCol+1, startRow = startRow, results$summary$clus.effects$effects,
+                            colNames = TRUE)
+        openxlsx::writeData(wb, sheet4, startCol=startCol+1, startRow = startRow+tmp1[1] + 2,
+                            results$summary$clus.effects$cluster.specific.effect,
+                            colNames = TRUE, rowNames = TRUE)
+      }
+      ### random Effects
+      startCol <- 2; startCol
+      startRow <- 1; startRow
+      openxlsx::writeData(wb, sheet5, startCol=startCol, startRow = startRow, results$summary$randomEffects, colNames = FALSE)
+      ### stats
+      startCol <- 2; startCol
+      startRow <- 1; startRow
+      tmp <- cbind("-2ll = ", results$summary$minus2ll, "Number of Parameters = ", results$summary$n.parameters)
+      openxlsx::writeData(wb, sheet6, startCol=startCol, startRow = startRow, t(tmp), colNames = FALSE)
+    }
+
+    results$excelSheets <- wb
+  } #end if (fit == TRUE) {
 
   invisible(results)
 
