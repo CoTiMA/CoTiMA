@@ -3,6 +3,7 @@
 #' @description Raw data objects are re-shaped (dealing with missing time points, wrong time intervals etc)
 #'
 #' @param dataFrame  an R object containing data
+#' @param id  the identifier of subjects if data are in long format
 #' @param inputDataFrameFormat  "wide" or "long"
 #' @param inputTimeFormat  "time" (default) or "delta"
 #' @param missingValues  Missing value indicator, e.g., -999 or NA (default)
@@ -65,6 +66,7 @@
 #'
 ctmaShapeRawData <- function(
     dataFrame=NULL,
+    id=NULL,
     inputDataFrameFormat=NULL,
     inputTimeFormat="time",
 
@@ -116,7 +118,7 @@ ctmaShapeRawData <- function(
       stop(ErrorMsg)
     }
 
-    if (is.null(Tpoints)) {
+    if ((is.null(Tpoints)) & (inputDataFrameFormat == 'wide')) {
       ErrorMsg <- "\nThe (maximum) number of time points has to be specified! \nGood luck for the next try!"
       stop(ErrorMsg)
     }
@@ -126,9 +128,11 @@ ctmaShapeRawData <- function(
       stop(ErrorMsg)
     }
 
-    if ( !(orderInputVariablesNames) %in% c("names", "time")) {
-      ErrorMsg <- "\nThe argument orderInputVariablesNames has to be either \"names\" or \"time\"! \nGood luck for the next try!"
-      stop(ErrorMsg)
+    if (inputDataFrameFormat == 'wide') {
+      if ( !(orderInputVariablesNames) %in% c("names", "time")) {
+        ErrorMsg <- "\nThe argument orderInputVariablesNames has to be either \"names\" or \"time\"! \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
     }
 
     if ( !(inputTimeFormat) %in% c("time", "delta")) {
@@ -194,8 +198,8 @@ ctmaShapeRawData <- function(
         stop(ErrorMsg)
       }
       Msg <- "\nThe argument \"allInputVariablesNames\" has been provided, but the dataFrame provided has colnames, too. Take care you label variables correctly! \nGood luck for the next try!"
-        message(ErrorMsg)
-      }
+      message(ErrorMsg)
+    }
 
     if (!(is.null(minTolDelta)) & !(is.null(maxTolDelta))) {
       if (minTolDelta > maxTolDelta) {
@@ -213,8 +217,8 @@ ctmaShapeRawData <- function(
     }
 
     if (minTolDelta < minInterval) {
-        ErrorMsg <- "\nThe argument minTolDelta has been set to a smaller value than mininterval (= indicator for missing)! \nGood luck for the next try!"
-        stop(ErrorMsg)
+      ErrorMsg <- "\nThe argument minTolDelta has been set to a smaller value than mininterval (= indicator for missing)! \nGood luck for the next try!"
+      stop(ErrorMsg)
     }
 
 
@@ -242,19 +246,40 @@ ctmaShapeRawData <- function(
   }
   #head(tmpData)
 
-  ### Step 2 - (Transpose data into wide format if they are in long format)
-  {
-    if (inputDataFrameFormat == "long") {
-      ErrorMsg <- "\nUnfortunetaly, long format data as input is not yet implemented. Consider using the function ctLongToWide to make wide format data frame! \nGood luck for the next try!"
-      stop(ErrorMsg)
-    }
-  }
 
-  ### Step 2b - (re-)label variables
+  ### Step 2a - (re-)label variables
   if ( !(is.null(allInputVariablesNames)) ) {
     colnames(dataFrame) <- allInputVariablesNames
   }
 
+
+  ### Step 2 - (Transpose data into wide format if they are in long format)
+  {
+    if (inputDataFrameFormat == "long") {
+      if (is.null(id)) {
+        ErrorMsg <- "\nYou have to specify the id (identifier) because you provided data in long format! \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      #ErrorMsg <- "\nUnfortunetaly, long format data as input is not yet implemented. Consider using the function ctLongToWide to make wide format data frame! \nGood luck for the next try!"
+      #stop(ErrorMsg)
+      tmpData <- tmpData[, c(id, targetTimeVariablesNames, targetInputVariablesNames, targetInputTDpredNames, targetInputTIpredNames)]
+      tmpData <- as.data.frame(ctsem::ctLongToWide(tmpData, id=id, time=targetTimeVariablesNames,
+                                                   manifestNames = targetInputVariablesNames,
+                                                   TDpredNames=targetInputTDpredNames,
+                                                   TIpredNames=targetInputTIpredNames))
+      # determine Tpoints created
+      tmp <- grep("_T", colnames(tmpData))
+      Tpoints <- length(tmp) / (n.manifest + length(targetInputTDpredNames) + length(targetInputTIpredNames)); Tpoints
+      # make new timeVariable names
+      targetTimeVariablesNames <- paste0("T", 0:(Tpoints-1)); targetTimeVariablesNames
+      # make new inputVariable names
+      tmp <- c()
+      for (i in 1:length(targetInputVariablesNames)) tmp <- c(tmp,   paste0(targetInputVariablesNames[i], "_T", 0:(Tpoints-1)))
+      targetInputVariablesNames <- tmp
+      # define new order of names
+      orderInputVariablesNames <- 'names'
+    }
+  }
 
   # Step 3 (Select the desired "target variables" (at least X and Y and time) and kick out the remaining stuff.)
   #c(targetInputVariablesNames,  targetInputTDpredNames, targetTimeVariablesNames, targetInputTIpredNames)
@@ -279,7 +304,7 @@ ctmaShapeRawData <- function(
       for (i in 1:n.TDpred) {
         generalTDpredNames <- c(generalTDpredNames, paste0("TD", i))
         for (j in 0:(Tpoints-1)) {
-        outputTDpredNames <- c(outputTDpredNames, paste0("TD", i, "_T", j)); outputTDpredNames
+          outputTDpredNames <- c(outputTDpredNames, paste0("TD", i, "_T", j)); outputTDpredNames
         }
       }
     }
@@ -327,8 +352,8 @@ ctmaShapeRawData <- function(
                      tmpData[, c(targetTimeVariablesNames, targetInputTIpredNames)])
   }
   colnames(tmpData) <- c(allOutputVariablesNames, outputTDpredNames, allOutputTimeVariablesNames, outputTIpredNames)
-  #head(tmpData)
-
+  head(tmpData)
+  #
   #### Step 5b (make time out of delta if necessary)
   if (inputTimeFormat == "delta") {
     if (length(targetTimeVariablesNames) >= Tpoints) {
@@ -341,7 +366,7 @@ ctmaShapeRawData <- function(
       #tmp1 <- tmpData[, paste0("time", i)] == minInterval
       #tmpData[tmp1, paste0("time", i)] <- 0
       if (length(tmp1) > 0) tmpData[tmp1, paste0("time", i)] <- 0
-      }
+    }
     allOutputTimeVariablesNames <- colnames(tmpData)[grep("time", colnames(tmpData))]; allOutputTimeVariablesNames
     tmp1 <- which(tmpData[, allOutputTimeVariablesNames[-1]] == 0, arr.ind = TRUE)
     tmpData[, allOutputTimeVariablesNames[-1]][tmp1] <- NA
@@ -356,6 +381,7 @@ ctmaShapeRawData <- function(
   }
 
   ## at this stage, the variables should by in the order Y1_T0, Y2_T0, ..., Y1_T1, Y2_T1, ... TD1, TD2,... time1, time2,  ... TI1, TI2, ...
+  #head(tmpData)
 
   # Step 6: Delete variables from time points for which no time stamp is available (without time information, ctsem is impossible)
   counter <- -1
@@ -368,6 +394,7 @@ ctmaShapeRawData <- function(
 
   # Step 6b -  Scale time intervals
   tmpData[ , allOutputTimeVariablesNames] <- tmpData[ , allOutputTimeVariablesNames] * scaleTime
+  #head(tmpData)
 
   # Step 6c - Delete all cases where all time stamps are missing
   if (inputTimeFormat == "time") { # if it is "delta" there should be at lease one time point
@@ -396,7 +423,7 @@ ctmaShapeRawData <- function(
   tmp1 <- apply(validTpoints, 1, function(x) sum(x))
   tmp2 <- which(tmp1 < min.val.Tpoints)
   if(length(tmp2) > 0 ) tmpData <- tmpData[-tmp2, ]
-
+  #head(tmpData)
 
   # Step 6e - Shift data left if 1st time point is missing (otherwise lags will be not computed correctly later)
   tmpData2 <- tmpData
@@ -420,12 +447,12 @@ ctmaShapeRawData <- function(
     tmpData2[tmp1, allOutputTimeVariablesNames[1:(Tpoints-t)]] <-  tmpData2[tmp1, allOutputTimeVariablesNames[(2):(Tpoints-t+1)]]
     tmpData2[tmp1, allOutputTimeVariablesNames[Tpoints+1-t]] <- NA
   }
+  #head(tmpData2)
   tmpData <- tmpData2
-  #head(tmpData)
 
   # Step 6 Shift data left if all process variables are missing at a time point (even if time stamp is available)
   if (Tpoints > 2) {
-  for (tt in 2:(Tpoints-1)) {
+    for (tt in 2:(Tpoints-1)) {
       for (t in tt:(Tpoints-1)) {
         # which substantive T1 variables are all missing
         tmp2 <- which(is.na(tmpData2[, allOutputVariablesNames[((tt-1)*(n.manifest)+1):((tt-1)*(n.manifest)+n.manifest)]]), arr.ind = TRUE)
@@ -457,7 +484,7 @@ ctmaShapeRawData <- function(
     }
     tmpData <- tmpData2
   }
-  #head(tmpData)
+  #head(tmpData2)
 
   ### Step 6f - Determine possible lags that
   # - are longer than maxTolDelta
@@ -504,19 +531,19 @@ ctmaShapeRawData <- function(
     #ctDeintervalise requires datalong
 
     tmpData <- ctIntervalise(datawide=tmpData,
-                              Tpoints=Tpoints,
-                              n.manifest=n.manifest,
-                              n.TDpred = n.TDpred,
-                              n.TIpred = n.TIpred,
-                              manifestNames = newOutputVariablesNames,
-                              TDpredNames = generalTDpredNames,
-                              TIpredNames = outputTIpredNames)
+                             Tpoints=Tpoints,
+                             n.manifest=n.manifest,
+                             n.TDpred = n.TDpred,
+                             n.TIpred = n.TIpred,
+                             manifestNames = newOutputVariablesNames,
+                             TDpredNames = generalTDpredNames,
+                             TIpredNames = outputTIpredNames)
     if (outputDataFrameFormat == "long")  {
       # without intervalising it does not work correctly
       tmpData <- ctsem::ctWideToLong(tmpData, Tpoints = Tpoints, n.manifest = n.manifest,
-                                           n.TDpred = n.TDpred, n.TIpred = n.TIpred,
-                                           manifestNames =  newOutputVariablesNames,
-                                           TDpredNames = generalTDpredNames, TIpredNames = outputTIpredNames)
+                                     n.TDpred = n.TDpred, n.TIpred = n.TIpred,
+                                     manifestNames =  newOutputVariablesNames,
+                                     TDpredNames = generalTDpredNames, TIpredNames = outputTIpredNames)
       tmpData <- data.frame(tmpData)
       # delete cases where time is missing
       tmp1 <- which(tmpData$dT == minInterval)
@@ -544,7 +571,8 @@ ctmaShapeRawData <- function(
       }
     }
 
-    } # end   if (!(outputDataFrameFormat == "wide") & (outputTimeFormat == "time"))
+  } # end   if (!(outputDataFrameFormat == "wide") & (outputTimeFormat == "time"))
+  #head(tmpData)
 
   # correction of time names
   if (outputTimeVariablesNames != "time") {
