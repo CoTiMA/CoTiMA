@@ -257,6 +257,7 @@ ctmaInit <- function(
     if (is.null(T0means)) T0means <- 0
     if (is.null(manifestMeans)) manifestMeans <- 0
 
+
   } ### END Check Model Specification ###
 
 
@@ -594,6 +595,9 @@ ctmaInit <- function(
 
           # standardize (variables - not time lags) if option is chosen
           if (studyList[[i]]$rawData$standardize == TRUE) empraw[[i]][, currentVarnames] <- scale(empraw[[i]][, currentVarnames])
+          # CHD undone 10.11.2023
+          #if ( (studyList[[i]]$rawData$standardize == TRUE) &
+          #  (experimental2 == FALSE) ) empraw[[i]][, currentVarnames] <- scale(empraw[[i]][, currentVarnames])
 
 
           # replace missing values for time lags dTi by minInterval (has to be so because dTi are definition variables)
@@ -626,6 +630,12 @@ ctmaInit <- function(
           dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
         }
         emprawLong[[i]] <- dataTmp3
+
+        #if (experimental2 == TRUE) {
+        #  print(paste0("Showing time points avaliable for Study ", i,"."))
+        #  tmp1 <- table(emprawLong[[i]][, "time"])
+        #  print(tmp1)
+        #}
       }
     } ### END for i ...
   } ### END Read user provided data and create list with all study information ###
