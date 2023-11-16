@@ -1,4 +1,4 @@
-#' ctmaShapeRawDataFiles
+#' ctmaShapeRawData
 #'
 #' @description Raw data objects are re-shaped (dealing with missing time points, wrong time intervals etc)
 #'
