@@ -455,8 +455,9 @@ ctmaShapeRawData <- function(
     message(Msg)
     tmp1 <- grep("_T0", colnames(tmpData)); tmp1
     tmp2 <- apply(tmpData[, tmp1], 1, sum, na.rm=T)
-    tmpData <- tmpData[-which(tmp2 == 0), ]
-    head(tmpData, 26)
+    tmp3 <- which(tmp2 == 0); head(tmp3)
+    if (length(tmp3) > 0) tmpData <- tmpData[-tmp3, ]
+    #head(tmpData, 26)
     #print(targetInputVariablesNames)
     for (c in allOutputVariablesNames) {
       tmpData[, c] <- scale(tmpData[, c])
