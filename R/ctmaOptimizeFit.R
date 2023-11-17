@@ -312,6 +312,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                       #coresToUse=ctmaFitFit$argumentList$coresToUse,
                       #coresToUse=1,
                       coresToUse=coresToUse, # changed Aug 2023
+                      sameInitialTimes=ctmaFitFit$argumentList$sameInitialTimes,
                       scaleTI=ctmaFitFit$argumentList$scaleTI,
                       scaleMod=ctmaFitFit$argumentList$scaleMod,
                       transfMod=ctmaFitFit$argumentList$transfMod,
