@@ -40,6 +40,7 @@
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param primaryStudyList  could be a list of primary studies compiled with \code{\link{ctmaPrep}} that defines the subset of studies in ctmaInitFit that should actually be used
 #' @param priors if FALSE, any priors are disabled – sometimes desirable for optimization
+#' @param sameInitialTimes Only important for raw data. If TRUE (default=FALSE), T0MEANS occurs for every subject at the same time, rather than just at the earliest observation.
 #' @param scaleClus scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster
 #' @param scaleMod scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts
 #' @param scaleTI scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dummies representing primary studies.
@@ -141,6 +142,7 @@ ctmaFit <- function(
     optimize=TRUE,
     primaryStudyList=NULL,
     priors=FALSE,
+    sameInitialTimes=FALSE,
     scaleClus=TRUE,
     scaleMod=NULL,
     scaleTI=TRUE,
@@ -1119,6 +1121,7 @@ ctmaFit <- function(
       fit=fit,
       datalong = datalong_all,
       ctstanmodel = stanctModel,
+      sameInitialTimes=sameInitialTimes,
       savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
       stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
       iter=CoTiMAStanctArgs$iter,
@@ -1567,6 +1570,7 @@ ctmaFit <- function(
                         scaleTI=scaleTI,
                         scaleMod=scaleMod,
                         transfMod=transfMod,
+                        sameInitialTimes=sameInitialTimes,
                         scaleClus=scaleClus,
                         scaleTime=scaleTime,
                         optimize=optimize,
