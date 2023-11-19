@@ -824,6 +824,8 @@ ctmaInit <- function(
     resultsSummary <- list()
     model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- list()
     model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- list()
+    estProb <- list()
+    #estProb$DRIFT <- estProb$DIFF <- estProb$T0VAR <- list()
 
     for (i in 1:n.studies) {
       #i <- 1
@@ -1218,6 +1220,17 @@ ctmaInit <- function(
         tmp1 <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "2.5%"], n.latent, byrow=FALSE)); tmp1
         tmp2 <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "97.5%"], n.latent, byrow=FALSE)); tmp2
       }
+      # CHD 19. Nov. 2023 Check if LL == UL or LL == 0  or UL == 0, indicating estimation problems (estProb)
+      #estProb[[i]] <- list()
+      tmp3a <- which(tmp1 - tmp2 == 0); tmp3a
+      tmp3b <- which(tmp1 == 0); tmp3b
+      tmp3c <- which(tmp2 == 0); tmp3c
+      tmp4 <- unique(c(tmp3a, tmp3b, tmp3c)); tmp4
+      tmp5 <- grep("toV", rownames(resultsSummary$popmeans)); tmp5
+      tmp6 <- rownames(resultsSummary$popmeans)[tmp]; tmp6
+      #if (any(tmp4 != 0)) estProb$DRIFT[[i]] <- paste0("Possibly problems for Study ", i, " in estimating: ", paste0(tmp6[tmp4], collapse=" "))
+      if (any(tmp4 != 0)) estProb[[length(estProb)+1]] <- paste0("Possibly problems for Study ", i, " in estimating: ", paste0(tmp6[tmp4], collapse=" "))
+
       model_Drift_CI[[i]] <- c(rbind(tmp1, tmp2)); model_Drift_CI[[i]]
       tmp3 <- c(rbind(paste0(driftFullNames, "LL"),
                       paste0(driftFullNames, "UL"))); tmp3
@@ -1255,6 +1268,18 @@ ctmaInit <- function(
                         paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
         names(model_Diffusion_CI[[i]]) <- tmp3; model_Diffusion_CI[[i]]
       }
+      # CHD 19. Nov. 2023 Check if LL == UL or LL == 0  or UL == 0, indicating estimation problems (estProb)
+      #estProb[[i]] <- list()
+      tmp3a <- which(tmp1 - tmp2 == 0); tmp3a
+      tmp3b <- which(tmp1 == 0); tmp3b
+      tmp3c <- which(tmp2 == 0); tmp3c
+      tmp4 <- unique(c(tmp3a, tmp3b, tmp3c)); tmp4
+      tmp5 <- grep("diff", rownames(resultsSummary$popmeans)); tmp5
+      tmp6 <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp5])); tmp6
+      #if (any(tmp4 != 0)) estProb$DIFF[[i]] <- paste0("Possibly problems for Study ", i, " in estimating: ", paste0(tmp6[tmp4], collapse=" "))
+      #if (any(tmp4 != 0)) estProb[[length(estProb)+1]] <- paste0("Possibly problems for Study ", i, " in estimating: ", paste0(tmp6[tmp4], collapse=" "))
+      if (any(tmp4 != 0)) estProb[[length(estProb)+0]] <- paste0(estProb[[length(estProb)+0]], " ", paste0(tmp6[tmp4], collapse=" "))
+
 
       tmp <- grep("0var", rownames(resultsSummary$popmeans)); tmp
       # added 9. Aug. 2022. Next one become neccessary because ctsem labeling changed from "var" to "cov"
@@ -1312,6 +1337,18 @@ ctmaInit <- function(
           names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
         }
       }
+      # CHD 19. Nov. 2023 Check if LL == UL or LL == 0  or UL == 0, indicating estimation problems (estProb)
+      #estProb[[i]] <- list()
+      tmp3a <- which(tmp1 - tmp2 == 0); tmp3a
+      tmp3b <- which(tmp1 == 0); tmp3b
+      tmp3c <- which(tmp2 == 0); tmp3c
+      tmp4 <- unique(c(tmp3a, tmp3b, tmp3c)); tmp4
+      tmp5 <- grep("0var", rownames(resultsSummary$popmeans)); tmp5
+      tmp6 <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp5])); tmp6
+      #if (any(tmp4 != 0)) estProb$DIFF[[i]] <- paste0("Possibly problems for Study ", i, " in estimating: ", paste0(tmp6[tmp4], collapse=" "))
+      #if (any(tmp4 != 0)) estProb[[length(estProb)+1]] <- paste0("Possibly problems for Study ", i, " in estimating: ", paste0(tmp6[tmp4], collapse=" "))
+      if (any(tmp4 != 0)) estProb[[length(estProb)+0]] <- paste0(estProb[[length(estProb)+0]], " ", paste0(tmp6[tmp4], collapse=" "))
+
 
       # changed 17. Aug. 2022
       if ((indVarying == TRUE) | (indVarying == "CINT") | (indVarying == 'cint')) {
@@ -1595,13 +1632,13 @@ ctmaInit <- function(
     }
     tmp2 <- which(tmp1 == (max(tmp1))); tmp2
     suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
-    #message1 <- c()
     # maxDeltas hast already been time scaled above
     if (maxDeltas > 6) {
-      tmp2 <- paste0("Maximum time interval was ", maxDeltas, "."); tmp2
-      tmp3 <- paste0("timeScale=1/", suggestedScaleTime); tmp3
+      #tmp2 <- paste0("Maximum time interval was ", maxDeltas, "."); tmp2 # CHD 19.11.2023
+      tmp2 <- paste0("Maximum time interval was ", round(maxDeltas * scaleTime2, digits), "."); tmp2
+      if (is.null(scaleTime)) scaleTime3 <- scaleTime2 else scaleTime3 <- scaleTime / scaleTime2
+      tmp3 <- paste0("timeScale=1/", round(suggestedScaleTime * scaleTime3, digits)); tmp3 # CHD 19.11.2023
       if (suggestedScaleTime != scaleTime2) {
-        #tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, " and customPar=FALSE. "); tmp4
         tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, ". "); tmp4
       } else {
         tmp4 <- paste0(""); tmp4
@@ -1692,11 +1729,12 @@ ctmaInit <- function(
                                 confidenceIntervals=allStudiesCI,
                                 minus2ll= round(allStudies_Minus2LogLikelihood, digits),
                                 n.parameters = round(allStudies_estimatedParameters, digits),
-                                note=message1,
                                 drift_estimates_original_time_scale =allStudiesDRIFT_effects_original_time_scale_ext,
                                 drift_CI_original_time_scale=allStudiesDriftCI_original_time_scale,
                                 diff_estimates_original_time_scale=allStudiesDIFF_effects_original_time_scale_ext,
-                                diff_CI_original_time_scale=allStudiesDiffCI_original_time_scale)))
+                                diff_CI_original_time_scale=allStudiesDiffCI_original_time_scale,
+                                estimationProblems=sapply(estProb, paste, sep="/n"),
+                                note=message1)))
   # excel workbook is added later
   class(results) <- "CoTiMAFit"
 
