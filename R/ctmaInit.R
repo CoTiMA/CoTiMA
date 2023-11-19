@@ -1228,8 +1228,8 @@ ctmaInit <- function(
       tmp4 <- unique(c(tmp3a, tmp3b, tmp3c)); tmp4
       tmp5 <- grep("toV", rownames(resultsSummary$popmeans)); tmp5
       tmp6 <- rownames(resultsSummary$popmeans)[tmp]; tmp6
-      #if (any(tmp4 != 0)) estProb$DRIFT[[i]] <- paste0("Possibly problems for Study ", i, " in estimating: ", paste0(tmp6[tmp4], collapse=" "))
-      if (any(tmp4 != 0)) estProb[[length(estProb)+1]] <- paste0("Possibly problems for Study ", i, " in estimating: ", paste0(tmp6[tmp4], collapse=" "))
+      #if (any(tmp4 != 0)) estProb$DRIFT[[i]] <- paste0("Possible problems for Study ", i, " in estimating: ", paste0(tmp6[tmp4], collapse=" "))
+      if (any(tmp4 != 0)) estProb[[length(estProb)+1]] <- paste0("Possible problems for Study ", i, " in estimating: ", paste0(tmp6[tmp4], collapse=" "))
 
       model_Drift_CI[[i]] <- c(rbind(tmp1, tmp2)); model_Drift_CI[[i]]
       tmp3 <- c(rbind(paste0(driftFullNames, "LL"),
