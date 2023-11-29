@@ -1145,11 +1145,9 @@ ctmaFit <- function(
     stanctModel$manifesttype <- binaries
 
     if ( (indVarying == 'CINT') & (!(is.null(binaries.orig))) ) {
-      print("Iamin2")
       tmp1 <- grep("_effect", colnames(stanctModel$pars)); tmp1
       tmp2 <- which(binaries.orig == 1); tmp2
       stanctModel$pars[(stanctModel$pars$matrix %in% 'CINT'), ][tmp2, tmp1] <- TRUE
-      print(stanctModel$pars)
     }
 
     fitStanctModel <- suppressMessages(ctsem::ctStanFit(
