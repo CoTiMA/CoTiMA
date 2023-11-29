@@ -190,7 +190,6 @@ ctmaInit <- function(
     }
 
 
-
     if (is.null(activeDirectory)) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       ErrorMsg <- "\nNo active directory has been specified! \nGood luck for the next try!"
