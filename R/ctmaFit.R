@@ -6,6 +6,7 @@
 #' @param activateRPB  set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
 #' @param activeDirectory  defines another active directory than the one used in ctmaInitFit
 #' @param allInvModel estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR) if set TRUE (defautl = FALSE)
+#' @param binaries which manifest is a binary. Still experimental
 #' @param catsToCompare when performing contrasts for categorical moderators, the categories (values, not positions) for which effects are set equal
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param cint default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')
@@ -108,6 +109,7 @@ ctmaFit <- function(
     activateRPB=FALSE,
     activeDirectory=NULL,
     allInvModel=FALSE,
+    binaries=NULL,
     catsToCompare=NULL,
     chains=NULL,
     cint=0,
@@ -310,6 +312,15 @@ ctmaFit <- function(
     }
     if (!(is.null(ctmaInitFit$n.manifest))) n.manifest <- ctmaInitFit$n.manifest else n.manifest <- n.latent
     if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
+
+    if (is.null(binaries)) binaries <- rep(0, max(n.manifest, n.latent))
+    if (length(binaries) != max(n.manifest, n.latent)) {
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      ErrorMsg <- "\nThe number of binaries provided is incorrect! \nGood luck for the next try!"
+      stop(ErrorMsg)
+    }
+
+
     n.studies <- unlist(ctmaInitFit$n.studies); n.studies
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
     maxTpoints <- max(allTpoints); maxTpoints
@@ -1115,7 +1126,9 @@ ctmaFit <- function(
     tmp1 <- which(is.na(stanctModel$pars$param)); tmp1
     tmp2 <- grep("_effect", colnames(stanctModel$pars)); tmp2
     stanctModel$pars[tmp1, tmp2] <- FALSE
-    stanctModel$pars
+
+    stanctModel$manifesttype <- binaries
+
 
     fitStanctModel <- suppressMessages(ctsem::ctStanFit(
       fit=fit,
