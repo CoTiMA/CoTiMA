@@ -313,13 +313,23 @@ ctmaFit <- function(
     if (!(is.null(ctmaInitFit$n.manifest))) n.manifest <- ctmaInitFit$n.manifest else n.manifest <- n.latent
     if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
 
-    if (is.null(binaries)) binaries <- rep(0, max(n.manifest, n.latent))
+    binaries.orig <- binaries
+    if (is.null(binaries)) {
+      binaries <- rep(0, max(n.manifest, n.latent))
+    }
     if (length(binaries) != max(n.manifest, n.latent)) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       ErrorMsg <- "\nThe number of binaries provided is incorrect! \nGood luck for the next try!"
       stop(ErrorMsg)
     }
 
+    if ( (!(is.null(binaries.orig))) & (indVarying != 'cint') & (indVarying != 'Cint') & (indVarying != 'CINT') ) {
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      ErrorMsg <- "\nYou specified binary variables. You also need to specify \"indvarying=\'cint\'\". \nGood luck for the next try!"
+      stop(ErrorMsg)
+    }
+
+    if (!(is.null(binaries.orig))) message("Effects of binaries on cints not implemented yet.")
 
     n.studies <- unlist(ctmaInitFit$n.studies); n.studies
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
@@ -976,6 +986,11 @@ ctmaFit <- function(
           manifestMeansParams <- 'auto'
         }
 
+        if (!(is.null(binaries.orig))) {
+          # check if really cints rather than manifest means are modelled
+          # set TIpredeffects on cints to TRUE
+        }
+
         stanctModel <- suppressMessages(
           ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, #Tpoints=maxTpoints,
                          manifestNames=manifestNames,
@@ -1006,6 +1021,11 @@ ctmaFit <- function(
         # CHD 13.6.2023
         if (indVarying == 'CINT') {
           stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
+          if (!(is.null(binaries.orig))) {
+            tmp1 <- grep("_effect", colnames(stanctModel$pars)); tmp1
+            tmp2 <- which(binaries.orig == 1); tmp2
+            stanctModel$pars[(stanctModel$pars$matrix %in% 'CINT'), ][tmp2, tmp1] <- TRUE
+          }
         } else {
           stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- FALSE
         }
