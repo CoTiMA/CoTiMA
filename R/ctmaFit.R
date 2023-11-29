@@ -893,12 +893,12 @@ ctmaFit <- function(
           print(paste0("#################################################################################"))
 
           print(paste0("#################################################################################"))
-          print(paste0("# T0means are set to \'auto\'. T0(co-)variances not modelled nested in primaries.#"))
+          print(paste0("# T0means are set to \'auto\'. T0(co-)variances not modelled nested in primaries.##"))
           print(paste0("#################################################################################"))
           T0meansParams <- 'auto'
 
           print(paste0("#################################################################################"))
-          print(paste0("####################### CT intercepts are set free.  ########################"))
+          print(paste0("####################### CT intercepts are set free.  ############################"))
           print(paste0("#################################################################################"))
 
           CINTParams <- c()
