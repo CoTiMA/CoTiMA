@@ -4,6 +4,7 @@
 #'
 #' @param activateRPB set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
 #' @param activeDirectory defines another active directory than the one used in \code{\link{ctmaPrep}}
+#' @param binaries which manifest is a binary. Still experimental
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param checkSingleStudyResults Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.
 #' @param cint default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')
@@ -83,6 +84,7 @@
 ctmaInit <- function(
     activateRPB=FALSE,
     activeDirectory=NULL,
+    binaries=NULL,
     chains=NULL,
     checkSingleStudyResults=FALSE,
     cint=0,
@@ -179,6 +181,14 @@ ctmaInit <- function(
       ErrorMsg <- "\nNumber of variables (n.latent) not specified! \nGood luck for the next try!"
       stop(ErrorMsg)
     }
+
+    if (is.null(binaries)) binaries <- rep(0, max(n.manifest, n.latent))
+    if (length(binaries) != max(n.manifest, n.latent)) {
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      ErrorMsg <- "\nThe number of binaries provided is incorrect! \nGood luck for the next try!"
+      stop(ErrorMsg)
+    }
+
 
 
     if (is.null(activeDirectory)) {
@@ -1069,6 +1079,9 @@ ctmaInit <- function(
             )
           }
         }
+
+        currentModel$manifesttype <- binaries
+
 
         # FIT STANCT MODEL
         if (doPar < 2) {
