@@ -379,5 +379,6 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
     }
   }
   graphics::par(new=F)
+  return(DRIFTCoeff)
 }
 
