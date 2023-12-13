@@ -406,9 +406,12 @@ ctmaFit <- function(
 
     if (n.ind.moderators > 0) { #
       n.moderators <- n.ind.moderators; n.moderators
-
       tmpMods <- lapply(ctmaInitFit$ind.mod.List, function(x) x)
-      tmp1 <- unlist(lapply(tmpMods, function(x) dim(x)[2])); tmp1
+      if(!(is.matrix(tmpMods[[1]]))) tmpMods <- lapply(tmpMods, function(x) matrix(tmpMods, ncol=1))
+      tmp1 <- unlist(lapply(tmpMods, function(x) {
+        if (is.null(dim(x))) return(1) else return(ncol(x))
+        #nrow(x)[2]
+        } )); tmp1
       if (length(ind.mod.number) > min(tmp1)) {
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
         ErrorMsg <- "\nIndividual level moderation model requested. At least one study has fewer individual level moderators in the raw data file than the number
