@@ -336,7 +336,6 @@ ctmaFit <- function(
     maxTpoints <- max(allTpoints); maxTpoints
     allDeltas <- ctmaInitFit$statisticsList$allDeltas; allDeltas
     maxDelta <- max(allDeltas, na.rm=TRUE); maxDelta
-    #usedTimeRange <- seq(0, 1.5*maxDelta, 1); usedTimeRange
     usedTimeRange <- seq(0, 3*maxDelta, 1); usedTimeRange # new 8.7.2022
     lambda <- ctmaInitFit$statisticsList$lambda; lambda
   }
@@ -385,11 +384,9 @@ ctmaFit <- function(
       if (n.moderators > 0) {
         currentModerators <- matrix(as.numeric(unlist(lapply(ctmaInitFit$studyList, function(extract) extract$moderators[mod.number]))), ncol=n.moderators); currentModerators
         if (!(is.null(primaryStudyList))) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE)
-        #currentModerators
         #if (!is.null(primaryStudyList)) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE); currentModerators
         if (is.na((currentModerators[length(currentModerators)])[[1]][1])) currentModerators <- currentModerators[-dim(currentModerators)[1],]; currentModerators
         if (is.null(dim(currentModerators)[1])) currentModerators <- matrix(currentModerators, ncol=1); currentModerators
-        #table(currentModerators)
 
         if (any(is.na(currentModerators)) == TRUE) {
           if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
@@ -407,7 +404,7 @@ ctmaFit <- function(
     if (n.ind.moderators > 0) { #
       n.moderators <- n.ind.moderators; n.moderators
       tmpMods <- lapply(ctmaInitFit$ind.mod.List, function(x) x)
-      if(!(is.matrix(tmpMods[[1]]))) tmpMods <- lapply(tmpMods, function(x) matrix(tmpMods, ncol=1))
+      if(!(is.matrix(tmpMods[[1]]))) tmpMods <- lapply(tmpMods, function(x) matrix(x, ncol=1))
       tmp1 <- unlist(lapply(tmpMods, function(x) {
         if (is.null(dim(x))) return(1) else return(ncol(x))
         #nrow(x)[2]
@@ -427,7 +424,6 @@ ctmaFit <- function(
           stop(ErrorMsg)
         }
       }
-      #str(currentModerators)
       currentModerators <- tmpMods[[1]]
       for ( i in 2:length(tmpMods)) currentModerators <- rbind(currentModerators, tmpMods[[i]])
       #currentModerators <- currentModerators[, ind.mod.number]
