@@ -2,10 +2,11 @@
 % Please edit documentation in R/ctmaShapeRawData.R
 \name{ctmaShapeRawData}
 \alias{ctmaShapeRawData}
-\title{ctmaShapeRawDataFiles}
+\title{ctmaShapeRawData}
 \usage{
 ctmaShapeRawData(
   dataFrame = NULL,
+  id = NULL,
   inputDataFrameFormat = NULL,
   inputTimeFormat = "time",
   missingValues = NA,
@@ -31,11 +32,15 @@ ctmaShapeRawData(
   negTolDelta = FALSE,
   min.val.n.Vars = 1,
   min.val.Tpoints = 1,
+  standardization = "none",
+  keepTimePoints = FALSE,
   experimental = FALSE
 )
 }
 \arguments{
 \item{dataFrame}{an R object containing data}
+
+\item{id}{the identifier of subjects if data are in long format}
 
 \item{inputDataFrameFormat}{"wide" or "long"}
 
@@ -73,7 +78,7 @@ ctmaShapeRawData(
 
 \item{outputTimeFormat}{"time" (default) or "delta"}
 
-\item{scaleTime}{= A scalar that is used to multiply the time variable. Typical use is rescaling primary study time to the time scale use in other primary studies. For example, scaleTime=1/(60 x 60 x 24 x 365.25) rescales time provided in seconds (frequent case when imported from SPSS) into years (60sec x 60min x 24hrs x 365.25days incl. leap years).}
+\item{scaleTime}{A scalar that is used to multiply the time variable. Typical use is rescaling primary study time to the time scale use in other primary studies. For example, scaleTime=1/(60 x 60 x 24 x 365.25) rescales time provided in seconds (frequent case when imported from SPSS) into years (60sec x 60min x 24hrs x 365.25days incl. leap years).}
 
 \item{minInterval}{A parameter (default = 0.0001) supplied to ctIntervalise. Set to smaller values than any possible observed measurement interval, but larger than 0.0001. The value is used for indicating unavailable time interval information (caused by missing values) because NA is technically not possible for time intervals.}
 
@@ -86,6 +91,10 @@ ctmaShapeRawData(
 \item{min.val.n.Vars}{min.val.n.Vars = Minimum no. of valid variables. Default = 1 (retaines cases with only 1 valid variable), 0 would retain cases will all variables missing (not very useful). Retaining participants who provide a single valid variable is technically possible, but these participants contribute to the estimation of the variance/mean of this variable only. Since variance/mean are 1/0 in most CoTiMA applications, this is not very informative but at the cost of additional computational burden. Setting min.val.n.Vars = 2 is recommended.}
 
 \item{min.val.Tpoints}{Minimum no. of valid Tpoints (i.e. Tpoints where min.val.n.Vars is met). Default = 1 retains participants with full set of valid variables at least at one single Tpoint (which will become T0). Setting min.val.Tpoints = 2 or higher values retains participants which provide longitudinal information. Since T0 covariances are usually not too interesting, min.val.Tpoints = 2 may be more reasonable then the default = 1.}
+
+\item{standardization}{the way to standardize possible raw ("none", "withinTimeA", "withinTimeB", "withinColumn", "withinPerson", or "overall"). Only applies if the list for specifying raw data information contains the list element 'standardize=TRUE'. 'WithinTimeA' standardizes within time points and deletes cases with missing T0 data. 'WithinTimeB' does not delete cases, and in subsequent ctsem or CoTiMA applications the user is adviced to use the argument 'sameInitialTimes=TRUE'.}
+
+\item{keepTimePoints}{Do not fill any gaps in the data (no left shift).}
 
 \item{experimental}{FALSE (default) or TRUE. Deprecated.}
 }

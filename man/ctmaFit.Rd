@@ -8,6 +8,7 @@ ctmaFit(
   activateRPB = FALSE,
   activeDirectory = NULL,
   allInvModel = FALSE,
+  binaries = NULL,
   catsToCompare = NULL,
   chains = NULL,
   cint = 0,
@@ -21,6 +22,7 @@ ctmaFit(
   driftsToCompare = NULL,
   equalDrift = NULL,
   finishsamples = NULL,
+  fit = TRUE,
   ind.mod.names = NULL,
   ind.mod.number = NULL,
   ind.mod.type = "cont",
@@ -41,6 +43,7 @@ ctmaFit(
   optimize = TRUE,
   primaryStudyList = NULL,
   priors = FALSE,
+  sameInitialTimes = FALSE,
   scaleClus = TRUE,
   scaleMod = NULL,
   scaleTI = TRUE,
@@ -58,6 +61,8 @@ ctmaFit(
 \item{activeDirectory}{defines another active directory than the one used in ctmaInitFit}
 
 \item{allInvModel}{estimates a model with all parameters invariant (DRIFT, DIFFUSION, T0VAR) if set TRUE (defautl = FALSE)}
+
+\item{binaries}{which manifest is a binary. Still experimental}
 
 \item{catsToCompare}{when performing contrasts for categorical moderators, the categories (values, not positions) for which effects are set equal}
 
@@ -81,9 +86,11 @@ ctmaFit(
 
 \item{driftsToCompare}{when performing contrasts for categorical moderators, the (subset of) drift effects analyzed}
 
-\item{equalDrift}{Constrains all listed effects to be equal (e.g., equalDrift = c("V1toV2", "V2toV1")). Note that this is not required for testing the assumtion that two effects are equal in the population. use the invariantDrift argument and then \code{\link{ctmaEqual}})}
+\item{equalDrift}{Constrains all listed effects to be equal (e.g., equalDrift = c("V1toV2", "V2toV1")). Note that this is not required for testing the assumption that two effects are equal in the population. Use the invariantDrift argument and then \code{\link{ctmaEqual}})}
 
 \item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
+
+\item{fit}{TRUE (default) fits the requested model. FALSE returns the \code{\link{ctsem}} code CoTiMA uses to set up the model, the ctsemmodelbase which can be modified to match users requirements, and the data set (in long format created). The model can then be fitted using \code{\link{ctStanFit}})}
 
 \item{ind.mod.names}{vector of names for individual level (!) moderators used in output}
 
@@ -124,6 +131,8 @@ ctmaFit(
 \item{primaryStudyList}{could be a list of primary studies compiled with \code{\link{ctmaPrep}} that defines the subset of studies in ctmaInitFit that should actually be used}
 
 \item{priors}{if FALSE, any priors are disabled – sometimes desirable for optimization}
+
+\item{sameInitialTimes}{Only important for raw data. If TRUE (default=FALSE), T0MEANS occurs for every subject at the same time, rather than just at the earliest observation.}
 
 \item{scaleClus}{scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster}
 

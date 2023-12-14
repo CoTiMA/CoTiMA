@@ -9,6 +9,7 @@ ctmaPlotCtsemMod(
   fitSummary = NULL,
   activeDirectory = NULL,
   Tipred.pos = 1,
+  saveFilePrefix = "Moderator Plot ",
   scaleTime = 1,
   mod.sd.to.plot = -1:1,
   timeUnit = "not specified",
@@ -40,6 +41,8 @@ ctmaPlotCtsemMod(
 \item{activeDirectory}{defines the active directory (where to save plots)}
 
 \item{Tipred.pos}{the Tipred that represent the moderator. Could be more than one in case of categorical moderators (e.g., Tipred.pos = c(3,4))}
+
+\item{saveFilePrefix}{Prefix used for saved plots}
 
 \item{scaleTime}{factor to increase or decrease the time scale (e.g., 1/12 if estimates where based on yearly intervals and figure should show monthly intervals)}
 

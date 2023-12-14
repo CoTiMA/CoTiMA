@@ -9,7 +9,7 @@ ctmaEqual(
   activeDirectory = NULL,
   activateRPB = FALSE,
   digits = 4,
-  coresToUse = 1
+  coresToUse = 2
 )
 }
 \arguments{

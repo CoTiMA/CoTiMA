@@ -7,8 +7,9 @@
 ctmaInit(
   activateRPB = FALSE,
   activeDirectory = NULL,
+  binaries = NULL,
   chains = NULL,
-  checkSingleStudyResults = TRUE,
+  checkSingleStudyResults = FALSE,
   cint = 0,
   coresToUse = c(2),
   CoTiMAStanctArgs = NULL,
@@ -33,6 +34,7 @@ ctmaInit(
   posLL = TRUE,
   primaryStudies = NULL,
   priors = FALSE,
+  sameInitialTimes = FALSE,
   saveRawData = list(),
   saveSingleStudyModelFit = c(),
   scaleTI = NULL,
@@ -48,6 +50,8 @@ ctmaInit(
 \item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 
 \item{activeDirectory}{defines another active directory than the one used in \code{\link{ctmaPrep}}}
+
+\item{binaries}{which manifest is a binary. Still experimental}
 
 \item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
 
@@ -100,6 +104,8 @@ ctmaInit(
 \item{primaryStudies}{list of primary study information created with \code{\link{ctmaPrep}}}
 
 \item{priors}{if FALSE, any priors are disabled – sometimes desirable for optimization}
+
+\item{sameInitialTimes}{Only important for raw data. If TRUE (default=FALSE), T0MEANS occurs for every subject at the same time, rather than just at the earliest observation.}
 
 \item{saveRawData}{save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec}
 
