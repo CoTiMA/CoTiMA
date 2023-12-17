@@ -1,7 +1,7 @@
 Package: CoTiMA
 Type: Package
 Title: Continuous Time Meta-Analysis ('CoTiMA')
-Version: 0.7.0
+Version: 0.7.1
 Date: 2023-12-14
 Authors@R: c(person("Christian", "Dormann", role = c("aut","cph")),
             person("Markus", "Homberg", email = "cotima@uni-mainz.de", role = c("aut", "com", "cre")),
@@ -28,7 +28,7 @@ Depends:
     ctsem (>= 3.8.1),
     lavaan (>= 0.6),
     foreach (>= 1.5.1),
-    R (>= 2.10)
+    R (>= 3.5.0)
 Imports: 
     MBESS (>= 4.6.0),
     crayon (>= 1.3.4),
