@@ -3,6 +3,7 @@
 #' @description Plots moderator models using \code{\link{ctsem}} fit objects
 #'
 #' @param ctStanFitObject The fit object with moderator (TIpred) effects to be plotted
+#' @param digits number of digits used for rounding
 #' @param Tipred.pos the Tipred that represent the moderator. Could be more than one in case of categorical moderators (e.g., Tipred.pos = c(3,4))
 #' @param scaleTime factor to increase or decrease the time scale (e.g., 1/12 if estimates where based on yearly intervals and figure should show monthly intervals)
 #' @param activeDirectory defines the active directory (where to save plots)
@@ -14,6 +15,7 @@
 #' @param mod.type Could be either "cont" or "cat"
 #' @param no.mod.cats Need to be specified if type = "cat". The number of categories should usually be equal the number of dummy variables used to represent the categorical moderator + 1.
 #' @param n.x.labels How many values to be used for indicating time points on the x-axis (0 is automatically added and should not be counted)
+#' @param plot plots figures if TRUE (default) otherwise only return moderated drift matrices
 #' @param plot.xMin default = 0
 #' @param plot.xMax default = NULL
 #' @param plot.yMin default = -1
@@ -58,12 +60,14 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
                              saveFilePrefix="Moderator Plot ",
                              scaleTime=1,
                              mod.sd.to.plot = -1:1,
+                             digits=4,
                              timeUnit = "not specified",
                              timeRange = NULL,
                              mod.type = "cont",
                              no.mod.cats = NULL,
                              n.x.labels = NULL,
                              #
+                             plot = TRUE,
                              plot.xMin = 0,
                              plot.xMax = NULL,
                              plot.yMin = -1,
@@ -151,6 +155,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
     if (mod.type == "cont") modPos <- mod.no.to.plot
     TIpred.values <- matrix(ctStanFitObject$data$tipredsdata[, modPos], ncol=length(modPos)); head(TIpred.values)
     m.TIpred<- apply(TIpred.values, 2, mean); m.TIpred
+    if (all(round(m.TIpred, digits-2) == 0)) weigthedEffectCoding <- TRUE else weigthedEffectCoding <- FALSE # CHD 11.12.2023
     sd.TIpred <- apply(TIpred.values, 2, sd); sd.TIpred
     mod.values.to.plot <- c()
     if (mod.type == "cat") {
@@ -158,6 +163,11 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
       tmp1 <- which(mod.values.to.plot == 0); tmp1
       tmp2 <- which(mod.values.to.plot != 0); tmp2
       if (length(tmp1) > 0 ) mod.values.to.plot <- c(0, tmp2) else mod.values.to.plot <- c(tmp1, tmp2)
+      if (weigthedEffectCoding == TRUE)  {
+        mod.values.to.plot <- 1:(ncol(TIpred.values) + 1); mod.values.to.plot
+        #effectCodingWeights <- apply(TIpred.values, 2, unique); effectCodingWeights
+        effectCodingWeights <- unique(TIpred.values); effectCodingWeights
+      }
     } else{
       for (k in mod.sd.to.plot) mod.values.to.plot <- c(mod.values.to.plot, (m.TIpred + (k * sd.TIpred)))
     }
@@ -192,54 +202,62 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
     noOfSteps <- length(usedTimeRange); noOfSteps # can be placed later when generation plotPairs
 
     DRIFTCoeff <- list()
-    #
-    # raw main effects (correct order in matrix)
     tmp1 <- ctStanFitObject$stanfit$rawest[driftPos]; tmp1
     rawDrift <- matrix(tmp1, n.latent, byrow=TRUE); rawDrift
-    #
     counter <- 0
-    for (i in 1:n.mod.values.to.plot ) {
-      #i <- 1
-      counter <- counter + 1 ; counter
-      # horizontal position to plot the moderator labels
-      currentXValueForModValue <- xValueForModValue[counter+1]; currentXValueForModValue
-      ### compute moderated drift matrices
-      # raw moderator effects (could be partial - therefore the complex code)
-      if (mod.type == "cont") {
-        tmp2 <- ctStanFitObject$stanfit$transformedparsfull$TIPREDEFFECT[,driftPos, modPos]; tmp2 # (rowwise extracted)
-        #tmp3 <- rownames(ctStanFitObject_summary$tipreds); tmp3
-        # CHD 10. Aug 2023
-        tmp3 <- which(colnames(ctStanFitObject$ctstanmodelbase$pars) == "sdscale") + modPos ; tmp3
-        modName <- colnames(ctStanFitObject$ctstanmodelbase$pars)[tmp3]; modName
-        modName <- gsub("_effect", "", modName); modName
-        tmp3 <- rownames(ctStanFitObject_summary$tipreds)[grep(modName, rownames(ctStanFitObject_summary$tipreds))]; tmp3
-        #
-        if (length(driftNames) != (n.latent^2)) { # if some drift effects were specified as NA; CHD added 28.4.23
-          tmp4 <- c()
-          for (l in 1:length(driftNames)) {
-            tmp5 <- grep(unlist(driftNames[l]), tmp3); tmp5
-            if (length(tmp5) == 0) tmp4 <- c(tmp4, NA) else tmp4 <- c(tmp4, tmp5)
-          }
-          tmp4 <- unique(tmp4); tmp4
-          tmp4[!(is.na(tmp4))] <- tmp2[!(is.na(tmp4))]
-          tmp4[(is.na(tmp4))] <- 0
-        } else {
-          tmp4 <- tmp2
-        }
-        rawMod <- matrix(tmp4, n.latent, byrow=TRUE); rawMod # raw moderator effect to be added to raw main effect (followed by tform) (correct order in matrix)
-        tmpNames <- paste0("Raw Drift for Moderator Value = ", mod.sd.to.plot[counter], " SD from mean of moderator"); tmpNames
-        DRIFTCoeff[[tmpNames]] <- rawDrift + mod.values.to.plot[counter] * rawMod; DRIFTCoeff[[counter]]
+
+    if (weigthedEffectCoding == TRUE) { # CHD 11.12.2203
+      tmpNames <- paste0("Drift for Moderator Category No ", seq(1,n.mod.values.to.plot), "."); tmpNames
+      TIpredEffTmp <- ctStanFitObject$stanfit$transformedparsfull$TIPREDEFFECT[,driftPos, modPos]; TIpredEffTmp
+      if (is.null(ncol(TIpredEffTmp))) TIpredEffTmp <- matrix(TIpredEffTmp, ncol=1)
+      rawDriftTmp <- c(t(rawDrift)); rawDriftTmp
+      for (d in 1:nrow(effectCodingWeights)) {
+        DRIFTCoeff[[tmpNames[d]]] <- matrix(rawDriftTmp + apply(TIpredEffTmp %*% (effectCodingWeights[d, ]), 1, sum), n.latent, n.latent, byrow=T)
       }
-      #
-      if (mod.type == "cat") {
-        if (counter == 1) {
-          tmpNames <- paste0("Raw Drift for Moderator Category No ", counter, ". (= raw Drift)"); tmpNames
-          DRIFTCoeff[[counter]] <- matrix(tmp1, n.latent, n.latent); DRIFTCoeff[[counter]] # copy main effects (= comparison group)
-        } else {
-          tmp2 <- ctStanFitObject$stanfit$transformedparsfull$TIPREDEFFECT[,driftPos, modPos[counter-1]]; tmp2
-          rawMod <- matrix(tmp2, n.latent, n.latent, byrow=TRUE); rawMod
-          tmpNames <- paste0("Raw Drift for Moderator Category No ", counter, "."); tmpNames
-          DRIFTCoeff[[tmpNames]] <- rawDrift + rawMod; DRIFTCoeff[[counter]]
+    }  else {
+      for (i in 1:n.mod.values.to.plot ) {
+        #i <- 1
+        counter <- counter + 1 ; counter
+        # horizontal position to plot the moderator labels
+        currentXValueForModValue <- xValueForModValue[counter+1]; currentXValueForModValue
+        ### compute moderated drift matrices
+        # raw moderator effects (could be partial - therefore the complex code)
+        if (mod.type == "cont") {
+          tmp2 <- ctStanFitObject$stanfit$transformedparsfull$TIPREDEFFECT[,driftPos, modPos]; tmp2 # (rowwise extracted)
+          #tmp3 <- rownames(ctStanFitObject_summary$tipreds); tmp3
+          # CHD 10. Aug 2023
+          tmp3 <- which(colnames(ctStanFitObject$ctstanmodelbase$pars) == "sdscale") + modPos ; tmp3
+          modName <- colnames(ctStanFitObject$ctstanmodelbase$pars)[tmp3]; modName
+          modName <- gsub("_effect", "", modName); modName
+          tmp3 <- rownames(ctStanFitObject_summary$tipreds)[grep(modName, rownames(ctStanFitObject_summary$tipreds))]; tmp3
+          #
+          if (length(driftNames) != (n.latent^2)) { # if some drift effects were specified as NA; CHD added 28.4.23
+            tmp4 <- c()
+            for (l in 1:length(driftNames)) {
+              tmp5 <- grep(unlist(driftNames[l]), tmp3); tmp5
+              if (length(tmp5) == 0) tmp4 <- c(tmp4, NA) else tmp4 <- c(tmp4, tmp5)
+            }
+            tmp4 <- unique(tmp4); tmp4
+            tmp4[!(is.na(tmp4))] <- tmp2[!(is.na(tmp4))]
+            tmp4[(is.na(tmp4))] <- 0
+          } else {
+            tmp4 <- tmp2
+          }
+          rawMod <- matrix(tmp4, n.latent, byrow=TRUE); rawMod # raw moderator effect to be added to raw main effect (followed by tform) (correct order in matrix)
+          tmpNames <- paste0("Raw Drift for Moderator Value = ", mod.sd.to.plot[counter], " SD from mean of moderator"); tmpNames
+          DRIFTCoeff[[tmpNames]] <- rawDrift + mod.values.to.plot[counter] * rawMod; DRIFTCoeff[[counter]]
+        }
+        #
+        if (mod.type == "cat") {
+          if (counter == 1) {
+            tmpNames <- paste0("Raw Drift for Moderator Category No ", counter, ". (= raw Drift)"); tmpNames
+            DRIFTCoeff[[counter]] <- matrix(tmp1, n.latent, n.latent); DRIFTCoeff[[counter]] # copy main effects (= comparison group)
+          } else {
+            tmp2 <- ctStanFitObject$stanfit$transformedparsfull$TIPREDEFFECT[,driftPos, modPos[counter-1]]; tmp2
+            rawMod <- matrix(tmp2, n.latent, n.latent, byrow=TRUE); rawMod
+            tmpNames <- paste0("Raw Drift for Moderator Category No ", counter, "."); tmpNames
+            DRIFTCoeff[[tmpNames]] <- rawDrift + rawMod; DRIFTCoeff[[counter]]
+          }
         }
       }
     }
@@ -381,4 +399,3 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
   graphics::par(new=F)
   return(DRIFTCoeff)
 }
-
