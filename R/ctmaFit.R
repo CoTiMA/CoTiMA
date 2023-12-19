@@ -51,6 +51,7 @@
 #' @param transfMod more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))
 #' @param useSampleFraction to speed up debugging. Provided as fraction (e.g., 1/10).
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
+#' @param WEC default = FALSE) Experimental. Uses weighted effect coding of TIpred representing the dummies of the primary studies. Returns drift matrices for all primary studies.
 
 #'
 #' @importFrom  RPushbullet pbPost
@@ -153,7 +154,8 @@ ctmaFit <- function(
     T0var='auto',
     transfMod=NULL,
     useSampleFraction=NULL,
-    verbose=NULL
+    verbose=NULL,
+    WEC=FALSE
 )
 
 
@@ -167,6 +169,15 @@ ctmaFit <- function(
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
     ErrorMsg <- "\nA fitted CoTiMA object has to be supplied to plot something. \nGood luck for the next try!"
     stop(ErrorMsg)
+  }
+
+  # CHD 18.12.2023
+  if (WEC == TRUE) {
+    Msg <- "The argument WEC=TRUE was used. I assume you want to mimic ctmaInit with all drift effects varying across primary studis (using weighted effect coding).
+    Therefore, I set the argument invariantDrift=\'none\', so that all drift effects vary across primary studies."
+    message(Msg)
+    invariantDrift[1] <- 'none'
+    scaleTI <- FALSE
   }
 
   if (!(is.null(invariantDrift))) { # added 12.7.2023
@@ -541,7 +552,6 @@ ctmaFit <- function(
       dataTmp <- cbind(datawide_all, groups)
     }
 
-
     # make TI out of group membership
     for (i in 1:(n.studies-1)) {
       tmp <- matrix(0, nrow=nrow(dataTmp)); tmp
@@ -553,6 +563,18 @@ ctmaFit <- function(
     }
     targetCols <- which(colnames(dataTmp) == "groups"); targetCols
     dataTmp <- dataTmp[ ,-targetCols]
+
+    round(apply(dataTmp, 2, mean, na.rm=T), 3)
+    # use weighted effect coding
+    if (WEC == TRUE) {
+      targetCols <- grep("TI", colnames(dataTmp)); targetCols
+      targetRows <- which(apply(dataTmp[, targetCols], 1, sum) == 0); targetRows
+      targetN <- length(targetRows); targetN
+      for (i in 1:length(targetCols)) {
+        tmp1 <- sum(dataTmp[, targetCols[i]])
+        dataTmp[targetRows, targetCols[i]] <- - tmp1/targetN
+      }
+    }
 
     # make TI out of moderators
     modTIstartNum <- n.studies; modTIstartNum
@@ -772,7 +794,8 @@ ctmaFit <- function(
 
   if ( (!(is.null(invariantDrift))) &
        ( (indVarying != TRUE) | (indVarying != 'CINT') | (indVarying != 'cint' | (indVarying != 'Cint') ))  ) { # added 12.7.2023, added AUG 2023
-    if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
+    #if ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE")  ) {
+    if ( ( (invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE") )  & (WEC == FALSE) ) {
 
       # CHD 31. AUG 2023
       RIPos <- NA
@@ -1479,7 +1502,7 @@ ctmaFit <- function(
     message <- c()
     #if (meanDeltas > 3) {
     # CHD AUG 2023
-    if ((meanDeltas * CoTiMAStanctArgs$scaleTime) > 3) { #xxx
+    if ((meanDeltas * CoTiMAStanctArgs$scaleTime) > 3) { #
       tmp2 <- paste0("Mean time interval was ", meanDeltas, "."); tmp2
       tmp3 <- paste0("scaleTime=1/", suggestedScaleTime); tmp3
       tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, " and customPar=FALSE. "); tmp4
@@ -1572,6 +1595,49 @@ ctmaFit <- function(
       }
     }
 
+    # new 18.12.2023
+    DRIFTCoeff <- list()
+    if (WEC == TRUE) {
+      n.mod.values.to.plot <- length(colnames(fitStanctModel$data$tipredsdata)[1:(n.studies-1)])+1; n.mod.values.to.plot
+      modPos <- 1:(n.studies-1); modPos
+      TIpred.values <- matrix(fitStanctModel$data$tipredsdata[, modPos], ncol=length(modPos)); head(TIpred.values)
+      effectCodingWeights <- unique(TIpred.values); effectCodingWeights
+      #
+      tmp1 <- which(!(is.na(fitStanctModel$ctstanmodelbase$pars$param))); tmp1
+      tmpPars <- fitStanctModel$ctstanmodelbase$pars[tmp1,]; tmpPars
+      driftPos <- which(tmpPars$matrix == "DRIFT"); driftPos
+      tmp1 <- fitStanctModel$stanfit$rawest[driftPos]; tmp1
+      #rawDrift <- matrix(tmp1, n.latent, byrow=TRUE); rawDrift
+      rawDriftTmp <- c(t(matrix(tmp1, n.latent, byrow=TRUE))); rawDriftTmp
+      #
+      tmpNames <- paste0("Drift for Study No ", unlist(lapply(ctmaInitFit$studyList, function(x) x$originalStudyNo)), "."); tmpNames
+      #
+      TIpredEffTmp <- fitStanctModel$stanfit$transformedparsfull$TIPREDEFFECT[,driftPos, modPos]; TIpredEffTmp
+      for (d in 1:nrow(effectCodingWeights)) {
+        DRIFTCoeff[[tmpNames[d]]] <- matrix(rawDriftTmp + apply(TIpredEffTmp %*% (effectCodingWeights[d, ]), 1, sum), n.latent, n.latent, byrow=T)
+      }
+
+      tmp1a <- fitStanctModel$ctstanmodelbase$pars[, "transform"]; tmp1a
+      tmp1b <- fitStanctModel$ctstanmodelbase$pars[, "param"]; tmp1b
+      tmp1c <- tmp1b %in% driftNames; tmp1c
+      transforms <- tmp1a[tmp1c]; transforms
+      #
+      # compute tformed drift effects
+      for (k in 1:(length(DRIFTCoeff))) {
+        counter <- 0
+        for (l in 1:(n.latent)) {
+          for (m in 1:(n.latent)) {
+            counter <- counter + 1
+            param <- DRIFTCoeff[[k]][l,m]; param
+            DRIFTCoeff[[k]][l,m] <- eval(parse(text=transforms[counter])); DRIFTCoeff[[k]][l,m]
+            DRIFTCoeff[[k]][l,m] <- DRIFTCoeff[[k]][l,m] * scaleTime2
+          }
+        }
+      }
+    }
+    #DRIFTCoeff
+    DRIFTCoeffViaWEC <- DRIFTCoeff
+
     results <- list(#activeDirectory=activeDirectory,
       plot.type="drift",  model.type="stanct",
       n.studies=1,
@@ -1627,7 +1693,8 @@ ctmaFit <- function(
                         CINT=model_Cint_Coef,
                         MOD=modTI_Coeff_original_time_scale,
                         CLUS=clusTI_Coeff_original_time_scale,
-                        DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef),
+                        DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef,
+                        DRIFTCoeffViaWEC=DRIFTCoeffViaWEC),
       ctModel = fitStanctModel$ctstanmodelbase,
       parameterNames=ctmaInitFit$parameterNames,
       #CoTiMAStanctArgs=CoTiMAStanctArgs,
