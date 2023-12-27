@@ -549,6 +549,7 @@ ctmaFit <- function(
     if (n.moderators > 0) {
       dataTmp <- cbind(datawide_all, groups, moderatorGroups)
     } else {
+      if (is.null(dim(groups))) groups <- matrix(groups,  ncol=1)
       dataTmp <- cbind(datawide_all, groups)
     }
 
