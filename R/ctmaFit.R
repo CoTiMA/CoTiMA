@@ -546,10 +546,10 @@ ctmaFit <- function(
     groupsNamed <- (paste0("Study_No_", groups)); groupsNamed
 
     # augment pseudo raw data by group ID and moderators
+    if (is.null(dim(groups))) groups <- matrix(groups,  ncol=1)
     if (n.moderators > 0) {
       dataTmp <- cbind(datawide_all, groups, moderatorGroups)
     } else {
-      if (is.null(dim(groups))) groups <- matrix(groups,  ncol=1)
       dataTmp <- cbind(datawide_all, groups)
     }
 
