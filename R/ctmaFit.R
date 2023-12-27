@@ -377,7 +377,6 @@ ctmaFit <- function(
       mod.number <- NULL
       mod.type=ind.mod.type
       mod.names <- NULL
-
     }
     #n.ind.moderators
 
@@ -416,10 +415,15 @@ ctmaFit <- function(
       n.moderators <- n.ind.moderators; n.moderators
       tmpMods <- lapply(ctmaInitFit$ind.mod.List, function(x) x)
       if(!(is.matrix(tmpMods[[1]]))) tmpMods <- lapply(tmpMods, function(x) matrix(x, ncol=1))
+      if (is.list(tmpMods)) {
+        tmpModstmp <- matrix(unlist(tmpMods[[1]]), ncol=nrow(tmpMods[[1]]))
+        for (t in 2:length(tmpMods)) tmpModstmp <- rbind(tmpModstmp, matrix(unlist(tmpMods[[t]]), ncol=nrow(tmpMods[[t]])))
+      }
+      tmpMods <- tmpModstmp
       tmp1 <- unlist(lapply(tmpMods, function(x) {
         if (is.null(dim(x))) return(1) else return(ncol(x))
         #nrow(x)[2]
-        } )); tmp1
+      } )); tmp1
       if (length(ind.mod.number) > min(tmp1)) {
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
         ErrorMsg <- "\nIndividual level moderation model requested. At least one study has fewer individual level moderators in the raw data file than the number
@@ -435,13 +439,14 @@ ctmaFit <- function(
           stop(ErrorMsg)
         }
       }
-      currentModerators <- tmpMods[[1]]
-      for ( i in 2:length(tmpMods)) currentModerators <- rbind(currentModerators, tmpMods[[i]])
-      #currentModerators <- currentModerators[, ind.mod.number]
-      currentModerators <- as.matrix(currentModerators)
+      #currentModerators <- tmpMods[[1]]
+      #for ( i in 2:length(tmpMods)) currentModerators <- rbind(currentModerators, tmpMods[[i]])
+      #currentModerators <- as.matrix(currentModerators)
+      currentModerators <- tmpMods
       colnames(currentModerators) <- paste0("mod", 1:dim(currentModerators)[2])
     }
   }
+  dim(currentModerators)
 
   #######################################################################################################################
   ################################################# data preparation ####################################################
@@ -461,7 +466,6 @@ ctmaFit <- function(
     {
       if (n.moderators > 0) {
         if (n.ind.moderators != 0) {
-          #listOfStudyFits=ctmaInitFit
           tmp <- ctmaCombPRaw(listOfStudyFits=ctmaInitFit)
           casesToDelete <- which(is.na(currentModerators[, ind.mod.number])); casesToDelete
           if (length(casesToDelete) > 0)  {
@@ -547,6 +551,8 @@ ctmaFit <- function(
 
     # augment pseudo raw data by group ID and moderators
     if (is.null(dim(groups))) groups <- matrix(groups,  ncol=1)
+    dim(moderatorGroups)
+    #str(moderatorGroups[[1]])
     if (n.moderators > 0) {
       dataTmp <- cbind(datawide_all, groups, moderatorGroups)
     } else {
