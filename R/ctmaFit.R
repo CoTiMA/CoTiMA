@@ -884,7 +884,7 @@ ctmaFit <- function(
 
 
 
-  if (allInvModel) {
+  if (allInvModel == TRUE) {
     allInvModelFit <- ctmaAllInvFit(ctmaInitFit=ctmaInitFit,
                                     activeDirectory=activeDirectory,
                                     activateRPB=activateRPB,
@@ -904,7 +904,9 @@ ctmaFit <- function(
                                     customPar = customPar)
     fitStanctModel <- allInvModelFit$studyFitList[[1]]
     fitStanctModel_summary <- summary(fitStanctModel)
-  } else {
+  }
+
+  if (allInvModel == FALSE) {
     n.TIpred <- (n.studies-1+n.all.moderators+clusCounter); n.TIpred
     # scale Drift to cover changes in ctsem 3.4.1 (this would be for ctmaFit/ctmaModFit, but for Init individual study modification is done later)
     driftParamsTmp <- driftParams; driftParamsTmp
@@ -1314,6 +1316,8 @@ ctmaFit <- function(
         stanctModel$pars[(stanctModel$pars$matrix %in% 'CINT'), ][tmp2, tmp1] <- TRUE
       }
     }
+    stanctModel$pars[1:42, ]
+    stanctModel$pars[43:70, ]
 
 
     fitStanctModel <- suppressMessages(ctsem::ctStanFit(
@@ -1346,6 +1350,9 @@ ctmaFit <- function(
       cores=coresToUse,
       inits=inits))
 
+    #fitStanctModelsummary <- summary(fitStanctModel)
+    #fitStanctModelsummary
+
     ### resample in parcels to avoid memory crash and speed up
     if (fit == TRUE) {
       if (!(is.null(CoTiMAStanctArgs$resample))) {
@@ -1363,7 +1370,7 @@ ctmaFit <- function(
       print(paste0("#################################################################################"))
 
     }
-  } # end if else (allInvModel)
+  } # end if (allInvModel == FALSE)
 
   # Extract estimates & statistics
   if (fit == TRUE) { # CHD 16. Oct 2023 (end ~line 1534)
@@ -2009,7 +2016,7 @@ ctmaFit <- function(
 
   class(results) <- "CoTiMAFit"
 
-  results$summary
+  #results$summary
   ### prepare Excel Workbook with several sheets ################################################################
   if (fit == TRUE) {
     {
