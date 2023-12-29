@@ -23,6 +23,7 @@
 #' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param manifestVars define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest. Useful to check estimates before they are saved.
 #' @param n.latent number of latent variables of the model (hast to be specified)!
+#' @param parallel (default = TRUE). When set to FALSE parallel fitting on clusters is disabled (multiple cores are still used)
 #' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
 #' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}
 #' @param problemStudy number (position in list) where the problem study in primaryStudies is found
@@ -84,7 +85,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             scaleMod=NULL,
                             scaleTime=NULL,
                             T0means=0,
-                            transfMod=NULL
+                            transfMod=NULL,
+                            parallel=TRUE
                             )
 {
 
@@ -120,11 +122,12 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
   on.exit(parallel::stopCluster(myCluster))
   # CHD deleted 20. Sep 2022
   #if (.Platform$OS.type == "unix") {
+  if (parallel == TRUE) {
     #doParallel::registerDoParallel(coresToUse)
     doParallel::registerDoParallel(myCluster)
-    #} else {
-  #  doParallel::registerDoParallel(1)
-  #}
+    } else {
+    doParallel::registerDoParallel(1)
+  }
 
 
   if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
