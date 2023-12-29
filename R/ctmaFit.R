@@ -1972,6 +1972,8 @@ ctmaFit <- function(
                         useSampleFraction=useSampleFraction,
                         T0means=T0means,
                         manifestMeans=manifestMeans,
+                        WEC=WEC,
+                        randomIntercepts=randomIntercepts,
                         CoTiMAStanctArgs=CoTiMAStanctArgs),
       modelResults=list(DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
                         DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale,
