@@ -286,7 +286,9 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                       useSampleFraction=ctmaFitFit$argumentList$useSampleFraction,
                       T0means=ctmaFitFit$argumentList$T0means,
                       manifestMeans=ctmaFitFit$argumentList$manifestMeans,
-                      CoTiMAStanctArgs=ctmaFitFit$argumentList$CoTiMAStanctArgs
+                      CoTiMAStanctArgs=ctmaFitFit$argumentList$CoTiMAStanctArgs,
+                      randomIntercepts=ctmaFitFit$randomIntercepts,
+                      parallel=ctmaFitFit$parallel
       )
       return(fits)
     }
