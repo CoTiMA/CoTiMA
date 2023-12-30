@@ -553,8 +553,6 @@ ctmaFit <- function(
 
     # augment pseudo raw data by group ID and moderators
     if (is.null(dim(groups))) groups <- matrix(groups,  ncol=1)
-    dim(moderatorGroups)
-    #str(moderatorGroups[[1]])
     if (n.moderators > 0) {
       dataTmp <- cbind(datawide_all, groups, moderatorGroups)
     } else {
