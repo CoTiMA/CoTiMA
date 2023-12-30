@@ -1846,7 +1846,7 @@ ctmaFit <- function(
       TIpredEffTmp <- fitStanctModel$stanfit$transformedparsfull$TIPREDEFFECT[,driftPos, modPos]; TIpredEffTmp
       for (d in 1:nrow(effectCodingWeights)) {
         tmp2 <- apply(TIpredEffTmp %*% effectCodingWeights[d, ], 1, sum); tmp2
-        tmp1 <- t(apply(rawDriftTmp , 1 , function(x) x+tmp2))
+        tmp1 <- t(apply(rawDriftTmp , 1 , function(x) x + tmp2))
         DRIFTCoeff[[tmpNames[d]]] <- tmp1
       }
 
