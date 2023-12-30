@@ -746,6 +746,7 @@ ctmaFit <- function(
     if (!(is.null(cluster))) clusTIs <- paste0("TI", tmp1:(tmp1+clusCounter-1))
   }
 
+  randomInterceptsSetting <- randomIntercepts # wii be added to returned argument lsit
 
   #######################################################################################################################
   ############################################# CoTiMA (ctsem multigroup) ###############################################
@@ -1970,7 +1971,7 @@ ctmaFit <- function(
                         T0means=T0means,
                         manifestMeans=manifestMeans,
                         WEC=WEC,
-                        randomIntercepts=randomIntercepts,
+                        randomIntercepts=randomInterceptsSetting,
                         CoTiMAStanctArgs=CoTiMAStanctArgs),
       modelResults=list(DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
                         DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale,
