@@ -1970,7 +1970,6 @@ ctmaFit <- function(
                         T0means=T0means,
                         manifestMeans=manifestMeans,
                         WEC=WEC,
-                        parallel=parallel,
                         randomIntercepts=randomIntercepts,
                         CoTiMAStanctArgs=CoTiMAStanctArgs),
       modelResults=list(DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
