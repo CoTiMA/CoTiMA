@@ -175,7 +175,7 @@ ctmaFit <- function(
 
   # CHD 18.12.2023
   if (WEC == TRUE) {
-    Msg <- "The argument WEC=TRUE was used. I assume you want to mimic ctmaInit with all drift effects varying across primary studis (using weighted effect coding).
+    Msg <- "The argument WEC=TRUE was used. I assume you want to mimic ctmaInit with all drift effects varying across primary studies (using weighted effect coding).
     Therefore, I set the argument invariantDrift=\'none\', so that all drift effects vary across primary studies."
     message(Msg)
     invariantDrift[1] <- 'none'
@@ -183,7 +183,6 @@ ctmaFit <- function(
   }
 
   if (!(is.null(invariantDrift))) { # added 12.7.2023
-    # check if invariantDrift == 'none', which is used to mimic ctmaInit
     if ( ((invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE"))  & (scaleTI == TRUE) ) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
       Msg <- "The argument invariantDrift=\'none\' was used. I assume you want to mimic ctmaInit with all drift effects varying across primary studis.
@@ -1189,6 +1188,10 @@ ctmaFit <- function(
     }
 
     if (randomIntercepts == TRUE) { # override ctsem's default setup for indvarying cints
+      print(paste0("#################################################################################"))
+      print(paste0("#### Note: Correct random intercept model instead of rstan default requested ####"))
+      print(paste0("#################################################################################"))
+
       nullMat <- matrix(0, n.latent, n.latent); nullMat
       DIFFUSIONtmp <- matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent); DIFFUSIONtmp
       DIFFUSIONtmp <- rbind(cbind(DIFFUSIONtmp, nullMat),
@@ -1314,9 +1317,6 @@ ctmaFit <- function(
         stanctModel$pars[(stanctModel$pars$matrix %in% 'CINT'), ][tmp2, tmp1] <- TRUE
       }
     }
-    stanctModel$pars[1:42, ]
-    stanctModel$pars[43:70, ]
-
 
     fitStanctModel <- suppressMessages(ctsem::ctStanFit(
       fit=fit,
@@ -1347,9 +1347,6 @@ ctmaFit <- function(
       warmup=CoTiMAStanctArgs$warmup,
       cores=coresToUse,
       inits=inits))
-
-    #fitStanctModelsummary <- summary(fitStanctModel)
-    #fitStanctModelsummary
 
     ### resample in parcels to avoid memory crash and speed up
     if (fit == TRUE) {
@@ -1401,36 +1398,20 @@ ctmaFit <- function(
       }
     }
 
-    ( ( !((indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT')) & (randomIntercepts == FALSE)) )
     if ( ( !((indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT')) & (randomIntercepts == FALSE)) ) {
       model_popsd <- "no random Intercepts estimated"
       model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- "no random intercepts estimated"
       model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- "no random intercepts estimated"
     }
     if (randomIntercepts == TRUE) {
-      #e <- ctsem::ctExtract(fitStanctModel)
-      #startCol <- 1
-      ##rawT0MeansCints <- e$rawpopmeans[, startCol:(2*n.latent)]; round(apply(rawT0MeansCints, 2, mean), 4)
-      #startCol <- startCol + (2*n.latent); startCol
-      ##rawDrift <- e$rawpopmeans[, startCol:(startCol+2*n.latent-1)]; round(apply(rawDrift, 2, mean), 4)
-      #startCol <- startCol + 2*n.latent; startCol
-      ##rawDiff <- e$rawpopmeans[, startCol:(startCol+(n.latent*(n.latent+1)/2-1))]; round(apply(rawDiff, 2, mean), 4)
-      #startCol <- startCol + (n.latent*(n.latent+1)/2); startCol
-      #rawT0var <- e$rawpopmeans[, startCol:(startCol+((n.latent^2)*(n.latent^2+1)/2-1))]; round(apply(rawT0var, 2, mean), 4)
-      ##fitStanctModel$stanfit$rawest[startCol:(startCol+((n.latent^2)*(n.latent^2+1)/2-1))]
-      ##str(fitStanctModel$stanfit$transformedparsfull)
-      ##rawT0var <- e$rawpopmeans[, startCol:(startCol+((n.latent^2)*(n.latent^2+1)/2-1))]; round(apply(rawT0var, 2, mean), 4)
-      ##rawT0var <- apply(rawT0var, 2, mean); rawT0var
-
       parNames <- ctsem:::getparnames(fitStanctModel); parNames
       targetCols <- grep("ov", parNames); targetCols
       targetRaws <- fitStanctModel$stanfit$rawposterior[, targetCols]
       colnames(targetRaws) <- parNames[grep("ov", parNames)]
-      rawT0varTmp <- apply(targetRaws, 2, mean); rawT0varTmp
-
+      rawT0varTmp <- targetRaws
       # tform T0variances = random intercept covariances - just as a check that this is identical to ctmaInit
       {
-        T0COVCoeff <- list()
+        T0COVCoeff <- T0COVCoeffMean <- T0COVCoeffSD <- list()
         n.mod.values.to.plot <- length(colnames(fitStanctModel$data$tipredsdata)[1:(n.studies-1)])+1; n.mod.values.to.plot
         modPos <- 1:(n.studies-1); modPos
         TIpred.values <- matrix(fitStanctModel$data$tipredsdata[, modPos], ncol=length(modPos)); head(TIpred.values)
@@ -1439,22 +1420,16 @@ ctmaFit <- function(
         tmp1 <- which(!(is.na(fitStanctModel$ctstanmodelbase$pars$param))); tmp1
         tmpPars <- fitStanctModel$ctstanmodelbase$pars[tmp1,]; tmpPars
         T0varPos <- which(tmpPars$matrix == "T0VAR"); T0varPos
-        #tmp1 <- fitStanctModel$stanfit$rawest[T0varPos]; tmp1
-        ##rawT0varTmp <- c(t(matrix(tmp1, n.latent, byrow=TRUE))); rawT0varTmp
-        rawT0varTmp <- fitStanctModel$stanfit$rawest[T0varPos]; rawT0varTmp
-        #rawT0varTmp <- apply(rawT0var, 2, mean); rawT0varTmp
-        #rawT0varTmp
-
+        rawT0varTmp <- fitStanctModel$stanfit$rawposterior[ , T0varPos]; head(rawT0varTmp)
         #
         tmpNames <- paste0("RI Covriances for Study No ", unlist(lapply(ctmaInitFit$studyList, function(x) x$originalStudyNo)), "."); tmpNames
         #
         TIpredEffTmp <- fitStanctModel$stanfit$transformedparsfull$TIPREDEFFECT[,T0varPos, modPos]; TIpredEffTmp
         for (d in 1:nrow(effectCodingWeights)) {
-          #print(round(apply(TIpredEffTmp %*% (effectCodingWeights[d, ]), 1, sum), 4))
-          tmp1 <- rawT0varTmp + apply(TIpredEffTmp %*% effectCodingWeights[d, ], 1, sum); tmp1
+          tmp2 <- apply(TIpredEffTmp %*% effectCodingWeights[d, ], 1, sum); tmp2
+          tmp1 <- t(apply(rawT0varTmp, 1 , function(x) x+tmp2))
           T0COVCoeff[[tmpNames[d]]] <- tmp1
         }
-        #T0COVCoeff
         tmp1a <- fitStanctModel$ctstanmodelbase$pars[, "transform"]; tmp1a
         tmp1b <- fitStanctModel$ctstanmodelbase$pars[, "param"]; tmp1b
         tmp1c <- grep("ov_", tmp1b); tmp1c
@@ -1465,57 +1440,63 @@ ctmaFit <- function(
           for (l in 1:(n.latent^2)) {
             for (m in 1:l) {
               counter <- counter + 1
-              param <- T0COVCoeff[[k]][counter]; param
-              T0COVCoeff[[k]][counter] <- eval(parse(text=transforms[counter])); T0COVCoeff[[k]][counter]
-              if ((l == m)) T0COVCoeff[[k]][counter] <- T0COVCoeff[[k]][counter] / 10# should be so
+              paramTmp <- T0COVCoeff[[k]][, counter]; paramTmp
+              for (p in 1:length(paramTmp)) {
+                param <- paramTmp[p]
+                T0COVCoeff[[k]][p , counter] <- eval(parse(text=transforms[counter])); T0COVCoeff[[k]][p, counter]
+              }
             }
           }
         }
-        #T0COVCoeff
         # do the same for the average covariance ()
         counter <- 0
-        T0varMean <- c()
+        T0varMean <- matrix(NA, nrow=(n.latent*(n.latent+1)+n.latent^2), ncol=length(paramTmp)); dim(T0varMean)
         for (l in 1:(n.latent^2)) {
           for (m in 1:l) {
             counter <- counter + 1
-            param <- rawT0varTmp[counter]; param
-            T0varMean[counter] <- eval(parse(text=transforms[counter])); rawT0varTmp[counter]
-            if ((l == m)) T0varMean[counter] <- T0varMean[counter] / 10 # should be so
+            paramTmp <- rawT0varTmp[,counter]; param
+            for (p in 1:length(paramTmp)) {
+              param <- paramTmp[p]; param
+              T0varMean[counter, p] <- eval(parse(text=transforms[counter]))
+            }
           }
         }
-        #T0varMean
         # make matrices out of vector
         for (k in 1:(length(T0COVCoeff))) {
-          tmpMat <- matrix(NA, n.latent^2, n.latent^2); tmpMat
+          tmpMatMean <- tmpMatSD <- matrix(NA, n.latent^2, n.latent^2)
           counter <- 0
           for (l in 1:(n.latent^2)) {
             for (m in 1:l) {
               counter <- counter + 1
-              tmpMat[l,m] <- T0COVCoeff[[k]][counter]
+              tmpMatMean[l,m] <- mean(T0COVCoeff[[k]][, counter])
+              tmpMatSD[l,m] <- sd(T0COVCoeff[[k]][, counter])
             }
           }
-          tmpMat[upper.tri(tmpMat, diag = T)] <- t(tmpMat)[upper.tri(tmpMat, diag=T)]
-          T0COVCoeff[[k]] <- tmpMat
-          #T0COVCoeff[[k]][counter] <- T0COVCoeff[[k]][counter] * scaleTime2
+          tmpMatMean[upper.tri(tmpMatMean, diag = T)] <- t(tmpMatMean)[upper.tri(tmpMatMean, diag=T)]
+          tmpMatSD[upper.tri(tmpMatSD, diag = T)] <- t(tmpMatSD)[upper.tri(tmpMatSD, diag=T)]
+          T0COVCoeffMean[[k]] <- tmpMatMean
+          T0COVCoeffSD[[k]] <- tmpMatSD
         }
-        #T0COVCoeff
         # do the same vor the average matrix
         counter <- 0
-        tmpMat <- matrix(NA, n.latent^2, n.latent^2); tmpMat
+        tmpMatMean <- tmpMatSD <- matrix(NA, n.latent^2, n.latent^2)
         for (l in 1:(n.latent^2)) {
           for (m in 1:l) {
             counter <- counter + 1
-            tmpMat[l,m] <- T0varMean[counter]
+            tmpMatMean[l,m] <- mean(T0varMean[counter, ])
+            tmpMatSD[l,m] <- mean(T0varMean[counter, ])
           }
         }
-        tmpMat[upper.tri(tmpMat, diag = T)] <- t(tmpMat)[upper.tri(tmpMat, diag=T)]
-        T0varMean <- tmpMat
+        tmpMatMean[upper.tri(tmpMatMean, diag = T)] <- t(tmpMatMean)[upper.tri(tmpMatMean, diag=T)]
+        tmpMatSD[upper.tri(tmpMatSD, diag = T)] <- t(tmpMatSD)[upper.tri(tmpMatSD, diag=T)]
+        T0varMeanMean <- tmpMatMean
+        T0varMeanSD <- tmpMatSD
       }
-      #T0varMean
-      #(T0COVCoeff[[1]])
+      #T0varMeanMean
 
       model_popsd <- "Random intercepts were estimated per primary study. It is recommended to compare them with ctmaInit results to ensure the present results are accurate. Currently, thes should correspond to the rawpopcovbase-slot in the ctsem fit object"
-      model_popcov_m <- T0COVCoeff
+      model_popcov_m <- T0COVCoeffMean
+      model_popcov_sd <- T0COVCoeffSD
       #model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- "random intercepts were estimated but output is not yet available"
       #model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- "random intercepts were estimated but output is not yet available"
     } # end if (randomIntercepts == TRUE)
@@ -1857,15 +1838,16 @@ ctmaFit <- function(
       tmp1 <- which(!(is.na(fitStanctModel$ctstanmodelbase$pars$param))); tmp1
       tmpPars <- fitStanctModel$ctstanmodelbase$pars[tmp1,]; tmpPars
       driftPos <- which(tmpPars$matrix == "DRIFT"); driftPos
-      tmp1 <- fitStanctModel$stanfit$rawest[driftPos]; tmp1
-      #rawDrift <- matrix(tmp1, n.latent, byrow=TRUE); rawDrift
-      rawDriftTmp <- c(t(matrix(tmp1, n.latent, byrow=TRUE))); rawDriftTmp
+      rawDriftTmp <- fitStanctModel$stanfit$rawposterior[ , driftPos]
+      #str(rawDriftTmp)
       #
       tmpNames <- paste0("Drift for Study No ", unlist(lapply(ctmaInitFit$studyList, function(x) x$originalStudyNo)), "."); tmpNames
       #
       TIpredEffTmp <- fitStanctModel$stanfit$transformedparsfull$TIPREDEFFECT[,driftPos, modPos]; TIpredEffTmp
       for (d in 1:nrow(effectCodingWeights)) {
-        DRIFTCoeff[[tmpNames[d]]] <- matrix(rawDriftTmp + apply(TIpredEffTmp %*% (effectCodingWeights[d, ]), 1, sum), n.latent, n.latent, byrow=T)
+        tmp2 <- apply(TIpredEffTmp %*% effectCodingWeights[d, ], 1, sum); tmp2
+        tmp1 <- t(apply(rawDriftTmp , 1 , function(x) x+tmp2))
+        DRIFTCoeff[[tmpNames[d]]] <- tmp1
       }
 
       tmp1a <- fitStanctModel$ctstanmodelbase$pars[, "transform"]; tmp1a
@@ -1879,19 +1861,36 @@ ctmaFit <- function(
         for (l in 1:(n.latent)) {
           for (m in 1:(n.latent)) {
             counter <- counter + 1
-            param <- DRIFTCoeff[[k]][l,m]; param
-            DRIFTCoeff[[k]][l,m] <- eval(parse(text=transforms[counter])); DRIFTCoeff[[k]][l,m]
-            DRIFTCoeff[[k]][l,m] <- DRIFTCoeff[[k]][l,m] * scaleTime2
+            #param <- DRIFTCoeff[[k]][l,m]; param
+            paramTmp <- DRIFTCoeff[[k]][, counter]; paramTmp
+            #DRIFTCoeff[[k]][l,m] <- eval(parse(text=transforms[counter])); DRIFTCoeff[[k]][l,m]
+            for (p in 1:length(paramTmp)) {
+              #param <- T0COVCoeff[[k]][p, counter]; param
+              param <- paramTmp[p]
+              DRIFTCoeff[[k]][p , counter] <- eval(parse(text=transforms[counter]))
+              #if ((l == m)) T0COVCoeff[[k]][counter] <- T0COVCoeff[[k]][counter] / 10# should be so
+            }
+            #DRIFTCoeff[[k]][l,m] <- DRIFTCoeff[[k]][l,m] * scaleTime2
+            DRIFTCoeff[[k]][, counter] <- DRIFTCoeff[[k]][ ,counter] * scaleTime2
           }
         }
       }
     }
-    #DRIFTCoeff
-    DRIFTCoeffViaWEC <- DRIFTCoeff
+    #str(DRIFTCoeff)
+
+    DRIFTCoeffMean <- DRIFTCoeffSD <- list()
+    for (p in 1:length(DRIFTCoeff)) {
+      DRIFTCoeffMean[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, mean), n.latent, n.latent, byrow=T)
+      DRIFTCoeffSD[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, sd), n.latent, n.latent, byrow=T)
+    }
+    #DRIFTCoeffMean
+    #DRIFTCoeffSD
+    #DRIFTCoeffViaWEC <- DRIFTCoeff
 
     if (randomIntercepts == TRUE) {
       randomIntercepts <- list(popsd=model_popsd,
-                               popcov_mean=model_popcov_m)
+                               popcov_mean=model_popcov_m,
+                               popcov_sd=model_popcov_sd)
       # move T0Means of phantom latents to cints
       tmp1 <- grep("T0MEAN", rownames(invariantDrift_Coeff)); tmp1
       tmp1 <- tmp1[(n.latent+1):(n.latent^2)]; tmp1
@@ -1980,7 +1979,8 @@ ctmaFit <- function(
                         MOD=modTI_Coeff_original_time_scale,
                         CLUS=clusTI_Coeff_original_time_scale,
                         DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef,
-                        DRIFTCoeffViaWEC=DRIFTCoeffViaWEC),
+                        DRIFTCoeffViaWECMean=DRIFTCoeffMean,
+                        DRIFTCoeffViaWECSD=DRIFTCoeffSD),
       ctModel = fitStanctModel$ctstanmodelbase,
       parameterNames=ctmaInitFit$parameterNames,
       #CoTiMAStanctArgs=CoTiMAStanctArgs,
