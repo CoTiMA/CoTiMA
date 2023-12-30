@@ -109,23 +109,25 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
 
   # CHD ADDED Aug. 2023
   if (!(is.null(reFits))) {
-    parProces <- min(c(coresToUse, reFits))
-    coresToUse <- coresToUse%/%reFits # integer division
-    if (coresToUse < 1) coresToUse <- 1
+    if (parallel == TRUE) {
+      parProces <- min(c(coresToUse, reFits))
+      coresToUse <- coresToUse%/%reFits # integer division
+      if (coresToUse < 1) coresToUse <- 1
+    }
   } else {
     parProces <- coresToUse
   }
 
-  # CHD added 20 SEP 2020, changed Aug 2023
-  #myCluster <- parallel::makeCluster(coresToUse)
-  myCluster <- parallel::makeCluster(parProces)
-  on.exit(parallel::stopCluster(myCluster))
-  # CHD deleted 20. Sep 2022
-  #if (.Platform$OS.type == "unix") {
-  if (parallel == TRUE) {
-    #doParallel::registerDoParallel(coresToUse)
-    doParallel::registerDoParallel(myCluster)
-    } else {
+  #
+
+  if (.Platform$OS.type == "unix") {
+    if (parallel == TRUE) {
+      myCluster <- parallel::makeCluster(parProces)
+      on.exit(parallel::stopCluster(myCluster))
+      #doParallel::registerDoParallel(coresToUse)
+      doParallel::registerDoParallel(myCluster)
+    }
+  } else {
     doParallel::registerDoParallel(1)
   }
 
@@ -169,7 +171,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
 
 
   # INIT Fit
-  if(is.null(ctmaFitFit)) {
+  if (is.null(ctmaFitFit)) {
     # CHD changed 21 SEP 2022
     ErrorMsg <- "argument primaryStudies is missing"
     if (is.null(primaryStudies))  stop(ErrorMsg)
@@ -181,50 +183,6 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     if (is.null(activeDirectory)) stop(ErrorMsg)
     ErrorMsg <- "argument n.latent is missing"
     if (is.null(n.latent)) stop(ErrorMsg)
-
-    # Moderator Checks Moved from above into ctmaInit-optimizinf section (not relevant if ctmaFit is optimized)
-    # Neither relevant for ctmaInit nor ctmaFit, therefore de-activated
-    #{ # check if scaleMod is not used in combination with transfMod
-    #  if ( (!(is.null(scaleMod))) & (!(is.null(transfMod))) ) {
-    #    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-    #    ErrorMsg <- "The arguments scaleMod and transfMod cannot be used in combination. Set one of them NULL (leave out)."
-    #    stop(ErrorMsg)
-    #  }
-    #}
-
-    #n.ind.moderators <- 0 # shortcut until n.ind.moderators is enabled as argument
-    #if (n.ind.moderators == 0) { # proceed if only moderators at the study level are used
-    #  n.moderators <- length(mod.number); n.moderators
-    #  { # check if transfMod is as long as n.moderators
-    #    if ( (!(is.null(transfMod))) ) {
-    #      if ( length(transfMod) != n.moderators ) {
-    #        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-    #        ErrorMsg <- "More transformations for moderators (transfMod) provided than moderators."
-    #        stop(ErrorMsg)
-    #      }
-    #    }
-    #  }
-    #  if (n.moderators > 0) {
-    #    currentModerators <- matrix(as.numeric(unlist(lapply(ctmaInitFit$studyList, function(extract) extract$moderators[mod.number]))), ncol=n.moderators); currentModerators
-    #    #if (!(is.null(primaryStudyList))) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE)
-    #    #currentModerators
-    #    #if (!is.null(primaryStudyList)) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE); currentModerators
-    #    if (is.na((currentModerators[length(currentModerators)])[[1]][1])) currentModerators <- currentModerators[-dim(currentModerators)[1],]; currentModerators
-    #    if (is.null(dim(currentModerators)[1])) currentModerators <- matrix(currentModerators, ncol=1); currentModerators
-    #    #table(currentModerators)
-
-    #    if (any(is.na(currentModerators)) == TRUE) {
-    #      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    #      ErrorMsg <- "\nAt least one of the primary studies does not have a valid value for the requested moderator. \nGood luck for the next try!"
-    #      stop(ErrorMsg)
-    #    }
-    #    if (var(currentModerators) == 0) {
-    #      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    #      ErrorMsg <- "\nModerator is constant across cases.\nGood luck for the next try!"
-    #      stop(ErrorMsg)
-    #    }
-    #  }
-    #}
 
 
     # create new study list with a single problem study only
@@ -249,16 +207,6 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     }
     names(newStudyList) <- names(primaryStudies)
     newStudyList$n.studies <- 1
-
-    #
-    # adaptations for dealing with raw data
-    # taken out 9. Aug. 2022
-    #if (!(is.null(newStudyList$rawData[[1]]$studyNumbers))) {
-    #  newStudyList$rawData[[1]]$studyNumbers <- 1
-    #  newStudyList$studyNumbers <- 1 # otherwise raw data will not be loaded
-    #  newStudyList$deltas <- unlist(newStudyList$deltas)
-    #}
-    #newStudyList
 
     # parallel re-fitting of problem study
     allfits <- foreach::foreach(i=1:reFits) %dopar% {
