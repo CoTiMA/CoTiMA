@@ -87,60 +87,60 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             T0means=0,
                             transfMod=NULL,
                             parallel=TRUE
-                            )
+)
 {
 
   #######################################################################################################################
   ################################################# Check Cores To Use ##################################################
   #######################################################################################################################
-
   {
-    if  (length(coresToUse) > 0) {
-      if (coresToUse < 1)  coresToUse <- parallel::detectCores() + coresToUse
+    {
+      if  (length(coresToUse) > 0) {
+        if (coresToUse < 1)  coresToUse <- parallel::detectCores() + coresToUse
+      }
+
+      if (coresToUse >= parallel::detectCores()) {
+        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+        coresToUse <- parallel::detectCores() - 1
+        Msg <- "No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash. \n"
+        message(Msg)
+      }
     }
 
-    if (coresToUse >= parallel::detectCores()) {
-      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-      coresToUse <- parallel::detectCores() - 1
-      Msg <- "No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash. \n"
-      message(Msg)
+    # CHD ADDED Aug. 2023
+    if (!(is.null(reFits))) {
+      if (parallel == TRUE) {
+        parProces <- min(c(coresToUse, reFits))
+        coresToUse <- coresToUse%/%reFits # integer division
+        if (coresToUse < 1) coresToUse <- 1
+      } else {
+        parProces <- coresToUse
+      }
     }
-  }
+    #
 
-  # CHD ADDED Aug. 2023
-  if (!(is.null(reFits))) {
-    if (parallel == TRUE) {
-      parProces <- min(c(coresToUse, reFits))
-      coresToUse <- coresToUse%/%reFits # integer division
-      if (coresToUse < 1) coresToUse <- 1
+    if (.Platform$OS.type == "unix") {
+      if (parallel == TRUE) {
+        myCluster <- parallel::makeCluster(parProces)
+        on.exit(parallel::stopCluster(myCluster))
+        #doParallel::registerDoParallel(coresToUse)
+        doParallel::registerDoParallel(myCluster)
+      }
+    } else {
+      doParallel::registerDoParallel(1)
     }
-  } else {
-    parProces <- coresToUse
-  }
 
-  #
+    if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
 
-  if (.Platform$OS.type == "unix") {
-    if (parallel == TRUE) {
-      myCluster <- parallel::makeCluster(parProces)
-      on.exit(parallel::stopCluster(myCluster))
-      #doParallel::registerDoParallel(coresToUse)
-      doParallel::registerDoParallel(myCluster)
+    # Added 17. Aug 2022
+    tmp1 <- which(names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs)); tmp1
+    tmp2 <- CoTiMA::CoTiMAStanctArgs
+    if (!(is.null(CoTiMAStanctArgs))) {
+      tmp2[tmp1] <- CoTiMAStanctArgs
     }
-  } else {
-    doParallel::registerDoParallel(1)
+    CoTiMAStanctArgs <- tmp2
   }
-
-
-  if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
-
-  # Added 17. Aug 2022
-  tmp1 <- which(names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs)); tmp1
-  tmp2 <- CoTiMA::CoTiMAStanctArgs
-  if (!(is.null(CoTiMAStanctArgs))) {
-    tmp2[tmp1] <- CoTiMAStanctArgs
-  }
-  CoTiMAStanctArgs <- tmp2
+  #CoTiMAStanctArgs
 
   ########################################################################################################################
 
@@ -164,9 +164,9 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
 
   if( (!(is.null(ctmaFitFit))) & (!(is.null(ctmaInitFit))) ) {
     if (ctmaFitFit$argumentList$ctmaInitFit != deparse(substitute(ctmaInitFit)))  {
-    ErrorMsg <- paste0("The wrong ctmaInitFit object was provided. I need ",  ctmaFitFit$argumentList$ctmaInitFit, "!")
-    stop(ErrorMsg)
-  }
+      ErrorMsg <- paste0("The wrong ctmaInitFit object was provided. I need ",  ctmaFitFit$argumentList$ctmaInitFit, "!")
+      stop(ErrorMsg)
+    }
   }
 
   # Moderator Checks Moved to Sectioon where ctmaInit is optimized (not relevant if ctmaFit is optimized) # CHD Auf 2023
@@ -302,7 +302,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       stop(ErrorMsg)
     }
     all_minus2ll <- all_minus2ll[-(which(all_minus2ll < 0))]
-    }
+  }
   #
   bestFit <- which(unlist(all_minus2ll) == min(unlist(all_minus2ll)))[1]; bestFit
   bestFit <- allfits[[bestFit]]
@@ -314,5 +314,3 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
 
   invisible(results)
 }
-
-
