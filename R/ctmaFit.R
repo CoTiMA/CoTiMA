@@ -163,6 +163,9 @@ ctmaFit <- function(
 
 {  # begin function definition (until end of file)
 
+
+  randomInterceptsSettings <- randomIntercepts
+
   # adapt display of information during model fit
   if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMAStanctArgs$verbose}
 
@@ -1970,7 +1973,7 @@ ctmaFit <- function(
                         T0means=T0means,
                         manifestMeans=manifestMeans,
                         WEC=WEC,
-                        randomIntercepts=randomIntercepts,
+                        randomIntercepts=randomInterceptsSettings,
                         CoTiMAStanctArgs=CoTiMAStanctArgs),
       modelResults=list(DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
                         DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale,
