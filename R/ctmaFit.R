@@ -746,7 +746,6 @@ ctmaFit <- function(
     if (!(is.null(cluster))) clusTIs <- paste0("TI", tmp1:(tmp1+clusCounter-1))
   }
 
-  randomInterceptsSetting <- randomIntercepts # wii be added to returned argument lsit
 
   #######################################################################################################################
   ############################################# CoTiMA (ctsem multigroup) ###############################################
@@ -1830,6 +1829,7 @@ ctmaFit <- function(
 
     # new 18.12.2023
     DRIFTCoeff <- list()
+    DRIFTCoeffMean <- DRIFTCoeffSD <- list()
     if (WEC == TRUE) {
       n.mod.values.to.plot <- length(colnames(fitStanctModel$data$tipredsdata)[1:(n.studies-1)])+1; n.mod.values.to.plot
       modPos <- 1:(n.studies-1); modPos
@@ -1876,14 +1876,13 @@ ctmaFit <- function(
           }
         }
       }
-    }
-    #str(DRIFTCoeff)
+      #str(DRIFTCoeff)
 
-    DRIFTCoeffMean <- DRIFTCoeffSD <- list()
-    for (p in 1:length(DRIFTCoeff)) {
-      DRIFTCoeffMean[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, mean), n.latent, n.latent, byrow=T)
-      DRIFTCoeffSD[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, sd), n.latent, n.latent, byrow=T)
-    }
+      for (p in 1:length(DRIFTCoeff)) {
+        DRIFTCoeffMean[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, mean), n.latent, n.latent, byrow=T)
+        DRIFTCoeffSD[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, sd), n.latent, n.latent, byrow=T)
+      }
+    } # end if (WEC == TRUE)
     #DRIFTCoeffMean
     #DRIFTCoeffSD
     #DRIFTCoeffViaWEC <- DRIFTCoeff
@@ -1971,7 +1970,7 @@ ctmaFit <- function(
                         T0means=T0means,
                         manifestMeans=manifestMeans,
                         WEC=WEC,
-                        randomIntercepts=randomInterceptsSetting,
+                        randomIntercepts=randomIntercepts,
                         CoTiMAStanctArgs=CoTiMAStanctArgs),
       modelResults=list(DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
                         DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale,
