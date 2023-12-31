@@ -15,7 +15,7 @@
 #' @param digits number of digits used for rounding (in outputs)
 #' @param doPar parallel and multiple fitting if single studies. A value > 1 will fit each study doPar times in parallel mode during which no output is generated (screen remains silent). Useful to obtain best fit.
 #' @param drift labels for drift effects. Have to be either of the character strings of the type V1toV2 (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
-#' @param experimental set TRUE to try new pairwise N function
+#' @param experimental used for debugging puposes (default = FALSE)
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
 #' @param indVaryingT0 (default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE fits the regular random intercept models.
@@ -77,7 +77,7 @@
 #' (containing the pseudo raw data created), statisticsList (comprising baisc stats such as average sample size, no. of measurement points,
 #' etc.), a list with modelResults (i.e., DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef,
 #' CINT=model_Cint_Coef), and the paramter names internally used. The summary list,  which is printed if the summary function is applied to the
-#' returned object, comprises "estimates" (the aggregated effects), possible randomEffects (not yet fully working),  confidenceIntervals, the
+#' returned object, comprises "estimates" (the aggregated effects), possible randomIntercepts,confidenceIntervals, the
 #' minus2ll value and its n.parameters, and possible warning messages (message). Plot type is plot.type=c("drift") and model.type="stanct"
 #' ("omx" was deprecated).
 #'
@@ -139,6 +139,8 @@ ctmaInit <- function(
   {
     Msg <- "################################################################################# \n########################## Check Model Specification ############################ \n#################################################################################"
     message(Msg)
+
+    randomInterceptsSetttings <- randomIntercepts
 
     if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMA::CoTiMAStanctArgs$verbose}
 
@@ -418,7 +420,7 @@ ctmaInit <- function(
 
         # CHD: changed 7.9.2022 "Tmp"
         tmp <- suppressWarnings(ctmaPRaw(empCovMat=currentEmpcovTmp, empN=currentSampleSizeTmp, empNMat=currentPairwiseNTmp,
-                                         experimental=experimental))
+                                         experimental=FALSE))
 
         empraw[[i]] <- tmp$data
         lostN[[i]] <- tmp$lostN
@@ -1186,8 +1188,6 @@ ctmaInit <- function(
         studyFit[[i]] <- results
         if (is.null(studyFit[[i]]$standata$priors)) studyFit[[i]]$standata$priors <- 0 # CHD added Sep 2023
         studyFit[[i]]$resultsSummary <- summary(studyFit[[i]])
-        #studyFit[[i]]$resultsSummary
-        #results$ctstanmodelbase$pars
 
         df <- "deprecated"
         studyFit[[i]]$resultsSummary$'df (CoTiMA)' <- df
@@ -1407,9 +1407,9 @@ ctmaInit <- function(
           model_popcor_975[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
         }
       } else {
-        model_popsd[[i]] <- "no random effects estimated"
-        model_popcov_m[[i]] <- model_popcov_sd[[i]] <- model_popcov_T[[i]] <- model_popcov_025[[i]] <- model_popcov_50[[i]] <- model_popcov_975[[i]] <- "no random effects estimated"
-        model_popcor_m[[i]] <- model_popcor_sd[[i]] <- model_popcor_T[[i]] <- model_popcor_025[[i]] <- model_popcor_50[[i]] <- model_popcor_975[[i]] <- "no random effects estimated"
+        model_popsd[[i]] <- "no random intercepts estimated"
+        model_popcov_m[[i]] <- model_popcov_sd[[i]] <- model_popcov_T[[i]] <- model_popcov_025[[i]] <- model_popcov_50[[i]] <- model_popcov_975[[i]] <- "no random intercepts estimated"
+        model_popcor_m[[i]] <- model_popcor_sd[[i]] <- model_popcor_T[[i]] <- model_popcor_025[[i]] <- model_popcor_50[[i]] <- model_popcor_975[[i]] <- "no random intercepts estimated"
       }
       #}
     } # END     for (i in 1:n.studies)
@@ -1730,8 +1730,8 @@ ctmaInit <- function(
                                 estimates_discrete=allStudiesDRIFT_effects_ext_dt,
                                 scaleTime=scaleTime2,
                                 # changed 17. Aug. 2022
-                                #randomEffects=list(popsd=model_popsd, popcov=model_popcov, popcor=model_popcor),
-                                randomEffects=list(popsd=model_popsd,
+                                #randomIntercepts=list(popsd=model_popsd, popcov=model_popcov, popcor=model_popcor),
+                                randomIntercepts=list(popsd=model_popsd,
                                                    popcov_mean=model_popcov_m, model_popcov_sd=model_popcov_sd,
                                                    model_popcov_T=model_popcov_T, model_popcov_025=model_popcov_025,
                                                    model_popcov_50=model_popcov_50, model_popcov_975=model_popcov_975,
@@ -1757,7 +1757,7 @@ ctmaInit <- function(
     sheet2 <- openxlsx::addWorksheet(wb, sheetName="modelResults")
     sheet3 <- openxlsx::addWorksheet(wb, sheetName="estimates")
     sheet4 <- openxlsx::addWorksheet(wb, sheetName="confidenceIntervals")
-    sheet5 <- openxlsx::addWorksheet(wb, sheetName="randomEffects")
+    sheet5 <- openxlsx::addWorksheet(wb, sheetName="randomIntercepts")
     sheet6 <- openxlsx::addWorksheet(wb, sheetName="stats")
     openxlsx::writeData(wb, sheet1, results$summary$model)
 
@@ -1817,13 +1817,14 @@ ctmaInit <- function(
     openxlsx::writeData(wb, sheet4, startCol=startCol, startRow = startRow,
                         t(colnames(results$summary$confidenceIntervals)), colNames = FALSE)
     openxlsx::writeData(wb, sheet4, startCol=startCol, startRow = startRow + 1, results$summary$confidenceIntervals, colNames = FALSE)
-    ### random Effects
+    ### random Intercepts
     startCol <- 2; startCol
     startRow <- 1; startRow
     # CHD 7. Sep 2022: Quickfix: do not report all random effect matrices
     # CHD 12. Oct 2023: Quickfix: do not report all random effect matrices
-    results$summary$randomEffects[[1]][1] <- "random effect are no longer reported in excel sheets"
-    openxlsx::writeData(wb, sheet5, startCol=startCol, startRow = startRow, results$summary$randomEffects[[1]][1], colNames = FALSE)
+    #results$summary$randomIntercepts[[1]][1] <- "random intercept results are no longer reported in excel sheets"
+    #openxlsx::writeData(wb, sheet5, startCol=startCol, startRow = startRow, results$summary$randomIntercepts[[1]][1], colNames = FALSE)
+    openxlsx::writeData(wb, sheet5, startCol=startCol, startRow = startRow, "random intercept results are no longer reported in excel sheets", colNames = FALSE)
     ### stats
     startCol <- 2; startCol
     startRow <- 1; startRow
