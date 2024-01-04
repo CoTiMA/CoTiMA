@@ -140,8 +140,6 @@ ctmaInit <- function(
     Msg <- "################################################################################# \n########################## Check Model Specification ############################ \n#################################################################################"
     message(Msg)
 
-    randomInterceptsSetttings <- randomIntercepts
-
     if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMA::CoTiMAStanctArgs$verbose}
 
     if (is.null(primaryStudies)) {
