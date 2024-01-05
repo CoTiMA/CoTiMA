@@ -53,7 +53,6 @@
 #' @param useSampleFraction to speed up debugging. Provided as fraction (e.g., 1/10).
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 #' @param WEC (default = FALSE) Experimental. Uses weighted effect coding of TIpred representing the dummies of the primary studies. Returns drift matrices for all primary studies.
-
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  parallel detectCores
