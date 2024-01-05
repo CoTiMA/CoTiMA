@@ -53,7 +53,6 @@
 #' @param useSampleFraction to speed up debugging. Provided as fraction (e.g., 1/10).
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 #' @param WEC (default = FALSE) Experimental. Uses weighted effect coding of TIpred representing the dummies of the primary studies. Returns drift matrices for all primary studies.
-
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  parallel detectCores
@@ -169,6 +168,7 @@ ctmaFit <- function(
     if (is.null(T0var)) T0var <- 'auto'
     if (is.null(cint)) cint <- 0
     if (is.null(fit)) fit <- TRUE
+    if (is.null(WEC)) WEC <- FALSE
 
 
     # adapt display of information during model fit
