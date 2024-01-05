@@ -312,7 +312,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                       cint=ctmaFitFit$argumentList$cint,
                       indVaryingT0=ctmaFitFit$argumentList$indVaryingT0,
                       fit=ctmaFitFit$argumentList$fit
-      )
+)
       return(fits)
     }
   }
