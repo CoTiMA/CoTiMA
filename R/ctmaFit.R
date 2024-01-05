@@ -163,83 +163,91 @@ ctmaFit <- function(
 
 {  # begin function definition (until end of file)
 
+  {
+    if (is.null(randomIntercepts)) randomIntercepts <- FALSE
+    randomInterceptsSettings <- randomIntercepts
+    if (is.null(T0var)) T0var <- 'auto'
+    if (is.null(cint)) cint <- 0
+    if (is.null(fit)) fit <- TRUE
 
-  randomInterceptsSettings <- randomIntercepts
 
-  # adapt display of information during model fit
-  if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMAStanctArgs$verbose}
+    # adapt display of information during model fit
+    if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMAStanctArgs$verbose}
 
-  # check if fit object is specified
-  if (is.null(ctmaInitFit)){
-    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    ErrorMsg <- "\nA fitted CoTiMA object has to be supplied to plot something. \nGood luck for the next try!"
-    stop(ErrorMsg)
-  }
+    # check if fit object is specified
+    if (is.null(ctmaInitFit)){
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      ErrorMsg <- "\nA fitted CoTiMA object has to be supplied to plot something. \nGood luck for the next try!"
+      stop(ErrorMsg)
+    }
 
-  # CHD 18.12.2023
-  if (WEC == TRUE) {
-    Msg <- "The argument WEC=TRUE was used. I assume you want to mimic ctmaInit with all drift effects varying across primary studies (using weighted effect coding).
+    # CHD 18.12.2023
+    if (WEC == TRUE) {
+      Msg <- "The argument WEC=TRUE was used. I assume you want to mimic ctmaInit with all drift effects varying across primary studies (using weighted effect coding).
     Therefore, I set the argument invariantDrift=\'none\', so that all drift effects vary across primary studies."
-    message(Msg)
-    invariantDrift[1] <- 'none'
-    scaleTI <- FALSE
-  }
-
-  if (!(is.null(invariantDrift))) { # added 12.7.2023
-    if ( ((invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE"))  & (scaleTI == TRUE) ) {
-      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-      Msg <- "The argument invariantDrift=\'none\' was used. I assume you want to mimic ctmaInit with all drift effects varying across primary studis.
-    Therefore, I set the argument scaleTI=FALSE."
       message(Msg)
+      invariantDrift[1] <- 'none'
       scaleTI <- FALSE
     }
-  }
 
-  # CHD added Aug 2023 because on github nopriors was replaced by priors argument
-  tmp1 <- formals(ctsem::ctStanFit)
-  if (is.na(tmp1$nopriors)) {
-    nopriors <-NA
-    CoTiMAStanctArgs$nopriors <- NA
-  }
-
-
-  { # set fitting params
-    # Added 17. Aug 2022
-    tmp1 <- names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs); tmp1
-    tmp2 <- CoTiMA::CoTiMAStanctArgs
-    if (!(is.null(CoTiMAStanctArgs))) tmp2[tmp1] <- CoTiMAStanctArgs
-    CoTiMAStanctArgs <- tmp2
-
-    if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
-    if (!(is.null(scaleClus))) CoTiMAStanctArgs$scaleClus <- scaleClus
-    if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
-    if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
-    if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
-    if ( (!(is.null(nopriors))) & (!(is.null(nopriors))) ) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
-    if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
-    if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
-    if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
-    if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
-    if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
-  }
-
-  { # check of catsToCompare or catsToCompare is used only with mod.type = "cat"
-    if ( ((!(is.null(modsToCompare))) & (mod.type != "cat")) |
-         ((!(is.null(catsToCompare))) & (mod.type != "cat")) ) {
-      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-      ErrorMsg <- "The arguments modsToCompare or catsToCompare are only allowed for mod.typ=\"cat\" "
-      stop(ErrorMsg)
+    if (!(is.null(invariantDrift))) { # added 12.7.2023
+      if ( ((invariantDrift[1] == "none") | (invariantDrift[1] == "None") | (invariantDrift[1] == "NONE"))  & (scaleTI == TRUE) ) {
+        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+        Msg <- "The argument invariantDrift=\'none\' was used. I assume you want to mimic ctmaInit with all drift effects varying across primary studis.
+    Therefore, I set the argument scaleTI=FALSE."
+        message(Msg)
+        scaleTI <- FALSE
+      }
     }
-  }
-  if ( (!(is.null(catsToCompare))) & (is.null(modsToCompare)) ) modsToCompare <- 1
 
-
-  { # check if scaleMod is not used in combination with transfMod
-    if ( (!(is.null(scaleMod))) & (!(is.null(transfMod))) ) {
-      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-      ErrorMsg <- "The arguments scaleMod and transfMod cannot be used in combination. Set one of them NULL (leave out)."
-      stop(ErrorMsg)
+    # CHD added Aug 2023 because on github nopriors was replaced by priors argument
+    tmp1 <- formals(ctsem::ctStanFit)
+    if (is.na(tmp1$nopriors)) {
+      nopriors <-NA
+      CoTiMAStanctArgs$nopriors <- NA
     }
+
+
+    { # set fitting params
+      #tmp1 <- names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs); tmp1
+      #tmp2 <- CoTiMA::CoTiMAStanctArgs
+      #if (!(is.null(CoTiMAStanctArgs))) tmp2[tmp1] <- CoTiMAStanctArgs
+      #CoTiMAStanctArgs <- tmp2
+
+
+      if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
+      if (!(is.null(scaleClus))) CoTiMAStanctArgs$scaleClus <- scaleClus
+      if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
+      if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
+      if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
+      if ( (!(is.null(nopriors))) & (!(is.null(nopriors))) ) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
+      if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
+      #CoTiMAStanctArgs$optimcontrol
+      if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
+      if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
+      if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
+      if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
+    }
+
+    { # check of catsToCompare or catsToCompare is used only with mod.type = "cat"
+      if ( ((!(is.null(modsToCompare))) & (mod.type != "cat")) |
+           ((!(is.null(catsToCompare))) & (mod.type != "cat")) ) {
+        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+        ErrorMsg <- "The arguments modsToCompare or catsToCompare are only allowed for mod.typ=\"cat\" "
+        stop(ErrorMsg)
+      }
+    }
+    if ( (!(is.null(catsToCompare))) & (is.null(modsToCompare)) ) modsToCompare <- 1
+
+
+    { # check if scaleMod is not used in combination with transfMod
+      if ( (!(is.null(scaleMod))) & (!(is.null(transfMod))) ) {
+        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+        ErrorMsg <- "The arguments scaleMod and transfMod cannot be used in combination. Set one of them NULL (leave out)."
+        stop(ErrorMsg)
+      }
+    }
+
   }
 
 
@@ -344,7 +352,7 @@ ctmaFit <- function(
       stop(ErrorMsg)
     }
 
-    if (!(is.null(binaries.orig))) message("Effects of binaries on cints not implemented yet.")
+    if ( (!(is.null(binaries.orig))) & !all(binaries == 0) ) message("Effects of binaries on cints not implemented yet.")
 
     n.studies <- unlist(ctmaInitFit$n.studies); n.studies
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
@@ -881,7 +889,6 @@ ctmaFit <- function(
       }
     }
   }
-
 
 
   if (allInvModel == TRUE) {
@@ -1974,7 +1981,15 @@ ctmaFit <- function(
                         manifestMeans=manifestMeans,
                         WEC=WEC,
                         randomIntercepts=randomInterceptsSettings,
-                        CoTiMAStanctArgs=CoTiMAStanctArgs),
+                        CoTiMAStanctArgs=CoTiMAStanctArgs,
+                        T0var=T0var,
+                        priors=priors,
+                        binaries=binaries,
+                        T0var=T0var,
+                        cint=cint,
+                        indVaryingT0=indVaryingT0,
+                        fit=fit
+      ),
       modelResults=list(DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
                         DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale,
                         T0VAR=model_T0var_Coef,
