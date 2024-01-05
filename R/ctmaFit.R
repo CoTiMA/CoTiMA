@@ -344,7 +344,7 @@ ctmaFit <- function(
       stop(ErrorMsg)
     }
 
-    if (!(is.null(binaries.orig))) message("Effects of binaries on cints not implemented yet.")
+    if ( (!(is.null(binaries.orig))) & !all(binaries == 0) ) message("Effects of binaries on cints not implemented yet.")
 
     n.studies <- unlist(ctmaInitFit$n.studies); n.studies
     allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints

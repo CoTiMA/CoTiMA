@@ -300,7 +300,11 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                       T0means=ctmaFitFit$argumentList$T0means,
                       manifestMeans=ctmaFitFit$argumentList$manifestMeans,
                       CoTiMAStanctArgs=ctmaFitFit$argumentList$CoTiMAStanctArgs,
-                      randomIntercepts=ctmaFitFit$argumentList$randomIntercepts
+                      randomIntercepts=ctmaFitFit$argumentList$randomIntercepts,
+                      WEC=ctmaFitFit$argumentList$WEC,
+                      priors=ctmaFitFit$argumentList$priors,
+                      binaries=ctmaFitFit$argumentList$binaries,
+                      ind.mod.number=ctmaFitFit$argumentList$ind.mod.number
       )
       return(fits)
     }
