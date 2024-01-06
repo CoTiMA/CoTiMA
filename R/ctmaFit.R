@@ -171,6 +171,7 @@ ctmaFit <- function(
     if (is.null(fit)) fit <- TRUE
     if (is.null(WEC)) WEC <- FALSE
     if (is.null(CoTiMAStanctArgs)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
+    if (!(exists("nopriors"))) nopriors <- TRUE
     if (is.null(nopriors)) nopriors <- TRUE
     }
 
@@ -224,7 +225,7 @@ ctmaFit <- function(
       if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
       if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
-      if ( (!(is.null(nopriors))) & (!(is.null(nopriors))) ) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
+      if  (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
       if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
       #CoTiMAStanctArgs$optimcontrol
       if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
