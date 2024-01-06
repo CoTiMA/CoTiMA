@@ -349,8 +349,8 @@ ctmaFit <- function(
       stop(ErrorMsg)
     }
 
-    if ( (!(is.null(binaries.orig))) & (indVarying != 'cint') & (indVarying != 'Cint') &
-         (indVarying != 'CINT') & (!(is.null(binaries.orig))) & (!all(binaries == 0)) ) {
+    if ( (!(is.null(binaries.orig))) & (indVarying != 'cint') & (indVarying != 'Cint') & (indVarying != 'CINT') &
+         (!(is.null(binaries.orig))) & (!all(binaries == 0)) ) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       ErrorMsg <- "\nYou specified binary variables. You also need to specify \"indvarying=\'cint\'\". \nGood luck for the next try!"
       stop(ErrorMsg)
