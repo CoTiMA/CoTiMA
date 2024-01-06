@@ -174,6 +174,7 @@ ctmaFit <- function(
     #if (!(exists("nopriors"))) nopriors <- TRUE
     #if (is.null(nopriors)) nopriors <- TRUE
     nopriors <- TRUE
+    print(nopriors)
     }
 
 
