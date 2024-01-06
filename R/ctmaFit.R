@@ -163,12 +163,14 @@ ctmaFit <- function(
 {  # begin function definition (until end of file)
 
   {
+    { # adaptations to account for new arguments introduce
     if (is.null(randomIntercepts)) randomIntercepts <- FALSE
     randomInterceptsSettings <- randomIntercepts
     if (is.null(T0var)) T0var <- 'auto'
     if (is.null(cint)) cint <- 0
     if (is.null(fit)) fit <- TRUE
     if (is.null(WEC)) WEC <- FALSE
+    }
 
 
     # adapt display of information during model fit
