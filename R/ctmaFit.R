@@ -211,8 +211,10 @@ ctmaFit <- function(
     # CHD added Aug 2023 because on github nopriors was replaced by priors argument
     tmp1 <- formals(ctsem::ctStanFit)
     if (is.na(tmp1$nopriors)) {
-      nopriors <-NA
-      CoTiMAStanctArgs$nopriors <- NA
+      #nopriors <-NA
+      #CoTiMAStanctArgs$nopriors <- NA
+      nopriors <-TRUE
+      CoTiMAStanctArgs$nopriors <- TRUE
     }
 
 
