@@ -171,6 +171,7 @@ ctmaFit <- function(
     if (is.null(fit)) fit <- TRUE
     if (is.null(WEC)) WEC <- FALSE
     if (is.null(CoTiMAStanctArgs)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
+    if (is.null(nopriors)) nopriors <- TRUE
     }
 
 
