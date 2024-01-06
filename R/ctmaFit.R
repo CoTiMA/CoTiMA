@@ -1363,7 +1363,7 @@ ctmaFit <- function(
 
     ### resample in parcels to avoid memory crash and speed up
     if (fit == TRUE) {
-      if (!(is.null(CoTiMAStanctArgs$resample))) {
+      if ( (!(is.null(CoTiMAStanctArgs$resample))) & (CoTiMAStanctArgs$resample != 0) ) {
         fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel)
         #saveRDS(fitStanctModel, paste0(activeDirectory, "fitStanctModel.rds"))
         #fitStanctModel <- readRDS(paste0(activeDirectory, "fitStanctModel.rds"))
