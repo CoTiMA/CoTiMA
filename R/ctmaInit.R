@@ -140,7 +140,8 @@ ctmaInit <- function(
     Msg <- "################################################################################# \n########################## Check Model Specification ############################ \n#################################################################################"
     message(Msg)
 
-    if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMA::CoTiMAStanctArgs$verbose}
+    #if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMA::CoTiMAStanctArgs$verbose}
+    if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMAStanctArgs$verbose}
 
     if (is.null(primaryStudies)) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
