@@ -271,7 +271,6 @@ ctmaInit <- function(
 
   } ### END Check Model Specification ###
 
-verbose <- 0
 
   #######################################################################################################################
   ##################### Read user provided data and create list with all study information ##############################
