@@ -36,9 +36,9 @@
 #' @param transfMod more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))
 
 #'
-#' @importFrom doParallel registerDoParallel
-#' @importFrom parallel makeCluster
-#' @importFrom foreach %dopar%
+#' @importFrom doParallel registerDoParallel # deprecated
+#' @importFrom parallel makeCluster # deprecated
+#' @importFrom foreach %dopar% # deprecated
 #' @importFrom RPushbullet pbPost
 #' @importFrom stats runif
 #' @importFrom methods is
@@ -118,27 +118,30 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     #  }
     #}
     #
+        skip <- 0 # parallel processing deprecated
+        if (skip == 1) {
 
-        if (parallel == TRUE) {
-          if (.Platform$OS.type == "unix") {
-            coresToUseTmp <- coresToUse
-            parProces <- min(c(coresToUse, reFits)) # 8 & 5 => 5
-            coresToUse <- coresToUse%/%reFits # integer division # => 4
-            if (coresToUse < 1) {
-              coresToUse <- 1
-              parProces <- coresToUseTmp
+          if (parallel == TRUE) {
+            if (.Platform$OS.type == "unix") {
+              coresToUseTmp <- coresToUse
+              parProces <- min(c(coresToUse, reFits)) # 8 & 5 => 5
+              coresToUse <- coresToUse%/%reFits # integer division # => 4
+              if (coresToUse < 1) {
+                coresToUse <- 1
+                parProces <- coresToUseTmp
+              }
+              myCluster <- parallel::makeCluster(parProces) # => 2
+              on.exit(parallel::stopCluster(myCluster))
+              #doParallel::registerDoParallel(coresToUse)
+              doParallel::registerDoParallel(myCluster)
             }
-            myCluster <- parallel::makeCluster(parProces) # => 2
+          } else {
+            parProces <- 1
+            myCluster <- parallel::makeCluster(parProces)
             on.exit(parallel::stopCluster(myCluster))
             #doParallel::registerDoParallel(coresToUse)
             doParallel::registerDoParallel(myCluster)
           }
-        } else {
-          parProces <- 1
-          myCluster <- parallel::makeCluster(parProces)
-          on.exit(parallel::stopCluster(myCluster))
-          #doParallel::registerDoParallel(coresToUse)
-          doParallel::registerDoParallel(myCluster)
         }
 
 
@@ -168,7 +171,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
 
   ########################################################################################################################
 
-  '%dopar%' <- foreach::'%dopar%'
+  #'%dopar%' <- foreach::'%dopar%' deprecated
 
   if (randomScaleTime[2] < randomScaleTime[1]) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
@@ -235,15 +238,19 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     newStudyList$n.studies <- 1
 
     # parallel re-fitting of problem study
-    allfits <- foreach::foreach(i=1:reFits) %dopar% {
+    allfits <- list()
+    #allfits <- foreach::foreach(i=1:reFits) %dopar% {
+    for (i in 1:reFits) {
       scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
       if (randomPar == TRUE) {
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         customPar = c(TRUE, FALSE)[tmp1]
       }
-      fits <- ctmaInit(primaryStudies=newStudyList,
+      #fits <- ctmaInit(primaryStudies=newStudyList,
+      allfits[[i]] <- ctmaInit(primaryStudies=newStudyList,
                        #coresToUse = 1,
                        coresToUse = coresToUse, # changed Aug 2023
+                       CoTiMAStanctArgs=CoTiMAStanctArgs,
                        n.latent=n.latent,
                        indVarying = indVarying,
                        scaleTime = scaleTime,
@@ -253,7 +260,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                        T0means=T0means,
                        manifestMeans=manifestMeans,
                        manifestVars=manifestVars)
-      return(fits)
+      #return(fits)
     }
   }
 
@@ -264,14 +271,17 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       stop(ErrorMsg)
     }
 
-    allfits <- foreach::foreach(i=1:reFits) %dopar% {
+    allfits <- list()
+    #allfits <- foreach::foreach(i=1:reFits) %dopar% {
+    for (i in 1:reFits) {
       scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
       if (randomPar == TRUE) {
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         customPar = c(TRUE, FALSE)[tmp1]
       }
 
-      fits <- ctmaFit(ctmaInitFit=ctmaInitFit,
+      #fits <- ctmaFit(ctmaInitFit=ctmaInitFit,
+      allfits[[i]] <- ctmaFit(ctmaInitFit=ctmaInitFit,
                       primaryStudyList=ctmaInitFit$primaryStudyList,
                       cluster=ctmaFitFit$argumentList$cluster,
                       activeDirectory=activeDirectory,
@@ -323,7 +333,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                       indVaryingT0=ctmaFitFit$argumentList$indVaryingT0,
                       fit=ctmaFitFit$argumentList$fit
                       )
-      return(fits)
+      #return(fits)
     }
   }
 
