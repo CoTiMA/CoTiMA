@@ -372,7 +372,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     }
     all_minus2ll <- all_minus2ll[-(which(all_minus2ll < 0))]
   }
-  #
+
   #bestFit <- which(unlist(all_minus2ll) == min(unlist(all_minus2ll)))[1]; bestFit
   #bestFit <- allfits[[bestFit]]
 
