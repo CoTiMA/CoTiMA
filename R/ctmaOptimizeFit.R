@@ -108,20 +108,27 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     }
 
     # CHD ADDED Aug. 2023
-    if (!(is.null(reFits))) {
-      if (parallel == TRUE) {
-        parProces <- min(c(coresToUse, reFits))
-        coresToUse <- coresToUse%/%reFits # integer division
-        if (coresToUse < 1) coresToUse <- 1
-      } else {
+    #if (!(is.null(reFits))) {
+    #  if (parallel == TRUE) {
+    #    parProces <- min(c(coresToUse, reFits)) # moved down
+    #    coresToUse <- coresToUse%/%reFits # integer division # moved down
+    #    if (coresToUse < 1) coresToUse <- 1
+    #  } else {
         parProces <- coresToUse
-      }
-    }
+    #  }
+    #}
     #
 
     if (.Platform$OS.type == "unix") {
       if (parallel == TRUE) {
-        myCluster <- parallel::makeCluster(parProces)
+        coresToUseTmp <- coresToUse
+        parProces <- min(c(coresToUse, reFits)) # 8 & 5 => 5
+        coresToUse <- coresToUse%/%reFits # integer division # => 4
+        if (coresToUse < 1) {
+          coresToUse <- 1
+          parProces <- coresToUseTmp
+        }
+        myCluster <- parallel::makeCluster(parProces) # => 2
         on.exit(parallel::stopCluster(myCluster))
         #doParallel::registerDoParallel(coresToUse)
         doParallel::registerDoParallel(myCluster)
