@@ -23,7 +23,7 @@
 #' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param manifestVars define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest. Useful to check estimates before they are saved.
 #' @param n.latent number of latent variables of the model (hast to be specified)!
-#' @param parallel (default = TRUE). When set to FALSE parallel fitting on clusters is disabled (multiple cores are still used)
+#' @param parallel (default = FALSE). When set to trUe parallel fitting on clusters is enabled (could save some time when many refits are done)
 #' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
 #' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}
 #' @param problemStudy number (position in list) where the problem study in primaryStudies is found
@@ -86,7 +86,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             scaleTime=NULL,
                             T0means=0,
                             transfMod=NULL,
-                            parallel=TRUE
+                            parallel=FALSE
 )
 {
 
@@ -119,23 +119,27 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     #}
     #
 
-    if (.Platform$OS.type == "unix") {
-      if (parallel == TRUE) {
-        coresToUseTmp <- coresToUse
-        parProces <- min(c(coresToUse, reFits)) # 8 & 5 => 5
-        coresToUse <- coresToUse%/%reFits # integer division # => 4
-        if (coresToUse < 1) {
-          coresToUse <- 1
-          parProces <- coresToUseTmp
+        if (parallel == TRUE) {
+          if (.Platform$OS.type == "unix") {
+            coresToUseTmp <- coresToUse
+            parProces <- min(c(coresToUse, reFits)) # 8 & 5 => 5
+            coresToUse <- coresToUse%/%reFits # integer division # => 4
+            if (coresToUse < 1) {
+              coresToUse <- 1
+              parProces <- coresToUseTmp
+            }
+            myCluster <- parallel::makeCluster(parProces) # => 2
+            on.exit(parallel::stopCluster(myCluster))
+            #doParallel::registerDoParallel(coresToUse)
+            doParallel::registerDoParallel(myCluster)
+          }
+        } else {
+          parProces <- 1
+          myCluster <- parallel::makeCluster(parProces)
+          on.exit(parallel::stopCluster(myCluster))
+          #doParallel::registerDoParallel(coresToUse)
+          doParallel::registerDoParallel(myCluster)
         }
-        myCluster <- parallel::makeCluster(parProces) # => 2
-        on.exit(parallel::stopCluster(myCluster))
-        #doParallel::registerDoParallel(coresToUse)
-        doParallel::registerDoParallel(myCluster)
-      }
-    } else {
-      doParallel::registerDoParallel(1)
-    }
 
     if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
 
