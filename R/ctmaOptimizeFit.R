@@ -158,6 +158,9 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         tmp2[tmp1] <- CoTiMAStanctArgsTmp
         CoTiMAStanctArgs <- tmp2
         }
+        #
+        if (is.null(CoTiMAStanctArgsTmp)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
+        #
         if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
         #
         #CoTiMAStanctArgs
@@ -307,7 +310,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                       useSampleFraction=ctmaFitFit$argumentList$useSampleFraction,
                       T0means=ctmaFitFit$argumentList$T0means,
                       manifestMeans=ctmaFitFit$argumentList$manifestMeans,
-                      CoTiMAStanctArgs=ctmaFitFit$argumentList$CoTiMAStanctArgs,
+                      CoTiMAStanctArgs=CoTiMAStanctArgs,
                       randomIntercepts=ctmaFitFit$argumentList$randomIntercepts,
                       WEC=ctmaFitFit$argumentList$WEC,
                       priors=ctmaFitFit$argumentList$priors,
