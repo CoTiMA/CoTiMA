@@ -149,7 +149,8 @@ ctmaEqual <- function(
     optimize=CoTiMAStanctArgs$optimize,
     optimcontrol=CoTiMAStanctArgs$optimcontrol,
     nlcontrol=CoTiMAStanctArgs$nlcontrol,
-    nopriors=CoTiMAStanctArgs$nopriors,
+    #nopriors=CoTiMAStanctArgs$nopriors,
+    nopriors=NA,
     priors=CoTiMAStanctArgs$priors, # added Aug 2023
     chains=CoTiMAStanctArgs$chains,
     forcerecompile=CoTiMAStanctArgs$forcerecompile,
