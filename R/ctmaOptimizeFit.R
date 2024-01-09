@@ -173,6 +173,13 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
 
   #'%dopar%' <- foreach::'%dopar%' deprecated
 
+  if (!(is.null(scaleTime))) {
+    randomScaleTime[1] <- randomScaleTime[2] <- scaleTime
+    Msg <- paste0("You provded the argumend scaleTime. This will override the randomScaleTime argument, and both values of the randomScaleTime argument will be set to, ", scaleTime, ".\n")
+    message(Msg)
+
+  }
+
   if (randomScaleTime[2] < randomScaleTime[1]) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
     ErrorMsg <- "\nrandomScaleTime[1] has to be <= randomScaleTime[2]! \nGood luck for the next try!"
