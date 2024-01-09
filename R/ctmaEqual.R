@@ -150,7 +150,7 @@ ctmaEqual <- function(
     optimcontrol=CoTiMAStanctArgs$optimcontrol,
     nlcontrol=CoTiMAStanctArgs$nlcontrol,
     #nopriors=CoTiMAStanctArgs$nopriors,
-    nopriors=TRUE,
+    #nopriors=TRUE,
     priors=CoTiMAStanctArgs$priors, # added Aug 2023
     chains=CoTiMAStanctArgs$chains,
     forcerecompile=CoTiMAStanctArgs$forcerecompile,
