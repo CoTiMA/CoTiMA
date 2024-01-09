@@ -42,7 +42,7 @@ ctmaEqual <- function(
 {  # begin function definition (until end of file)
 
   # use same fitting params as used to fit ctmaInvariantFit
-  CoTiMAStanctArgs <- ctmaInvariantFit$CoTiMAStanctArgs
+  CoTiMAStanctArgs <- ctmaInvariantFit$argumentList$CoTiMAStanctArgs
 
   # check if mutipleDriftFit object is supplied
   if (! ((ctmaInvariantFit$model.type == "mx") || (ctmaInvariantFit$model.type == "stanct")) ) {
