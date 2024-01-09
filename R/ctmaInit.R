@@ -26,7 +26,7 @@
 #' @param manifestVars define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
 #' @param n.latent number of latent variables of the model (hast to be specified)!
 #' @param n.manifest number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
-#' @param nopriors Deprecated, but still working. If TRUE, any priors are disabled – sometimes desirable for optimization
+#' @param nopriors Deprecated. If TRUE, any priors are disabled – sometimes desirable for optimization
 #' @param optimize if set to FALSE, Stan's Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
 #' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}}
@@ -106,7 +106,7 @@ ctmaInit <- function(
     manifestVars=NULL,
     n.latent=NULL,
     n.manifest=0,
-    nopriors=FALSE,
+    #nopriors=FALSE,
     optimize=TRUE,
     posLL=TRUE,
     primaryStudies=NULL,
@@ -211,11 +211,11 @@ ctmaInit <- function(
     }
 
     # CHD added Aug 2023 because on github nopriors was replaced by priors argument
-    tmp1 <- formals(ctsem::ctStanFit)
-    if (is.na(tmp1$nopriors)) {
-      nopriors <-NA
-      CoTiMAStanctArgs$nopriors <- NA
-    }
+    #tmp1 <- formals(ctsem::ctStanFit)
+    #if (is.na(tmp1$nopriors)) {
+    #  nopriors <-NA
+    #  CoTiMAStanctArgs$nopriors <- NA
+    #}
 
     # CHD changed on 19 Sep 2022
     if (doPar > 1) {
@@ -258,7 +258,7 @@ ctmaInit <- function(
       if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
       if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
-      if ( (!(is.null(nopriors))) & (!(is.null(nopriors))) ) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
+      #if ( (!(is.null(nopriors))) & (!(is.null(nopriors))) ) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
       if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
       if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
       if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
@@ -1108,7 +1108,7 @@ ctmaInit <- function(
             optimize=CoTiMAStanctArgs$optimize,
             optimcontrol=CoTiMAStanctArgs$optimcontrol,
             nlcontrol=CoTiMAStanctArgs$nlcontrol,
-            nopriors=CoTiMAStanctArgs$nopriors,
+            #nopriors=CoTiMAStanctArgs$nopriors,
             priors=CoTiMAStanctArgs$priors,
             chains=CoTiMAStanctArgs$chains,
             forcerecompile=CoTiMAStanctArgs$forcerecompile,
@@ -1157,7 +1157,7 @@ ctmaInit <- function(
               optimize=CoTiMAStanctArgs$optimize,
               optimcontrol=CoTiMAStanctArgs$optimcontrol,
               nlcontrol=CoTiMAStanctArgs$nlcontrol,
-              nopriors=CoTiMAStanctArgs$nopriors,
+              #nopriors=CoTiMAStanctArgs$nopriors,
               priors=CoTiMAStanctArgs$priors,
               chains=CoTiMAStanctArgs$chains,
               forcerecompile=CoTiMAStanctArgs$forcerecompile,
@@ -1706,7 +1706,7 @@ ctmaInit <- function(
                                     manifestVars=manifestVars,
                                     n.latent=n.latent,
                                     n.manifest=n.manifest,
-                                    nopriors=nopriors,
+                                    #nopriors=nopriors,
                                     optimize=optimize,
                                     posLL=posLL,
                                     primaryStudies=primaryStudies,
