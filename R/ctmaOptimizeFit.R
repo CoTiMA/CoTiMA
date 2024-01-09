@@ -238,8 +238,10 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     newStudyList$n.studies <- 1
 
     # parallel re-fitting of problem study
-    allfits <- list()
+    #allfits <- list()
     #allfits <- foreach::foreach(i=1:reFits) %dopar% {
+    currentLL <- 10^20; currentLL
+    all_minus2ll <- c()
     for (i in 1:reFits) {
       scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
       if (randomPar == TRUE) {
@@ -247,8 +249,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         customPar = c(TRUE, FALSE)[tmp1]
       }
       #fits <- ctmaInit(primaryStudies=newStudyList,
-      allfits[[i]] <- ctmaInit(primaryStudies=newStudyList,
-                       #coresToUse = 1,
+      #allfits[[i]] <- ctmaInit(primaryStudies=newStudyList,
+      fits <- ctmaInit(primaryStudies=newStudyList,
                        coresToUse = coresToUse, # changed Aug 2023
                        CoTiMAStanctArgs=CoTiMAStanctArgs,
                        n.latent=n.latent,
@@ -260,7 +262,15 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                        T0means=T0means,
                        manifestMeans=manifestMeans,
                        manifestVars=manifestVars)
+
+      all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
+      if (fit$summary$minus2ll < currentLL) {
+        currentLL <- fit$summary$minus2ll
+        bestFit <- fit
+      }
+
       #return(fits)
+
     }
   }
 
@@ -271,8 +281,10 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       stop(ErrorMsg)
     }
 
-    allfits <- list()
+    #allfits <- list()
     #allfits <- foreach::foreach(i=1:reFits) %dopar% {
+    currentLL <- 10^20; currentLL
+    all_minus2ll <- c()
     for (i in 1:reFits) {
       scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
       if (randomPar == TRUE) {
@@ -281,7 +293,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       }
 
       #fits <- ctmaFit(ctmaInitFit=ctmaInitFit,
-      allfits[[i]] <- ctmaFit(ctmaInitFit=ctmaInitFit,
+      fit <- ctmaFit(ctmaInitFit=ctmaInitFit,
                       primaryStudyList=ctmaInitFit$primaryStudyList,
                       cluster=ctmaFitFit$argumentList$cluster,
                       activeDirectory=activeDirectory,
@@ -333,12 +345,18 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                       indVaryingT0=ctmaFitFit$argumentList$indVaryingT0,
                       fit=ctmaFitFit$argumentList$fit
                       )
+
+      all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
+      if (fit$summary$minus2ll < currentLL) {
+        currentLL <- fit$summary$minus2ll
+        bestFit <- fit
+      }
       #return(fits)
     }
   }
 
 
-  all_minus2ll <- lapply(allfits, function(x) x$summary$minus2ll)
+  #all_minus2ll <- lapply(allfits, function(x) x$summary$minus2ll)
   # CHD added 27 SEP 2022 to prevent neg -2ll fits
   if(posLL == FALSE) {
     if (all(all_minus2ll < 0)) {
@@ -348,8 +366,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     all_minus2ll <- all_minus2ll[-(which(all_minus2ll < 0))]
   }
   #
-  bestFit <- which(unlist(all_minus2ll) == min(unlist(all_minus2ll)))[1]; bestFit
-  bestFit <- allfits[[bestFit]]
+  #bestFit <- which(unlist(all_minus2ll) == min(unlist(all_minus2ll)))[1]; bestFit
+  #bestFit <- allfits[[bestFit]]
 
   results <- list(bestFit=bestFit, all_minus2ll=all_minus2ll, summary=bestFit$summary,
                   resultsSummary=bestFit$studyFitList[[1]]$resultsSummary
