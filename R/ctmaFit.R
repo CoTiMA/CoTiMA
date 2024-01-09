@@ -157,8 +157,6 @@ ctmaFit <- function(
     verbose=NULL,
     WEC=FALSE
 )
-
-
 {  # begin function definition (until end of file)
 
   {
@@ -234,6 +232,7 @@ ctmaFit <- function(
       if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
       if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
       if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
+      CoTiMAStanctArgs # check if running this is required
     }
 
     { # check of catsToCompare or catsToCompare is used only with mod.type = "cat"
