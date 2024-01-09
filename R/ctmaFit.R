@@ -37,7 +37,6 @@
 #' @param mod.type 'cont' or 'cat' (mixing them in a single model not yet possible)
 #' @param moderatedDrift labels for drift effects that are moderated (default = all drift effects)
 #' @param modsToCompare when performing contrasts for categorical moderators, the moderator numbers (position in mod.number) that is used
-#' @param nopriors Deprecated, but still working. If TRUE, any priors are disabled – sometimes desirable for optimization
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param primaryStudyList  could be a list of primary studies compiled with \code{\link{ctmaPrep}} that defines the subset of studies in ctmaInitFit that should actually be used
 #' @param priors if FALSE, any priors are disabled – sometimes desirable for optimization
@@ -141,7 +140,7 @@ ctmaFit <- function(
     mod.type="cont",
     moderatedDrift=NULL,
     modsToCompare=NULL,
-    nopriors=TRUE,
+    #nopriors=TRUE,
     optimize=TRUE,
     primaryStudyList=NULL,
     priors=FALSE,
@@ -171,9 +170,9 @@ ctmaFit <- function(
     if (is.null(fit)) fit <- TRUE
     if (is.null(WEC)) WEC <- FALSE
     if (is.null(CoTiMAStanctArgs)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
-    if (!(exists("nopriors"))) nopriors <- TRUE
-    if (is.null(nopriors)) nopriors <- TRUE
-    if (is.na(nopriors)) nopriors <- TRUE
+    #if (!(exists("nopriors"))) nopriors <- TRUE
+    #if (is.null(nopriors)) nopriors <- TRUE
+    #if (is.na(nopriors)) nopriors <- TRUE
     #nopriors <- TRUE
     #print(nopriors)
     }
@@ -209,11 +208,11 @@ ctmaFit <- function(
     }
 
     # CHD added Aug 2023 because on github nopriors was replaced by priors argument
-    tmp1 <- formals(ctsem::ctStanFit)
-    if (is.na(tmp1$nopriors)) {
-      nopriors <-NA
-      CoTiMAStanctArgs$nopriors <- NA
-    }
+    #tmp1 <- formals(ctsem::ctStanFit)
+    #if (is.na(tmp1$nopriors)) {
+    #  nopriors <-NA
+    #  CoTiMAStanctArgs$nopriors <- NA
+    #}
 
 
     { # set fitting params
@@ -228,7 +227,7 @@ ctmaFit <- function(
       if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
       if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
-      if  (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
+      #if  (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
       if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
       #CoTiMAStanctArgs$optimcontrol
       if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
@@ -909,7 +908,7 @@ ctmaFit <- function(
                                     coresToUse=coresToUse,
                                     scaleTime=scaleTime,
                                     optimize=optimize,
-                                    nopriors=nopriors,
+                                    #nopriors=nopriors,
                                     priors=priors,
                                     finishsamples=finishsamples,
                                     iter=iter,
@@ -1355,7 +1354,7 @@ ctmaFit <- function(
       optimize=CoTiMAStanctArgs$optimize,
       optimcontrol=CoTiMAStanctArgs$optimcontrol,
       nlcontrol=CoTiMAStanctArgs$nlcontrol,
-      nopriors=CoTiMAStanctArgs$nopriors,
+      #nopriors=CoTiMAStanctArgs$nopriors,
       priors=CoTiMAStanctArgs$priors, # added Aug 2023
       chains=CoTiMAStanctArgs$chains,
       forcerecompile=CoTiMAStanctArgs$forcerecompile,
@@ -1974,7 +1973,7 @@ ctmaFit <- function(
                         scaleClus=scaleClus,
                         scaleTime=scaleTime,
                         optimize=optimize,
-                        nopriors=nopriors,
+                        #nopriors=nopriors,
                         finishsamples=finishsamples,
                         iter=iter,
                         chains=chains,
