@@ -232,7 +232,7 @@ ctmaFit <- function(
       if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
       if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
       if (!(is.null(verbose))) CoTiMAStanctArgs$verbose <- verbose
-      CoTiMAStanctArgs # check if running this is required
+      #CoTiMAStanctArgs # check if running this is
     }
 
     { # check of catsToCompare or catsToCompare is used only with mod.type = "cat"
