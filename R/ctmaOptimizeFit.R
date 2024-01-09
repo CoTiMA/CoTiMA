@@ -271,9 +271,9 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                        manifestVars=manifestVars)
 
       all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
-      if (fit$summary$minus2ll < currentLL) {
+      if (fits$summary$minus2ll < currentLL) {
         currentLL <- fit$summary$minus2ll
-        bestFit <- fit
+        bestFit <- fits
       }
 
       #return(fits)
