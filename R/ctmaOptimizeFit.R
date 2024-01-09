@@ -141,30 +141,26 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
           doParallel::registerDoParallel(myCluster)
         }
 
-    if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
 
-    # Added 17. Aug 2022
-    skip <- 0
-    if (skip == 1) {
-    tmp1 <- which(names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs)); tmp1
-    tmp2 <- CoTiMA::CoTiMAStanctArgs
-    if (!(is.null(CoTiMAStanctArgs))) {
-      tmp2[tmp1] <- CoTiMAStanctArgs
-    }
-    CoTiMAStanctArgs <- tmp2
-    } else {
-      CoTiMAStanctArgsTmp <- CoTiMAStanctArgs
-      if (!(is.null(CoTiMAStanctArgsTmp))) {
+        # Dealing with CoTiMAStanctArgs
+        CoTiMAStanctArgsTmp <- CoTiMAStanctArgs
+        if( (!(is.null(ctmaFitFit))) & (is.null(CoTiMAStanctArgs)) ) {
+          CoTiMAStanctArgs <- ctmaFitFit$argumentList$CoTiMAStanctArgs
+        }
+        #
+        if( (is.null(ctmaFitFit)) & (is.null(CoTiMAStanctArgs)) & (!(is.null(ctmaInitFit))) ) {
+          CoTiMAStanctArgs <- ctmaInitFit$argumentList$CoTiMAStanctArgs
+        }
+        #
+        if (!(is.null(CoTiMAStanctArgsTmp))) {
         tmp1 <- which(names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgsTmp)); tmp1
         tmp2 <- CoTiMA::CoTiMAStanctArgs
         tmp2[tmp1] <- CoTiMAStanctArgsTmp
         CoTiMAStanctArgs <- tmp2
-      } else {
-        CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
-      }
-    }
-  }
-  #CoTiMAStanctArgs
+        }
+        if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
+        #
+        #CoTiMAStanctArgs
 
   ########################################################################################################################
 
