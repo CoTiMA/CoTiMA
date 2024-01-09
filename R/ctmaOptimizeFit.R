@@ -161,6 +161,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
         #
         #CoTiMAStanctArgs
+  }
 
   ########################################################################################################################
 
