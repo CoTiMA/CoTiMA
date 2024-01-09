@@ -1366,15 +1366,15 @@ ctmaFit <- function(
       inits=inits))
 
     ### resample in parcels to avoid memory crash and speed up
-    if (fit == TRUE) {
-      if ( (!(is.null(CoTiMAStanctArgs$resample))) & (CoTiMAStanctArgs$resample != 0) ) {
-        fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel)
-        #saveRDS(fitStanctModel, paste0(activeDirectory, "fitStanctModel.rds"))
-        #fitStanctModel <- readRDS(paste0(activeDirectory, "fitStanctModel.rds"))
-      }
-      if (is.null(fitStanctModel$standata$priors)) fitStanctModel$standata$priors <- 0 # CHD added Sep 2023)
-      fitStanctModel_summary <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
-    } # end if (fit == TRUE)
+    #if (fit == TRUE) {
+    #  if ( (!(is.null(CoTiMAStanctArgs$resample))) & (CoTiMAStanctArgs$resample != 0) ) {
+    #    fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel)
+    #    #saveRDS(fitStanctModel, paste0(activeDirectory, "fitStanctModel.rds"))
+    #    #fitStanctModel <- readRDS(paste0(activeDirectory, "fitStanctModel.rds"))
+    #  }
+    #  if (is.null(fitStanctModel$standata$priors)) fitStanctModel$standata$priors <- 0 # CHD added Sep 2023)
+    #  fitStanctModel_summary <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
+    #} # end if (fit == TRUE)
 
     if (fit == FALSE) {
       print(paste0("#################################################################################"))
