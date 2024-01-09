@@ -132,6 +132,9 @@ ctmaEqual <- function(
 
   prevData <- ctmaInvariantFit$data
 
+  priors <- FALSE
+  if (!(is.null(CoTiMAStanctArgs$priors))) priors <- CoTiMAStanctArgs$priors else priors <- FALSE
+
   fitStanctModel <- ctsem::ctStanFit(
     inits=prevEst,
     datalong = prevData,
@@ -151,7 +154,8 @@ ctmaEqual <- function(
     nlcontrol=CoTiMAStanctArgs$nlcontrol,
     #nopriors=CoTiMAStanctArgs$nopriors,
     #nopriors=TRUE,
-    priors=CoTiMAStanctArgs$priors, # added Aug 2023
+    #priors=CoTiMAStanctArgs$priors, # added Aug 2023
+    priors=priors,
     chains=CoTiMAStanctArgs$chains,
     forcerecompile=CoTiMAStanctArgs$forcerecompile,
     savescores=CoTiMAStanctArgs$savescores,
