@@ -110,12 +110,12 @@ ctmaPrep <- function(selectedStudies=NULL,
 
   ctma <- globalenv()
 
-  if ( (is.null(selectedStudies)) & ( (!is.null(ctmaPrepObject)) | (!is.null(exclude)) ) ) {
+  if ( (is.null(selectedStudies)) & ( (is.null(ctmaPrepObject)) | (is.null(exclude)) ) ) {
     ErrorMsg <- "Number of primary studies to combine in the list was not specified! \nGood luck for the next try!"
     stop(ErrorMsg)
   }
 
-  if ( (!is.null(selectedStudies)) & (!(is.null(exlude))) )  {
+  if ( (!is.null(selectedStudies)) & (!(is.null(exclude))) )  {
     ErrorMsg <- "The arguments \"selectedStudies\" and \"exclude\" cannot be used together! \nGood luck for the next try!"
     stop(ErrorMsg)
   }
@@ -135,11 +135,11 @@ ctmaPrep <- function(selectedStudies=NULL,
     stop(ErrorMsg)
   }
 
-
   if ( (!is.null(ctmaPrepObject)) & (!is.null(exclude)) )  {
     old.n.studies <- ctmaPrepObject$n.studies
     ctmaPrepObject$n.studies <- ctmaPrepObject$n.studies - length(exclude)
-    for (i in exclude) {
+    exclude <- which(unlist(ctmaPrepObject$studyNumbers) %in% exclude)
+    for (i in sort(exclude, decreasing=TRUE)) {
       for (j in 1:length(names(ctmaPrepObject))) {
         if (names(ctmaPrepObject)[j] %in% c("studyNumbers", "empcovs", "deltas", "sampleSizes",
                                             "moderators", "source", "pairwiseNs", "rawData")) {
@@ -149,8 +149,8 @@ ctmaPrep <- function(selectedStudies=NULL,
         }
       }
     }
-    primaryStudyList <- ctmaPrepObject
-    if (!(is.null(activeDirectory))) primaryStudyList$activeDirectory <- activeDirectory
+    primaryStudies <- ctmaPrepObject
+    if (!(is.null(activeDirectory))) primaryStudies$activeDirectory <- activeDirectory
   } else {
 
     deltas <- sampleSizes <- empcovs <- moderators <- startValues <- studyNumbers <- pairwiseNs <- rawData <- empMeans <- empVars <- source <- list()
