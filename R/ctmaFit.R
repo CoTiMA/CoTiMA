@@ -443,12 +443,12 @@ ctmaFit <- function(
         raw data file than the number specified via ind.mod.number . Check your data, redo ctmaPrep and ctmaInit again. \nGood luck for the next try!"
         stop(ErrorMsg)
       }
-      is.matrix(tmpMods[[1]])
       if (!(is.matrix(tmpMods[[1]]))) tmpMods <- lapply(tmpMods, function(x) matrix(x, ncol=1))
       if (is.list(tmpMods)) {
-        tmpModstmp <- matrix(unlist(tmpMods[[1]]), ncol=nrow(tmpMods[[1]]))
-        str(tmpModstmp)
-        for (t in 2:length(tmpMods)) tmpModstmp <- rbind(tmpModstmp, matrix(unlist(tmpMods[[t]]), ncol=nrow(tmpMods[[t]])))
+        #tmpModstmp <- matrix(unlist(tmpMods[[1]]), ncol=nrow(tmpMods[[1]]))
+        tmpModstmp <- matrix(unlist(tmpMods[[1]]), ncol=ncol(tmpMods[[1]]))
+        #for (t in 2:length(tmpMods)) tmpModstmp <- rbind(tmpModstmp, matrix(unlist(tmpMods[[t]]), ncol=nrow(tmpMods[[t]])))
+        for (t in 2:length(tmpMods)) tmpModstmp <- rbind(tmpModstmp, matrix(unlist(tmpMods[[t]]), ncol=ncol(tmpMods[[t]])))
         tmpMods <- tmpModstmp
       }
       tmp1 <- unlist(lapply(tmpMods, function(x) {
