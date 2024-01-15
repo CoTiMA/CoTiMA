@@ -66,21 +66,21 @@ ctmaRedHet <- function(activateRPB=FALSE,
 
   start.time <- Sys.time(); start.time
   {
-    driftNames1 <- ctmaFitObject$parameterNames$DRIFT; driftNames1
-    n.latent1 <- ctmaFitObject$n.latent; n.latent1
-    n.studies1 <- length(ctmaFitObject$studyList); n.studies1
+    driftNames1 <- driftNames2 <- ctmaFitObject$parameterNames$DRIFT; driftNames1
+    n.latent1 <- n.latent2 <- ctmaFitObject$n.latent; n.latent1
+    n.studies1 <- n.studies2 <- length(ctmaFitObject$studyList); n.studies1
     finishsamples1 = dim(ctmaFitObject$studyFitList$stanfit$rawposterior)[1]; finishsamples1
     #
     DRIFTCoeff1 <- matrix(unlist(ctmaFitObject$modelResults$DRIFTCoeffViaWECMean), nrow=n.studies1, byrow=T); DRIFTCoeff1
     DRIFTSE1 <- matrix(unlist(ctmaFitObject$modelResults$DRIFTCoeffViaWECSD), nrow=n.studies1, byrow=T); DRIFTSE1
-    DRIFTCoeffSND1 <- DRIFTCoeff2 / DRIFTSE2; DRIFTCoeffSND1
+    DRIFTCoeffSND1 <- DRIFTCoeff1 / DRIFTSE1; DRIFTCoeffSND1
     DRIFTPrecision1 <- c(rep(1, n.latent1^2))/(DRIFTSE1); DRIFTPrecision1
     colnames(DRIFTPrecision1) <- driftNames1; DRIFTPrecision1
     #
     DRIFTCoeff2 <- matrix(unlist(ctmaFitObjectMod$modelResults$DRIFTCoeffViaWECMean), nrow=n.studies1, byrow=T); DRIFTCoeff2
     DRIFTSE2 <- matrix(unlist(ctmaFitObjectMod$modelResults$DRIFTCoeffViaWECSD), nrow=n.studies1, byrow=T); DRIFTSE2
     DRIFTCoeffSND2 <- DRIFTCoeff2 / DRIFTSE2; DRIFTCoeffSND2
-    DRIFTPrecision2 <- c(rep(1, n.latent1^2))/(DRIFTSE2); DRIFTPrecision2
+    DRIFTPrecision2 <- c(rep(1, n.latent2^2))/(DRIFTSE2); DRIFTPrecision2
     colnames(DRIFTPrecision2) <- driftNames2; DRIFTPrecision2
   }
 
@@ -165,29 +165,34 @@ ctmaRedHet <- function(activateRPB=FALSE,
   # same for dt
   }
 
-  fixedEffectDriftResults <- rbind(cbind(t(MeanOfDriftValues1), t(MeanOfDriftValues2)), cbind(t(FixedEffect_Drift1), t(FixedEffect_Drift2)),
-                                   cbind(t(FixedEffect_DriftVariance1), t(FixedEffect_DriftVariance2)), cbind(t(FixedEffect_DriftSE1), t(FixedEffect_DriftSE2)),
-                                   cbind(t(FixedEffect_DriftUpperLimit1), t(FixedEffect_DriftUpperLimit2)), cbind(t(FixedEffect_DriftLowerLimit1), t(FixedEffect_DriftLowerLimit2)),
-                                   cbind(t(FixedEffect_DriftZ1), t(FixedEffect_DriftZ2)), cbind(t(FixedEffect_DriftProb1), t(FixedEffect_DriftProb2)),
-                                   cbind(t(tau2Drift1), t(tau2Drift2)), cbind(t(Q_Drift1), t(Q_Drift2)), cbind(t(H2_Drift1), t(H2_Drift2)),
-                                   cbind(t(H2DriftUpperLimit1), t(H2DriftUpperLimit2)), cbind(t(H2DriftLowerLimit1), t(H2DriftLowerLimit2)),
-                                   cbind(t(I2_Drift1), t(I2_Drift2)), cbind(t(I2DriftUpperLimit1), t(I2DriftUpperLimit2)), cbind(t(I2DriftLowerLimit1), t(I2DriftLowerLimit2)))
-  rownames(fixedEffectDriftResults) <- c("MeanOfDriftValues", "FixedEffect_Drift",
-                                         "FixedEffect_DriftVariance", "FixedEffect_DriftSE", "FixedEffect_DriftUpperLimit",
-                                         "FixedEffect_DriftLowerLimit", "FixedEffect_DriftZ", "FixedEffect_DriftProb",
-                                         "tau2Drift", "Q_Drift", "H2_Drift", "H2DriftUpperLimit",
-                                         "H2DriftLowerLimit", "I2_Drift", "I2DriftUpperLimit", "I2DriftLowerLimit")
+  fixedEffectDriftResults <- rbind(#cbind(t(MeanOfDriftValues1), t(MeanOfDriftValues2)),
+    cbind(t(FixedEffect_Drift1), t(FixedEffect_Drift2)),
+    cbind(t(FixedEffect_DriftVariance1), t(FixedEffect_DriftVariance2)), cbind(t(FixedEffect_DriftSE1), t(FixedEffect_DriftSE2)),
+    cbind(t(FixedEffect_DriftUpperLimit1), t(FixedEffect_DriftUpperLimit2)), cbind(t(FixedEffect_DriftLowerLimit1), t(FixedEffect_DriftLowerLimit2)),
+    cbind(t(FixedEffect_DriftZ1), t(FixedEffect_DriftZ2)), cbind(t(FixedEffect_DriftProb1), t(FixedEffect_DriftProb2)),
+    cbind(t(tau2Drift1), t(tau2Drift2)), cbind(t(Q_Drift1), t(Q_Drift2)), cbind(t(H2_Drift1), t(H2_Drift2)),
+    cbind(t(H2DriftUpperLimit1), t(H2DriftUpperLimit2)), cbind(t(H2DriftLowerLimit1), t(H2DriftLowerLimit2)),
+    cbind(t(I2_Drift1), t(I2_Drift2)), cbind(t(I2DriftUpperLimit1), t(I2DriftUpperLimit2)), cbind(t(I2DriftLowerLimit1), t(I2DriftLowerLimit2)))
+  fixedEffectDriftResults
+  rownames(fixedEffectDriftResults) <- c(#"MeanOfDriftValues",
+    "FixedEffect_Drift",
+    "FixedEffect_DriftVariance", "FixedEffect_DriftSE", "FixedEffect_DriftUpperLimit",
+    "FixedEffect_DriftLowerLimit", "FixedEffect_DriftZ", "FixedEffect_DriftProb",
+    "tau2Drift", "Q_Drift", "H2_Drift", "H2DriftUpperLimit",
+    "H2DriftLowerLimit", "I2_Drift", "I2DriftUpperLimit", "I2DriftLowerLimit")
 
-  fixedEffectDriftResults1 <- rbind(MeanOfDriftValues1, FixedEffect_Drift1, FixedEffect_DriftVariance1, FixedEffect_DriftSE1,
-                                    FixedEffect_DriftUpperLimit1, FixedEffect_DriftLowerLimit1,
-                                    FixedEffect_DriftZ1, FixedEffect_DriftProb1, tau2Drift1, Q_Drift1, H2_Drift1,
-                                    H2DriftUpperLimit1, H2DriftLowerLimit1, I2_Drift1,
-                                    I2DriftUpperLimit1, I2DriftLowerLimit1)
-  fixedEffectDriftResults2 <- rbind(MeanOfDriftValues2, FixedEffect_Drift2, FixedEffect_DriftVariance2, FixedEffect_DriftSE2,
-                                    FixedEffect_DriftUpperLimit2, FixedEffect_DriftLowerLimit2,
-                                    FixedEffect_DriftZ2, FixedEffect_DriftProb2, tau2Drift2, Q_Drift2, H2_Drift2,
-                                    H2DriftUpperLimit2, H2DriftLowerLimit2, I2_Drift2,
-                                    I2DriftUpperLimit2, I2DriftLowerLimit2)
+  fixedEffectDriftResults1 <- rbind(#MeanOfDriftValues1,
+    FixedEffect_Drift1, FixedEffect_DriftVariance1, FixedEffect_DriftSE1,
+    FixedEffect_DriftUpperLimit1, FixedEffect_DriftLowerLimit1,
+    FixedEffect_DriftZ1, FixedEffect_DriftProb1, tau2Drift1, Q_Drift1, H2_Drift1,
+    H2DriftUpperLimit1, H2DriftLowerLimit1, I2_Drift1,
+    I2DriftUpperLimit1, I2DriftLowerLimit1)
+  fixedEffectDriftResults2 <- rbind(#MeanOfDriftValues2,
+    FixedEffect_Drift2, FixedEffect_DriftVariance2, FixedEffect_DriftSE2,
+    FixedEffect_DriftUpperLimit2, FixedEffect_DriftLowerLimit2,
+    FixedEffect_DriftZ2, FixedEffect_DriftProb2, tau2Drift2, Q_Drift2, H2_Drift2,
+    H2DriftUpperLimit2, H2DriftLowerLimit2, I2_Drift2,
+    I2DriftUpperLimit2, I2DriftLowerLimit2)
 
   fixedEffectDriftMessage <- c()
   if ( (any(I2_Drift1 < 0)) | (any(I2_Drift2 < 0)) ) fixedEffectDriftMessage <- "Negative I2 values can be set to 0.0."
@@ -227,7 +232,8 @@ ctmaRedHet <- function(activateRPB=FALSE,
     # same for dt
 
     ### some corrections for the output
-    heterogeneity1 <- fixedEffectDriftResults1[9:16,]; heterogeneity1
+    #heterogeneity1 <- fixedEffectDriftResults1[9:16,]; heterogeneity1
+    heterogeneity1 <- fixedEffectDriftResults1[8:15,]; heterogeneity1
 
     # same for dt # tbd
   }
@@ -251,24 +257,27 @@ ctmaRedHet <- function(activateRPB=FALSE,
     # same for dt
 
     ### some corrections for the output
-    heterogeneity2 <- fixedEffectDriftResults2[9:16,]; heterogeneity2
+    #heterogeneity2 <- fixedEffectDriftResults2[9:16,]; heterogeneity2
+    heterogeneity2 <- fixedEffectDriftResults2[8:15,]; heterogeneity2
 
     # same for dt # tbd
   }
 
-  randomEffectDriftResults <- rbind(cbind(t(MeanOfDriftValues1), t(MeanOfDriftValues2)), cbind(t(RandomEffecttot_Drift1), t(RandomEffecttot_Drift2)),
-                                    cbind(t(RandomEffecttot_DriftVariance1), t(RandomEffecttot_DriftVariance2)), cbind(t(RandomEffecttot_DriftSE1), t(RandomEffecttot_DriftSE2)),
-                                    cbind(t(RandomEffecttot_DriftUpperLimit1), t(RandomEffecttot_DriftUpperLimit2)), cbind(t(RandomEffecttot_DriftLowerLimit1), t(RandomEffecttot_DriftLowerLimit2)),
-                                    cbind(t(RandomEffecttot_DriftZ1), t(RandomEffecttot_DriftZ2)), cbind(t(RandomEffecttot_DriftProb1), t(RandomEffecttot_DriftProb2)),
-                                    cbind(t(tau2Drift1), t(tau2Drift2)), cbind(t(Q_Drift1), t(Q_Drift2)), cbind(t(H2_Drift1), t(H2_Drift2)),
-                                    cbind(t(H2DriftUpperLimit1), t(H2DriftUpperLimit2)), cbind(t(H2DriftLowerLimit1), t(H2DriftLowerLimit2)),
-                                    cbind(t(I2_Drift1), t(I2_Drift2)), cbind(t(I2DriftUpperLimit1), t(I2DriftUpperLimit2)), cbind(t(I2DriftLowerLimit1), t(I2DriftLowerLimit2)))
-  rownames(randomEffectDriftResults) <- c("MeanOfDriftValues", "RandomEffecttot_Drift",
-                                          "RandomEffect_DriftVariance", "RandomEffect_DriftSE", "RandomEffect_DriftUpperLimit",
-                                          "RandomEffect_DriftLowerLimit", "RandomEffect_DriftZ", "RandomEffect_DriftProb",
-                                          "tau2Drift", "Q_Drift", "H2_Drift", "H2DriftUpperLimit",
-                                          "H2DriftLowerLimit", "I2_Drift", "I2DriftUpperLimit", "I2DriftLowerLimit")
-  round(randomEffectDriftResults, 4)
+  randomEffectDriftResults <- rbind(#cbind(t(MeanOfDriftValues1), t(MeanOfDriftValues2)),
+    cbind(t(RandomEffecttot_Drift1), t(RandomEffecttot_Drift2)),
+    cbind(t(RandomEffecttot_DriftVariance1), t(RandomEffecttot_DriftVariance2)), cbind(t(RandomEffecttot_DriftSE1), t(RandomEffecttot_DriftSE2)),
+    cbind(t(RandomEffecttot_DriftUpperLimit1), t(RandomEffecttot_DriftUpperLimit2)), cbind(t(RandomEffecttot_DriftLowerLimit1), t(RandomEffecttot_DriftLowerLimit2)),
+    cbind(t(RandomEffecttot_DriftZ1), t(RandomEffecttot_DriftZ2)), cbind(t(RandomEffecttot_DriftProb1), t(RandomEffecttot_DriftProb2)),
+    cbind(t(tau2Drift1), t(tau2Drift2)), cbind(t(Q_Drift1), t(Q_Drift2)), cbind(t(H2_Drift1), t(H2_Drift2)),
+    cbind(t(H2DriftUpperLimit1), t(H2DriftUpperLimit2)), cbind(t(H2DriftLowerLimit1), t(H2DriftLowerLimit2)),
+    cbind(t(I2_Drift1), t(I2_Drift2)), cbind(t(I2DriftUpperLimit1), t(I2DriftUpperLimit2)), cbind(t(I2DriftLowerLimit1), t(I2DriftLowerLimit2)))
+  rownames(randomEffectDriftResults) <- c(#"MeanOfDriftValues",
+    "RandomEffecttot_Drift",
+    "RandomEffect_DriftVariance", "RandomEffect_DriftSE", "RandomEffect_DriftUpperLimit",
+    "RandomEffect_DriftLowerLimit", "RandomEffect_DriftZ", "RandomEffect_DriftProb",
+    "tau2Drift", "Q_Drift", "H2_Drift", "H2DriftUpperLimit",
+    "H2DriftLowerLimit", "I2_Drift", "I2DriftUpperLimit", "I2DriftLowerLimit")
+  #round(randomEffectDriftResults, 4)
 
   # Collect Results for both fixed effect analysis ######
   modelResultsList1 <- list(DRIFT_ctmaFitObject = DRIFTCoeff1,
@@ -292,7 +301,8 @@ ctmaRedHet <- function(activateRPB=FALSE,
   FE <- round(fixedEffectDriftResults[1:8,], digits); FE
   RE <- round(randomEffectDriftResults[1:8,], digits); RE
 
-  Het <- round(fixedEffectDriftResults[9:16,], digits); Het
+  #Het <- round(fixedEffectDriftResults[9:16,], digits); Het
+  Het <- round(fixedEffectDriftResults[8:15,], digits); Het
 
   names11 <- names(ctmaFitObjectMod$modelResults$DRIFT); names11
 
