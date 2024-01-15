@@ -160,7 +160,7 @@ ctmaFit <- function(
 {  # begin function definition (until end of file)
 
   {
-    { # adaptations to account for new arguments introduce
+    { # adaptations to account for new arguments introduces
     if (is.null(randomIntercepts)) randomIntercepts <- FALSE
     randomInterceptsSettings <- randomIntercepts
     if (is.null(T0var)) T0var <- 'auto'
@@ -168,11 +168,6 @@ ctmaFit <- function(
     if (is.null(fit)) fit <- TRUE
     if (is.null(WEC)) WEC <- FALSE
     if (is.null(CoTiMAStanctArgs)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
-    #if (!(exists("nopriors"))) nopriors <- TRUE
-    #if (is.null(nopriors)) nopriors <- TRUE
-    #if (is.na(nopriors)) nopriors <- TRUE
-    #nopriors <- TRUE
-    #print(nopriors)
     }
 
 
@@ -266,7 +261,6 @@ ctmaFit <- function(
     ctmaTempFit <- ctmaInitFit
     targetStudyNumbers <- unlist(primaryStudyList$studyNumbers); targetStudyNumbers; length(targetStudyNumbers)
     if (any(is.na(targetStudyNumbers))) targetStudyNumbers <- targetStudyNumbers[-which(is.na(targetStudyNumbers))]
-    #targetStudyNumbers <- targetStudyNumbers[-which(is.na(targetStudyNumbers))]; targetStudyNumbers
     for (i in (length(ctmaTempFit$studyFitList)):1) {
       if (!(ctmaTempFit$studyList[[i]]$originalStudyNo %in% targetStudyNumbers)) {
         ctmaTempFit$studyList[[i]] <- NULL
@@ -307,8 +301,16 @@ ctmaFit <- function(
       ctmaTempFit$statisticsList$allTpoints[which(!(is.na(ctmaTempFit$statisticsList$allTpoints)))]
 
     ctmaInitFit <- ctmaTempFit
-  }
 
+    # CHD 15.1.2024
+    exclude <- which(!unlist(ctmaInitFit$primaryStudyList$studyNumbers) %in% targetStudyNumbers); exclude # study position
+    if (length(exclude) > 0) {
+      for (i in sort(exclude, decreasing = TRUE)) {
+        ctmaInitFit$ind.mod.List[[i]] <- NULL
+      }
+    }
+
+  }
 
   #######################################################################################################################
   ################################################# Check Cores To Use ##################################################
@@ -434,17 +436,18 @@ ctmaFit <- function(
       n.moderators <- n.ind.moderators; n.moderators
       tmpMods <- lapply(ctmaInitFit$ind.mod.List, function(x) x)
       # CHD 15.1.2024
-      validStudies <- unlist(lapply(tmpMods, function(x) !is.null(x)))
+      validStudies <- unlist(lapply(tmpMods, function(x) !is.null(x))); validStudies
       if (any(validStudies == FALSE)) {
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
         ErrorMsg <- "\nIndividual level moderation model requested. At least one study has fewer individual level moderators (NULL?) in the
         raw data file than the number specified via ind.mod.number . Check your data, redo ctmaPrep and ctmaInit again. \nGood luck for the next try!"
         stop(ErrorMsg)
       }
-
-      if(!(is.matrix(tmpMods[[1]]))) tmpMods <- lapply(tmpMods, function(x) matrix(x, ncol=1))
+      is.matrix(tmpMods[[1]])
+      if (!(is.matrix(tmpMods[[1]]))) tmpMods <- lapply(tmpMods, function(x) matrix(x, ncol=1))
       if (is.list(tmpMods)) {
         tmpModstmp <- matrix(unlist(tmpMods[[1]]), ncol=nrow(tmpMods[[1]]))
+        str(tmpModstmp)
         for (t in 2:length(tmpMods)) tmpModstmp <- rbind(tmpModstmp, matrix(unlist(tmpMods[[t]]), ncol=nrow(tmpMods[[t]])))
         tmpMods <- tmpModstmp
       }
