@@ -433,6 +433,15 @@ ctmaFit <- function(
     if (n.ind.moderators > 0) { #
       n.moderators <- n.ind.moderators; n.moderators
       tmpMods <- lapply(ctmaInitFit$ind.mod.List, function(x) x)
+      # CHD 15.1.2024
+      validStudies <- unlist(lapply(tmpMods, function(x) !is.null(x)))
+      if (any(validStudies == FALSE)) {
+        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+        ErrorMsg <- "\nIndividual level moderation model requested. At least one study has fewer individual level moderators (NULL?) in the
+        raw data file than the number specified via ind.mod.number . Check your data, redo ctmaPrep and ctmaInit again. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+
       if(!(is.matrix(tmpMods[[1]]))) tmpMods <- lapply(tmpMods, function(x) matrix(x, ncol=1))
       if (is.list(tmpMods)) {
         tmpModstmp <- matrix(unlist(tmpMods[[1]]), ncol=nrow(tmpMods[[1]]))
@@ -441,7 +450,6 @@ ctmaFit <- function(
       }
       tmp1 <- unlist(lapply(tmpMods, function(x) {
         if (is.null(dim(x))) return(1) else return(ncol(x))
-        #nrow(x)[2]
       } )); tmp1
       if (length(ind.mod.number) > min(tmp1)) {
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
