@@ -30,7 +30,7 @@ ctmaFitToPrep <- function(ctmaFitObject=NULL, reUseEmprawData=FALSE)
   newStudyList$pairwiseNs <- lapply(ctmaFitObject, function(x) x$pairwiseN)
   newStudyList$rawData <- lapply(ctmaFitObject, function(x) x$rawData)
   newStudyList$n.studies  <- length(newStudyList$rawData)
-  newStudyList$summary <- newStudyList
+  newStudyList$summary <- "Summary is only available from ctmaPrep and not from ctmaFitToPrep."
 
   # CHD 13.6.2023
   if (reUseEmprawData == TRUE) newStudyList$emprawList <- lapply(tmp$emprawList, function(x) x[])
