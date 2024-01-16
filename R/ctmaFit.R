@@ -599,7 +599,7 @@ ctmaFit <- function(
     targetCols <- which(colnames(dataTmp) == "groups"); targetCols
     dataTmp <- dataTmp[ ,-targetCols]
 
-    round(apply(dataTmp, 2, mean, na.rm=T), 3)
+    #round(apply(dataTmp, 2, mean, na.rm=T), 3)
     # use weighted effect coding
     if (WEC == TRUE) {
       targetCols <- grep("TI", colnames(dataTmp)); targetCols
