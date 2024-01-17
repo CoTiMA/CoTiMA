@@ -102,6 +102,7 @@ ctmaRedHet <- function(activateRPB=FALSE,
   }
 
   if (!(is.null(dt))) { # this is complex because we need to re-estimate dt effects based on raw data to obtain their SD
+
     ### model without moderator
     # part of the following code is taken from ctmaFit
     fitStanctModel <- ctmaFitObject$studyFitList
@@ -138,7 +139,6 @@ ctmaRedHet <- function(activateRPB=FALSE,
       }
       studyDRIFTCoeffRaw[[tmpNames[d]]] <- tmp1
     }
-
     # tform
     studyDRIFTCoeff <- studyDRIFTCoeffRaw
     pars <- fitStanctModel$ctstanmodelbase$pars
@@ -175,16 +175,13 @@ ctmaRedHet <- function(activateRPB=FALSE,
     }
     #studyDRIFTCoeffDT_Mean
 
-
     ### model with moderator
     fitStanctModel <- ctmaFitObjectMod$studyFitList
     tmp1 <- which(!(is.na(fitStanctModel$ctstanmodelbase$pars$param))); tmp1; length(tmp1)
     tmpPars <- fitStanctModel$ctstanmodelbase$pars[tmp1,]; tmpPars
     driftPos <- which(tmpPars$matrix == "DRIFT"); driftPos
     rawDrift <- fitStanctModel$stanfit$rawposterior[ , driftPos]; dim(rawDrift)
-    # below is different from before
-    tmpPars
-    driftPos
+    # below is different from before because TIpredEffects are numbered by row and substantive moderators have to be excluded
     TIpredCols <- grep("_effect", colnames(tmpPars)); TIpredCols
     # determine positions of moderated drift
     tmpMat <- tmpPars[ , TIpredCols]; tmpMat
@@ -206,7 +203,7 @@ ctmaRedHet <- function(activateRPB=FALSE,
     counter <- counter[-1]; counter
     tmp2 <- counter[toTake[!toTake %in% toDrop]]; tmp2
     TIpredPos <- tmp2+length(tmp1); TIpredPos
-    tmpNames <- paste0("Drift for Mod Study No ", unlist(lapply(ctmaFitObject$studyList, function(x) x$originalStudyNo)), "."); tmpNames
+    tmpNames <- paste0("Drift for Mod Study No ", unlist(lapply(ctmaFitObjectMod$studyList, function(x) x$originalStudyNo)), "."); tmpNames
     #
     TIpredEffTmp <- fitStanctModel$stanfit$rawposterior[,TIpredPos]; dim(TIpredEffTmp)
     modStudyDRIFTCoeffRaw <- list()
@@ -540,14 +537,12 @@ ctmaRedHet <- function(activateRPB=FALSE,
         "H2DriftLowerLimit", "I2_Drift", "I2DriftUpperLimit", "I2DriftLowerLimit")
 
     } # end for (i in 1:length(dt))
+    #lapply(fixedEffectDriftResultsDT, function(x) round(x, digits))
+    names(fixedEffectDriftResultsDT) <-  paste0("Time Interval = ", dt)
+    names(fixedEffectDriftResults1DT) <-  paste0("Time Interval = ", dt)
+    names(fixedEffectDriftResults2DT) <-  paste0("Time Interval = ", dt)
   } # end  if (!(is.null(dt)))
 
-  #lapply(fixedEffectDriftResultsDT, function(x) round(x, digits))
-  names(fixedEffectDriftResultsDT) <-  paste0("Time Interval = ", dt)
-  names(fixedEffectDriftResults1DT) <-  paste0("Time Interval = ", dt)
-  names(fixedEffectDriftResults2DT) <-  paste0("Time Interval = ", dt)
-  #fixedEffectDriftResultsDT
-  #fixedEffectDriftResults1DT
 
   ## RANDOM EFFECTS ANALYSIS ##############################################################################
 
@@ -742,10 +737,12 @@ ctmaRedHet <- function(activateRPB=FALSE,
   modelResultsList2 <- list(DRIFT_ctmaFitObjectMod = DRIFTCoeff2,
                             DRIFTSE1_ctmaFitObjectMod = DRIFTSE2); modelResultsList2
   # same for dt
+  if (!(is.null(dt))) {
   modelResultsList1DT <- list(DRIFT_ctmaFitObject = DRIFTCoeff1DT,
                             DRIFTSE1_ctmaFitObject = DRIFTSE1DT); modelResultsList1DT
   modelResultsList2DT <- list(DRIFT_ctmaFitObjectMod = DRIFTCoeff2DT,
                             DRIFTSE1_ctmaFitObjectMod = DRIFTSE2DT); modelResultsList2DT
+  }
 
   summaryList1 <- list(model="Analysis of Heterogeneity for ctmaFitObject, i.e., model without moderator effects.",
                        estimates1=list("Fixed Effects of Drift Coefficients"=round(fixedEffectDriftResults1, digits),
@@ -760,7 +757,8 @@ ctmaRedHet <- function(activateRPB=FALSE,
                                        "Tau2 message" = tau2DriftMessage,
                                        "Random Effects of Drift Coefficients"=round(RandomEffectDriftResults2, digits))); summaryList2
   # same for dt
-  summaryList1DT <- list(model="Analysis of Heterogeneity of Discrete Time Effecst for ctmaFitObject, i.e., model without moderator effects.",
+  if (!(is.null(dt))) {
+    summaryList1DT <- list(model="Analysis of Heterogeneity of Discrete Time Effecst for ctmaFitObject, i.e., model without moderator effects.",
                        estimates1=list("Fixed Effects of Drift Coefficients"=lapply(fixedEffectDriftResults1DT, function(x) round(x,digits)),
                                        "Heterogeneity"=lapply(heterogeneity1DT, function(x) round(x,digits)),
                                        "I2 message" = fixedEffectDriftMessage,
@@ -772,15 +770,18 @@ ctmaRedHet <- function(activateRPB=FALSE,
                                          "I2 message" = fixedEffectDriftMessage,
                                          "Tau2 message" = tau2DriftMessage,
                                          "Random Effects of Drift Coefficients"=lapply(RandomEffectDriftResults2DT, function(x) round(x, digits)))); summaryList2DT
+  }
   #fixedEffectDriftResults
   FE <- round(fixedEffectDriftResults[1:8,], digits); FE
   RE <- round(randomEffectDriftResults[1:8,], digits); RE
-  FEDT <- lapply(fixedEffectDriftResultsDT, function(x) round(x[1:8,], digits)); FEDT
-  REDT <- lapply(randomEffectDriftResultsDT, function(x) round(x[1:8,], digits)); REDT
+  if (!(is.null(dt))) {
+    FEDT <- lapply(fixedEffectDriftResultsDT, function(x) round(x[1:8,], digits)); FEDT
+    REDT <- lapply(randomEffectDriftResultsDT, function(x) round(x[1:8,], digits)); REDT
+  }
 
   #Het <- round(fixedEffectDriftResults[9:16,], digits); Het
   Het <- round(fixedEffectDriftResults[8:15,], digits); Het
-  HetDT <- lapply(fixedEffectDriftResultsDT, function(x) round(x[8:15,], digits)); HetDT
+  if (!(is.null(dt))) HetDT <- lapply(fixedEffectDriftResultsDT, function(x) round(x[8:15,], digits))
 
   names11 <- names(ctmaFitObjectMod$modelResults$DRIFT); names11
 
@@ -794,15 +795,15 @@ ctmaRedHet <- function(activateRPB=FALSE,
   if (!(is.null(dt))) {
     fitObjDriftAndSEDT <- list()
     for (i in 1:length(dt)) {
-      #i <- 1
-      fitObjDriftAndSEDT[[i]] <- cbind(modelResultsList1DT[[i]][[1]], modelResultsList1DT[[i]][[2]]); fitObjDriftAndSEDT[[i]]
+      #fitObjDriftAndSEDT[[i]] <- cbind(modelResultsList1DT[[i]][[1]], modelResultsList1DT[[i]][[2]]); fitObjDriftAndSEDT[[i]]
+      fitObjDriftAndSEDT[[i]] <- cbind(modelResultsList1DT[[1]][[i]], modelResultsList1DT[[2]][[i]]); fitObjDriftAndSEDT[[i]]
       colnames(fitObjDriftAndSEDT[[i]]) <- paste0("w/o Mod ", c(names11, names11)); fitObjDriftAndSEDT[[i]]
       colnames(fitObjDriftAndSEDT[[i]]) <- gsub("DRIFT ", "", colnames(fitObjDriftAndSEDT[[i]])); fitObjDriftAndSEDT[[i]]
       colnames(fitObjDriftAndSEDT[[i]])[(n.latent1^2+1):(2*n.latent1^2)] <- paste0(colnames(fitObjDriftAndSEDT[[i]])[(n.latent1^2+1):(2*n.latent1^2)], " SE"); fitObjDriftAndSEDT[[i]]
     }
+    names(fitObjDriftAndSEDT) <-  paste0("Time Interval = ", dt)
+    #fitObjDriftAndSEDT
   }
-  names(fitObjDriftAndSEDT) <-  paste0("Time Interval = ", dt)
-  #fitObjDriftAndSEDT
 
   fitObjModDriftAndSE <- round(cbind(modelResultsList2[[1]], modelResultsList2[[2]]), digits); fitObjModDriftAndSE
   colnames(fitObjModDriftAndSE) <- paste0("with Mod ", c(names11, names11)); fitObjModDriftAndSE
@@ -815,14 +816,15 @@ ctmaRedHet <- function(activateRPB=FALSE,
     fitObjModDriftAndSEDT <- list()
     for (i in 1:length(dt)) {
       #i <- 1
-      fitObjModDriftAndSEDT[[i]] <- cbind(modelResultsList2DT[[i]][[1]], modelResultsList2DT[[i]][[2]]); fitObjModDriftAndSEDT[[i]]
+      #fitObjModDriftAndSEDT[[i]] <- cbind(modelResultsList2DT[[i]][[1]], modelResultsList2DT[[i]][[2]]); fitObjModDriftAndSEDT[[i]]
+      fitObjModDriftAndSEDT[[i]] <- cbind(modelResultsList2DT[[1]][[i]], modelResultsList2DT[[2]][[i]]); fitObjModDriftAndSEDT[[i]]
       colnames(fitObjModDriftAndSEDT[[i]]) <- paste0("with Mod ", c(names11, names11)); fitObjModDriftAndSEDT[[i]]
       colnames(fitObjModDriftAndSEDT[[i]]) <- gsub("DRIFT ", "", colnames(fitObjModDriftAndSEDT[[i]])); fitObjModDriftAndSEDT[[i]]
       colnames(fitObjModDriftAndSEDT[[i]])[(n.latent1^2+1):(2*n.latent1^2)] <- paste0(colnames(fitObjModDriftAndSEDT[[i]])[(n.latent1^2+1):(2*n.latent1^2)], " SE"); fitObjModDriftAndSEDT[[i]]
     }
+    names(fitObjModDriftAndSEDT) <-  paste0("Time Interval = ", dt)
+    #fitObjModDriftAndSEDT
   }
-  names(fitObjModDriftAndSEDT) <-  paste0("Time Interval = ", dt)
-  #fitObjModDriftAndSEDT
 
 
   # Analysis of Reduction in Heterogeneity by means of moderators #####
@@ -847,9 +849,19 @@ ctmaRedHet <- function(activateRPB=FALSE,
       rownames(redHetDT[[i]]) <- gsub("_Drift2", "", rownames(redHetDT[[i]])); redHetDT[[i]]
       rownames(redHetDT[[i]]) <- paste0(rownames(redHetDT[[i]]), ": % reduction (neg. values = % increase)"); redHetDT[[i]]
     }
+    names(redHetDT) <-  paste0("Time Interval = ", dt)
+    #redHetDT
   }
-  names(redHetDT) <-  paste0("Time Interval = ", dt)
-  #redHetDT
+
+  if (is.null(dt)) {
+    discreteTime <- "No dt effects estimated."
+  } else {
+    discreteTime <- list('fixedEffects (w/o Mod | with Mod)'=FEDT, 'randomEffects (w/o Mod | with Mod)'=REDT,
+                         fitObj_DriftAndSE=fitObjDriftAndSEDT, fitObjMod_DriftAndSE=fitObjModDriftAndSEDT,
+                         'heterogeneity (w/o Mod | with Mod)'=HetDT,
+                         HeterogeneityReduction=redHetDT,
+                         Note="Negative I2 values were set to .00001 for computation of reduction in heterogeneity.")
+    }
 
   results <- list(activeDirectory=activeDirectory,
                   plot.type=NULL, model.type="BiG",
@@ -861,11 +873,7 @@ ctmaRedHet <- function(activateRPB=FALSE,
                                                        'heterogeneity (w/o Mod | with Mod)'=Het,
                                                        HeterogeneityReduction=redHet,
                                                        Note="Negative I2 values were set to .00001 for computation of reduction in heterogeneity."),
-                               "discreteTime" = list('fixedEffects (w/o Mod | with Mod)'=FEDT, 'randomEffects (w/o Mod | with Mod)'=REDT,
-                                                     fitObj_DriftAndSE=fitObjDriftAndSEDT, fitObjMod_DriftAndSE=fitObjModDriftAndSEDT,
-                                                     'heterogeneity (w/o Mod | with Mod)'=HetDT,
-                                                     HeterogeneityReduction=redHetDT,
-                                                     Note="Negative I2 values were set to .00001 for computation of reduction in heterogeneity.")))
+                               "discreteTime" = discreteTime))
 
   class(results) <- "CoTiMAFit"
 
