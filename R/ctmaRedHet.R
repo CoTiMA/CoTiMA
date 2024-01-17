@@ -12,6 +12,7 @@
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom ctsem ctExtract
+#' @importFrom expm expm
 #' @importFrom stats var lm pnorm
 #'
 #' @export ctmaRedHet
@@ -177,6 +178,11 @@ ctmaRedHet <- function(activateRPB=FALSE,
 
     ### model with moderator
     fitStanctModel <- ctmaFitObjectMod$studyFitList
+    n.mod.values.to.plot <- length(colnames(fitStanctModel$data$tipredsdata)[1:(n.studies2-1)])+1; n.mod.values.to.plot
+    modPos <- 1:(n.studies2-1); modPos
+    TIpred.values <- matrix(fitStanctModel$data$tipredsdata[, modPos], ncol=length(modPos)); head(TIpred.values)
+    effectCodingWeights <- unique(TIpred.values); effectCodingWeights
+    #
     tmp1 <- which(!(is.na(fitStanctModel$ctstanmodelbase$pars$param))); tmp1; length(tmp1)
     tmpPars <- fitStanctModel$ctstanmodelbase$pars[tmp1,]; tmpPars
     driftPos <- which(tmpPars$matrix == "DRIFT"); driftPos
@@ -208,19 +214,18 @@ ctmaRedHet <- function(activateRPB=FALSE,
     TIpredEffTmp <- fitStanctModel$stanfit$rawposterior[,TIpredPos]; dim(TIpredEffTmp)
     modStudyDRIFTCoeffRaw <- list()
     for (d in 1:nrow(effectCodingWeights)) {
-      multiplier <- c(matrix(effectCodingWeights[d, ], nrow=(n.latent1^2), ncol=length(effectCodingWeights[d, ]), byrow=T)); multiplier
+      multiplier <- c(matrix(effectCodingWeights[d, ], nrow=(n.latent2^2), ncol=length(effectCodingWeights[d, ]), byrow=T)); multiplier
       tmp3 <- t((multiplier) * t(TIpredEffTmp)); tmp3; dim(tmp3)
       tmp1 <- rawDrift; dim(tmp1)
       startCol <- 1
-      endCol <- n.latent1^2; endCol
-      for (i in 1:(n.studies1-1)) {
+      endCol <- n.latent2^2; endCol
+      for (i in 1:(n.studies2-1)) {
         tmp1 <- tmp1 + tmp3[ , startCol:endCol]
-        startCol <- startCol + n.latent1^2; startCol
-        endCol <- endCol + n.latent1^2; endCol
+        startCol <- startCol + n.latent2^2; startCol
+        endCol <- endCol + n.latent2^2; endCol
       }
       modStudyDRIFTCoeffRaw[[tmpNames[d]]] <- tmp1
     }
-
     # tform
     modStudyDRIFTCoeff <- modStudyDRIFTCoeffRaw
     pars <- fitStanctModel$ctstanmodelbase$pars
@@ -232,13 +237,13 @@ ctmaRedHet <- function(activateRPB=FALSE,
     # compute tformed studyDRIFTCoeff and scale time
     for (k in 1:(length(modStudyDRIFTCoeffRaw))) {
       counter <- 0
-      for (l in 1:(n.latent1)) {
-        for (m in 1:n.latent1) {
+      for (l in 1:(n.latent2)) {
+        for (m in 1:n.latent2) {
           counter <- counter + 1
           paramTmp <- modStudyDRIFTCoeffRaw[[k]][, counter]; paramTmp
           for (p in 1:length(paramTmp)) {
             param <- paramTmp[p]
-            modStudyDRIFTCoeff[[k]][p , counter] <- eval(parse(text=transforms[counter])); studyDRIFTCoeff[[k]][p, counter]
+            modStudyDRIFTCoeff[[k]][p , counter] <- eval(parse(text=transforms[counter])); modStudyDRIFTCoeff[[k]][p, counter]
             modStudyDRIFTCoeff[[k]][p , counter] <- modStudyDRIFTCoeff[[k]][p , counter] * scaleTime1
           }
         }
@@ -249,18 +254,16 @@ ctmaRedHet <- function(activateRPB=FALSE,
     for (k in 1:(length(modStudyDRIFTCoeff))) {
       modStudyDRIFTCoeffDT_Mean[[k]] <- modStudyDRIFTCoeffDT_SD[[k]] <- list()
       for (d in 1:length(dt)) {
-        tmp1 <- dt[d] * studyDRIFTCoeff[[k]]
+        tmp1 <- dt[d] * modStudyDRIFTCoeff[[k]]
         tmp1 <- t(apply(tmp1, 1, function(x) expm::expm(matrix(x, nrow=n.latent1))))
         modStudyDRIFTCoeffDT_Mean[[k]][[d]] <- apply(tmp1, 2, mean)
         modStudyDRIFTCoeffDT_SD[[k]][[d]] <- apply(tmp1, 2, sd)
       }
     }
-    #modStudyDRIFTCoeffDT_Mean
-
+    z# compute estimates required for computing fixed & random effects and heterogeneity
     DRIFTCoeff1DT <- DRIFTSE1DT <- DRIFTCoeffSND1DT <- DRIFTPrecision1DT <- list()
     DRIFTCoeff2DT <- DRIFTSE2DT <- DRIFTCoeffSND2DT <- DRIFTPrecision2DT <- list()
     for (i in 1:length(dt)) {
-      #i <- 1
       DRIFTCoeff1DT[[i]] <- matrix(unlist(lapply(studyDRIFTCoeffDT_Mean, function(x) x[[i]])), nrow=n.studies1, byrow=T)
       DRIFTSE1DT[[i]] <- matrix(unlist(lapply(studyDRIFTCoeffDT_SD, function(x) x[[i]])), nrow=n.studies1, byrow=T)
       DRIFTCoeffSND1DT[[i]] <- DRIFTCoeff1DT[[i]] / DRIFTSE1DT[[i]]; DRIFTCoeffSND1DT[[i]]
