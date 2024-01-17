@@ -443,23 +443,29 @@ ctmaFit <- function(
         raw data file than the number specified via ind.mod.number . Check your data, redo ctmaPrep and ctmaInit again. \nGood luck for the next try!"
         stop(ErrorMsg)
       }
-      if (!(is.matrix(tmpMods[[1]]))) tmpMods <- lapply(tmpMods, function(x) matrix(x, ncol=1))
-      if (is.list(tmpMods)) {
-        #tmpModstmp <- matrix(unlist(tmpMods[[1]]), ncol=nrow(tmpMods[[1]]))
-        tmpModstmp <- matrix(unlist(tmpMods[[1]]), ncol=ncol(tmpMods[[1]]))
-        #for (t in 2:length(tmpMods)) tmpModstmp <- rbind(tmpModstmp, matrix(unlist(tmpMods[[t]]), ncol=nrow(tmpMods[[t]])))
-        for (t in 2:length(tmpMods)) tmpModstmp <- rbind(tmpModstmp, matrix(unlist(tmpMods[[t]]), ncol=ncol(tmpMods[[t]])))
-        tmpMods <- tmpModstmp
-      }
-      tmp1 <- unlist(lapply(tmpMods, function(x) {
-        if (is.null(dim(x))) return(1) else return(ncol(x))
-      } )); tmp1
-      if (length(ind.mod.number) > min(tmp1)) {
-        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-        ErrorMsg <- "\nIndividual level moderation model requested. At least one study has fewer individual level moderators in the raw data file than the number
+      #
+      if (is.data.frame(tmpMods[[1]])) {
+        tmpMods <- do.call(rbind, tmpMods) # rbinds all data frames
+      } else {
+        if (!(is.matrix(tmpMods[[1]]))) tmpMods <- lapply(tmpMods, function(x) matrix(x, ncol=1))
+        if (is.list(tmpMods)) {
+          tmpModstmp <- matrix(unlist(tmpMods[[1]]), ncol=ncol(tmpMods[[1]]))
+          for (t in 2:length(tmpMods)) tmpModstmp <- rbind(tmpModstmp, matrix(unlist(tmpMods[[t]]), ncol=ncol(tmpMods[[t]])))
+          tmpMods <- as.matrix(tmpModstmp, ncol=1)
+          #tmpMods <- tmpModstmp
+        }
+        # the followin might be skipped (until skip end)
+        tmp1 <- unlist(lapply(tmpMods, function(x) {
+          if (is.null(dim(x))) return(1) else return(ncol(x))
+        } )); tmp1
+        if (length(ind.mod.number) > min(tmp1)) {
+          if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+          ErrorMsg <- "\nIndividual level moderation model requested. At least one study has fewer individual level moderators in the raw data file than the number
           specified via ind.mod.number . Check your data, redo ctmaPrep and ctmaInit again. \nGood luck for the next try!"
-        stop(ErrorMsg)
+          stop(ErrorMsg)
+        } # skip end
       }
+      #
       if (!(is.null(primaryStudyList))) {
         #if (length(primaryStudyList$deltas) != n.studies) {
         if (length(primaryStudyList$deltas) > n.studies) { # CHD changed Aug 2023
