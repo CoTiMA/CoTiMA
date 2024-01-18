@@ -321,8 +321,6 @@ ctmaInit <- function(
     }
 
     for (i in 1:n.studies) {
-      #i <- 1
-      #primaryStudies$deltas[[i]]
       studyList[[i]] <- list(studyNumber=i, empcov=primaryStudies$empcovs[[i]], delta_t=primaryStudies$deltas[[i]],
                              sampleSize=primaryStudies$sampleSizes[[i]], originalStudyNo=primaryStudies$studyNumber[[i]],
                              timePoints=sum(length(primaryStudies$deltas[[i]]), 1), moderators=primaryStudies$moderators[[i]],
@@ -664,11 +662,11 @@ ctmaInit <- function(
     tmp1 <- unlist(lapply(empraw, function(extract) dim(extract)[1])); tmp1
     tmp2 <- unlist(primaryStudies$sampleSizes); tmp2
     if (!(any(is.na(tmp2)))) {   # check if mismatch is because >= 1 study used pairwise N
-      Msg <- paste0("There is a possible mismatch between sample sizes specified in the primary study list
-    (created with the PREP R-file) and the cases provided in raw data files.\nN based on raw data: \n", tmp1)
-      message(Msg)
-      Msg <- paste0("\nN as specified in list: \n", tmp2)
-      message(Msg)
+      #Msg <- paste0("There is a possible mismatch between sample sizes specified in the primary study list
+      #(created with the PREP R-file) and the cases provided in raw data files.\nN based on raw data: \n", tmp1)
+      #message(Msg)
+      #Msg <- paste0("\nN as specified in list: \n", tmp2)
+      #message(Msg)
     }
   }
 
