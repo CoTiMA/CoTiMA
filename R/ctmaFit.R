@@ -1266,7 +1266,8 @@ ctmaFit <- function(
       }
     }
 
-    fitStanctModel <- suppressMessages(ctsem::ctStanFit(
+    if (fit == TRUE) {
+      fitStanctModel <- suppressMessages(ctsem::ctStanFit(
       fit=fit,
       datalong = datalong_all,
       ctstanmodel = stanctModel,
@@ -1297,7 +1298,7 @@ ctmaFit <- function(
       inits=inits))
 
     ### resample in parcels to avoid memory crash and speed up
-    if (fit == TRUE) {
+    #if (fit == TRUE) {
     #  if ( (!(is.null(CoTiMAStanctArgs$resample))) & (CoTiMAStanctArgs$resample != 0) ) {
     #    fitStanctModel <- ctmaStanResample(ctmaFittedModel=fitStanctModel)
     #    #saveRDS(fitStanctModel, paste0(activeDirectory, "fitStanctModel.rds"))
@@ -1317,8 +1318,9 @@ ctmaFit <- function(
 
   # Extract estimates & statistics
   if (fit == TRUE) { # CHD 16. Oct 2023 (end ~line 1534)
-    # CHD 9.6.2023
-    if ( ((indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT') & (randomIntercepts == FALSE)) ) {
+    # CHD 22.1.2024
+    #if ( ((indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT') & (randomIntercepts == FALSE)) ) {
+    if ( ((indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT') ) & (randomIntercepts == FALSE) ) {
       e <- ctsem::ctExtract(fitStanctModel)
       # CHD 12.6.2023
       model_popsd <- fitStanctModel_summary$popsd
