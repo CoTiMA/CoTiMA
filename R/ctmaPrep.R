@@ -26,10 +26,11 @@
 #' @param digits Rounding used for summary function
 #' @param moderatorLabels character vector of names
 #' @param moderatorValues list of character vectors
+#' @param newRawDataDirectory (NULL = default) Change paths for all raw data files.
 #' @param summary if TRUE (default) creates summary table and xlsx sheets. Could be set to FALSE in case of errors.
 #' @param activeDirectory Mandatory. If subsequent fitting is done using different folders or on different computers, it can be
 #' @param ctmaPrepObject  ctmaPrepObject from which studies should be excluded. Only works in combination with the argument exclude.
-#' @param exclude  studies to be excluded from ctmaPrepObject
+#' @param excludedStudies  studies to be excluded from ctmaPrepObject
 
 #' changed so that raw data files can be loaded.
 #'
@@ -102,21 +103,22 @@ ctmaPrep <- function(selectedStudies=NULL,
                      digits=4,
                      moderatorLabels=NULL,
                      moderatorValues=NULL,
+                     newRawDataDirectory=NULL,
                      summary=TRUE,
                      activeDirectory=NULL,
                      ctmaPrepObject=NULL,
-                     exclude=NULL)
+                     excludedStudies=NULL)
 {
 
   ctma <- globalenv()
 
-  if ( (is.null(selectedStudies)) & ( (is.null(ctmaPrepObject)) | (is.null(exclude)) ) ) {
+  if ( (is.null(selectedStudies)) & ( (is.null(ctmaPrepObject)) | (is.null(excludedStudies)) ) ) {
     ErrorMsg <- "Number of primary studies to combine in the list was not specified! \nGood luck for the next try!"
     stop(ErrorMsg)
   }
 
-  if ( (!is.null(selectedStudies)) & (!(is.null(exclude))) )  {
-    ErrorMsg <- "The arguments \"selectedStudies\" and \"exclude\" cannot be used together! \nGood luck for the next try!"
+  if ( (!is.null(selectedStudies)) & (!(is.null(excludedStudies))) )  {
+    ErrorMsg <- "The arguments \"selectedStudies\" and \"excludedStudies\" cannot be used together! \nGood luck for the next try!"
     stop(ErrorMsg)
   }
 
@@ -125,21 +127,21 @@ ctmaPrep <- function(selectedStudies=NULL,
     stop(ErrorMsg)
   }
 
-  if ( (!is.null(ctmaPrepObject)) & (is.null(exclude)) )  {
-    ErrorMsg <- "The argument \"ctmaPrepObject\" was provided but not the argument \"exclude\"! \nGood luck for the next try!"
+  if ( (!is.null(ctmaPrepObject)) & (is.null(excludedStudies)) )  {
+    ErrorMsg <- "The argument \"ctmaPrepObject\" was provided but not the argument \"excludedStudies\"! \nGood luck for the next try!"
     stop(ErrorMsg)
   }
 
-  if ( (is.null(ctmaPrepObject)) & (!is.null(exclude)) )  {
-    ErrorMsg <- "The argument \"exclude\" was provided but not the argument \"ctmaPrepObject\"! \nGood luck for the next try!"
+  if ( (is.null(ctmaPrepObject)) & (!is.null(excludedStudies)) )  {
+    ErrorMsg <- "The argument \"excludedStudies\" was provided but not the argument \"ctmaPrepObject\"! \nGood luck for the next try!"
     stop(ErrorMsg)
   }
 
-  if ( (!is.null(ctmaPrepObject)) & (!is.null(exclude)) )  {
+  if ( (!is.null(ctmaPrepObject)) & (!is.null(excludedStudies)) )  {
     old.n.studies <- ctmaPrepObject$n.studies
-    ctmaPrepObject$n.studies <- ctmaPrepObject$n.studies - length(exclude)
-    exclude <- which(unlist(ctmaPrepObject$studyNumbers) %in% exclude)
-    for (i in sort(exclude, decreasing=TRUE)) {
+    ctmaPrepObject$n.studies <- ctmaPrepObject$n.studies - length(excludedStudies)
+    excludedStudies <- which(unlist(ctmaPrepObject$studyNumbers) %in% excludedStudies)
+    for (i in sort(excludedStudies, decreasing=TRUE)) {
       for (j in 1:length(names(ctmaPrepObject))) {
         if (names(ctmaPrepObject)[j] %in% c("studyNumbers", "empcovs", "deltas", "sampleSizes",
                                             "moderators", "source", "pairwiseNs", "rawData")) {
@@ -151,6 +153,11 @@ ctmaPrep <- function(selectedStudies=NULL,
     }
     primaryStudies <- ctmaPrepObject
     if (!(is.null(activeDirectory))) primaryStudies$activeDirectory <- activeDirectory
+    if (!(is.null(newRawDataDirectory))) {
+      for (i in 1:primaryStudies$n.studies) {
+        primaryStudies$rawData[[i]]$fileName <- gsub(paste0(dirname(primaryStudies$rawData[[1]]$fileName), "/"), activeDirectory, primaryStudies$rawData[[i]]$fileName)
+      }
+    }
   } else {
 
     deltas <- sampleSizes <- empcovs <- moderators <- startValues <- studyNumbers <- pairwiseNs <- rawData <- empMeans <- empVars <- source <- list()
@@ -281,6 +288,9 @@ ctmaPrep <- function(selectedStudies=NULL,
       if (exists(paste0("rawData", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
         rawData[[i]] <- get(paste0("rawData", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)
         rawData[[i]]$studyNumbers <- selectedStudies[i]
+        if (!(is.null(newRawDataDirectory))) {
+          rawData[[i]]$fileName <- gsub(paste0(dirname(rawData[[1]]$fileName), "/"), activeDirectory, rawData[[1]]$fileName)
+        }
         # CHD 19.6.2023 to allow separating ind level moderators from rest of data file in ctmaInit
         if (is.null(rawData[[i]]$n.ind.mod)) rawData[[i]]$n.ind.mod <- 0
       }
@@ -566,7 +576,7 @@ ctmaPrep <- function(selectedStudies=NULL,
       primaryStudies$excelSheets <- wb
     } # end if (summary == TRUE)
 
-  } # end if else   if ( (!is.null(ctmaPrepObject)) & (!is.null(exclude)) )  {
+  } # end if else   if ( (!is.null(ctmaPrepObject)) & (!is.null(excludedStudies)) )  {
 
 
   primaryStudies$plot.type="none"
