@@ -155,7 +155,7 @@ ctmaPrep <- function(selectedStudies=NULL,
     if (!(is.null(activeDirectory))) primaryStudies$activeDirectory <- activeDirectory
     if (!(is.null(newRawDataDirectory))) {
       for (i in 1:primaryStudies$n.studies) {
-        primaryStudies$rawData[[i]]$fileName <- gsub(paste0(dirname(primaryStudies$rawData[[1]]$fileName), "/"), activeDirectory, primaryStudies$rawData[[i]]$fileName)
+        primaryStudies$rawData[[i]]$fileName <- gsub(paste0(dirname(primaryStudies$rawData[[1]]$fileName), "/"), newRawDataDirectory, primaryStudies$rawData[[i]]$fileName)
       }
     }
   } else {
