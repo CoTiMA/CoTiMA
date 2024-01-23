@@ -663,25 +663,24 @@ ctmaInit <- function(
         #}
       }
     } ### END for i ...
-  } ### END Read user provided data and create list with all study information ###
 
-
-  # Check if sample sizes specified in prep file deviate from cases provided in possible raw data files
-  N1 <- (unlist((lapply(empraw, function(extract) dim(extract)[1])))); N1
-  N2 <- (unlist(primaryStudies$sampleSizes)); N2
-  N1 <- sum(unlist((lapply(empraw, function(extract) dim(extract)[1]))) , na.rm=TRUE); N1
-  N2 <- sum(unlist(primaryStudies$sampleSizes), na.rm=TRUE); N2
-  if (!(N1 == N2)) {
-    tmp1 <- unlist(lapply(empraw, function(extract) dim(extract)[1])); tmp1
-    tmp2 <- unlist(primaryStudies$sampleSizes); tmp2
-    if (!(any(is.na(tmp2)))) {   # check if mismatch is because >= 1 study used pairwise N
-      #Msg <- paste0("There is a possible mismatch between sample sizes specified in the primary study list
-      #(created with the PREP R-file) and the cases provided in raw data files.\nN based on raw data: \n", tmp1)
-      #message(Msg)
-      #Msg <- paste0("\nN as specified in list: \n", tmp2)
-      #message(Msg)
+    # Check if sample sizes specified in prep file deviate from cases provided in possible raw data files
+    N1 <- (unlist((lapply(empraw, function(extract) dim(extract)[1])))); N1
+    N2 <- (unlist(primaryStudies$sampleSizes)); N2
+    N1 <- sum(unlist((lapply(empraw, function(extract) dim(extract)[1]))) , na.rm=TRUE); N1
+    N2 <- sum(unlist(primaryStudies$sampleSizes), na.rm=TRUE); N2
+    if (!(N1 == N2)) {
+      tmp1 <- unlist(lapply(empraw, function(extract) dim(extract)[1])); tmp1
+      tmp2 <- unlist(primaryStudies$sampleSizes); tmp2
+      if (!(any(is.na(tmp2)))) {   # check if mismatch is because >= 1 study used pairwise N
+        #Msg <- paste0("There is a possible mismatch between sample sizes specified in the primary study list
+        #(created with the PREP R-file) and the cases provided in raw data files.\nN based on raw data: \n", tmp1)
+        #message(Msg)
+        #Msg <- paste0("\nN as specified in list: \n", tmp2)
+        #message(Msg)
+      }
     }
-  }
+  } ### END Read user provided data and create list with all study information ###
 
 
   #######################################################################################################################
@@ -832,11 +831,10 @@ ctmaInit <- function(
   } ### END check specification of primary studies ###
 
 
-
   #######################################################################################################################
   ##################################### Fit ctsem Model to each Primary Study ###########################################
   #######################################################################################################################
-  #{
+  {
   # loop through all primary studies
   studyFit <- studyFitCI <- studyFit_Minus2LogLikelihood <- studyFit_estimatedParameters <- list()
   model_Drift_Coef <- model_Drift_SE <- model_Drift_CI <- list()
@@ -848,7 +846,6 @@ ctmaInit <- function(
   model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- list()
   model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- list()
   estProb <- list()
-  #estProb$DRIFT <- estProb$DIFF <- estProb$T0VAR <- list()
 
   for (i in 1:n.studies) {
     #i <- 1
@@ -878,8 +875,6 @@ ctmaInit <- function(
     if ((studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit[-1]) & (notLoadable == TRUE) ) tmpLogic <- 1
     if (!(studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit[-1]) ) tmpLogic <- 1
     if (tmpLogic == 1) {
-
-
       tmp1 <- paste0(" Fitting SingleStudyModel ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ")
       tmp2 <- nchar(tmp1); tmp2
       tmp3 <- (81 - tmp2)/2; tmp3
@@ -888,9 +883,6 @@ ctmaInit <- function(
       tmp6 <- paste0(tmp4, tmp1, tmp5); tmp6
       Msg <- paste0("################################################################################# \n", tmp6, "\n#################################################################################")
       message(Msg)
-
-      #Msg <- paste0("################################################################################# \n################### Fitting SingleStudyModel ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ###################### \n#################################################################################")
-      #message(Msg)
 
       if (!(optimize)) {
         customPar <- FALSE
@@ -921,8 +913,6 @@ ctmaInit <- function(
 
       # select correct template
       currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
-
-      # scale Drift to cover changes in ctsem 3.4.1 (this would be for ctmaFit/ctmaModFit, but for Init individual study modification is done later)
       driftParamsTmp <- driftParams
       diffParamsTmp <- diffParams
       longestLag <- max((lapply(studyList, function(extract) extract$delta_t))[[i]]); longestLag
@@ -941,20 +931,18 @@ ctmaInit <- function(
 
       # CHD 13.6.2023
       if ((indVarying == 'cint') | (indVarying == 'Cint')) indVarying <- 'CINT'
-
-      # CHD 14. Jun 2023
       if ((indVarying == TRUE) & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
       if ((indVarying == 'CINT') & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
       if (is.null(indVaryingT0)) indVaryingT0 <- FALSE
 
       # CHD 9.6.2023
 
-      if ( (indVarying == 'CINT') & (indVaryingT0 == TRUE) ) {
-        print(paste0("#################################################################################"))
-        print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
-        print(paste0("#################################################################################"))
+      if (randomIntercepts == FALSE) {
+        if ( (indVarying == 'CINT') & (indVaryingT0 == TRUE) ) {
+          print(paste0("#################################################################################"))
+          print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
+          print(paste0("#################################################################################"))
 
-        if (randomIntercepts == FALSE) {
           T0meansParams <- 'auto'
 
           print(paste0("#################################################################################"))
@@ -966,15 +954,13 @@ ctmaInit <- function(
             CINTParams <- c(CINTParams, paste0("cintV", c))
           }
         }
-      }
-      #CINTParams
+        #CINTParams
 
-      if ( (indVarying == 'CINT') & (indVaryingT0 == FALSE) ) {
-        print(paste0("#################################################################################"))
-        print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
-        print(paste0("#################################################################################"))
+        if ( (indVarying == 'CINT') & (indVaryingT0 == FALSE) ) {
+          print(paste0("#################################################################################"))
+          print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
+          print(paste0("#################################################################################"))
 
-        if (randomIntercepts == FALSE) {
           T0meansParams <- 0
 
           print(paste0("#################################################################################"))
@@ -986,14 +972,12 @@ ctmaInit <- function(
             CINTParams <- c(CINTParams, paste0("cintV", c))
           }
         }
-      }
 
-      if ( (indVarying == TRUE) & (indVaryingT0 == TRUE) ) {
-        print(paste0("#################################################################################"))
-        print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
-        print(paste0("#################################################################################"))
+        if ( (indVarying == TRUE) & (indVaryingT0 == TRUE) ) {
+          print(paste0("#################################################################################"))
+          print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
+          print(paste0("#################################################################################"))
 
-        if (randomIntercepts == FALSE) {
           T0meansParams <- 'auto'
 
           print(paste0("#################################################################################"))
@@ -1002,15 +986,12 @@ ctmaInit <- function(
 
           manifestMeansParams <- 'auto'
         }
-      }
 
+        if ( (indVarying == TRUE) & (indVaryingT0 == FALSE) ) {
+          print(paste0("#################################################################################"))
+          print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
+          print(paste0("#################################################################################"))
 
-      if ( (indVarying == TRUE) & (indVaryingT0 == FALSE) ) {
-        print(paste0("#################################################################################"))
-        print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
-        print(paste0("#################################################################################"))
-
-        if (randomIntercepts == FALSE) {
           T0meansParams <- 0
 
           print(paste0("#################################################################################"))
@@ -1019,11 +1000,9 @@ ctmaInit <- function(
 
           manifestMeansParams <- 'auto'
         }
-      }
-      #manifestmeansParams
+    } # end  if (randomIntercepts == FALSE)
 
-
-      currentModel <- suppressMessages(
+        currentModel <- suppressMessages(
         ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
                        DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
                        DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
@@ -1034,8 +1013,9 @@ ctmaInit <- function(
                        T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
                        MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
                        MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var)
+                       )
         )
-      )
+
       if (indVarying == FALSE) currentModel$pars[, "indvarying"] <- FALSE
       #CHD 13.6.2023
       if (indVaryingT0 == TRUE) {
@@ -1371,7 +1351,7 @@ ctmaInit <- function(
         } else {
           T0covNames <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
         }
-        T0covNames
+        #T0covNames
 
         if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"])) == 0 ) {
           model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"])
@@ -1408,7 +1388,7 @@ ctmaInit <- function(
             names(model_T0var_SE[[i]]) <- T0covNames
           }
         }
-        model_T0var_SE
+        #model_T0var_SE
 
         if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "2.5%"]) == 0)) {
           tmp1 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "2.5%"]; tmp1
@@ -1442,6 +1422,7 @@ ctmaInit <- function(
           }
         }
         #model_T0var_CI
+
         # CHD 19. Nov. 2023 Check if LL == UL or LL == 0  or UL == 0, indicating estimation problems (estProb)
         #estProb[[i]] <- list()
         tmp3a <- which(tmp1 - tmp2 == 0); tmp3a
@@ -1532,10 +1513,16 @@ ctmaInit <- function(
         } # end if (randomIntercepts == TRUE)
 
       } # end if (fit == TRUE)
+    } # end if (tmpLogic == 1)
 
     } # END     for (i in 1:n.studies)
 
-    # Combine summary information and fit statistics
+  }
+
+  #######################################################################################################################
+  ################################ Combine summary information and fit statistics #######################################
+  #######################################################################################################################
+
     if (fit == TRUE) {
       allStudies_Minus2LogLikelihood <- sum(unlist(studyFit_Minus2LogLikelihood)); allStudies_Minus2LogLikelihood
       allStudies_estimatedParameters <- sum(unlist(studyFit_estimatedParameters)); allStudies_estimatedParameters
@@ -1740,7 +1727,6 @@ ctmaInit <- function(
       }
     } #end if (fit == TRUE)
 
-  } ### END for (i in 1:n.studies)
 
   ##############################################################################################################
   #end.time <- Sys.time()
@@ -1829,79 +1815,79 @@ ctmaInit <- function(
                                model_popcor_50=model_popcor_50, model_popcor_975=model_popcor_975)
     }
 
-  results <- list(activeDirectory=activeDirectory,
-                  plot.type="drift", model.type="stanct",
-                  coresToUse=coresToUse, n.studies=n.studies,
-                  n.latent=n.latent,
-                  n.manifest=n.manifest,
-                  lambda=lambdaParams,
-                  primaryStudyList=primaryStudies,
-                  studyList=studyList, studyFitList=studyFit,
-                  emprawList=empraw,
-                  statisticsList=statisticsList,
-                  ind.mod.List=empraw.ind.mod,
-                  argumentList=list(ctmaInitFit=deparse(substitute(primaryStudies)),
-                                    activateRPB=activateRPB,
-                                    activeDirectory=activeDirectory,
-                                    chains=chains,
-                                    checkSingleStudyResults=checkSingleStudyResults,
-                                    cint=cint,
-                                    coresToUse=coresToUse,
-                                    customPar=customPar,
-                                    diff=diff,
-                                    digits=digits,
-                                    doPar=doPar,
-                                    drift=drift,
-                                    experimental=experimental,
-                                    finishsamples=finishsamples,
-                                    indVarying=indVarying,
-                                    indVaryingT0=indVaryingT0,
-                                    iter=iter,
-                                    lambda=lambda,
-                                    loadSingleStudyModelFit=loadSingleStudyModelFit,
-                                    manifestMeans=manifestMeans,
-                                    manifestVars=manifestVars,
-                                    n.latent=n.latent,
-                                    n.manifest=n.manifest,
-                                    #nopriors=nopriors,
-                                    optimize=optimize,
-                                    posLL=posLL,
-                                    primaryStudies=primaryStudies,
-                                    priors=priors,
-                                    sameInitialTimes=sameInitialTimes,
-                                    saveRawData=saveRawData,
-                                    saveSingleStudyModelFit=saveSingleStudyModelFit,
-                                    scaleTI=scaleTI,
-                                    scaleTime=scaleTime,
-                                    silentOverwrite=silentOverwrite,
-                                    T0means=T0means,
-                                    T0var=T0var,
-                                    useSV=useSV,
-                                    verbose=verbose,
-                                    randomIntercepts=randomInterceptsSettings,
-                                    CoTiMAStanctArgs=CoTiMAStanctArgs),
-                  modelResults=list(DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef,
-                                    DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
-                                    DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale),
-                  ctModel = currentModel,
-                  parameterNames=list(DRIFT=names(model_Drift_Coef[[1]]), DIFFUSION=names(model_Diffusion_Coef[[1]]), T0VAR=names(model_T0var_Coef[[1]])),
-                  summary=(list(model="all drift free (het. model)",
-                                estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
-                                estimates_discrete=allStudiesDRIFT_effects_ext_dt,
-                                scaleTime=scaleTime2,
-                                # changed 17. Aug. 2022
-                                #randomIntercepts=list(popsd=model_popsd, popcov=model_popcov, popcor=model_popcor),
-                                randomIntercepts=randomIntercepts,
-                                confidenceIntervals=allStudiesCI,
-                                minus2ll= round(allStudies_Minus2LogLikelihood, digits),
-                                n.parameters = round(allStudies_estimatedParameters, digits),
-                                drift_estimates_original_time_scale =allStudiesDRIFT_effects_original_time_scale_ext,
-                                drift_CI_original_time_scale=allStudiesDriftCI_original_time_scale,
-                                diff_estimates_original_time_scale=allStudiesDIFF_effects_original_time_scale_ext,
-                                diff_CI_original_time_scale=allStudiesDiffCI_original_time_scale,
-                                estimationProblems=sapply(estProb, paste, sep="/n"),
-                                note=message1)))
-  # excel workbook is added later
+    results <- list(activeDirectory=activeDirectory,
+                    plot.type="drift", model.type="stanct",
+                    coresToUse=coresToUse, n.studies=n.studies,
+                    n.latent=n.latent,
+                    n.manifest=n.manifest,
+                    lambda=lambdaParams,
+                    primaryStudyList=primaryStudies,
+                    studyList=studyList, studyFitList=studyFit,
+                    emprawList=empraw,
+                    statisticsList=statisticsList,
+                    ind.mod.List=empraw.ind.mod,
+                    argumentList=list(ctmaInitFit=deparse(substitute(primaryStudies)),
+                                      activateRPB=activateRPB,
+                                      activeDirectory=activeDirectory,
+                                      chains=chains,
+                                      checkSingleStudyResults=checkSingleStudyResults,
+                                      cint=cint,
+                                      coresToUse=coresToUse,
+                                      customPar=customPar,
+                                      diff=diff,
+                                      digits=digits,
+                                      doPar=doPar,
+                                      drift=drift,
+                                      experimental=experimental,
+                                      finishsamples=finishsamples,
+                                      indVarying=indVarying,
+                                      indVaryingT0=indVaryingT0,
+                                      iter=iter,
+                                      lambda=lambda,
+                                      loadSingleStudyModelFit=loadSingleStudyModelFit,
+                                      manifestMeans=manifestMeans,
+                                      manifestVars=manifestVars,
+                                      n.latent=n.latent,
+                                      n.manifest=n.manifest,
+                                      #nopriors=nopriors,
+                                      optimize=optimize,
+                                      posLL=posLL,
+                                      primaryStudies=primaryStudies,
+                                      priors=priors,
+                                      sameInitialTimes=sameInitialTimes,
+                                      saveRawData=saveRawData,
+                                      saveSingleStudyModelFit=saveSingleStudyModelFit,
+                                      scaleTI=scaleTI,
+                                      scaleTime=scaleTime,
+                                      silentOverwrite=silentOverwrite,
+                                      T0means=T0means,
+                                      T0var=T0var,
+                                      useSV=useSV,
+                                      verbose=verbose,
+                                      randomIntercepts=randomInterceptsSettings,
+                                      CoTiMAStanctArgs=CoTiMAStanctArgs),
+                    modelResults=list(DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef,
+                                      DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
+                                      DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale),
+                    ctModel = currentModel,
+                    parameterNames=list(DRIFT=names(model_Drift_Coef[[1]]), DIFFUSION=names(model_Diffusion_Coef[[1]]), T0VAR=names(model_T0var_Coef[[1]])),
+                    summary=(list(model="all drift free (het. model)",
+                                  estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
+                                  estimates_discrete=allStudiesDRIFT_effects_ext_dt,
+                                  scaleTime=scaleTime2,
+                                  # changed 17. Aug. 2022
+                                  #randomIntercepts=list(popsd=model_popsd, popcov=model_popcov, popcor=model_popcor),
+                                  randomIntercepts=randomIntercepts,
+                                  confidenceIntervals=allStudiesCI,
+                                  minus2ll= round(allStudies_Minus2LogLikelihood, digits),
+                                  n.parameters = round(allStudies_estimatedParameters, digits),
+                                  drift_estimates_original_time_scale =allStudiesDRIFT_effects_original_time_scale_ext,
+                                  drift_CI_original_time_scale=allStudiesDriftCI_original_time_scale,
+                                  diff_estimates_original_time_scale=allStudiesDIFF_effects_original_time_scale_ext,
+                                  diff_CI_original_time_scale=allStudiesDiffCI_original_time_scale,
+                                  estimationProblems=sapply(estProb, paste, sep="/n"),
+                                  note=message1)))
+    # excel workbook is added later
   } # end if (fit == TRUE)
 
   if (fit == FALSE) {
