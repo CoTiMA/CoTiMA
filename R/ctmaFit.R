@@ -847,10 +847,10 @@ ctmaFit <- function(
                                     indVarying = indVarying,
                                     indVaryingT0 = indVaryingT0,
                                     customPar = customPar)
+    stanctModel <- allInvModelFit$ctModel
     fitStanctModel <- allInvModelFit$studyFitList[[1]]
     fitStanctModel_summary <- summary(fitStanctModel)
   }
-
 
   #######################################################################################################################
   ################################################ CoTiMA Setup #########################################################
@@ -1198,7 +1198,7 @@ ctmaFit <- function(
     }
   } # end if (allInvModel == FALSE)
 
-  stanctModel$pars
+  #stanctModel$pars
 
     #######################################################################################################################
     ################################################## CoTiMA Fit #########################################################
