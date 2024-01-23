@@ -147,6 +147,15 @@ ctmaInit <- function(
     if (is.null(randomIntercepts)) randomIntercepts <- FALSE
     randomInterceptsSettings <- randomIntercepts
 
+    if ( (indVarying == "CINT") | (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
+    #
+    if (is.null(randomIntercepts)) randomIntercepts <- FALSE
+    if ( (randomIntercepts == "Manifest") | (randomIntercepts == "manifest") | (randomIntercepts == "MANIFEST")) randomIntercepts <- "MANIFEST"
+    if ( (randomIntercepts == "MANIFEST") | (randomIntercepts == TRUE) ) {
+      indVarying <- FALSE
+      indVaryingT0 <- NULL
+    }
+
     #if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMA::CoTiMAStanctArgs$verbose}
     if (is.null(verbose)) tmp1 <- 1 else tmp1 <- 0
     if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0}
@@ -1523,7 +1532,7 @@ ctmaInit <- function(
   ################################ Combine summary information and fit statistics #######################################
   #######################################################################################################################
 
-    if (fit == TRUE) {
+   if (fit == TRUE) {
       allStudies_Minus2LogLikelihood <- sum(unlist(studyFit_Minus2LogLikelihood)); allStudies_Minus2LogLikelihood
       allStudies_estimatedParameters <- sum(unlist(studyFit_estimatedParameters)); allStudies_estimatedParameters
       allStudies_df <- "deprecated"
