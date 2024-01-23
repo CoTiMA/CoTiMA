@@ -13,7 +13,6 @@
 #' @param indVaryingT0 Forces T0MEANS (T0 scores) to vary interindividually, which undos the nesting of T0(co-)variances in primary studies (default = TRUE). Was standard until Aug. 2022. Could provide better/worse estimates if set to FALSE.
 #' @param scaleTime scaleTime
 #' @param optimize optimize
-#' @param nopriors nopriors (TRUE, but deprecated)
 #' @param priors priors (FALSE)
 #' @param finishsamples finishsamples
 #' @param iter iter
@@ -44,7 +43,7 @@ ctmaAllInvFit <- function(
   indVarying=FALSE,
   scaleTime=NULL,
   optimize=TRUE,
-  nopriors=TRUE,
+  #nopriors=TRUE,
   priors=FALSE,
   finishsamples=NULL,
   iter=NULL,
@@ -59,11 +58,21 @@ ctmaAllInvFit <- function(
   CoTiMAStanctArgs=NULL,
   lambda=NULL,
   manifestVars=NULL,
-  indVaryingT0=TRUE
+  indVaryingT0=NULL
 )
 {
 
   if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMAStanctArgs$verbose}
+
+  { # adaptations to account for new arguments introduces
+
+    if (is.null(T0var)) T0var <- 'auto'
+    if (is.null(cint)) cint <- 0
+    if (is.null(fit)) fit <- TRUE
+    if (is.null(WEC)) WEC <- FALSE
+    if (is.null(CoTiMAStanctArgs)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
+  }
+
 
   # check if fit object is specified
   if (is.null(ctmaInitFit)){
@@ -81,7 +90,8 @@ ctmaAllInvFit <- function(
 
     if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
     if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
-    if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
+    #if  (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors # changed Jan 2024
+    if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Jan 2024
     if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
     if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
     if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
@@ -211,29 +221,12 @@ ctmaAllInvFit <- function(
     }
   }
 
-  #tmp0 <- matrix(diffNamesTmp, n.latent); tmp0
-  #tmp0[upper.tri(tmp0, diag=FALSE)] <- 0; tmp0
-  #diffNamesTmp <- tmp0; diffNamesTmp
-
-  # taken out and replaced 28 Sep 2022
-  #if (indVarying == TRUE) {
-  #  T0MEANS <- "auto"
-  #  #T0MEANS <- matrix(0, nrow=n.latent, ncol=1)
-  #  MANIFESTMEANS <- "auto"
-  #  #MANIFESTVAR <- "auto"
-  #  MANIFESTVAR=matrix(0, nrow=n.latent, ncol=n.latent)
-  #} else {
-  #  T0MEANS <- matrix(c(0), nrow = n.latent, ncol = 1)
-  #  MANIFESTMEANS <- matrix(c(0), nrow = n.latent, ncol = 1)
-  #  MANIFESTVAR <- matrix(0, nrow=n.latent, ncol=n.latent)
-  #}
   T0MEANS <- T0meansParams
   MANIFESTMEANS <- manifestMeansParams
   MANIFESTVAR <- manifestVarsParams
 
-  # CHD 13.6.2023
-  # CHD 9.6.2023
   if ((indVarying == 'cint') | (indVarying == 'Cint')) indVarying <- 'CINT'
+  if (is.null(indVaryingT0)) indVaryingT0 <- FALSE
 
     # CHD 9.6.2023
     if ( (indVarying == 'CINT') & (indVaryingT0 == TRUE) ) {
@@ -372,7 +365,8 @@ ctmaAllInvFit <- function(
       optimize=CoTiMAStanctArgs$optimize,
       optimcontrol=CoTiMAStanctArgs$optimcontrol,
       nlcontrol=CoTiMAStanctArgs$nlcontrol,
-      nopriors=CoTiMAStanctArgs$nopriors,
+      priors=CoTiMAStanctArgs$priors,
+      #nopriors=CoTiMAStanctArgs$nopriors,
       chains=CoTiMAStanctArgs$chains,
       forcerecompile=CoTiMAStanctArgs$forcerecompile,
       savescores=CoTiMAStanctArgs$savescores,
