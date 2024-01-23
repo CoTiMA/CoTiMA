@@ -234,14 +234,14 @@ ctmaEqual <- function(
 
   end.time <- Sys.time()
   time.taken <- end.time - start.time
-  st <- paste0("Computation started at: ", start.time); st
-  et <- paste0("Computation ended at: ", end.time); et
-  tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
+  #st <- paste0("Computation started at: ", start.time); st
+  #et <- paste0("Computation ended at: ", end.time); et
+  #tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
 
   # results is built again after test for equality
   results <- list(activeDirectory=activeDirectory,
                   plot.type=NULL, model.type="stanct",
-                  time=list(start.time=start.time, end.time=end.time, time.taken=time.taken),
+                  #time=list(start.time=start.time, end.time=end.time, time.taken=time.taken),
                   coresToUse=coresToUse, n.studies=n.studies,
                   n.latent=n.latent,
                   studyList=ctmaInvariantFit$studyList, studyFitList=fitStanctModel,
