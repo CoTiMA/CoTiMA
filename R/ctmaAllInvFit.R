@@ -1,6 +1,6 @@
 #' ctmaAllInvFit
 #'
-#' #' @description Fit a CoTiMA model with all params (drift, T0var, diffusion) invariant across primary studies
+#' @description Fit a CoTiMA model with all params (drift, T0var, diffusion) invariant across primary studies
 #'
 #' @param ctmaInitFit ctmaInitFit
 #' @param activeDirectory activeDirectory
@@ -66,10 +66,10 @@ ctmaAllInvFit <- function(
 
   { # adaptations to account for new arguments introduces
 
-    if (is.null(T0var)) T0var <- 'auto'
-    if (is.null(cint)) cint <- 0
-    if (is.null(fit)) fit <- TRUE
-    if (is.null(WEC)) WEC <- FALSE
+    #if (is.null(T0var)) T0var <- 'auto'
+    #if (is.null(cint)) cint <- 0
+    #if (is.null(fit)) fit <- TRUE
+    #if (is.null(WEC)) WEC <- FALSE
     if (is.null(CoTiMAStanctArgs)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
   }
 
