@@ -1815,6 +1815,7 @@ ctmaInit <- function(
       estimates_original_time_scale <- estimates_original_time_scale[-toDelete, ]
       #estimates_original_time_scale
     } else {
+      if (indVarying != FALSE) {
       randomIntercepts <- list(popsd=model_popsd,
                                popcov_mean=model_popcov_m, model_popcov_sd=model_popcov_sd,
                                model_popcov_T=model_popcov_T, model_popcov_025=model_popcov_025,
@@ -1822,6 +1823,10 @@ ctmaInit <- function(
                                popcor_mean=model_popcor_m, model_popcor_sd=model_popcor_sd,
                                model_popcor_T=model_popcor_T, model_popcor_025=model_popcor_025,
                                model_popcor_50=model_popcor_50, model_popcor_975=model_popcor_975)
+      } else {
+        randomIntercepts <- "Not estimated."
+      }
+
     }
 
     results <- list(activeDirectory=activeDirectory,
