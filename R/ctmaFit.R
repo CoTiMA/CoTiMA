@@ -1783,13 +1783,17 @@ ctmaFit <- function(
       }
       estimates_original_time_scale <- estimates_original_time_scale[-toDelete, ]
     } else {
-      randomIntercepts <- list(popsd=model_popsd,
-                               popcov_mean=model_popcov_m, model_popcov_sd=model_popcov_sd,
-                               model_popcov_T=model_popcov_T, model_popcov_025=model_popcov_025,
-                               model_popcov_50=model_popcov_50, model_popcov_975=model_popcov_975,
-                               popcor_mean=model_popcor_m, model_popcor_sd=model_popcor_sd,
-                               model_popcor_T=model_popcor_T, model_popcor_025=model_popcor_025,
-                               model_popcor_50=model_popcor_50, model_popcor_975=model_popcor_975)
+      if ( (indVarying == 'CINT') | (indVarying == TRUE) ){
+        randomIntercepts <- list(popsd=model_popsd,
+                                 popcov_mean=model_popcov_m, model_popcov_sd=model_popcov_sd,
+                                 model_popcov_T=model_popcov_T, model_popcov_025=model_popcov_025,
+                                 model_popcov_50=model_popcov_50, model_popcov_975=model_popcov_975,
+                                 popcor_mean=model_popcor_m, model_popcor_sd=model_popcor_sd,
+                                 model_popcor_T=model_popcor_T, model_popcor_025=model_popcor_025,
+                                 model_popcor_50=model_popcor_50, model_popcor_975=model_popcor_975)
+      } else {
+        randomIntercepts <- "Not estimated."
+      }
     }
 
     results <- list(
