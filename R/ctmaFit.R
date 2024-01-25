@@ -154,7 +154,7 @@ ctmaFit <- function(
     T0var='auto',
     transfMod=NULL,
     useSampleFraction=NULL,
-    verbose=NULL,
+    verbose=0,
     WEC=FALSE
 )
 {  # begin function definition (until end of file)
@@ -1218,6 +1218,7 @@ ctmaFit <- function(
     #######################################################################################################################
 
   if (allInvModel == FALSE) {
+    #fitStanctModel <- suppressMessages(ctsem::ctStanFit(
     fitStanctModel <- suppressMessages(ctsem::ctStanFit(
       fit=fit,
       datalong = datalong_all,

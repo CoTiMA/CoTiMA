@@ -124,7 +124,7 @@ ctmaInit <- function(
     T0means=0,
     T0var='auto',
     useSV=FALSE,
-    verbose=NULL
+    verbose=0
 )
 
 {  # begin function definition (until end of file)
@@ -1128,7 +1128,8 @@ ctmaInit <- function(
         if (doPar < 2) {
           # CHD changed 7 Oct 2022
           if (any(is.na(studyList[[i]]$startValues))) inits <- NULL else inits <- studyList[[i]]$startValues
-          results <- suppressMessages(ctsem::ctStanFit(
+          #results <- suppressMessages(ctsem::ctStanFit(
+          results <- (ctsem::ctStanFit(
             datalong = emprawLong[[i]],
             ctstanmodel = currentModel,
             fit=fit,

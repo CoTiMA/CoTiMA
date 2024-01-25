@@ -349,7 +349,8 @@ ctmaAllInvFit <- function(
     x1 <- paste0(activeDirectory, loadAllInvFit[1], ".rds"); x1
     results <- readRDS(file=x1)
   } else {
-    allFixedModelFit <- suppressMessages(ctsem::ctStanFit(
+    #allFixedModelFit <- suppressMessages(ctsem::ctStanFit(
+    allFixedModelFit <- (ctsem::ctStanFit(
       datalong = datalong_all,
       ctstanmodel = allFixedModel,
       savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
