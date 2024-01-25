@@ -162,6 +162,8 @@ ctmaFit <- function(
   {
     ctmaInitFitName <- deparse(substitute(ctmaInitFit))
 
+    if (is.null(scaleTime)) scaleTime <- 1
+
     { # adaptations to account for new arguments introduces
 
       if (is.null(T0var)) T0var <- 'auto'
@@ -214,10 +216,10 @@ ctmaFit <- function(
 
     { # set fitting params
 
-      if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
-      if (!(is.null(scaleClus))) CoTiMAStanctArgs$scaleClus <- scaleClus
-      if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
-      if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
+      #if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
+      #if (!(is.null(scaleClus))) CoTiMAStanctArgs$scaleClus <- scaleClus
+      #if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
+      #if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
       #if  (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
       if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
@@ -269,6 +271,11 @@ ctmaFit <- function(
         ctmaTempFit$modelResults[[1]][[i]] <- NULL
         ctmaTempFit$modelResults[[2]][[i]] <- NULL
         ctmaTempFit$modelResults[[3]][[i]] <- NULL
+        # CHD added 25.1.2024
+        ctmaTempFit$ind.mod.List[[i]] <- NULL
+        ctmaTempFit$modelResults$CINT[[i]] <- NULL
+        ctmaTempFit$modelResults$DRIFToriginal_time_scale[[i]] <- NULL
+        ctmaTempFit$modelResults$DIFFUSIONoriginal_time_scale[[i]] <- NULL
       }
     }
     ctmaTempFit$n.studies <- length(targetStudyNumbers); ctmaTempFit$n.studies
@@ -284,9 +291,11 @@ ctmaFit <- function(
     ctmaTempFit$statisticsList$meanTpoints <- mean(ctmaTempFit$statisticsList$allTpoints, na.rm = TRUE)
     ctmaTempFit$statisticsList$maxTpoints <- max(ctmaTempFit$statisticsList$allTpoints, na.rm = TRUE)
     ctmaTempFit$statisticsList$minTpoints <- min(ctmaTempFit$statisticsList$allTpoints, na.rm = TRUE)
-    ctmaTempFit$summary$model <- "Moderator Model (for details see model summary)"
+    # CHD 25.1.2024
+    ctmaTempFit$summary$model <- "not specified"
+    #ctmaTempFit$summary$model <- "Moderator Model (for details see model summary)"
     tmpStudyNumber <- as.numeric(gsub("Study No ", "", rownames(ctmaTempFit$summary$estimates))); tmpStudyNumber
-    targetRows <- which(tmpStudyNumber %in% targetStudyNumbers); targetRows; length(targetRows)
+    targetRows <- which(tmpStudyNumber %in% targetStudyNumbers); targetRows; #length(targetRows)
     ctmaTempFit$summary$estimates <- ctmaTempFit$summary$estimates[targetRows, ]
     ctmaTempFit$summary$confidenceIntervals <- ctmaTempFit$summary$confidenceIntervals[targetRows, ]
     ctmaTempFit$summary$n.parameters <- ctmaTempFit$studyFitList[[1]]$resultsSummary$npars * length(targetRows)
@@ -595,7 +604,8 @@ ctmaFit <- function(
       dataTmp <- cbind(dataTmp, tmp); dim(dataTmp)
       tmp <- which(dataTmp[,"groups"] == i); tmp
       dataTmp[tmp, ncol(dataTmp)] <- 1
-      if (CoTiMAStanctArgs$scaleTI == TRUE) dataTmp[ , ncol(dataTmp)] <- scale(dataTmp[ , ncol(dataTmp)])
+      #if (CoTiMAStanctArgs$scaleTI == TRUE) dataTmp[ , ncol(dataTmp)] <- scale(dataTmp[ , ncol(dataTmp)])
+      if (scaleTI == TRUE) dataTmp[ , ncol(dataTmp)] <- scale(dataTmp[ , ncol(dataTmp)])
     }
     targetCols <- which(colnames(dataTmp) == "groups"); targetCols
     dataTmp <- dataTmp[ ,-targetCols]
@@ -618,7 +628,8 @@ ctmaFit <- function(
       if (mod.type=="cont") {
         tmp1 <- paste0("mod", 1:n.moderators); tmp1
         if (length(tmp1) == 1) tmp <- matrix(dataTmp[ , tmp1], ncol=length(tmp1)) else tmp <- dataTmp[ , tmp1]
-        if (CoTiMAStanctArgs$scaleMod == TRUE) tmp[ , 1:ncol(tmp)] <- scale(tmp[ , 1:ncol(tmp)])
+        #if (CoTiMAStanctArgs$scaleMod == TRUE) tmp[ , 1:ncol(tmp)] <- scale(tmp[ , 1:ncol(tmp)])
+        if (scaleMod == TRUE) tmp[ , 1:ncol(tmp)] <- scale(tmp[ , 1:ncol(tmp)])
         if (!(is.null(transfMod))) {
           tmp2 <- tmp #[ , 1:ncol(tmp)]
           for (t in 1:length(transfMod)) {
@@ -671,7 +682,8 @@ ctmaFit <- function(
           }
         }
 
-        if (CoTiMAStanctArgs$scaleMod == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)], scale=FALSE)
+        #if (CoTiMAStanctArgs$scaleMod == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)], scale=FALSE)
+        if (scaleMod == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)], scale=FALSE)
         currentStartNumber <- modTIstartNum; currentStartNumber
         currentEndNumber <- currentStartNumber + ncol(tmpTI)-1; currentEndNumber
         colnames(tmpTI) <- paste0("TI", currentStartNumber:currentEndNumber)
@@ -749,7 +761,8 @@ ctmaFit <- function(
                                       manifestNames=manifestNames)
 
       dataTmp3 <- suppressMessages(ctsem::ctDeintervalise(dataTmp2))
-      dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
+      #dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
+      dataTmp3[, "time"] <- dataTmp3[, "time"] * scaleTime
     }
 
     # eliminate rows where ALL latents are NA
@@ -1564,11 +1577,11 @@ ctmaFit <- function(
       OTL <- function(timeRange) {
         OpenMx::expm(tmpDriftMatrix * timeRange)[targetRow, targetCol]}
       # use original time scale
-      if (!(is.null(scaleTime))) {
+      #if (!(is.null(scaleTime))) {
         tmpDriftMatrix <- driftMatrix * scaleTime
-      } else {
-        tmpDriftMatrix <- driftMatrix
-      }
+      #} else {
+      #  tmpDriftMatrix <- driftMatrix
+      #}
       # loop through all cross effects
       tmp1 <- 0
       if (0 %in% usedTimeRange) tmp1 <- 1
@@ -1596,11 +1609,14 @@ ctmaFit <- function(
     }
 
     # CHD 12.7.23
-    if ( (!(is.null(scaleTime))) & (length(invariantDriftNames) == length(driftNames)) ) {
-      optimalCrossLag_scaledTime <- optimalCrossLag * CoTiMAStanctArgs$scaleTime
-    } else {
-      optimalCrossLag_scaledTime <- optimalCrossLag
+    #if ( (!(is.null(scaleTime))) & (length(invariantDriftNames) == length(driftNames)) ) {
+    if (length(invariantDriftNames) == length(driftNames))  {
+      #optimalCrossLag_scaledTime <- optimalCrossLag * CoTiMAStanctArgs$scaleTime
+      optimalCrossLag_scaledTime <- optimalCrossLag * scaleTime
     }
+    #else {
+    #  optimalCrossLag_scaledTime <- optimalCrossLag
+    #}
 
     #######################################################################################################################
 
@@ -1619,7 +1635,8 @@ ctmaFit <- function(
     message <- c()
     #if (meanDeltas > 3) {
     # CHD AUG 2023
-    if ((meanDeltas * CoTiMAStanctArgs$scaleTime) > 3) { #
+    #if ((meanDeltas * CoTiMAStanctArgs$scaleTime) > 3) { #
+    if ((meanDeltas * scaleTime) > 3) { #
       tmp2 <- paste0("Mean time interval was ", meanDeltas, "."); tmp2
       tmp3 <- paste0("scaleTime=1/", suggestedScaleTime); tmp3
       tmp4 <- paste0("It is recommended to fit the model again using the arguments ", tmp3, " and customPar=FALSE. "); tmp4
