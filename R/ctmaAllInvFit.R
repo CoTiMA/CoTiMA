@@ -376,8 +376,8 @@ ctmaAllInvFit <- function(
       warmup=CoTiMAStanctArgs$warmup,
       cores=coresToUse))
 
-    Msg <- "\nComputing results summary of all invariant model.\n"
-    message(Msg)
+    #Msg <- "\nComputing results summary of all invariant model.\n"
+    #message(Msg)
     allFixedModelFitSummary <- summary(allFixedModelFit, digits=digits)
   }
 
