@@ -375,9 +375,8 @@ ctmaFit <- function(
       allDeltas <- ctmaInitFit$statisticsList$allDeltas; allDeltas
       maxDelta <- max(allDeltas, na.rm=TRUE); maxDelta
       usedTimeRange <- seq(0, 3*maxDelta, 1); usedTimeRange # new 8.7.2022
-      lambda <- ctmaInitFit$statisticsList$lambda; #lambda
+      lambda <- ctmaInitFit$statisticsList$lambda
     }
-
 
     # check match between cluster vector and n.studies
     if (!(is.null(cluster))) {
@@ -398,14 +397,11 @@ ctmaFit <- function(
         }
       }
       n.ind.moderators <- length(ind.mod.number); n.ind.moderators
-      #if (ind.mod.number == 0 )  n.ind.moderators <- 0 # CHD 27.6. 2023
-      #if ( is.null(ind.mod.number == 0 ) ) n.ind.moderators <- 0
       if (n.ind.moderators > 0) {
         mod.number <- NULL
         mod.type=ind.mod.type
         mod.names <- NULL
       }
-      #n.ind.moderators
 
       if (n.ind.moderators == 0) { # proceed if only moderators at the study level are used
         n.moderators <- length(mod.number); n.moderators
@@ -421,7 +417,6 @@ ctmaFit <- function(
         if (n.moderators > 0) {
           currentModerators <- matrix(as.numeric(unlist(lapply(ctmaInitFit$studyList, function(extract) extract$moderators[mod.number]))), ncol=n.moderators); currentModerators
           if (!(is.null(primaryStudyList))) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE)
-          #if (!is.null(primaryStudyList)) currentModerators <- matrix(as.numeric(unlist(lapply(primaryStudyList$moderators, function(extract) extract[mod.number]))), ncol=n.moderators, byrow=TRUE); currentModerators
           if (is.na((currentModerators[length(currentModerators)])[[1]][1])) currentModerators <- currentModerators[-dim(currentModerators)[1],]; currentModerators
           if (is.null(dim(currentModerators)[1])) currentModerators <- matrix(currentModerators, ncol=1); currentModerators
 
@@ -458,9 +453,8 @@ ctmaFit <- function(
             tmpModstmp <- matrix(unlist(tmpMods[[1]]), ncol=ncol(tmpMods[[1]]))
             for (t in 2:length(tmpMods)) tmpModstmp <- rbind(tmpModstmp, matrix(unlist(tmpMods[[t]]), ncol=ncol(tmpMods[[t]])))
             tmpMods <- as.matrix(tmpModstmp, ncol=1)
-            #tmpMods <- tmpModstmp
           }
-          # the followin might be skipped (until skip end)
+          # the following might be skipped (until skip end)
           tmp1 <- unlist(lapply(tmpMods, function(x) {
             if (is.null(dim(x))) return(1) else return(ncol(x))
           } )); tmp1
@@ -473,7 +467,6 @@ ctmaFit <- function(
         }
         #
         if (!(is.null(primaryStudyList))) {
-          #if (length(primaryStudyList$deltas) != n.studies) {
           if (length(primaryStudyList$deltas) > n.studies) { # CHD changed Aug 2023
             if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
             ErrorMsg <- "\nYou provided a list to the argument primaryStudyList. The number of studies in this list is not identical to the number of
@@ -485,7 +478,6 @@ ctmaFit <- function(
         colnames(currentModerators) <- paste0("mod", 1:dim(currentModerators)[2])
       }
     }
-
   }
 
   #######################################################################################################################
@@ -545,13 +537,11 @@ ctmaFit <- function(
         tmp1 <- as.matrix(moderatorGroups[, ind.mod.number], ncol=1)
         colnames(tmp1) <- colnames(moderatorGroups)[1]
         moderatorGroups <- tmp1
-        #tmp$moderatorGroups <- tmp$moderatorGroups
         tmp$moderatorGroups <- moderatorGroups # CHD 31. AUG 2023
       }
 
       # change category values for making specific contrasts
       if (!(is.null(catsToCompare))) { # change category values to make the cats to compare the largest ones
-
         ### check if comparison of requested categories is possible
         tmp1 <- as.numeric(names(table(moderatorGroups))); tmp1
         counter <- 0
@@ -561,22 +551,19 @@ ctmaFit <- function(
           ErrorMsg <- "\nAt least one of the categories that should be compared is not available in the data. \nGood luck for the next try!"
           stop(ErrorMsg)
         }
-
         # check if each requested moderators is available in more than 1 study
         for (c1 in catsToCompare) if (!(c1 %in% as.numeric(names(table(currentModerators))))) {
           if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
           ErrorMsg <- "\nOne of the categories that should be compared exists in a single primary study only. This model is not identified. Eliminate the primary study and redo ctmaPrep.. \nGood luck for the next try!"
           stop(ErrorMsg)
-        } #
-
+        }
+        #
         for (c1 in 1:dim(moderatorGroups)[2]) {
           if (c1 %in% modsToCompare) {
-            #maxModeratorGroups <- max(moderatorGroups[, c1]); maxModeratorGroups
             maxAbsModeratorGroups <- max(abs(moderatorGroups[, c1])) ; maxAbsModeratorGroups
             minAbsModeratorGroups <- min(abs(moderatorGroups[, c1])) ; minAbsModeratorGroups
             moderatorGroupsOffset <- maxAbsModeratorGroups + minAbsModeratorGroups; moderatorGroupsOffset
             for (c2 in catsToCompare) {
-              #moderatorGroups[moderatorGroups[ ,c1] == c2] <- moderatorGroups[moderatorGroups[ ,c1] == c2] + maxModeratorGroups
               moderatorGroups[moderatorGroups[ ,c1] == c2] <- moderatorGroups[moderatorGroups[ ,c1] == c2] - moderatorGroupsOffset
             }
           }
@@ -604,7 +591,6 @@ ctmaFit <- function(
       dataTmp <- cbind(dataTmp, tmp); dim(dataTmp)
       tmp <- which(dataTmp[,"groups"] == i); tmp
       dataTmp[tmp, ncol(dataTmp)] <- 1
-      #if (CoTiMAStanctArgs$scaleTI == TRUE) dataTmp[ , ncol(dataTmp)] <- scale(dataTmp[ , ncol(dataTmp)])
       if (scaleTI == TRUE) dataTmp[ , ncol(dataTmp)] <- scale(dataTmp[ , ncol(dataTmp)])
     }
     targetCols <- which(colnames(dataTmp) == "groups"); targetCols
@@ -617,7 +603,7 @@ ctmaFit <- function(
       targetN <- length(targetRows); targetN
       for (i in 1:length(targetCols)) {
         tmp1 <- sum(dataTmp[, targetCols[i]])
-        dataTmp[targetRows, targetCols[i]] <- - tmp1/targetN
+        dataTmp[targetRows, targetCols[i]] <- -tmp1/targetN
       }
     }
 
@@ -628,7 +614,6 @@ ctmaFit <- function(
       if (mod.type=="cont") {
         tmp1 <- paste0("mod", 1:n.moderators); tmp1
         if (length(tmp1) == 1) tmp <- matrix(dataTmp[ , tmp1], ncol=length(tmp1)) else tmp <- dataTmp[ , tmp1]
-        #if (CoTiMAStanctArgs$scaleMod == TRUE) tmp[ , 1:ncol(tmp)] <- scale(tmp[ , 1:ncol(tmp)])
         if (scaleMod == TRUE) tmp[ , 1:ncol(tmp)] <- scale(tmp[ , 1:ncol(tmp)])
         if (!(is.null(transfMod))) {
           tmp2 <- tmp #[ , 1:ncol(tmp)]
@@ -653,7 +638,6 @@ ctmaFit <- function(
         } else {
           unique.mod <- sort(c(unique(tmp)))
         }
-
 
         # determine number of required dummies
         if (n.moderators > 1) {
@@ -682,7 +666,6 @@ ctmaFit <- function(
           }
         }
 
-        #if (CoTiMAStanctArgs$scaleMod == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)], scale=FALSE)
         if (scaleMod == TRUE) tmpTI[ , 1:ncol(tmpTI)] <- scale(tmpTI[ , 1:ncol(tmpTI)], scale=FALSE)
         currentStartNumber <- modTIstartNum; currentStartNumber
         currentEndNumber <- currentStartNumber + ncol(tmpTI)-1; currentEndNumber
@@ -742,7 +725,7 @@ ctmaFit <- function(
         n.all.moderators <- tmp1
       }
       if (!(is.null(cluster))) tmp1 <- tmp1 + clusCounter
-
+      #
       n.var <- max(n.manifest, n.latent); n.var
     }
 
@@ -754,14 +737,11 @@ ctmaFit <- function(
       dataTmp <- dataTmp[targetCases, ]
     }
 
-
     # make long data format
     {
       dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.var, n.TIpred = (n.studies-1+tmp1),
                                       manifestNames=manifestNames)
-
       dataTmp3 <- suppressMessages(ctsem::ctDeintervalise(dataTmp2))
-      #dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
       dataTmp3[, "time"] <- dataTmp3[, "time"] * scaleTime
     }
 
@@ -828,15 +808,13 @@ ctmaFit <- function(
     lambdaParams <- namesAndParams$lambdaParams; lambdaParams
     manifestMeansParams <- namesAndParams$manifestMeansParams; manifestMeansParams
     T0meansParams <- namesAndParams$T0meansParams; T0meansParams
-    manifestVarsParams <- namesAndParams$manifestVarsParams; manifestVarsParams
+    manifestVarsParams <- namesAndParams$manifestVarsParams
     # CHD 9.6.2023
-    T0VARParams <- T0var; T0VARParams
-    CINTParams <- cint; CINTParams
+    T0VARParams <- T0var
+    CINTParams <- cint
 
     if (is.null(invariantDriftNames)) invariantDriftNames <- driftNames
   }
-
-
 
   #######################################################################################################################
   ######################### All-invariant Model (used for calculation of statistical power) #############################
@@ -851,7 +829,6 @@ ctmaFit <- function(
                                     coresToUse=coresToUse,
                                     scaleTime=scaleTime,
                                     optimize=optimize,
-                                    #nopriors=nopriors,
                                     priors=priors,
                                     finishsamples=finishsamples,
                                     iter=iter,
@@ -976,7 +953,7 @@ ctmaFit <- function(
     }
 
     stanctModel <- suppressMessages(
-      ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, #Tpoints=maxTpoints,
+      ctsem::ctModel(n.latent=n.latent, n.manifest=n.var,
                      manifestNames=manifestNames,
                      DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
                      DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
@@ -1074,8 +1051,6 @@ ctmaFit <- function(
       print(paste0("#### Note: Correct random intercept model instead of rstan default requested ####"))
       print(paste0("#################################################################################"))
 
-      #if (randomIntercepts == "MANIFEST")  manifestMeansParams <- paste0("MM_V", 1:n.latent)
-
       nullMat <- matrix(0, n.latent, n.latent); nullMat
       DIFFUSIONtmp <- matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent); DIFFUSIONtmp
       DIFFUSIONtmp <- rbind(cbind(DIFFUSIONtmp, nullMat),
@@ -1097,7 +1072,6 @@ ctmaFit <- function(
           T0eta_cint_cov[ii, ll] <- paste0("Cov_T0eta", ll, "_cint", ii)
         }
       }
-      #T0eta_cint_cov
       T0VARtmp <- rbind(cbind(T0VARtmp, nullMat),
                         cbind(T0eta_cint_cov, cint_cint_cov)); T0VARtmp
       LAMBDAtmp <- cbind(lambdaParams, nullMat); LAMBDAtmp
@@ -1133,7 +1107,6 @@ ctmaFit <- function(
       stanctModel$pars[stanctModel$pars$matrix %in% 'CINT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
       stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
       stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTVAR',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-      #stanctModel$pars
 
       if (!(is.null(cluster))) {
         stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[(n.studies++n.all.moderators):(n.studies+n.all.moderators+clusCounter-1)],'_effect')] <- TRUE
@@ -1149,7 +1122,6 @@ ctmaFit <- function(
         if (!(is.null(catsToCompare))) {
           currentStartNumber <- modTIstartNum; currentStartNumber
           for (c1 in 1:modsToCompare) {
-            #c1 <-1
             if (n.moderators > 1) {
               targetCols2 <- c()
               for (c3 in 1:length(unique.mod)) {
@@ -1219,7 +1191,7 @@ ctmaFit <- function(
 
   if (allInvModel == FALSE) {
     #fitStanctModel <- suppressMessages(ctsem::ctStanFit(
-    fitStanctModel <- suppressMessages(ctsem::ctStanFit(
+    fitStanctModel <- (ctsem::ctStanFit(
       fit=fit,
       datalong = datalong_all,
       ctstanmodel = stanctModel,
