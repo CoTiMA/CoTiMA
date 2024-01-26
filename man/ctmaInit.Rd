@@ -127,8 +127,6 @@ ctmaInit(
 \item{useSV}{if TRUE (default=FALSE) start values will be used if provided in the list of primary studies}
 
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit - for debugging}
-
-\item{nopriors}{Deprecated. If TRUE, any priors are disabled – sometimes desirable for optimization}
 }
 \value{
 ctmaFit returns a list containing some arguments supplied, the fitted models, different elements summarizing the main results,
