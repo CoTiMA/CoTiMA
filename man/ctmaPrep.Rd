@@ -11,8 +11,11 @@ ctmaPrep(
   digits = 4,
   moderatorLabels = NULL,
   moderatorValues = NULL,
+  newRawDataDirectory = NULL,
   summary = TRUE,
-  activeDirectory = NULL
+  activeDirectory = NULL,
+  ctmaPrepObject = NULL,
+  excludedStudies = NULL
 )
 }
 \arguments{
@@ -42,9 +45,15 @@ a researcher regards as important.}
 
 \item{moderatorValues}{list of character vectors}
 
+\item{newRawDataDirectory}{(NULL = default) Change paths for all raw data files.}
+
 \item{summary}{if TRUE (default) creates summary table and xlsx sheets. Could be set to FALSE in case of errors.}
 
-\item{activeDirectory}{Mandatory. If subsequent fitting is done using different folders or on different computers, it can be
+\item{activeDirectory}{Mandatory. If subsequent fitting is done using different folders or on different computers, it can be}
+
+\item{ctmaPrepObject}{ctmaPrepObject from which studies should be excluded. Only works in combination with the argument exclude.}
+
+\item{excludedStudies}{studies to be excluded from ctmaPrepObject
 changed so that raw data files can be loaded.}
 }
 \value{

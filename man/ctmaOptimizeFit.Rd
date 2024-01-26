@@ -23,12 +23,17 @@ ctmaOptimizeFit(
   primaryStudies = NULL,
   problemStudy = NULL,
   randomPar = FALSE,
+  randomScaleTI = FALSE,
   randomScaleTime = c(1, 1),
+  shuffleStudyList = FALSE,
   reFits = NULL,
   scaleMod = NULL,
   scaleTime = NULL,
+  scaleTI = TRUE,
   T0means = 0,
-  transfMod = NULL
+  transfMod = NULL,
+  parallel = FALSE,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -66,9 +71,13 @@ ctmaOptimizeFit(
 
 \item{problemStudy}{number (position in list) where the problem study in primaryStudies is found}
 
-\item{randomPar}{logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE}
+\item{randomPar}{logical (default = FALSE). Overrides arguments used for customPar and randomly sets customPar either TRUE or FALSE}
 
-\item{randomScaleTime}{lower and upper limit of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)}
+\item{randomScaleTI}{logical (default = FALSE). Overrides arguments used for scaleTI and randomly sets scaleTI either TRUE or FALSE}
+
+\item{randomScaleTime}{lower and upper limit (default = c(1,1)) of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)}
+
+\item{shuffleStudyList}{(default = FALSE) randomly re-arranges studies in primaryStudyList. We encountered a few cases where this mattered, even though it should not. Only works if ctmaFit is optimized.}
 
 \item{reFits}{how many reFits should be done}
 
@@ -76,14 +85,22 @@ ctmaOptimizeFit(
 
 \item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
 
+\item{scaleTI}{scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dummies representing primary studies.}
+
 \item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 
 \item{transfMod}{more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))}
+
+\item{parallel}{(default = FALSE). When set to trUe parallel fitting on clusters is enabled (could save some time when many refits are done)}
+
+\item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
 }
 \value{
 returns a list with bestFit (= the best fit achieved), all_minus2ll (= all -2ll values for all fitted models), and summary, which
 is printed if the summary function is applied to the returned object, and which shows the summary information of the ctsem model with the
 best fit.
+
+%dopar%' <- foreach::'%dopar%' deprecated
 }
 \description{
 Replaces deprecated \code{\link{ctmaOptimizeInit}}, which was limited to initial fitting

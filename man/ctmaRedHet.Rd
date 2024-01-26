@@ -19,13 +19,13 @@ ctmaRedHet(
 
 \item{activeDirectory}{the directory where to save results (if not specified, it is taken from ctmaInitFit)}
 
-\item{ctmaFitObject}{ctmaFit Object WITHOUT Moderators (obtained from \code{\link{ctmaFit}} with the arguments invariantDrift=\'none\' and scaleTI=FALSE)}
+\item{ctmaFitObject}{ctmaFit Object WITHOUT Moderators (obtained from \code{\link{ctmaFit}} with the arguments WEC=\'TRUE\' and scaleTI=FALSE)}
 
-\item{ctmaFitObjectMod}{ctmaFit Object WITH Moderators (obtained from \code{\link{ctmaFit}} with the arguments invariantDrift=\'none\' and scaleTI=FALSE)}
+\item{ctmaFitObjectMod}{ctmaFit Object WITH Moderators (obtained from \code{\link{ctmaFit}} with the arguments WEC=\'TRUE\' and scaleTI=FALSE)}
 
 \item{digits}{rounding (default = 4)}
 
-\item{dt}{A scalar indicating a time interval across which discrete time effects should be estimated and then used for ctmaBiG.}
+\item{dt}{A vector of scalars indicating a time interval across which discrete time effects should be estimated and then used for ctmaBiG.}
 
 \item{undoTimeScaling}{if TRUE, the original time scale is used (timeScale argument possibly used in \code{\link{ctmaInit}} is undone )}
 }

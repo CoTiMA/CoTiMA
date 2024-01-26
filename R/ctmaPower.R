@@ -21,7 +21,7 @@
 #' @param skipScaling does not (re-)scale raw data (re-scaling of imported pseudo raw data achieves correlations = 1)
 #' @param useSampleFraction to speed up debugging. Provided as fraction (e.g., 1/10)
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
-#' @param nopriors if TRUE, any priors are disabled – sometimes desirable for optimization
+#' @param priors if FALSE, any priors are disabled – sometimes desirable for optimization
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param iter number of iterations (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
@@ -84,7 +84,7 @@ ctmaPower <- function(
   skipScaling=TRUE,
   useSampleFraction=NULL,
   optimize=TRUE,
-  nopriors=TRUE,
+  priors=FALSE,
   finishsamples=NULL,
   iter=NULL,
   chains=NULL,
@@ -107,7 +107,7 @@ ctmaPower <- function(
 
       if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
-      if (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors
+      if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors
       if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
       if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
       if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
@@ -369,7 +369,7 @@ ctmaPower <- function(
                                     indVarying=indVarying,
                                     scaleTime=CoTiMAStanctArgs$scaleTime,
                                     optimize=optimize,
-                                    nopriors=nopriors,
+                                    priors=priors,
                                     finishsamples=finishsamples,
                                     iter=iter,
                                     chains=chains,

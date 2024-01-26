@@ -12,11 +12,13 @@ ctmaPlotCtsemMod(
   saveFilePrefix = "Moderator Plot ",
   scaleTime = 1,
   mod.sd.to.plot = -1:1,
+  digits = 4,
   timeUnit = "not specified",
   timeRange = NULL,
   mod.type = "cont",
   no.mod.cats = NULL,
   n.x.labels = NULL,
+  plot = TRUE,
   plot.xMin = 0,
   plot.xMax = NULL,
   plot.yMin = -1,
@@ -48,6 +50,8 @@ ctmaPlotCtsemMod(
 
 \item{mod.sd.to.plot}{The standard deviation vlaues (default -1, 0, +1) for which the drift effects are plotted}
 
+\item{digits}{number of digits used for rounding}
+
 \item{timeUnit}{Label for the x-axis}
 
 \item{timeRange}{time range across which drift effects are plotted}
@@ -57,6 +61,8 @@ ctmaPlotCtsemMod(
 \item{no.mod.cats}{Need to be specified if type = "cat". The number of categories should usually be equal the number of dummy variables used to represent the categorical moderator + 1.}
 
 \item{n.x.labels}{How many values to be used for indicating time points on the x-axis (0 is automatically added and should not be counted)}
+
+\item{plot}{plots figures if TRUE (default) otherwise only return moderated drift matrices}
 
 \item{plot.xMin}{default = 0}
 

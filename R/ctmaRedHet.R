@@ -12,7 +12,7 @@
 #'
 #' @importFrom RPushbullet pbPost
 #' @importFrom ctsem ctExtract
-#' @importFrom expm expm
+#' @importFrom OpenMx expm
 #' @importFrom stats var lm pnorm
 #'
 #' @export ctmaRedHet
@@ -169,7 +169,7 @@ ctmaRedHet <- function(activateRPB=FALSE,
       studyDRIFTCoeffDT_Mean[[k]] <- studyDRIFTCoeffDT_SD[[k]] <- list()
       for (d in 1:length(dt)) {
         tmp1 <- dt[d] * studyDRIFTCoeff[[k]]
-        tmp1 <- t(apply(tmp1, 1, function(x) expm::expm(matrix(x, nrow=n.latent1))))
+        tmp1 <- t(apply(tmp1, 1, function(x) OpenMx::expm(matrix(x, nrow=n.latent1))))
         studyDRIFTCoeffDT_Mean[[k]][[d]] <- apply(tmp1, 2, mean)
         studyDRIFTCoeffDT_SD[[k]][[d]] <- apply(tmp1, 2, sd)
       }
@@ -255,12 +255,12 @@ ctmaRedHet <- function(activateRPB=FALSE,
       modStudyDRIFTCoeffDT_Mean[[k]] <- modStudyDRIFTCoeffDT_SD[[k]] <- list()
       for (d in 1:length(dt)) {
         tmp1 <- dt[d] * modStudyDRIFTCoeff[[k]]
-        tmp1 <- t(apply(tmp1, 1, function(x) expm::expm(matrix(x, nrow=n.latent1))))
+        tmp1 <- t(apply(tmp1, 1, function(x) OpenMx::expm(matrix(x, nrow=n.latent1))))
         modStudyDRIFTCoeffDT_Mean[[k]][[d]] <- apply(tmp1, 2, mean)
         modStudyDRIFTCoeffDT_SD[[k]][[d]] <- apply(tmp1, 2, sd)
       }
     }
-    z# compute estimates required for computing fixed & random effects and heterogeneity
+    # compute estimates required for computing fixed & random effects and heterogeneity
     DRIFTCoeff1DT <- DRIFTSE1DT <- DRIFTCoeffSND1DT <- DRIFTPrecision1DT <- list()
     DRIFTCoeff2DT <- DRIFTSE2DT <- DRIFTCoeffSND2DT <- DRIFTPrecision2DT <- list()
     for (i in 1:length(dt)) {

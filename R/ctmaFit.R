@@ -1268,7 +1268,15 @@ ctmaFit <- function(
     }
 
     if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST")  ) {
-      parNames <- ctsem:::getparnames(fitStanctModel); parNames
+      #parNames <- ctsem:::getparnames(fitStanctModel); parNames
+      # since getparnames is not exported, I took part fo the function and replicated it here # CHD 26.1.2024
+      ms <- fitStanctModel$setup$matsetup
+      indices <- ms$when %in% c(0, -1) & ms$param > 0 & ms$copyrow < 1
+      pars <- data.frame(parnames = ms$parname[indices], parindices = ms$param[indices])
+      pars <- pars[!duplicated(pars$parnames), ]
+      pars <- pars[order(pars$parindices), ]
+      parNames <- pars[pars$parindices > 0, 1]
+
       targetCols <- grep("ov", parNames); targetCols
       targetRaws <- fitStanctModel$stanfit$rawposterior[, targetCols]
       colnames(targetRaws) <- parNames[grep("ov", parNames)]

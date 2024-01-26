@@ -15,7 +15,6 @@ ctmaAllInvFit(
   indVarying = FALSE,
   scaleTime = NULL,
   optimize = TRUE,
-  nopriors = TRUE,
   priors = FALSE,
   finishsamples = NULL,
   iter = NULL,
@@ -30,7 +29,7 @@ ctmaAllInvFit(
   CoTiMAStanctArgs = NULL,
   lambda = NULL,
   manifestVars = NULL,
-  indVaryingT0 = TRUE
+  indVaryingT0 = NULL
 )
 }
 \arguments{
@@ -53,8 +52,6 @@ ctmaAllInvFit(
 \item{scaleTime}{scaleTime}
 
 \item{optimize}{optimize}
-
-\item{nopriors}{nopriors (TRUE, but deprecated)}
 
 \item{priors}{priors (FALSE)}
 
@@ -90,5 +87,5 @@ ctmaAllInvFit(
 returns a fitted CoTiMA object, in which all drift parameters, Time 0 variances and covariances, and diffusion parameters were set invariant across primary studies
 }
 \description{
-#' @description Fit a CoTiMA model with all params (drift, T0var, diffusion) invariant across primary studies
+Fit a CoTiMA model with all params (drift, T0var, diffusion) invariant across primary studies
 }

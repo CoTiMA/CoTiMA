@@ -39,10 +39,10 @@ ctmaFit(
   mod.type = "cont",
   moderatedDrift = NULL,
   modsToCompare = NULL,
-  nopriors = TRUE,
   optimize = TRUE,
   primaryStudyList = NULL,
   priors = FALSE,
+  randomIntercepts = FALSE,
   sameInitialTimes = FALSE,
   scaleClus = TRUE,
   scaleMod = NULL,
@@ -52,7 +52,8 @@ ctmaFit(
   T0var = "auto",
   transfMod = NULL,
   useSampleFraction = NULL,
-  verbose = NULL
+  verbose = 0,
+  WEC = FALSE
 )
 }
 \arguments{
@@ -124,13 +125,13 @@ ctmaFit(
 
 \item{modsToCompare}{when performing contrasts for categorical moderators, the moderator numbers (position in mod.number) that is used}
 
-\item{nopriors}{Deprecated, but still working. If TRUE, any priors are disabled – sometimes desirable for optimization}
-
 \item{optimize}{if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
 
 \item{primaryStudyList}{could be a list of primary studies compiled with \code{\link{ctmaPrep}} that defines the subset of studies in ctmaInitFit that should actually be used}
 
 \item{priors}{if FALSE, any priors are disabled – sometimes desirable for optimization}
+
+\item{randomIntercepts}{(default = FALSE) Experimental. Overrides ctsem's default mode for modelling indvarying cints.}
 
 \item{sameInitialTimes}{Only important for raw data. If TRUE (default=FALSE), T0MEANS occurs for every subject at the same time, rather than just at the earliest observation.}
 
@@ -151,6 +152,8 @@ ctmaFit(
 \item{useSampleFraction}{to speed up debugging. Provided as fraction (e.g., 1/10).}
 
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
+
+\item{WEC}{(default = FALSE) Experimental. Uses weighted effect coding of TIpred representing the dummies of the primary studies. Returns drift matrices for all primary studies.}
 }
 \value{
 ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,

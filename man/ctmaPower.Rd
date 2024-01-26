@@ -24,7 +24,7 @@ ctmaPower(
   skipScaling = TRUE,
   useSampleFraction = NULL,
   optimize = TRUE,
-  nopriors = TRUE,
+  priors = FALSE,
   finishsamples = NULL,
   iter = NULL,
   chains = NULL,
@@ -72,7 +72,7 @@ ctmaPower(
 
 \item{optimize}{if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
 
-\item{nopriors}{if TRUE, any priors are disabled – sometimes desirable for optimization}
+\item{priors}{if FALSE, any priors are disabled – sometimes desirable for optimization}
 
 \item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
 

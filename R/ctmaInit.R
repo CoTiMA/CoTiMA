@@ -27,7 +27,6 @@
 #' @param manifestVars define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
 #' @param n.latent number of latent variables of the model (hast to be specified)!
 #' @param n.manifest number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
-#' @param nopriors Deprecated. If TRUE, any priors are disabled – sometimes desirable for optimization
 #' @param optimize if set to FALSE, Stan's Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
 #' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}}
@@ -109,7 +108,6 @@ ctmaInit <- function(
     manifestVars=NULL,
     n.latent=NULL,
     n.manifest=0,
-    #nopriors=FALSE,
     optimize=TRUE,
     posLL=TRUE,
     primaryStudies=NULL,
@@ -1501,7 +1499,6 @@ ctmaInit <- function(
 
         if (randomIntercepts == TRUE) {
           e <- ctsem::ctExtract(studyFit[[i]])
-          str(e$pop_T0cov)
           ctsem::ctCollapse(e$pop_T0cov, 1, mean)
           model_popcov_m[[i]] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, mean), digits = digits)
           model_popcov_sd[[i]] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, stats::sd), digits = digits)
