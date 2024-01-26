@@ -27,13 +27,16 @@
 #' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
 #' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}
 #' @param problemStudy number (position in list) where the problem study in primaryStudies is found
-#' @param randomPar logical. Overrides arguments used fo customPar and randomly selects customPar either TRUE or FALSE
-#' @param randomScaleTime lower and upper limit of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)
+#' @param randomPar logical (default = FALSE). Overrides arguments used for customPar and randomly sets customPar either TRUE or FALSE
+#' @param randomScaleTime lower and upper limit (default = c(1,1)) of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)
+#' @param randomScaleTI logical (default = FALSE). Overrides arguments used for scaleTI and randomly sets scaleTI either TRUE or FALSE
+#' @param shuffleStudyList (default = FALSE) randomly re-arranges studies in primaryStudyList. We encountered a few cases where this mattered, even though it should not. Only works if ctmaFit is optimized.
 #' @param reFits how many reFits should be done
 #' @param scaleMod scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
 #' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param transfMod more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))
+#' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 
 #'
 #' @importFrom doParallel registerDoParallel # deprecated
@@ -80,13 +83,17 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             primaryStudies=NULL,
                             problemStudy=NULL,
                             randomPar=FALSE,
+                            randomScaleTI=FALSE,
                             randomScaleTime=c(1,1),
+                            shuffleStudyList=FALSE,
                             reFits=NULL,
                             scaleMod=NULL,
                             scaleTime=NULL,
+                            scaleTI=TRUE,
                             T0means=0,
                             transfMod=NULL,
-                            parallel=FALSE
+                            parallel=FALSE,
+                            verbose=FALSE
 )
 {
 
@@ -293,10 +300,61 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     currentLL <- 10^20; currentLL
     all_minus2ll <- c()
     for (i in 1:reFits) {
+      #i <- 1
       scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
       if (randomPar == TRUE) {
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
-        customPar = c(TRUE, FALSE)[tmp1]
+        customPar <- c(TRUE, FALSE)[tmp1]
+      } else {
+        customPar <- ctmaFitFit$argumentList$customPar
+      }
+      #
+      if (randomScaleTI == TRUE) {
+        tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
+        scaleTI <- c(TRUE, FALSE)[tmp1]
+      } else {
+        scaleTI <- ctmaFitFit$argumentList$scaleTI
+      }
+      #
+      if (shuffleStudyList == TRUE) {
+        #
+        tmpStudyList <- ctmaInitFit$studyList; length(tmpStudyList)
+        studyNumbers <- unlist(lapply(tmpStudyList, function(x) x$originalStudyNo)); studyNumbers
+        newStudyOrder <- sample(studyNumbers, length(studyNumbers), replace=FALSE); newStudyOrder
+        newStudyList <- list()
+        for (s in 1:length(tmpStudyList)) {
+          newStudyList[[s]] <- tmpStudyList[[which(studyNumbers %in% newStudyOrder[s])]]
+          }
+        ctmaInitFit$studyList <- newStudyList
+        #
+        tmpPrimaryStudyList <- ctmaInitFit$primaryStudyList
+        newPrimaryStudyList <- list()
+        names(tmpPrimaryStudyList)
+        counter <- 0
+        for (s in 1:length(tmpPrimaryStudyList)) {
+          counter <- counter + 1
+          if (s %in% c("deltas", "sampleSizes", "pairwiseNs", "empcovs", "moderators", "startValues", "studyNumbers",
+                       "rawData", "source")) {
+            for (t in 1:length(tmpStudyList[[counter]])) {
+              newPrimaryStudyList[[counter]][[t]] <- tmpPrimaryStudyList[[counter]][[which(studyNumbers %in% newStudyOrder[t])]]
+            }
+          } else {
+            newPrimaryStudyList[[counter]] <- tmpPrimaryStudyList[[counter]]
+          }
+        }
+        ctmaInitFit$primaryStudyList <- newPrimaryStudyList
+        ctmaInitFit$primaryStudyList <- NULL
+        #
+        tmpEmprawList <- ctmaInitFit$emprawList
+        newEmprawList <- list()
+        tmpStudyFitList <- ctmaInitFit$studyFitList
+        newStudyFitList <- list()
+        for (s in 1:length(tmpEmprawList)) {
+          newEmprawList[[s]] <- tmpEmprawList[[which(studyNumbers %in% newStudyOrder[s])]]
+          newStudyFitList[[s]] <- tmpStudyFitList[[which(studyNumbers %in% newStudyOrder[s])]]
+        }
+        ctmaInitFit$emprawList <- newEmprawList
+        ctmaInitFit$studyFitList <- newStudyFitList
       }
 
       #fits <- ctmaFit(ctmaInitFit=ctmaInitFit,
@@ -319,19 +377,23 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                       #coresToUse=1,
                       coresToUse=coresToUse, # changed Aug 2023
                       sameInitialTimes=ctmaFitFit$argumentList$sameInitialTimes,
-                      scaleTI=ctmaFitFit$argumentList$scaleTI,
+                     #scaleTI=ctmaFitFit$argumentList$scaleTI,
+                     scaleTI=scaleTI,
                       scaleMod=ctmaFitFit$argumentList$scaleMod,
                       transfMod=ctmaFitFit$argumentList$transfMod,
                       scaleClus=ctmaFitFit$argumentList$scaleClus,
-                      scaleTime=ctmaFitFit$argumentList$scaleTime,
-                      optimize=ctmaFitFit$argumentList$optimize,
+                      #scaleTime=ctmaFitFit$argumentList$scaleTime,
+                     scaleTime=scaleTime,
+                     optimize=ctmaFitFit$argumentList$optimize,
                       #nopriors=ctmaFitFit$argumentList$nopriors,
                       finishsamples=ctmaFitFit$argumentList$finishsamples,
                       iter=ctmaFitFit$argumentList$iter,
                       chains=ctmaFitFit$argumentList$chains,
-                      verbose=ctmaFitFit$argumentList$verbose,
-                      allInvModel=ctmaFitFit$argumentList$allInvModel,
-                      customPar=ctmaFitFit$argumentList$customPar,
+                      #verbose=ctmaFitFit$argumentList$verbose,
+                     verbose=verbose,
+                     allInvModel=ctmaFitFit$argumentList$allInvModel,
+                     #customPar=ctmaFitFit$argumentList$customPar,
+                     customPar=customPar,
                       inits=ctmaFitFit$argumentList$inits,
                       modsToCompare=ctmaFitFit$argumentList$modsToCompare,
                       catsToCompare=ctmaFitFit$argumentList$catsToCompare,
@@ -357,6 +419,9 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       if (fit$summary$minus2ll < currentLL) {
         currentLL <- fit$summary$minus2ll
         bestFit <- fit
+        usedStudyList <- newStudyList
+        usedTimeScale <- scaleTime
+        usedScaleTI <- scaleTI
       }
       #return(fits)
     }
@@ -377,6 +442,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
   #bestFit <- allfits[[bestFit]]
 
   results <- list(bestFit=bestFit, all_minus2ll=all_minus2ll, summary=bestFit$summary,
+                  usedStudyList=usedStudyList, usedTimeScale=usedTimeScale, usedScaleTI=usedScaleTI,
                   resultsSummary=bestFit$studyFitList[[1]]$resultsSummary
   )
   class(results) <- "CoTiMAFit"
