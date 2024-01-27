@@ -952,7 +952,8 @@ ctmaFit <- function(
       # set TIpredeffects on cints to TRUE
     }
 
-    stanctModel <- suppressMessages(
+    #stanctModel <- suppressMessages(
+    stanctModel <- (
       ctsem::ctModel(n.latent=n.latent, n.manifest=n.var,
                      manifestNames=manifestNames,
                      DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
