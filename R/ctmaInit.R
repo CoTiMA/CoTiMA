@@ -944,7 +944,8 @@ ctmaInit <- function(
 
       # CHD 9.6.2023
 
-      if (randomIntercepts == FALSE) {
+      #if (randomIntercepts == FALSE) {
+      if ( (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
         if ( (indVarying == 'CINT') & (indVaryingT0 == TRUE) ) {
           print(paste0("#################################################################################"))
           print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
@@ -1007,7 +1008,7 @@ ctmaInit <- function(
 
           manifestMeansParams <- 'auto'
         }
-    } # end  if (randomIntercepts == FALSE)
+    } # end  if ( (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") )
 
         currentModel <- suppressMessages(
         ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
@@ -1045,7 +1046,8 @@ ctmaInit <- function(
 
       currentModel$manifesttype <- binaries
 
-      if (randomIntercepts == TRUE) { # override ctsem's default setup for indvarying cints
+      #if (randomIntercepts == TRUE) { # override ctsem's default setup for indvarying cints
+      if ((randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
         print(paste0("#################################################################################"))
         print(paste0("## Note: Random intercept modelled as processes, not as cint or manifestmeans. ##"))
         print(paste0("#################################################################################"))
@@ -1057,6 +1059,11 @@ ctmaInit <- function(
         DRIFTtmp <- matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent); DRIFTtmp
         DRIFTtmp <- rbind(cbind(DRIFTtmp, diag(2)),
                           cbind(nullMat, nullMat)); DRIFTtmp
+        if (randomIntercepts == "MANIFEST") {
+          DRIFTtmp <- matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent); DRIFTtmp
+          DRIFTtmp <- rbind(cbind(DRIFTtmp, nullMat),
+                            cbind(nullMat, nullMat)); DRIFTtmp
+        }
         T0VARtmp = gsub("diff", "T0cov", matrix(diffParamsTmp, n.latent, n.latent)); T0VARtmp
         cint_cint_cov <- gsub("eta", "cint", T0VARtmp); cint_cint_cov
         cint_cint_cov <- gsub("T0c", "C", cint_cint_cov); cint_cint_cov
@@ -1070,6 +1077,9 @@ ctmaInit <- function(
         T0VARtmp <- rbind(cbind(T0VARtmp, nullMat),
                           cbind(T0eta_cint_cov, cint_cint_cov)); T0VARtmp
         LAMBDAtmp <- cbind(lambdaParams, nullMat); LAMBDAtmp
+        if (randomIntercepts == "MANIFEST") {
+          LAMBDAtmp <- cbind(lambdaParams, lambdaParams); LAMBDAtmp
+        }
         manifestNamesTmp <- manifestNames; manifestNamesTmp
         latentNamesTmp <- c(latentNames, paste0(latentNames, "_cint")); latentNamesTmp
         T0MEANStmp <- matrix(paste0("Mean", latentNamesTmp), n.latent*2, 1); T0MEANStmp
@@ -1346,7 +1356,8 @@ ctmaInit <- function(
         #if (any(tmp4 != 0)) estProb[[length(estProb)+1]] <- paste0("Possibly problems for Study ", i, " in estimating: ", paste0(tmp6[tmp4], collapse=" "))
         if (any(tmp4 != 0)) estProb[[length(estProb)+0]] <- paste0(estProb[[length(estProb)+0]], " ", paste0(tmp6[tmp4], collapse=" "))
 
-        if (randomIntercepts == TRUE) target <- "T0cov_" else target <- "0var"
+        #if (randomIntercepts == TRUE) target <- "T0cov_" else target <- "0var"
+        if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") )  target <- "T0cov_" else target <- "0var"
         #if (randomIntercepts == TRUE) target <- "ov_" else target <- "0var"
         #tmp <- grep("0var", rownames(resultsSummary$popmeans)); tmp
         tmp <- grep(target, rownames(resultsSummary$popmeans)); tmp
@@ -1372,7 +1383,8 @@ ctmaInit <- function(
           } else {
             names(model_T0var_Coef[[i]]) <- T0covNames
           }
-          if (randomIntercepts == TRUE) {
+          #if (randomIntercepts == TRUE) {
+          if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") )  {
             model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "Mean"])
             model_T0var_Coef[[i]] <- c(matrix(model_T0var_Coef[[i]], n.latent^2, n.latent^2)[1:n.latent, 1:n.latent])
             names(model_T0var_Coef[[i]]) <- T0covNames
@@ -1390,7 +1402,8 @@ ctmaInit <- function(
           } else {
             names(model_T0var_SE[[i]]) <- T0covNames
           }
-          if (randomIntercepts == TRUE) {
+          #if (randomIntercepts == TRUE) {
+          if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
             model_T0var_SE[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "sd"])
             model_T0var_SE[[i]] <- c(matrix(model_T0var_SE[[i]], n.latent^2, n.latent^2)[1:n.latent, 1:n.latent])
             names(model_T0var_SE[[i]]) <- T0covNames
@@ -1418,7 +1431,8 @@ ctmaInit <- function(
                             paste0(T0covNames, "UL"))); tmp3
             names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
           }
-          if (randomIntercepts == TRUE) {
+          #if (randomIntercepts == TRUE) {
+          if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") )  {
             tmp1 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "2.5%"]; tmp1
             tmp1 <- c(matrix(tmp1, n.latent^2, n.latent^2)[1:n.latent, 1:n.latent])
             tmp2 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "97.5%"]; tmp2
@@ -1445,7 +1459,8 @@ ctmaInit <- function(
 
 
         # changed 17. Aug. 2022
-        if ( ((indVarying == TRUE) | (indVarying == "CINT") | (indVarying == 'cint')) & (randomIntercepts == FALSE) )  {
+        #if ( ((indVarying == TRUE) | (indVarying == "CINT") | (indVarying == 'cint')) & (randomIntercepts == FALSE) )  {
+        if ( ( (indVarying == TRUE) | (indVarying == 'CINT') ) & ( (randomIntercepts != TRUE) | (randomIntercepts != "MANIFETS") ) ) {
           # CHD 12.6.2023
           e <- ctsem::ctExtract(studyFit[[i]])
           model_popsd_tmp <- resultsSummary$popsd
@@ -1470,34 +1485,36 @@ ctmaInit <- function(
             model_popcor_50[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
             model_popcor_975[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
             #model_popcor <- stats::cov2cor(model_popcov_m)
-          } else {
-            model_popcov_m[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits); model_popcov_m
-            model_popcov_sd[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
-            model_popcov_T[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
-            model_popcov_025[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
-            model_popcov_50[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
-            model_popcov_975[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975))
-            # convert to correlations and do the same (array to list then list to array)
-            e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
-            e$popcor <- lapply(e$popcor, stats::cov2cor)
-            e$popcor <- array(unlist(e$popcor), dim=c(n.latent   , n.latent  , length(e$popcor)))
-            model_popcor_m[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
-            model_popcor_sd[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
-            model_popcor_T[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
-            model_popcor_025[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
-            model_popcor_50[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
-            model_popcor_975[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
-          }
+          } #else {
+          #  model_popcov_m[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits); model_popcov_m
+          #  model_popcov_sd[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, stats::sd), digits = digits)
+          #  model_popcov_T[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean)/ctsem::ctCollapse(e$popcov, 1, stats::sd), digits)
+          #  model_popcov_025[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
+          #  model_popcov_50[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .50))
+          #  model_popcov_975[[i]] <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .975))
+          #  # convert to correlations and do the same (array to list then list to array)
+          #  e$popcor <- lapply(seq(dim(e$popcov)[1]), function(x) e$popcov[x , ,])
+          #  e$popcor <- lapply(e$popcor, stats::cov2cor)
+          #  e$popcor <- array(unlist(e$popcor), dim=c(n.latent   , n.latent  , length(e$popcor)))
+          #  model_popcor_m[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, mean), digits = digits)
+          #  model_popcor_sd[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, stats::sd), digits = digits)
+          #  model_popcor_T[[i]] <- round(ctsem::ctCollapse(e$popcor, 3, mean)/ctsem::ctCollapse(e$popcor, 3, stats::sd), digits)
+          #  model_popcor_025[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
+          #  model_popcor_50[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
+          #  model_popcor_975[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
+          #}
         }
 
         # CHD 22.1.2024
-        if ( ( !((indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT')) & (randomIntercepts == FALSE)) ) {
+        #if ( ( !((indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT')) & (randomIntercepts == FALSE)) ) {
+        if ( (indVarying != TRUE) & (indVarying != 'CINT') & (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
           model_popsd[[i]] <- "no random intercepts estimated"
           model_popcov_m[[i]] <- model_popcov_sd[[i]] <- model_popcov_T[[i]] <- model_popcov_025[[i]] <- model_popcov_50[[i]] <- model_popcov_975[[i]] <- "no random intercepts estimated"
           model_popcor_m[[i]] <- model_popcor_sd[[i]] <- model_popcor_T[[i]] <- model_popcor_025[[i]] <- model_popcor_50[[i]] <- model_popcor_975[[i]] <- "no random intercepts estimated"
         }
 
-        if (randomIntercepts == TRUE) {
+        #if (randomIntercepts == TRUE) {
+        if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST")  ) {
           e <- ctsem::ctExtract(studyFit[[i]])
           ctsem::ctCollapse(e$pop_T0cov, 1, mean)
           model_popcov_m[[i]] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, mean), digits = digits)
@@ -1517,7 +1534,7 @@ ctmaInit <- function(
           model_popcor_50[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
           model_popcor_975[[i]] <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
           #model_popcor <- stats::cov2cor(model_popcov_m)
-        } # end if (randomIntercepts == TRUE)
+        } # end     if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST")  )
 
       } # end if (fit == TRUE)
     } # end if (tmpLogic == 1)
