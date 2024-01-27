@@ -1793,25 +1793,29 @@ ctmaInit <- function(
                                popcov_mean=model_popcov_m,
                                popcov_sd=model_popcov_sd)
       # move T0Means of phantom latents to cints
-      tmp1 <- grep("T0MEAN", rownames(invariantDrift_Coeff)); tmp1
-      tmp1 <- tmp1[(n.latent+1):(n.latent^2)]; tmp1
-      tmp1 <- invariantDrift_Coeff[tmp1, ]; tmp1
-      tmp2 <- grep("CINT", rownames(invariantDrift_Coeff)); tmp2
-      invariantDrift_Coeff[tmp2[1:n.latent],] <- tmp1
-      # delete irrelevant rows
-      toDelete <- c()
-      for (i in (n.latent+1):(n.latent^2)) {
-        toDelete <- c(toDelete, grep(i, rownames(invariantDrift_Coeff)))
-      }
-      invariantDrift_Coeff <- invariantDrift_Coeff[-toDelete, ]
-      #invariantDrift_Coeff
-      #estimates_original_time_scaleBackup <- estimates_original_time_scale
-      toDelete <- c()
-      for (i in (n.latent+1):(n.latent^2)) {
-        toDelete <- c(toDelete, grep(i, rownames(estimates_original_time_scale)))
-      }
-      estimates_original_time_scale <- estimates_original_time_scale[-toDelete, ]
-      #estimates_original_time_scale
+      # needs still to be done
+      skip <- 0
+      if (skip == 1) {
+        tmp1 <- grep("T0MEAN", rownames(invariantDrift_Coeff)); tmp1
+        tmp1 <- tmp1[(n.latent+1):(n.latent^2)]; tmp1
+        tmp1 <- invariantDrift_Coeff[tmp1, ]; tmp1
+        tmp2 <- grep("CINT", rownames(invariantDrift_Coeff)); tmp2
+        invariantDrift_Coeff[tmp2[1:n.latent],] <- tmp1
+        # delete irrelevant rows
+        toDelete <- c()
+        for (i in (n.latent+1):(n.latent^2)) {
+          toDelete <- c(toDelete, grep(i, rownames(invariantDrift_Coeff)))
+        }
+        invariantDrift_Coeff <- invariantDrift_Coeff[-toDelete, ]
+        #invariantDrift_Coeff
+        #estimates_original_time_scaleBackup <- estimates_original_time_scale
+        toDelete <- c()
+        for (i in (n.latent+1):(n.latent^2)) {
+          toDelete <- c(toDelete, grep(i, rownames(estimates_original_time_scale)))
+        }
+        estimates_original_time_scale <- estimates_original_time_scale[-toDelete, ]
+        #estimates_original_time_scale
+      } # end skip
     } else {
       if ( (indVarying == 'CINT') | (indVarying == TRUE) ){
       randomIntercepts <- list(popsd=model_popsd,
