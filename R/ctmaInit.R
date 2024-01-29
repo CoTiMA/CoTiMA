@@ -511,7 +511,7 @@ ctmaInit <- function(
           if (!(is.null(primaryStudies$activeDirectory))) {
             if (activeDirectory != primaryStudies$activeDirectory) {
               tmp1 <- gsub(primaryStudies$activeDirectory, activeDirectory, tmp1, fixed=TRUE)
-              print(tmp1)
+              #print(tmp1)
             }
           } else {
             #tmp1 <- gsub(primaryStudies$activeDirectory, activeDirectory, tmp1, fixed=TRUE)
