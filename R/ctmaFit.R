@@ -1214,7 +1214,8 @@ ctmaFit <- function(
       savescores=CoTiMAStanctArgs$savescores,
       gendata=CoTiMAStanctArgs$gendata,
       control=CoTiMAStanctArgs$control,
-      verbose=CoTiMAStanctArgs$verbose,
+      #verbose=CoTiMAStanctArgs$verbose,
+      verbose=verbose,
       warmup=CoTiMAStanctArgs$warmup,
       cores=coresToUse,
       inits=inits))
