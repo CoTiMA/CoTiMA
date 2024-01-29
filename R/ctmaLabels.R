@@ -164,7 +164,6 @@ ctmaLabels <- function(
   # CHD 9.6.2023
   if (manifestMeans == 'auto') {
     MANIFESTMEANS <- 'auto'
-    print(MANIFESTMEANS)
   } else {
     MANIFESTMEANS <- 0
     if (!(is.null(invariantDrift))) {
@@ -184,7 +183,6 @@ ctmaLabels <- function(
         #}
       }
     }
-    print(MANIFESTMEANS)
   }
 
   #T0Means
