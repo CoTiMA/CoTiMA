@@ -1597,9 +1597,9 @@ ctmaFit <- function(
       #optimalCrossLag_scaledTime <- optimalCrossLag * CoTiMAStanctArgs$scaleTime
       optimalCrossLag_scaledTime <- optimalCrossLag * scaleTime
     }
-    #else {
-    #  optimalCrossLag_scaledTime <- optimalCrossLag
-    #}
+    else {
+      optimalCrossLag_scaledTime <- 'Not available for this model yet.'
+    }
 
     #######################################################################################################################
 
