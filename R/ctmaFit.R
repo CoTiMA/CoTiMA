@@ -340,7 +340,7 @@ ctmaFit <- function(
   #######################################################################################################################
 
   {
-    start.time <- Sys.time(); start.time
+    #start.time <- Sys.time(); start.time
 
     {
       if (is.null(ctmaInitFit$n.latent)) {
@@ -350,6 +350,14 @@ ctmaFit <- function(
       }
       if (!(is.null(ctmaInitFit$n.manifest))) n.manifest <- ctmaInitFit$n.manifest else n.manifest <- n.latent
       if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
+
+      if (!(is.null(drift))) {
+        if (!(is.matrix(drift))) {
+          if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+          ErrorMsg <- paste0("The argument \"drift = c(", paste(drift, collapse=", "), ")\" was provided, but drift should be a ", n.latent, " x ", n.latent, " matrix.")
+          stop(ErrorMsg)
+        }
+      }
 
       binaries.orig <- binaries
       if (is.null(binaries)) {
@@ -1594,20 +1602,14 @@ ctmaFit <- function(
     # CHD 12.7.23
     #if ( (!(is.null(scaleTime))) & (length(invariantDriftNames) == length(driftNames)) ) {
     if (length(invariantDriftNames) == length(driftNames))  {
-      #optimalCrossLag_scaledTime <- optimalCrossLag * CoTiMAStanctArgs$scaleTime
       optimalCrossLag_scaledTime <- optimalCrossLag * scaleTime
     }
     else {
-      optimalCrossLag_scaledTime <- 'Not available for this model yet.'
+      optimalCrossLag_scaledTime <- 'Not available for this model.'
     }
 
     #######################################################################################################################
 
-    #end.time <- Sys.time()
-    #time.taken <- end.time - start.time
-    #st <- paste0("Computation started at: ", start.time); st
-    #et <- paste0("Computation ended at: ", end.time); et
-    #tt <- paste0("Computation lasted: ", round(time.taken, digits)); tt
 
     meanDeltas <- mean(ctmaInitFit$statisticsList$allDeltas, na.rm=TRUE); meanDeltas
     largeDelta <- which(ctmaInitFit$statisticsList$allDeltas >= meanDeltas); largeDelta
