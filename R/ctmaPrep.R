@@ -180,7 +180,6 @@ ctmaPrep <- function(selectedStudies=NULL,
     insideRawData <- list(fileName=NULL, studyNumbers=NULL, missingValues=-99,
                           standardize=TRUE, header=FALSE, dec =".", sep=" ",
                           n.ind.mod=0)
-
     for (i in 1:(length(selectedStudies)+1)) {
       deltas[[i]] <- NA
       sampleSizes[[i]] <- NA
@@ -206,11 +205,12 @@ ctmaPrep <- function(selectedStudies=NULL,
 
       if (!(is.null(addElements))) for (j in 1:length(addElements)) addElementsList[[j]][[i]] <- NA
     }
-
     for (i in 1:length(selectedStudies)) { # 'length' ensures consecutive numbering
       if (exists(paste0("delta_t", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) deltas[[i]] <- get(paste0("delta_t", selectedStudies[i]))
       if (exists(paste0("empcov", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) empcovs[[i]] <- get(paste0("empcov", selectedStudies[i]))
       if (exists(paste0("pairwiseN", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) pairwiseNs[[i]] <- get(paste0("pairwiseN", selectedStudies[i]))
+      #(exists(paste0("moderator", selectedStudies[i]), envir =parent.frame(), inherits=FALSE))
+      #paste0("moderator", selectedStudies[i])
       if (exists(paste0("moderator", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) moderators[[i]] <- get(paste0("moderator", selectedStudies[i]))
       if (exists(paste0("startValues", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) startValues[[i]] <- get(paste0("startValues", selectedStudies[i]))
       if (exists(paste0("studyNumber", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) studyNumbers[[i]] <- get(paste0("studyNumber", selectedStudies[i]))
@@ -383,10 +383,6 @@ ctmaPrep <- function(selectedStudies=NULL,
               #j <- 1
               if (length(primaryStudies2[[i]][[j]]) > 0) {
                 if (object == "matrix") {
-                  # currentLength <- length(primaryStudies2[[i]][[j]])^.5; currentLength
-                  # currentLength <- currentLength * (currentLength-1) / 2; currentLength
-                  # for (k in 1:currentLength) tmpTable[j, k] <- round(primaryStudies2[[i]][[j]][lower.tri(primaryStudies2[[i]][[j]])][k], digits)
-                  # new CHD 2.2.23
                   tmp1 <- primaryStudies2[[i]][[j]]
                   currentDim <- length(tmp1)^.5; currentDim
                   tmp2 <- maxDim - currentDim; tmp2
@@ -396,7 +392,6 @@ ctmaPrep <- function(selectedStudies=NULL,
                   }
                   currentLength <- length(tmp1)^.5; currentLength
                   currentLength <- currentLength * (currentLength-1) / 2; currentLength
-                  tmp1[lower.tri(tmp1)]
                   for (k in 1:currentLength) if (!(is.na(tmp1[lower.tri(tmp1)][k]))) tmpTable[j, k] <- round(tmp1[lower.tri(tmp1)][k], digits)
                 }
                 if (object == "vector") {
@@ -418,7 +413,6 @@ ctmaPrep <- function(selectedStudies=NULL,
                 }
               }
             } # end for (j in (1:n.studies))
-            #tmpTable
 
             if (names(studyListCategories)[i] %in% c("ageM", "ageSD", "malePercent")) tmpTable <- round(tmpTable, digits)
             tmpTableNames <- tmpTableNamesBackup <- gsub("$", "", names(studyListCategories[i])); tmpTableNames
@@ -518,7 +512,6 @@ ctmaPrep <- function(selectedStudies=NULL,
       tmp3 <- which(colnames(primaryStudies$summary) == "N")
       tmp4 <- grep("N\\(", colnames(primaryStudies$summary)); tmp4
       openxlsx::writeData(wb, sheet3, primaryStudies$summary[c(tmp1, tmp2, tmp3, tmp4)])
-
 
       tmp3 <- grep("r\\(", colnames(primaryStudies$summary)); tmp3
       tmp4 <- grep("N\\(", colnames(primaryStudies$summary)); tmp4
