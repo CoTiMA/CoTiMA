@@ -267,6 +267,10 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       }
       #fits <- ctmaInit(primaryStudies=newStudyList,
       #allfits[[i]] <- ctmaInit(primaryStudies=newStudyList,
+
+      if (!(is.null(randomScaleTime))) print(paste0("Argument scaleTime is set to: ", scaleTime, "."))
+      if (randomPar == TRUE) print(paste0("Argument customPar is set to: ", customPar, "."))
+
       fits <- ctmaInit(primaryStudies=newStudyList,
                        coresToUse = coresToUse, # changed Aug 2023
                        CoTiMAStanctArgs=CoTiMAStanctArgs,
@@ -365,7 +369,16 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         ctmaInitFit$studyFitList <- newStudyFitList
       }
 
-      #fits <- ctmaFit(ctmaInitFit=ctmaInitFit,
+      if (!(is.null(randomScaleTime))) print(paste0("Argument scaleTime is set to: ", scaleTime, "."))
+      if (randomScaleTI == TRUE) print(paste0("Argument scaleTI is set to: ", scaleTI, "."))
+      if (randomPar == TRUE) print(paste0("Argument customPar is set to: ", customPar, "."))
+      if (shuffleStudyList == TRUE ) {
+        tmp <- unlist(ctmaInitFit$primaryStudyList$studyNumbers)
+        tmp <- tmp[-length(tmp)]
+        tmp <- paste(tmp, collapse=" ")
+        print(paste0("Order of studies in the shuffled study list is: ", tmp, "."))
+      }
+
       fit <- ctmaFit(ctmaInitFit=ctmaInitFit,
                      primaryStudyList=ctmaInitFit$primaryStudyList,
                      cluster=ctmaFitFit$argumentList$cluster,
