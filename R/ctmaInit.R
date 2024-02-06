@@ -1049,7 +1049,7 @@ ctmaInit <- function(
         #if (randomIntercepts == TRUE) { # override ctsem's default setup for indvarying cints
         if ((randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
           print(paste0("#################################################################################"))
-          print(paste0("## Note: Random intercept modelled as processes, not as cint or manifestmeans. ##"))
+          print(paste0("# Note: Random intercepts modelled as processes, not as cint or manifest means. #"))
           print(paste0("#################################################################################"))
 
           nullMat <- matrix(0, n.latent, n.latent); nullMat
