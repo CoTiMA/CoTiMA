@@ -361,7 +361,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
           }
         }
         ctmaInitFit$primaryStudyList <- newPrimaryStudyList
-        ctmaInitFit$primaryStudyList <- NULL
+        #ctmaInitFit$primaryStudyList <- NULL
         #
         tmpEmprawList <- ctmaInitFit$emprawList
         newEmprawList <- list()
