@@ -30,6 +30,7 @@
 #' @param randomPar logical (default = FALSE). Overrides arguments used for customPar and randomly sets customPar either TRUE or FALSE
 #' @param randomScaleTime lower and upper limit (default = c(1,1)) of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)
 #' @param randomScaleTI logical (default = FALSE). Overrides arguments used for scaleTI and randomly sets scaleTI either TRUE or FALSE
+#' @param saveModelFits save the fit of each Fit attempt (default = FALSE).
 #' @param scaleTI scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dummies representing primary studies.
 #' @param shuffleStudyList (default = FALSE) randomly re-arranges studies in primaryStudyList. We encountered a few cases where this mattered, even though it should not. Only works if ctmaFit is optimized.
 #' @param reFits how many reFits should be done
@@ -86,6 +87,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             randomPar=FALSE,
                             randomScaleTI=FALSE,
                             randomScaleTime=c(1,1),
+                            saveModelFits=FALSE,
                             shuffleStudyList=FALSE,
                             reFits=NULL,
                             scaleMod=NULL,
@@ -279,6 +281,11 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                        manifestVars=manifestVars)
 
       all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
+
+      if (saveModelFits == TRUE) {
+        saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", Sys.time(), " .rds"))
+      }
+
       if (fits$summary$minus2ll < currentLL) {
         currentLL <- fit$summary$minus2ll
         bestFit <- fits
@@ -417,6 +424,10 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       )
 
       all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
+      if (saveModelFits == TRUE) {
+        saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", Sys.time(), " .rds"))
+      }
+
       if (fit$summary$minus2ll < currentLL) {
         currentLL <- fit$summary$minus2ll
         bestFit <- fit
