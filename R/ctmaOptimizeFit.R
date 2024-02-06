@@ -307,7 +307,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
   }
 
   # ctmaFitFit
-  if(!(is.null(ctmaFitFit))) {
+  if (!(is.null(ctmaFitFit))) {
     if (!(is(ctmaFitFit, "CoTiMAFit"))) {
       ErrorMsg <- "The ctmaFitFit object provided is not of class CoTiMAFit. Probably it was not created with ctmaFit."
       stop(ErrorMsg)
@@ -347,12 +347,11 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         #
         tmpPrimaryStudyList <- ctmaInitFit$primaryStudyList
         newPrimaryStudyList <- list()
-        names(tmpPrimaryStudyList)
         counter <- 0
         for (s in 1:length(tmpPrimaryStudyList)) {
           counter <- counter + 1
-          if (s %in% c("deltas", "sampleSizes", "pairwiseNs", "empcovs", "moderators", "startValues", "studyNumbers",
-                       "rawData", "source")) {
+          if (tmpPrimaryStudyList[s] %in% c("deltas", "sampleSizes", "pairwiseNs", "empcovs", "moderators", "startValues", "studyNumbers",
+                                            "rawData", "source")) {
             for (t in 1:length(tmpStudyList[[counter]])) {
               newPrimaryStudyList[[counter]][[t]] <- tmpPrimaryStudyList[[counter]][[which(studyNumbers %in% newStudyOrder[t])]]
             }
@@ -360,6 +359,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
             newPrimaryStudyList[[counter]] <- tmpPrimaryStudyList[[counter]]
           }
         }
+        names(newPrimaryStudyList) <- names(tmpPrimaryStudyList)
         ctmaInitFit$primaryStudyList <- newPrimaryStudyList
         #ctmaInitFit$primaryStudyList <- NULL
         #
