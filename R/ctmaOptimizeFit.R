@@ -268,8 +268,14 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       #fits <- ctmaInit(primaryStudies=newStudyList,
       #allfits[[i]] <- ctmaInit(primaryStudies=newStudyList,
 
-      if (!(is.null(randomScaleTime))) print(paste0("Argument scaleTime is set to: ", scaleTime, "."))
-      if (randomPar == TRUE) print(paste0("Argument customPar is set to: ", customPar, "."))
+      if (!(is.null(randomScaleTime))) {
+        Msg <- paste0("Argument scaleTime is set to: ", scaleTime, ".")
+        message(Msg)
+      }
+      if (randomPar == TRUE) {
+        Msg <- paste0("Argument customPar is set to: ", customPar, ".")
+        message(Msg)
+      }
 
       fits <- ctmaInit(primaryStudies=newStudyList,
                        coresToUse = coresToUse, # changed Aug 2023
@@ -369,14 +375,24 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         ctmaInitFit$studyFitList <- newStudyFitList
       }
 
-      if (!(is.null(randomScaleTime))) print(paste0("Argument scaleTime is set to: ", scaleTime, "."))
-      if (randomScaleTI == TRUE) print(paste0("Argument scaleTI is set to: ", scaleTI, "."))
-      if (randomPar == TRUE) print(paste0("Argument customPar is set to: ", customPar, "."))
+      if (!(is.null(randomScaleTime))) {
+        Msg <- paste0("Argument scaleTime is set to: ", scaleTime, ".")
+        message(Msg)
+      }
+      if (randomPar == TRUE) {
+        Msg <- paste0("Argument customPar is set to: ", customPar, ".")
+        message(Msg)
+      }
+      if (randomScaleTI == TRUE) {
+        Msg <- paste0("Argument scaleTI is set to: ", scaleTI, ".")
+        message(Msg)
+      }
       if (shuffleStudyList == TRUE ) {
         tmp <- unlist(ctmaInitFit$primaryStudyList$studyNumbers)
         tmp <- tmp[-length(tmp)]
         tmp <- paste(tmp, collapse=" ")
-        print(paste0("Order of studies in the shuffled study list is: ", tmp, "."))
+        Msg <- paste0("Order of studies in the shuffled study list is: ", tmp, ".")
+        message(Msg)
       }
 
       fit <- ctmaFit(ctmaInitFit=ctmaInitFit,
