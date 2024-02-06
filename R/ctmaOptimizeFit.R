@@ -343,20 +343,20 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         for (s in 1:length(tmpStudyList)) {
           newStudyList[[s]] <- tmpStudyList[[which(studyNumbers %in% newStudyOrder[s])]]
         }
+        #newStudyList[[1]]$originalStudyNo
         ctmaInitFit$studyList <- newStudyList
         #
         tmpPrimaryStudyList <- ctmaInitFit$primaryStudyList
         newPrimaryStudyList <- list()
-        counter <- 0
         for (s in 1:length(tmpPrimaryStudyList)) {
-          counter <- counter + 1
-          if (tmpPrimaryStudyList[s] %in% c("deltas", "sampleSizes", "pairwiseNs", "empcovs", "moderators", "startValues", "studyNumbers",
-                                            "rawData", "source")) {
-            for (t in 1:length(tmpStudyList[[counter]])) {
-              newPrimaryStudyList[[counter]][[t]] <- tmpPrimaryStudyList[[counter]][[which(studyNumbers %in% newStudyOrder[t])]]
+          if (names(tmpPrimaryStudyList[s]) %in% c("deltas", "sampleSizes", "pairwiseNs", "empcovs", "moderators", "startValues", "studyNumbers",
+                                                   "rawData", "source")) {
+            newPrimaryStudyList[[s]] <- list()
+            for (t in 1:length(tmpPrimaryStudyList[[s]])) {
+              newPrimaryStudyList[[s]][[t]] <- tmpPrimaryStudyList[[s]][[which(studyNumbers %in% newStudyOrder[t])]]
             }
           } else {
-            newPrimaryStudyList[[counter]] <- tmpPrimaryStudyList[[counter]]
+            newPrimaryStudyList[[s]] <- tmpPrimaryStudyList[[s]]
           }
         }
         names(newPrimaryStudyList) <- names(tmpPrimaryStudyList)
@@ -389,7 +389,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       }
       if (shuffleStudyList == TRUE ) {
         tmp <- unlist(ctmaInitFit$primaryStudyList$studyNumbers)
-        tmp <- tmp[-length(tmp)]
+        #tmp <- tmp[-length(tmp)]
         tmp <- paste(tmp, collapse=" ")
         Msg <- paste0("Order of studies in the shuffled study list is: ", tmp, ".")
         message(Msg)
