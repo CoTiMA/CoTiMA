@@ -45,7 +45,7 @@ ctmaFit(
   randomIntercepts = FALSE,
   sameInitialTimes = FALSE,
   scaleClus = TRUE,
-  scaleMod = NULL,
+  scaleMod = TRUE,
   scaleTI = TRUE,
   scaleTime = NULL,
   T0means = 0,

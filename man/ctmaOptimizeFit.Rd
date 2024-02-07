@@ -25,6 +25,7 @@ ctmaOptimizeFit(
   randomPar = FALSE,
   randomScaleTI = FALSE,
   randomScaleTime = c(1, 1),
+  saveModelFits = FALSE,
   shuffleStudyList = FALSE,
   reFits = NULL,
   scaleMod = NULL,
@@ -76,6 +77,8 @@ ctmaOptimizeFit(
 \item{randomScaleTI}{logical (default = FALSE). Overrides arguments used for scaleTI and randomly sets scaleTI either TRUE or FALSE}
 
 \item{randomScaleTime}{lower and upper limit (default = c(1,1)) of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)}
+
+\item{saveModelFits}{save the fit of each Fit attempt (default = FALSE).}
 
 \item{shuffleStudyList}{(default = FALSE) randomly re-arranges studies in primaryStudyList. We encountered a few cases where this mattered, even though it should not. Only works if ctmaFit is optimized.}
 
