@@ -1846,6 +1846,7 @@ ctmaFit <- function(
                         useSampleFraction=useSampleFraction,
                         T0means=T0means,
                         manifestMeans=manifestMeans,
+                        manifestVars=manifestVarsParams,
                         WEC=WEC,
                         randomIntercepts=randomInterceptsSettings,
                         CoTiMAStanctArgs=CoTiMAStanctArgs,
