@@ -1464,8 +1464,13 @@ ctmaFit <- function(
       } else {
         model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
       }
-      if ( (randomIntercepts == TRUE) |  (randomIntercepts == "MANIFEST") ) model_Diffusion_Coef <- model_Diffusion_Coef[which(model_Diffusion_Coef != 0)]
-      names(model_Diffusion_Coef) <- diffFullNames; model_Diffusion_Coef
+      if ( (randomIntercepts == TRUE) |  (randomIntercepts == "MANIFEST") ) {
+        tmp <- which(model_Diffusion_Coef != 0)
+        model_Diffusion_Coef <- model_Diffusion_Coef[tmp]
+        names(model_Diffusion_Coef) <- diffFullNames[tmp]; model_Diffusion_Coef
+      } else {
+        names(model_Diffusion_Coef) <- diffFullNames; model_Diffusion_Coef
+      }
 
       model_T0var_Coef <- invariantDrift_Coeff[(rownames(invariantDrift_Coeff) == "T0VAR"), 3]; model_T0var_Coef
       if (length(model_T0var_Coef) < 1) {
