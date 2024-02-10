@@ -206,6 +206,7 @@ ctmaPrep <- function(selectedStudies=NULL,
       if (!(is.null(addElements))) for (j in 1:length(addElements)) addElementsList[[j]][[i]] <- NA
     }
     for (i in 1:length(selectedStudies)) { # 'length' ensures consecutive numbering
+      #i <- 1
       if (exists(paste0("delta_t", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) deltas[[i]] <- get(paste0("delta_t", selectedStudies[i]))
       if (exists(paste0("empcov", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) empcovs[[i]] <- get(paste0("empcov", selectedStudies[i]))
       if (exists(paste0("pairwiseN", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) pairwiseNs[[i]] <- get(paste0("pairwiseN", selectedStudies[i]))
@@ -214,15 +215,24 @@ ctmaPrep <- function(selectedStudies=NULL,
       if (exists(paste0("moderator", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) moderators[[i]] <- get(paste0("moderator", selectedStudies[i]))
       if (exists(paste0("startValues", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) startValues[[i]] <- get(paste0("startValues", selectedStudies[i]))
       if (exists(paste0("studyNumber", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) studyNumbers[[i]] <- get(paste0("studyNumber", selectedStudies[i]))
-      #if (exists(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) sampleSizes[[i]] <- get(paste0("sampleSize", selectedStudies[i]))
-
       if (exists(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
-        tmp1 <- get(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE); tmp1
-        if (!(is.null(tmp1))) sampleSizes[[i]] <- get(paste0("sampleSize", selectedStudies[i]),
-                                                      envir =parent.frame(), inherits=FALSE) else sampleSizes[[i]] <- NA
+        sampleSizes[[i]] <- get(paste0("sampleSize", selectedStudies[i]))
       } else {
-        sampleSizes[[i]] <- NA
+        if (exists(paste0("pairwiseN", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
+          sampleSizes[[i]] <- mean(c(get(paste0("pairwiseN", selectedStudies[i]))), na.rm=T)
+        } else {
+          ErrorMsg <- paste0("I need a sampleSize", i, " object or a pairwiseN", i, " object. \nGood luck for the next try!")
+          stop(ErrorMsg)
+        }
       }
+
+      #if (exists(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
+      #  tmp1 <- get(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE); tmp1
+      #  if (!(is.null(tmp1))) sampleSizes[[i]] <- get(paste0("sampleSize", selectedStudies[i]),
+      #                                                envir =parent.frame(), inherits=FALSE) else sampleSizes[[i]] <- NA
+      #} else {
+      #  sampleSizes[[i]] <- NA
+      #}
 
 
       if (exists(paste0("empMeans", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) empMeans[[i]] <- get(paste0("empMeans", selectedStudies[i]))
