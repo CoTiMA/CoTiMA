@@ -293,7 +293,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
 
       if (saveModelFits == TRUE) {
-        saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", Sys.time(), " .rds"))
+        #saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", Sys.time(), " .rds"))
+        saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", i, " .rds"))
       }
 
       if (fits$summary$minus2ll < currentLL) {
