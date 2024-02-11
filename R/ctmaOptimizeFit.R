@@ -294,8 +294,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
 
       if (saveModelFits == TRUE) {
         #saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", Sys.time(), " .rds"))
-        saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", deparse(substitute(ctmaInitFit)), " - ", deparse(substitute(ctmaFitFit)), " .rds"))
-        #saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", i, " .rds"))
+        #saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", deparse(substitute(ctmaInitFit)), " - ", deparse(substitute(ctmaFitFit)), " .rds"))
+        saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", i, " .rds"))
       }
 
       if (fits$summary$minus2ll < currentLL) {
@@ -459,8 +459,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
 
       if (saveModelFits == TRUE) {
         #saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", Sys.time(), " .rds"))
-        saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", deparse(substitute(ctmaInitFit)), " - ", deparse(substitute(ctmaFitFit)), " .rds"))
-        #saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", i, " .rds"))
+        #saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", deparse(substitute(ctmaInitFit)), " - ", deparse(substitute(ctmaFitFit)), " .rds"))
+        saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", i, " .rds"))
       }
 
       if (fit$summary$minus2ll < currentLL) {
