@@ -1248,11 +1248,53 @@ ctmaInit <- function(
           if ( (length(saveSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% saveSingleStudyModelFit[-1]) ) {
             x1 <- paste0(saveSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
             x2 <- paste0(saveSingleStudyModelFit[1], " singleStudyFits/"); x2
-            # CHD added 21. Sep 2022 & changed 28 Sep 2022
-            #if (!(is.null(studyFit[[1]]$empraw))) empraw[[i]] <- studyFit[[i]]$empraw
-            studyFit[[i]]$empraw <- empraw[[i]]
+            # CHD changed 17 Feb 2024
+            tmp <- studyFit[[i]]
+            tmp$empraw <- empraw[[i]]
+            tmp$primaryStudyList=primaryStudies
+            tmp$studyList=studyList
+            tmp$argumentListOfCtmaInit=list(primaryStudies=deparse(substitute(primaryStudies)),
+                                            activateRPB=activateRPB,
+                                            activeDirectory=activeDirectory,
+                                            chains=chains,
+                                            checkSingleStudyResults=checkSingleStudyResults,
+                                            cint=cint,
+                                            coresToUse=coresToUse,
+                                            customPar=customPar,
+                                            diff=diff,
+                                            digits=digits,
+                                            doPar=doPar,
+                                            drift=drift,
+                                            experimental=experimental,
+                                            finishsamples=finishsamples,
+                                            indVarying=indVarying,
+                                            indVaryingT0=indVaryingT0,
+                                            iter=iter,
+                                            lambda=lambda,
+                                            loadSingleStudyModelFit=loadSingleStudyModelFit,
+                                            manifestMeans=manifestMeans,
+                                            manifestVars=manifestVars,
+                                            n.latent=n.latent,
+                                            n.manifest=n.manifest,
+                                            optimize=optimize,
+                                            posLL=posLL,
+                                            primaryStudies=primaryStudies,
+                                            priors=priors,
+                                            sameInitialTimes=sameInitialTimes,
+                                            saveRawData=saveRawData,
+                                            saveSingleStudyModelFit=saveSingleStudyModelFit,
+                                            scaleTI=scaleTI,
+                                            scaleTime=scaleTime,
+                                            silentOverwrite=silentOverwrite,
+                                            T0means=T0means,
+                                            T0var=T0var,
+                                            useSV=useSV,
+                                            verbose=verbose,
+                                            randomIntercepts=randomInterceptsSettings,
+                                            CoTiMAStanctArgs=CoTiMAStanctArgs)
             #
-            ctmaSaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
+            #ctmaSaveFile(activateRPB, activeDirectory, studyFit[[i]], x1, x2, silentOverwrite=silentOverwrite)
+            ctmaSaveFile(activateRPB, activeDirectory, tmp, x1, x2, silentOverwrite=silentOverwrite)
           }
         }
       } # end if (tmpLogic == 1) moved up to ~ 1257
