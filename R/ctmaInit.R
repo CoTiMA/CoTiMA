@@ -368,6 +368,7 @@ ctmaInit <- function(
     if (n.studies > 1) {
       if (is.na(primaryStudies$deltas[length(primaryStudies$deltas)])) primaryStudies$deltas <- primaryStudies$deltas[-length(primaryStudies$deltas)]
     }
+    if (is.na(primaryStudies$deltas[length(primaryStudies$deltas)])) primaryStudies$deltas[length(primaryStudies$deltas)] <- NULL
     allTpoints <-unlist(lapply(primaryStudies$deltas, function(extract) length(extract)+1)); allTpoints # more complicated than expected
 
     # manifests
