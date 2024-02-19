@@ -242,9 +242,8 @@ ctmaFit <- function(
 
     { # check if scaleMod is not used in combination with transfMod
       if ( (!(is.null(scaleMod))) & (!(is.null(transfMod))) ) {
-        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-        ErrorMsg <- "The arguments scaleMod and transfMod cannot be used in combination. Set one of them NULL (leave out)."
-        stop(ErrorMsg)
+        Msg <- "The arguments scaleMod (default = TRUE) and transfMod cannot be used in combination. ScalMod was set to FALSE."
+        message(Msg)
       }
     }
 
