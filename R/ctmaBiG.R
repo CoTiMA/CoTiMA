@@ -183,6 +183,7 @@ ctmaBiG <- function(
       drift_SE_dt <- matrix(NA, ncol=(1*(n.latent^2)), nrow=n.studies); drift_SE_dt
       #
       tmpTimeScale <- ctmaInitFit$summary$scaleTime; tmpTimeScale
+      if (is.null(tmpTimeScale)) tmpTimeScale <- 1 # in case old fit files are used
       tmpTimeScale <- 1/tmpTimeScale * dt
       for (i in 1:n.studies) {
         tmpFit <- ctmaInitFit$studyFitList[[i]]
