@@ -5,7 +5,7 @@
 \alias{CoTiMAPart134Inv3Fit_6}
 \title{ctmaFit-object with with only one cross effect and this one set equal across primary studies}
 \format{
-An object of class \code{CoTiMAFit} of length 16.
+An object of class \code{CoTiMAFit} of length 13.
 }
 \usage{
 CoTiMAPart134Inv3Fit_6

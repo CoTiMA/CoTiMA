@@ -740,6 +740,7 @@ ctmaInit <- function(
       n.manifest=n.manifest,
       lambda=lambda,
       drift=drift,
+      diff=diff, # CHD 13.3.24
       invariantDrift=invariantDrift,
       moderatedDrift=NULL,
       equalDrift=NULL,

@@ -5,7 +5,7 @@
 \alias{empcov128}
 \title{empcov128 example matrix}
 \format{
-An object of class \code{list} of length 2.
+An object of class \code{matrix} (inherits from \code{array}) with 4 rows and 4 columns.
 }
 \usage{
 empcov128

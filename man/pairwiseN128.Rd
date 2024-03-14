@@ -5,7 +5,7 @@
 \alias{pairwiseN128}
 \title{pairwiseN128 example vector}
 \format{
-An object of class \code{list} of length 2.
+An object of class \code{matrix} (inherits from \code{array}) with 9 rows and 9 columns.
 }
 \usage{
 pairwiseN128

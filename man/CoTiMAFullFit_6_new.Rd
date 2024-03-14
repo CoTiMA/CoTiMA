@@ -5,7 +5,7 @@
 \alias{CoTiMAFullFit_6_new}
 \title{ctmaFit-object with a 'full' CoTiMA of 6 studies}
 \format{
-An object of class \code{CoTiMAFit} of length 13.
+An object of class \code{CoTiMAFit} of length 11.
 }
 \usage{
 CoTiMAFullFit_6_new

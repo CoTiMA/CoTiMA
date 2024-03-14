@@ -15,44 +15,20 @@
 "A313"
 
 
-#' addedByResearcher2 example vector
-#' @name addedByResearcher2
+#' ageM1 example vector
+#' @name ageM1
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"addedByResearcher2"
+"ageM1"
 
 
-#' addedByResearcher3 example vector
-#' @name addedByResearcher3
+#' ageM4 example vector
+#' @name ageM4
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"addedByResearcher3"
-
-
-#' addedByResearcher313 example vector
-#' @name addedByResearcher313
-#' @docType data
-#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
-#' @keywords data
-"addedByResearcher313"
-
-
-#' ageM2 example vector
-#' @name ageM2
-#' @docType data
-#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
-#' @keywords data
-"ageM2"
-
-
-#' ageM3 example vector
-#' @name ageM3
-#' @docType data
-#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
-#' @keywords data
-"ageM3"
+"ageM4"
 
 
 #' ageM18 example vector
@@ -95,20 +71,20 @@
 "ageM201"
 
 
-#' ageSD2 example vector
-#' @name ageSD2
+#' ageSD1 example vector
+#' @name ageSD1
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"ageSD2"
+"ageSD1"
 
 
-#' ageSD3 example vector
-#' @name ageSD3
+#' ageSD4 example vector
+#' @name ageSD4
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"ageSD3"
+"ageSD4"
 
 
 #' ageSD18 example vector
@@ -167,20 +143,20 @@
 "alphas313"
 
 
-#' burnout2 example vector
-#' @name burnout2
+#' burnout1 example vector
+#' @name burnout1
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"burnout2"
+"burnout1"
 
 
-#' burnout3 example vector
-#' @name burnout3
+#' burnout4 example vector
+#' @name burnout4
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"burnout3"
+"burnout4"
 
 
 #' burnout18 example vector
@@ -399,20 +375,20 @@
 "CoTiMAStanctArgs"
 
 
-#' country2 example vector
-#' @name country2
+#' country1 example vector
+#' @name country1
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"country2"
+"country1"
 
 
-#' country3 example vector
-#' @name country3
+#' country4 example vector
+#' @name country4
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"country3"
+"country4"
 
 
 #' country18 example vector
@@ -455,20 +431,20 @@
 "country201"
 
 
-#' delta_t2 example vector
-#' @name delta_t2
+#' delta_t1 example vector
+#' @name delta_t1
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"delta_t2"
+"delta_t1"
 
 
-#' delta_t3 example vector
-#' @name delta_t3
+#' delta_t4 example vector
+#' @name delta_t4
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"delta_t3"
+"delta_t4"
 
 
 #' delta_t18 example vector
@@ -511,20 +487,20 @@
 "delta_t201"
 
 
-#' demands2 example vector
-#' @name demands2
+#' demands1 example vector
+#' @name demands1
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"demands2"
+"demands1"
 
 
-#' demands3 example vector
-#' @name demands3
+#' demands4 example vector
+#' @name demands4
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"demands3"
+"demands4"
 
 
 #' demands18 example vector
@@ -575,20 +551,20 @@
 "dl_link"
 
 
-#' empcov2 example matrix
-#' @name empcov2
+#' empcov1 example matrix
+#' @name empcov1
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"empcov2"
+"empcov1"
 
 
-#' empcov3 example matrix
-#' @name empcov3
+#' empcov4 example matrix
+#' @name empcov4
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"empcov3"
+"empcov4"
 
 
 #' empcov18 example matrix
@@ -631,20 +607,20 @@
 "empcov201"
 
 
-#' malePercent2 example vector
-#' @name malePercent2
+#' malePercent1 example vector
+#' @name malePercent1
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"malePercent2"
+"malePercent1"
 
 
-#' malePercent3 example vector
-#' @name malePercent3
+#' malePercent4 example vector
+#' @name malePercent4
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"malePercent3"
+"malePercent4"
 
 
 #' malePercent18 example vector
@@ -687,20 +663,20 @@
 "malePercent201"
 
 
-#' moderator2 example vector
-#' @name moderator2
+#' moderator1 example vector
+#' @name moderator1
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"moderator2"
+"moderator1"
 
 
-#' moderator3 example vector
-#' @name moderator3
+#' moderator4 example vector
+#' @name moderator4
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"moderator3"
+"moderator4"
 
 
 #' moderator18 example vector
@@ -759,20 +735,20 @@
 "moderatorValues"
 
 
-#' occupation2 example vector
-#' @name occupation2
+#' occupation1 example vector
+#' @name occupation1
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"occupation2"
+"occupation1"
 
 
-#' occupation3 example vector
-#' @name occupation3
+#' occupation4 example vector
+#' @name occupation4
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"occupation3"
+"occupation4"
 
 
 #' occupation18 example vector
@@ -815,24 +791,6 @@
 "occupation201"
 
 
-#' CoTiMAoptimFit313 example vector
-#' @name CoTiMAoptimFit313
-#' @docType data
-#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
-#' @keywords data
-"CoTiMAoptimFit313"
-
-
-#' pubList_8 example list
-#' @name pubList_8
-#' @docType data
-#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
-#' @keywords data
-"pubList_8"
-
-
-
-
 #' pairwiseN128 example vector
 #' @name pairwiseN128
 #' @docType data
@@ -841,12 +799,12 @@
 "pairwiseN128"
 
 
-#' rawData128 example list
-#' @name rawData128
+#' rawData228 example list
+#' @name rawData228
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"rawData128"
+"rawData228"
 
 
 #' recodeVariables128 example vector
@@ -865,20 +823,20 @@
 "results128"
 
 
-#' sampleSize2 example vector
-#' @name sampleSize2
+#' sampleSize1 example vector
+#' @name sampleSize1
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"sampleSize2"
+"sampleSize1"
 
 
-#' sampleSize3 example vector
-#' @name sampleSize3
+#' sampleSize4 example vector
+#' @name sampleSize4
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"sampleSize3"
+"sampleSize4"
 
 
 #' sampleSize18 example vector
@@ -921,20 +879,20 @@
 "sampleSize201"
 
 
-#' source2 example vector
-#' @name source2
+#' source1 example vector
+#' @name source1
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"source2"
+"source1"
 
 
-#' source3 example vector
-#' @name source3
+#' source4 example vector
+#' @name source4
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"source3"
+"source4"
 
 
 #' source128 example vector
@@ -961,20 +919,20 @@
 "source201"
 
 
-#' targetVariables2 example vector
-#' @name targetVariables2
+#' targetVariables1 example vector
+#' @name targetVariables1
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"targetVariables2"
+"targetVariables1"
 
 
-#' targetVariables3 example vector
-#' @name targetVariables3
+#' targetVariables4 example vector
+#' @name targetVariables4
 #' @docType data
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
-"targetVariables3"
+"targetVariables4"
 
 
 #' targetVariables128 example vector
@@ -999,4 +957,25 @@
 #' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
 #' @keywords data
 "variableNames128"
+
+#' variableNames18 example vector
+#' @name variableNames18
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"variableNames18"
+
+#' variableNames32 example vector
+#' @name variableNames32
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"variableNames32"
+
+#' variableNames201 example vector
+#' @name variableNames201
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"variableNames201"
 

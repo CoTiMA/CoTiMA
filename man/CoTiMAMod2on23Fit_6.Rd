@@ -5,7 +5,7 @@
 \alias{CoTiMAMod2on23Fit_6}
 \title{ctmaFit-object with a continuous moderator of 2 cross effects}
 \format{
-An object of class \code{CoTiMAFit} of length 15.
+An object of class \code{CoTiMAFit} of length 13.
 }
 \usage{
 CoTiMAMod2on23Fit_6

@@ -5,7 +5,7 @@
 \alias{CoTiMAInitFit_6_NUTS}
 \title{ctmaInit-object with a 'full' CoTiMA of 6 studies using NUTS sampler}
 \format{
-An object of class \code{CoTiMAFit} of length 16.
+An object of class \code{CoTiMAFit} of length 17.
 }
 \usage{
 CoTiMAInitFit_6_NUTS

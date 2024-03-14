@@ -5,7 +5,7 @@
 \alias{CoTiMAFullInvEq23Fit_6}
 \title{2nd fitted ctmaFit-object in a series of 2 to test equality of 2 cross effects}
 \format{
-An object of class \code{CoTiMAFit} of length 12.
+An object of class \code{CoTiMAFit} of length 11.
 }
 \usage{
 CoTiMAFullInvEq23Fit_6

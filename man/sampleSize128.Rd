@@ -5,7 +5,7 @@
 \alias{sampleSize128}
 \title{sampleSize128 example vector}
 \format{
-An object of class \code{NULL} of length 0.
+An object of class \code{numeric} of length 1.
 }
 \usage{
 sampleSize128
