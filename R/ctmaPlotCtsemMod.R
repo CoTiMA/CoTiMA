@@ -117,7 +117,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
     if (is.null(timeRange))  {
       tmp <- max(ctStanFitObject$standata$time); tmp
       timeRange <- seq(0, 1.5 * tmp, .1); timeRange
-      Msg <- paste0("Note: Time range was not specified. I from 0 to 1.5 times the largest interval (", round(tmp, 2), ") in the data in .1 steps!")
+      Msg <- paste0("Note: Time range was not specified. I use from 0 to 1.5 times the largest interval (", round(tmp, 2), ") in the data in .1 steps!")
       message(Msg)
     } else { # CHD Aug 2023
       timeRange <- seq(timeRange[1], timeRange[2], timeRange[3])
@@ -139,13 +139,16 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
     #                             note that each categorical moderator counts as k, with k = number of moderator categories - 1. (i.e., dummies)
   }
 
-
   # some derivations from input
   {
-    print(paste0("#################################################################################"))
-    print(paste0("####################### Computing model fit summary. ############################"))
-    print(paste0("#################################################################################"))
-    if (is.null(fitSummary)) ctStanFitObject_summary <- summary(ctStanFitObject) else ctStanFitObject_summary <- fitSummary
+    if (is.null(fitSummary)) {
+      print(paste0("#################################################################################"))
+      print(paste0("####################### Computing model fit summary. ############################"))
+      print(paste0("#################################################################################"))
+      ctStanFitObject_summary <- summary(ctStanFitObject)
+    } else {
+      ctStanFitObject_summary <- fitSummary
+    }
     n.latent <- ctStanFitObject$ctstanmodelbase$n.latent; n.latent
     tmp1 <- which(!(is.na(ctStanFitObject$ctstanmodelbase$pars$param)))
     tmpPars <- ctStanFitObject$ctstanmodelbase$pars[tmp1,]; tmpPars
@@ -170,6 +173,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
       }
     } else{
       for (k in mod.sd.to.plot) mod.values.to.plot <- c(mod.values.to.plot, (m.TIpred + (k * sd.TIpred)))
+      weigthedEffectCoding <- FALSE
     }
     n.mod.values.to.plot <- toPlot <- length(mod.values.to.plot); n.mod.values.to.plot
 
@@ -206,7 +210,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
     rawDrift <- matrix(tmp1, n.latent, byrow=TRUE); rawDrift
     counter <- 0
 
-    if (weigthedEffectCoding == TRUE) { # CHD 11.12.2203
+    if (weigthedEffectCoding == TRUE) { # CHD 11.12.2023
       tmpNames <- paste0("Drift for Moderator Category No ", seq(1,n.mod.values.to.plot), "."); tmpNames
       TIpredEffTmp <- ctStanFitObject$stanfit$transformedparsfull$TIPREDEFFECT[,driftPos, modPos]; TIpredEffTmp
       if (is.null(ncol(TIpredEffTmp))) TIpredEffTmp <- matrix(TIpredEffTmp, ncol=1)
