@@ -28,7 +28,6 @@
 #' @param n.latent number of latent variables of the model (hast to be specified)!
 #' @param n.manifest number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
 #' @param optimize if set to FALSE, Stan's Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
-#' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
 #' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}}
 #' @param priors if FALSE, any priors are disabled – sometimes desirable for optimization
 #' @param randomIntercepts (default = FALSE) Experimental. Overrides ctsem's default mode for modelling indvarying cints.
@@ -109,7 +108,6 @@ ctmaInit <- function(
     n.latent=NULL,
     n.manifest=0,
     optimize=TRUE,
-    posLL=TRUE,
     primaryStudies=NULL,
     priors=FALSE,
     randomIntercepts=FALSE,
@@ -1223,13 +1221,13 @@ ctmaInit <- function(
             }
             all_loglik <- unlist(lapply(allfits, function(x) x$stanfit$optimfit$value)); all_loglik
             # CHD added 27 SEP 2022 to prevent neg -2ll fits
-            if(posLL == FALSE) {
-              if (all(all_loglik > 0)) {
-                ErrorMsg <- "\n All loglik values > 0, but you provided the argument posLL=FALSE, so no fit confirmed your expectations and I had to stop!"
-                stop(ErrorMsg)
-              }
-              all_loglik <- all_loglik[-(which(all_loglik > 0))]
-            }
+            #if(posLL == FALSE) {
+            #  if (all(all_loglik > 0)) {
+            #    ErrorMsg <- "\n All loglik values > 0, but you provided the argument posLL=FALSE, so no fit confirmed your expectations and I had to stop!"
+            #    stop(ErrorMsg)
+            #  }
+            #  all_loglik <- all_loglik[-(which(all_loglik > 0))]
+            #}
             # CHD added 27 SEP 2022: changed min to max
             bestFit <- which(abs(all_loglik) == max(abs(all_loglik)))[1]; bestFit
             #
@@ -1279,7 +1277,6 @@ ctmaInit <- function(
                                             n.latent=n.latent,
                                             n.manifest=n.manifest,
                                             optimize=optimize,
-                                            posLL=posLL,
                                             primaryStudies=primaryStudies,
                                             priors=priors,
                                             sameInitialTimes=sameInitialTimes,
@@ -1933,7 +1930,6 @@ ctmaInit <- function(
                                       n.manifest=n.manifest,
                                       #nopriors=nopriors,
                                       optimize=optimize,
-                                      posLL=posLL,
                                       primaryStudies=primaryStudies,
                                       priors=priors,
                                       sameInitialTimes=sameInitialTimes,
