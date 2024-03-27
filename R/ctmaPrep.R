@@ -29,8 +29,8 @@
 #' @param newRawDataDirectory (NULL = default) Change paths for all raw data files.
 #' @param summary if TRUE (default) creates summary table and xlsx sheets. Could be set to FALSE in case of errors.
 #' @param activeDirectory Mandatory. If subsequent fitting is done using different folders or on different computers, it can be
-#' @param ctmaPrepObject  ctmaPrepObject from which studies should be excluded. Only works in combination with the argument exclude.
-#' @param excludedStudies  studies to be excluded from ctmaPrepObject
+#' @param ctmaPrepObject  previously created object with ctmaPrep, from which studies should be excluded. Only works in combination with the argument excludeStudies.
+#' @param excludedStudies  studies to be excluded from a previously created ctmaPrep-object
 
 #' changed so that raw data files can be loaded.
 #'
