@@ -7,24 +7,17 @@
 #' Using \code{\link{ctmaOptimizeFit}} could be helpful if a model yields out-of-range estimates, which could happen if the fitting
 #' algorithm unfortunately used random start values that resulted in a locally but not globally optimal fit. Essentially, using
 #' \code{\link{ctmaOptimizeFit}} is like gambling, hoping that at least one set of starting values (the number it tries is specified in the reFits argument)
-#' enables finding the global optimal fit. On unix-like machines (e.g. MacOS), this could be done in parallel mode if coresToUse > 1.
+#' enables finding the global optimal fit.
 #'
 #' @param activateRPB  set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
 #' @param activeDirectory activeDirectory
-#' @param checkSingleStudyResults displays estimates from single study 'ctsem' models and waits for user input to continue.
 #' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
 #' @param ctmaFitFit a object fitted with \code{\link{ctmaFit}}
 #' @param ctmaInitFit the ctmaInitFit object that was used to create the ctmaFitFit object with \code{\link{ctmaFit}}
-#' @param customPar logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
+#' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
-#' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
-#' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
-#' @param manifestMeans Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
-#' @param manifestVars define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest. Useful to check estimates before they are saved.
-#' @param n.latent number of latent variables of the model (hast to be specified)!
-#' @param parallel (default = FALSE). When set to trUe parallel fitting on clusters is enabled (could save some time when many refits are done)
-#' @param posLL logical. Allows (default = TRUE) of positive loglik (neg -2ll) values
+#' @param iter number of iterations (default = 5000)
 #' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}
 #' @param problemStudy number (position in list) where the problem study in primaryStudies is found
 #' @param randomPar logical (default = FALSE). Overrides arguments used for customPar and randomly sets customPar either TRUE or FALSE
@@ -34,22 +27,15 @@
 #' @param scaleTI scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dummies representing primary studies.
 #' @param shuffleStudyList (default = FALSE) randomly re-arranges studies in primaryStudyList. We encountered a few cases where this mattered, even though it should not. Only works if ctmaFit is optimized.
 #' @param reFits how many reFits should be done
-#' @param scaleMod scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
-#' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
-#' @param transfMod more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 
 #'
-#' @importFrom doParallel registerDoParallel
-#' @importFrom parallel makeCluster
 #' @importFrom foreach %dopar%
 #' @importFrom RPushbullet pbPost
 #' @importFrom stats runif
 #' @importFrom methods is
 #'
-#' @note All but one of multiple cores are used on unix-type machines for parallel fitting
-#' @note During fitting, not output is generated. Be patient.
 #'
 #' @examples
 #' \dontrun{
@@ -69,19 +55,19 @@
 #'
 ctmaOptimizeFit <- function(activateRPB=FALSE,
                             activeDirectory=NULL,
-                            checkSingleStudyResults=FALSE,
+                            #checkSingleStudyResults=FALSE,
                             coresToUse=c(2),
                             CoTiMAStanctArgs=NULL,
                             ctmaFitFit=NULL,
                             ctmaInitFit=NULL,
-                            customPar=FALSE,
+                            customPar=NULL,
                             finishsamples=NULL,
-                            indVarying=FALSE,
-                            lambda=NULL,
-                            manifestMeans=0,
-                            manifestVars=NULL,
-                            n.latent=NULL,
-                            posLL=TRUE,
+                            iter=NULL,
+                            #indVarying=NULL,
+                            #lambda=NULL,
+                            #manifestMeans=0,
+                            #manifestVars=NULL,
+                            #n.latent=NULL,
                             primaryStudies=NULL,
                             problemStudy=NULL,
                             randomPar=FALSE,
@@ -90,13 +76,11 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             saveModelFits=FALSE,
                             shuffleStudyList=FALSE,
                             reFits=NULL,
-                            scaleMod=NULL,
                             scaleTime=NULL,
-                            scaleTI=TRUE,
-                            T0means=0,
-                            transfMod=NULL,
-                            parallel=FALSE,
-                            verbose=FALSE
+                            scaleTI=NULL,
+                            #T0means=0,
+                            #parallel=FALSE,
+                            verbose=1
 )
 {
 
@@ -117,66 +101,23 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       }
     }
 
-    # CHD ADDED Aug. 2023
-    #if (!(is.null(reFits))) {
-    #  if (parallel == TRUE) {
-    #    parProces <- min(c(coresToUse, reFits)) # moved down
-    #    coresToUse <- coresToUse%/%reFits # integer division # moved down
-    #    if (coresToUse < 1) coresToUse <- 1
-    #  } else {
-    parProces <- coresToUse
-    #  }
-    #}
-    #
-    skip <- 0 # parallel processing deprecated
-    if (skip == 1) {
-
-      if (parallel == TRUE) {
-        if (.Platform$OS.type == "unix") {
-          coresToUseTmp <- coresToUse
-          parProces <- min(c(coresToUse, reFits)) # 8 & 5 => 5
-          coresToUse <- coresToUse%/%reFits # integer division # => 4
-          if (coresToUse < 1) {
-            coresToUse <- 1
-            parProces <- coresToUseTmp
-          }
-          myCluster <- parallel::makeCluster(parProces) # => 2
-          on.exit(parallel::stopCluster(myCluster))
-          #doParallel::registerDoParallel(coresToUse)
-          doParallel::registerDoParallel(myCluster)
-        }
-      } else {
-        parProces <- 1
-        myCluster <- parallel::makeCluster(parProces)
-        on.exit(parallel::stopCluster(myCluster))
-        #doParallel::registerDoParallel(coresToUse)
-        doParallel::registerDoParallel(myCluster)
-      }
-    }
-
-
     # Dealing with CoTiMAStanctArgs
     CoTiMAStanctArgsTmp <- CoTiMAStanctArgs
     if( (!(is.null(ctmaFitFit))) & (is.null(CoTiMAStanctArgs)) ) {
       CoTiMAStanctArgs <- ctmaFitFit$argumentList$CoTiMAStanctArgs
     }
-    #
     if( (is.null(ctmaFitFit)) & (is.null(CoTiMAStanctArgs)) & (!(is.null(ctmaInitFit))) ) {
       CoTiMAStanctArgs <- ctmaInitFit$argumentList$CoTiMAStanctArgs
     }
-    #
     if (!(is.null(CoTiMAStanctArgsTmp))) {
       tmp1 <- which(names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgsTmp)); tmp1
       tmp2 <- CoTiMA::CoTiMAStanctArgs
       tmp2[tmp1] <- CoTiMAStanctArgsTmp
       CoTiMAStanctArgs <- tmp2
     }
-    #
     if (is.null(CoTiMAStanctArgsTmp)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
-    #
     if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
-    #
-    #CoTiMAStanctArgs
+
   }
 
   ########################################################################################################################
@@ -187,7 +128,6 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     randomScaleTime[1] <- randomScaleTime[2] <- scaleTime
     Msg <- paste0("You provded the argumend scaleTime. This will override the randomScaleTime argument, and both values of the randomScaleTime argument will be set to, ", scaleTime, ".\n")
     message(Msg)
-
   }
 
   if (randomScaleTime[2] < randomScaleTime[1]) {
@@ -227,8 +167,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     if (is.null(reFits)) stop(ErrorMsg)
     ErrorMsg <- "argument activeDirectory is missing"
     if (is.null(activeDirectory)) stop(ErrorMsg)
-    ErrorMsg <- "argument n.latent is missing"
-    if (is.null(n.latent)) stop(ErrorMsg)
+    #ErrorMsg <- "argument n.latent is missing"
+    #if (is.null(n.latent)) stop(ErrorMsg)
 
 
     # create new study list with a single problem study only
@@ -254,9 +194,6 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     names(newStudyList) <- names(primaryStudies)
     newStudyList$n.studies <- 1
 
-    # parallel re-fitting of problem study
-    #allfits <- list()
-    #allfits <- foreach::foreach(i=1:reFits) %dopar% {
     currentLL <- 10^20; currentLL
     all_minus2ll <- c()
     for (i in 1:reFits) {
@@ -265,9 +202,6 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         customPar = c(TRUE, FALSE)[tmp1]
       }
-      #fits <- ctmaInit(primaryStudies=newStudyList,
-      #allfits[[i]] <- ctmaInit(primaryStudies=newStudyList,
-
       if (!(is.null(randomScaleTime))) {
         Msg <- paste0("Argument scaleTime is set to: ", scaleTime, ".")
         message(Msg)
@@ -277,24 +211,53 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         message(Msg)
       }
 
+      if (is.null(finishsamples)) finishsamples <- ctmaInitFit$argumentList$finishsamples
+      if (is.null(iter)) iter <- 5000
+
+      # CHD 12.4.24
+      #if (is.null(indVarying)) indVarying <- ctmaFitFit$argumentList$indVarying
+
       fits <- ctmaInit(primaryStudies=newStudyList,
                        coresToUse = coresToUse, # changed Aug 2023
-                       CoTiMAStanctArgs=CoTiMAStanctArgs,
-                       n.latent=n.latent,
-                       indVarying = indVarying,
                        scaleTime = scaleTime,
-                       activeDirectory = activeDirectory,
-                       checkSingleStudyResults=checkSingleStudyResults,
+                       scaleTI=scaleTI,
                        customPar=customPar,
-                       T0means=T0means,
-                       manifestMeans=manifestMeans,
-                       manifestVars=manifestVars)
+                       finishsamples=finishsamples,
+                       iter=iter,
+                       activeDirectory = activeDirectory,
+                       CoTiMAStanctArgs=CoTiMAStanctArgs,
+                       n.latent=ctmaInitFit$argumentList$n.latent,
+                       n.manifest=ctmaInitFit$argumentList$n.manifest,
+                       indVarying = ctmaInitFit$argumentList$indVarying,
+                       checkSingleStudyResults=FALSE,
+                       T0means=ctmaInitFit$argumentList$T0means,
+                       manifestMeans=ctmaInitFit$argumentList$manifestMeans,
+                       manifestVars=ctmaInitFit$argumentList$manifestVars,
+                       chains=ctmaInitFit$argumentList$chains,
+                       cint=ctmaInitFit$argumentList$cint,
+                       diff=ctmaInitFit$argumentList$diff,
+                       digits=ctmaInitFit$argumentList$digits,
+                       drift=ctmaInitFit$argumentList$drift,
+                       experimental=ctmaInitFit$argumentList$experimental,
+                       indVaryingT0=ctmaInitFit$argumentList$indVaryingT0,
+                       lambda=ctmaInitFit$argumentList$lambda,
+                       #loadSingleStudyModelFit=loadSingleStudyModelFit,
+                       #nopriors=nopriors,
+                       optimize=ctmaInitFit$argumentList$optimize,
+                       primaryStudies=primaryStudies,
+                       priors=ctmaInitFit$argumentList$priors,
+                       sameInitialTimes=ctmaInitFit$argumentList$sameInitialTimes,
+                       #saveRawData=saveRawData,
+                       #saveSingleStudyModelFit=saveSingleStudyModelFit,
+                       #silentOverwrite=silentOverwrite,
+                       T0var=ctmaInitFit$argumentList$T0var,
+                       useSV=ctmaInitFit$argumentList$useSV,
+                       verbose=verbose,
+                       randomIntercepts=ctmaInitFit$argumentList$randomInterceptsSettings)
 
       all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
 
       if (saveModelFits != FALSE) {
-        #saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", Sys.time(), " .rds"))
-        #saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", deparse(substitute(ctmaInitFit)), " - ", deparse(substitute(ctmaFitFit)), " .rds"))
         saveRDS(fit, paste0(activeDirectory, saveModelFits, " ", i, " .rds"))
       }
 
@@ -302,8 +265,6 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         currentLL <- fit$summary$minus2ll
         bestFit <- fits
       }
-
-      #return(fits)
 
     }
   }
@@ -315,25 +276,22 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       stop(ErrorMsg)
     }
 
-    #allfits <- list()
-    #allfits <- foreach::foreach(i=1:reFits) %dopar% {
     currentLL <- 10^20; currentLL
     all_minus2ll <- c()
     for (i in 1:reFits) {
-      #i <- 1
       scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
       if (randomPar == TRUE) {
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         customPar <- c(TRUE, FALSE)[tmp1]
       } else {
-        customPar <- ctmaFitFit$argumentList$customPar
+        if (is.null(customPar)) customPar <- ctmaFitFit$argumentList$customPar
       }
       #
       if (randomScaleTI == TRUE) {
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         scaleTI <- c(TRUE, FALSE)[tmp1]
       } else {
-        scaleTI <- ctmaFitFit$argumentList$scaleTI
+        if (is.null(scaleTI)) scaleTI <- ctmaFitFit$argumentList$scaleTI
       }
       #
       if (shuffleStudyList == TRUE) {
@@ -345,7 +303,6 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         for (s in 1:length(tmpStudyList)) {
           newStudyList[[s]] <- tmpStudyList[[which(studyNumbers %in% newStudyOrder[s])]]
         }
-        #newStudyList[[1]]$originalStudyNo
         ctmaInitFit$studyList <- newStudyList
         #
         tmpPrimaryStudyList <- ctmaInitFit$primaryStudyList
@@ -363,7 +320,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         }
         names(newPrimaryStudyList) <- names(tmpPrimaryStudyList)
         ctmaInitFit$primaryStudyList <- newPrimaryStudyList
-        #ctmaInitFit$primaryStudyList <- NULL
+
         #
         tmpEmprawList <- ctmaInitFit$emprawList
         newEmprawList <- list()
@@ -397,6 +354,9 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         message(Msg)
       }
 
+      if (is.null(finishsamples)) finishsamples <- ctmaFitFit$argumentList$finishsamples
+      if (is.null(iter)) iter <- 5000
+
       fit <- ctmaFit(ctmaInitFit=ctmaInitFit,
                      primaryStudyList=ctmaInitFit$primaryStudyList,
                      cluster=ctmaFitFit$argumentList$cluster,
@@ -410,13 +370,9 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                      mod.number=ctmaFitFit$argumentList$mod.number,
                      mod.type=ctmaFitFit$argumentList$mod.type,
                      mod.names=ctmaFitFit$argumentList$mod.names,
-                     #n.manifest=0,
                      indVarying=ctmaFitFit$argumentList$indVarying,
-                     #coresToUse=ctmaFitFit$argumentList$coresToUse,
-                     #coresToUse=1,
                      coresToUse=coresToUse, # changed Aug 2023
                      sameInitialTimes=ctmaFitFit$argumentList$sameInitialTimes,
-                     #scaleTI=ctmaFitFit$argumentList$scaleTI,
                      scaleTI=scaleTI,
                      scaleMod=ctmaFitFit$argumentList$scaleMod,
                      transfMod=ctmaFitFit$argumentList$transfMod,
@@ -425,13 +381,11 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                      scaleTime=scaleTime,
                      optimize=ctmaFitFit$argumentList$optimize,
                      #nopriors=ctmaFitFit$argumentList$nopriors,
-                     finishsamples=ctmaFitFit$argumentList$finishsamples,
-                     iter=ctmaFitFit$argumentList$iter,
+                     finishsamples=finishsamples,
+                     iter=iter,
                      chains=ctmaFitFit$argumentList$chains,
-                     #verbose=ctmaFitFit$argumentList$verbose,
                      verbose=verbose,
                      allInvModel=ctmaFitFit$argumentList$allInvModel,
-                     #customPar=ctmaFitFit$argumentList$customPar,
                      customPar=customPar,
                      inits=ctmaFitFit$argumentList$inits,
                      modsToCompare=ctmaFitFit$argumentList$modsToCompare,
@@ -458,36 +412,19 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
 
       if (saveModelFits != FALSE) {
-        #saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", Sys.time(), " .rds"))
-        #saveRDS(fit, paste0(activeDirectory, "optimizeFitAttempt ", deparse(substitute(ctmaInitFit)), " - ", deparse(substitute(ctmaFitFit)), " .rds"))
         saveRDS(fit, paste0(activeDirectory, saveModelFits, " ", i, " .rds"))
       }
 
       if (fit$summary$minus2ll < currentLL) {
         currentLL <- fit$summary$minus2ll
         bestFit <- fit
-        #usedStudyList <- newStudyList
         usedStudyList <- ctmaInitFit$primaryStudyList
         usedTimeScale <- scaleTime
         usedScaleTI <- scaleTI
       }
-      #return(fits)
     }
   }
 
-
-  #all_minus2ll <- lapply(allfits, function(x) x$summary$minus2ll)
-  # CHD added 27 SEP 2022 to prevent neg -2ll fits
-  if(posLL == FALSE) {
-    if (all(all_minus2ll < 0)) {
-      ErrorMsg <- "\n All loglik values > 0, but you provided the argument posLL=FALSE, so no fit confirmed your expectations and I had to stop!"
-      stop(ErrorMsg)
-    }
-    all_minus2ll <- all_minus2ll[-(which(all_minus2ll < 0))]
-  }
-
-  #bestFit <- which(unlist(all_minus2ll) == min(unlist(all_minus2ll)))[1]; bestFit
-  #bestFit <- allfits[[bestFit]]
 
   results <- list(bestFit=bestFit, all_minus2ll=all_minus2ll, summary=bestFit$summary,
                   usedStudyList=ctmaInitFit$primaryStudyList, usedTimeScale=usedTimeScale, usedScaleTI=usedScaleTI,
