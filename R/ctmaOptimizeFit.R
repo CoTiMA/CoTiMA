@@ -62,7 +62,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             ctmaInitFit=NULL,
                             customPar=NULL,
                             finishsamples=NULL,
-                            iter=NULL,
+                            iter=5000,
                             #indVarying=NULL,
                             #lambda=NULL,
                             #manifestMeans=0,
@@ -212,7 +212,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       }
 
       if (is.null(finishsamples)) finishsamples <- ctmaInitFit$argumentList$finishsamples
-      if (is.null(iter)) iter <- 5000
+      #if (is.null(iter)) iter <- 5000
 
       # CHD 12.4.24
       #if (is.null(indVarying)) indVarying <- ctmaFitFit$argumentList$indVarying
