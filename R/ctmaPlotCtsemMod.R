@@ -4,10 +4,10 @@
 #'
 #' @param ctStanFitObject The fit object with moderator (TIpred) effects to be plotted
 #' @param digits number of digits used for rounding
-#' @param Tipred.pos the Tipred that represent the moderator. Could be more than one in case of categorical moderators (e.g., Tipred.pos = c(3,4))
-#' @param scaleTime factor to increase or decrease the time scale (e.g., 1/12 if estimates where based on yearly intervals and figure should show monthly intervals)
+#' @param Tipred.pos the Tipred that represents the moderator. Could be more than one in case of dummy variables made from categorical moderators (e.g., Tipred.pos = c(3,4))
+#' @param scaleTime Factor to increase or decrease the time scale (e.g., 1/12 if estimates were based on yearly intervals and figure should show monthly intervals)
 #' @param activeDirectory defines the active directory (where to save plots)
-#' @param saveFilePrefix Prefix used for saved plots
+#' @param saveFilePrefix Prefix used for saving plots
 #' @param fitSummary Mainl ofr debugging purpose. Saves computation time if provided in addition to the fit object
 #' @param mod.sd.to.plot The standard deviation vlaues (default -1, 0, +1) for which the drift effects are plotted
 #' @param timeUnit Label for the x-axis
