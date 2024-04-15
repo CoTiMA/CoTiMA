@@ -9,7 +9,7 @@
 #' @param binaries which manifest is a binary. Still experimental
 #' @param catsToCompare when performing contrasts for categorical moderators, the categories (values, not positions) for which effects are set equal
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
-#' @param cint default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')
+#' @param cint default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indVarying='cint')
 #' @param cluster  vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in \code{\link{ctmaPrep}} in later 'CoTiMA' versions.
 #' @param coresToUse if negative, the value is subtracted from available cores, else value = cores to use
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
@@ -30,7 +30,7 @@
 #' @param invariantDrift  drift labels for drift effects that are set invariant across primary studies (default = all drift effects).
 #' @param iter number of iterations (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
-#' @param manifestMeans default = 0. Are automatically set free is indvarying is set to TRUE. Can be assigned labels to estimate them freely.
+#' @param manifestMeans default = 0. Are automatically set free if indVarying is set to TRUE. Can be assigned labels to estimate them freely.
 #' @param manifestVars define the error variances (default = 0) of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
 #' @param mod.names vector of names for moderators used in output
 #' @param mod.number which in the vector of moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
@@ -40,7 +40,7 @@
 #' @param optimize if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param primaryStudyList  could be a list of primary studies compiled with \code{\link{ctmaPrep}} that defines the subset of studies in ctmaInitFit that should actually be used
 #' @param priors if FALSE, any priors are disabled – sometimes desirable for optimization
-#' @param randomIntercepts (default = FALSE) Experimental. Overrides ctsem's default mode for modelling indvarying cints.
+#' @param randomIntercepts (default = FALSE) Experimental. Overrides ctsem's default mode for modelling indVarying cints.
 #' @param sameInitialTimes Only important for raw data. If TRUE (default=FALSE), T0MEANS occurs for every subject at the same time, rather than just at the earliest observation.
 #' @param scaleClus scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster
 #' @param scaleMod scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts
@@ -370,7 +370,7 @@ ctmaFit <- function(
 
       if ( (!(is.null(binaries.orig))) & (indVarying != 'CINT') & (!(is.null(binaries.orig))) & (!all(binaries == 0)) ) {
         if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-        ErrorMsg <- "\nYou specified binary variables. You also need to specify \"indvarying=\'CINT\'\". \nGood luck for the next try!"
+        ErrorMsg <- "\nYou specified binary variables. You also need to specify \"indVarying=\'CINT\'\". \nGood luck for the next try!"
         stop(ErrorMsg)
       }
 
