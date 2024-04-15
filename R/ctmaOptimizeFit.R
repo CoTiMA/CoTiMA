@@ -23,11 +23,11 @@
 #' @param randomPar logical (default = FALSE). Overrides arguments used for customPar and randomly sets customPar either TRUE or FALSE
 #' @param randomScaleTime lower and upper limit (default = c(1,1)) of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)
 #' @param randomScaleTI logical (default = FALSE). Overrides arguments used for scaleTI and randomly sets scaleTI either TRUE or FALSE
+#' @param reFits how many reFits should be done
 #' @param saveModelFits save the fit of each Fit attempt (default = FALSE).
 #' @param scaleTI scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dummies representing primary studies.
-#' @param shuffleStudyList (default = FALSE) randomly re-arranges studies in primaryStudyList. We encountered a few cases where this mattered, even though it should not. Only works if ctmaFit is optimized.
-#' @param reFits how many reFits should be done
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
+#' @param shuffleStudyList (default = FALSE) randomly re-arranges studies in primaryStudyList. We encountered a few cases where this mattered, even though it should not. Only works if ctmaFit is optimized.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
 
 #'
