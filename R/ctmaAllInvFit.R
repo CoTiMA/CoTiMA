@@ -28,7 +28,6 @@
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
 #' @param manifestVars define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
-#' @param indVaryingT0 Allows ct intercepts to vary at the individual level (random effects model, accounts for unobserved heterogeneity)
 #'
 #' @return returns a fitted CoTiMA object, in which all drift parameters, Time 0 variances and covariances, and diffusion parameters were set invariant across primary studies
 #'
