@@ -7,7 +7,7 @@
 #' @param binaries which manifest is a binary. Still experimental
 #' @param chains number of chains to sample, during HMC or post-optimization importance sampling.
 #' @param checkSingleStudyResults Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.
-#' @param cint default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')
+#' @param cint default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indVarying='cint')
 #' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
 #' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
@@ -30,7 +30,7 @@
 #' @param optimize if set to FALSE, Stan's Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .
 #' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}}
 #' @param priors if FALSE, any priors are disabled – sometimes desirable for optimization
-#' @param randomIntercepts (default = FALSE) Experimental. Overrides ctsem's default mode for modelling indvarying cints.
+#' @param randomIntercepts (default = FALSE) Experimental. Overrides ctsem's default mode for modelling indVarying cints.
 #' @param sameInitialTimes Only important for raw data. If TRUE (default=FALSE), T0MEANS occurs for every subject at the same time, rather than just at the earliest observation.
 #' @param saveRawData save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
 #' @param saveSingleStudyModelFit save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
