@@ -8,7 +8,7 @@
 #' @param combineVariables list of vectors, which put together the targeted variables that should be used for composite variables
 #' @param combineVariablesNames new names for combined variables - not really important
 #' @param missingVariables missing variables
-#' @param nlatents number of (latent) variables - actually it is the number of all variables
+#' @param n.latent number of (latent) variables - actually it is the number of all variables
 #' @param Tpoints number of time points.
 #' @param sampleSize sample size
 #' @param pairwiseN matrix of same dimensions as empcov containing possible pairwiseN.
@@ -52,7 +52,7 @@
 #'                         combineVariables = combineVariables17,
 #'                         combineVariablesNames = combineVariablesNames17,
 #'                         missingVariables = missingVariables17,
-#'                         nlatents = 2, sampleSize = sampleSize17,
+#'                         n.latent = 2, sampleSize = sampleSize17,
 #'                         Tpoints = 2, empcov = empcov17)
 #' empcov17 <- results17$r
 #'
@@ -63,7 +63,7 @@
 
 ctmaEmpCov <- function(targetVariables=NULL, recodeVariables=c(), combineVariables=c(),
                              combineVariablesNames=c(), missingVariables=c(),
-                             nlatents=NULL, Tpoints=NULL, sampleSize=NULL, pairwiseN=NULL, empcov=NULL) {
+                             n.latent=NULL, Tpoints=NULL, sampleSize=NULL, pairwiseN=NULL, empcov=NULL) {
 
   # check
   if (is.null(sampleSize) & is.null(pairwiseN) ) {
@@ -155,10 +155,10 @@ ctmaEmpCov <- function(targetVariables=NULL, recodeVariables=c(), combineVariabl
   # impute missingness pattern
   numberOfMissingVars <- length(missingVariables); numberOfMissingVars
   if (numberOfMissingVars > 0) {
-    presentVariables <- which(!((1:(Tpoints*nlatents)) %in% missingVariables)); presentVariables
-    tmpMat <- tmpMatN <- matrix(NA, Tpoints*nlatents, Tpoints*nlatents)
+    presentVariables <- which(!((1:(Tpoints*n.latent)) %in% missingVariables)); presentVariables
+    tmpMat <- tmpMatN <- matrix(NA, Tpoints*n.latent, Tpoints*n.latent)
     counter <- 1
-    for (i in 1:(Tpoints*nlatents)) {
+    for (i in 1:(Tpoints*n.latent)) {
       if (i %in% missingVariables) {
         tmpMat[i, ] <- NA
         tmpMat[ ,i] <- NA
