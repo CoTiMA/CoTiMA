@@ -25,7 +25,7 @@
 #' @param ind.mod.number which in the vector of individual level (!) moderator values shall be used (e.g., 2 for a single moderator or 1:3 for 3 moderators simultaneously)
 #' @param ind.mod.type 'cont' or 'cat' of the individual level (!) moderators (mixing them in a single model not yet possible)
 #' @param indVarying allows continuous time intercepts to vary at the individual level (random intercepts model, accounts for unobserved heterogeneity)
-#' @param indVaryingT0 (default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE forces T0MEANS (T0 scores) to vary interindividually, which undos the nesting of T0(co-)variances in primary studies. Was standard until Aug. 2022. Could provide better estimates if set to FALSE.
+#' @param indVaryingT0 deprecated. Automatically set to NULL.
 #' @param inits vector of start values
 #' @param invariantDrift  drift labels for drift effects that are set invariant across primary studies (default = all drift effects).
 #' @param iter number of iterations (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
@@ -164,8 +164,12 @@ ctmaFit <- function(
 
     if (is.null(scaleTime)) scaleTime <- 1
 
-    { # adaptations to account for new arguments introduces
+    if (!(is.null(indVaryingT0))) {
+      Msg <- "The argument \"indVaryingT0\" was deprecated and set to NULL. Try \"indVarying = TRUE\" or \"randomIntercepts = TRUE\" instead.\n"
+      message(Msg)
+    }
 
+    { # adaptations to account for new arguments introduces
       if (is.null(T0var)) T0var <- 'auto'
       if (is.null(cint)) cint <- 0
       if (is.null(fit)) fit <- TRUE

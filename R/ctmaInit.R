@@ -19,7 +19,7 @@
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param fit TRUE (default) fits the requested model. FALSE returns the \code{\link{ctsem}} code CoTiMA uses to set up the model, the ctsemmodelbase which can be modified to match users requirements, and the data set (in long format created). The model can then be fitted using \code{\link{ctStanFit}})
 #' @param indVarying control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means
-#' @param indVaryingT0 (default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE fits the regular random intercept models.
+#' @param indVaryingT0 deprecated. Automatically set to NULL.
 #' @param iter number of interation (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
 #' @param loadSingleStudyModelFit load the fit of single study ctsem models
@@ -142,6 +142,11 @@ ctmaInit <- function(
 
     if (is.null(randomIntercepts)) randomIntercepts <- FALSE
     randomInterceptsSettings <- randomIntercepts
+
+    if (!(is.null(indVaryingT0))) {
+      Msg <- "The argument \"indVaryingT0\" was deprecated and set to NULL. Try \"indVarying = TRUE\" or \"randomIntercepts = TRUE\" instead.\n"
+      message(Msg)
+    }
 
     if ( (indVarying == "CINT") | (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
     #
