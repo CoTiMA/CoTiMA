@@ -181,6 +181,7 @@ ctmaFit <- function(
       if ( (indVarying == "CINT") | (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
       #
       if (is.null(randomIntercepts)) randomIntercepts <- FALSE
+      if ( (randomIntercepts == 'CINT') | (randomIntercepts == 'cint')  | (randomIntercepts == 'Cint')) randomIntercepts <- TRUE
       if ( (randomIntercepts == "Manifest") | (randomIntercepts == "manifest") | (randomIntercepts == "MANIFEST")) randomIntercepts <- "MANIFEST"
       if ( (randomIntercepts == "MANIFEST") | (randomIntercepts == TRUE) ) {
         indVarying <- FALSE
