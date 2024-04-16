@@ -217,56 +217,64 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       # CHD 12.4.24
       #if (is.null(indVarying)) indVarying <- ctmaFitFit$argumentList$indVarying
 
-      fit <- ctmaInit(primaryStudies=newStudyList,
-                      coresToUse = coresToUse, # changed Aug 2023
-                      scaleTime = scaleTime,
-                      scaleTI=scaleTI,
-                      customPar=customPar,
-                      finishsamples=finishsamples,
-                      iter=iter,
-                      activeDirectory = activeDirectory,
-                      CoTiMAStanctArgs=CoTiMAStanctArgs,
-                      n.latent=ctmaInitFit$argumentList$n.latent,
-                      n.manifest=ctmaInitFit$argumentList$n.manifest,
-                      indVarying = ctmaInitFit$argumentList$indVarying,
-                      checkSingleStudyResults=FALSE,
-                      T0means=ctmaInitFit$argumentList$T0means,
-                      manifestMeans=ctmaInitFit$argumentList$manifestMeans,
-                      manifestVars=ctmaInitFit$argumentList$manifestVars,
-                      chains=ctmaInitFit$argumentList$chains,
-                      cint=ctmaInitFit$argumentList$cint,
-                      diff=ctmaInitFit$argumentList$diff,
-                      digits=ctmaInitFit$argumentList$digits,
-                      drift=ctmaInitFit$argumentList$drift,
-                      experimental=ctmaInitFit$argumentList$experimental,
-                      indVaryingT0=ctmaInitFit$argumentList$indVaryingT0,
-                      lambda=ctmaInitFit$argumentList$lambda,
-                      #loadSingleStudyModelFit=loadSingleStudyModelFit,
-                      #nopriors=nopriors,
-                      optimize=ctmaInitFit$argumentList$optimize,
-                      #primaryStudies=primaryStudies,
-                      priors=ctmaInitFit$argumentList$priors,
-                      sameInitialTimes=ctmaInitFit$argumentList$sameInitialTimes,
-                      #saveRawData=saveRawData,
-                      #saveSingleStudyModelFit=saveSingleStudyModelFit,
-                      #silentOverwrite=silentOverwrite,
-                      T0var=ctmaInitFit$argumentList$T0var,
-                      useSV=ctmaInitFit$argumentList$useSV,
-                      verbose=verbose,
-                      randomIntercepts=ctmaInitFit$argumentList$randomInterceptsSettings)
+      problem <- FALSE
+      fit <- tryCatch(ctmaInit(primaryStudies=newStudyList,
+                               coresToUse = coresToUse, # changed Aug 2023
+                               scaleTime = scaleTime,
+                               scaleTI=scaleTI,
+                               customPar=customPar,
+                               finishsamples=finishsamples,
+                               iter=iter,
+                               activeDirectory = activeDirectory,
+                               CoTiMAStanctArgs=CoTiMAStanctArgs,
+                               n.latent=ctmaInitFit$argumentList$n.latent,
+                               n.manifest=ctmaInitFit$argumentList$n.manifest,
+                               indVarying = ctmaInitFit$argumentList$indVarying,
+                               checkSingleStudyResults=FALSE,
+                               T0means=ctmaInitFit$argumentList$T0means,
+                               manifestMeans=ctmaInitFit$argumentList$manifestMeans,
+                               manifestVars=ctmaInitFit$argumentList$manifestVars,
+                               chains=ctmaInitFit$argumentList$chains,
+                               cint=ctmaInitFit$argumentList$cint,
+                               diff=ctmaInitFit$argumentList$diff,
+                               digits=ctmaInitFit$argumentList$digits,
+                               drift=ctmaInitFit$argumentList$drift,
+                               experimental=ctmaInitFit$argumentList$experimental,
+                               indVaryingT0=ctmaInitFit$argumentList$indVaryingT0,
+                               lambda=ctmaInitFit$argumentList$lambda,
+                               #loadSingleStudyModelFit=loadSingleStudyModelFit,
+                               #nopriors=nopriors,
+                               optimize=ctmaInitFit$argumentList$optimize,
+                               #primaryStudies=primaryStudies,
+                               priors=ctmaInitFit$argumentList$priors,
+                               sameInitialTimes=ctmaInitFit$argumentList$sameInitialTimes,
+                               #saveRawData=saveRawData,
+                               #saveSingleStudyModelFit=saveSingleStudyModelFit,
+                               #silentOverwrite=silentOverwrite,
+                               T0var=ctmaInitFit$argumentList$T0var,
+                               useSV=ctmaInitFit$argumentList$useSV,
+                               verbose=verbose,
+                               randomIntercepts=ctmaInitFit$argumentList$randomInterceptsSettings),
+                      error = function(e) problem <- TRUE
+      )
 
-      all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
 
-      if (saveModelFits != FALSE) {
-        saveRDS(fit, paste0(activeDirectory, saveModelFits, " ", i, " .rds"))
-      }
+      if ( (problem == FALSE) & is.list(fit) ) {
+        all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
 
-      if (fit$summary$minus2ll < currentLL) {
-        currentLL <- fit$summary$minus2ll
-        bestFit <- fit
-        usedStudyList <- ctmaInitFit$primaryStudyList
-        usedTimeScale <- scaleTime
-        usedScaleTI <- scaleTI
+        if (saveModelFits != FALSE) {
+          saveRDS(fit, paste0(activeDirectory, saveModelFits, " ", i, " .rds"))
+        }
+
+        if (fit$summary$minus2ll < currentLL) {
+          currentLL <- fit$summary$minus2ll
+          bestFit <- fit
+          usedStudyList <- ctmaInitFit$primaryStudyList
+          usedTimeScale <- scaleTime
+          usedScaleTI <- scaleTI
+        }
+      } else {
+        all_minus2ll <- c(all_minus2ll, -999)
       }
 
 
