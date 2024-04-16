@@ -65,7 +65,7 @@ ctmaLabels <- function(
   # added 11. Aug. 2022
   if (!(is.null(diff))) {
     tmp1 <- which(!(diffParams %in% drift)); tmp1
-    diffParamsParams[tmp1] <- diff; driftParams
+    diffParams[tmp1] <- diff; driftParams
     tmp1 <- which(diff == 0); tmp1
     if (length(tmp1) > 0) diffNames <- diffNames[-tmp1]
   }
