@@ -164,6 +164,8 @@ ctmaFit <- function(
 
     if (is.null(scaleTime)) scaleTime <- 1
 
+    # indVaryingT0 previously allowed the T0cov to vary across primaries, the cints to covary randomly for the entire sample, and
+    # the cints NOT to covary with the latents at T0. The next three line prvent this, but can be deleted to make it work again.
     if (!(is.null(indVaryingT0))) {
       Msg <- "The argument \"indVaryingT0\" was deprecated and set to NULL. Try \"indVarying = TRUE\" or \"randomIntercepts = TRUE\" instead.\n"
       message(Msg)
