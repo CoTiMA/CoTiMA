@@ -140,8 +140,6 @@ ctmaInit <- function(
     Msg <- "################################################################################# \n########################## Check Model Specification ############################ \n#################################################################################"
     message(Msg)
 
-    if (is.null(randomIntercepts)) randomIntercepts <- FALSE
-    randomInterceptsSettings <- randomIntercepts
 
     if (!(is.null(indVaryingT0))) {
       Msg <- "The argument \"indVaryingT0\" was deprecated and set to NULL. Try \"indVarying = TRUE\" or \"randomIntercepts = TRUE\" instead.\n"
@@ -149,7 +147,9 @@ ctmaInit <- function(
     }
 
     if ( (indVarying == "CINT") | (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
+    if ( (indVarying == "MANIFEST") | (indVarying == "Manifest") | (indVarying == "manifest")) indVarying <- TRUE
     #
+    randomInterceptsSettings <- randomIntercepts
     if (is.null(randomIntercepts)) randomIntercepts <- FALSE
     if ( (randomIntercepts == 'CINT') | (randomIntercepts == 'cint')  | (randomIntercepts == 'Cint')) randomIntercepts <- TRUE
     if ( (randomIntercepts == "Manifest") | (randomIntercepts == "manifest") | (randomIntercepts == "MANIFEST")) randomIntercepts <- "MANIFEST"
