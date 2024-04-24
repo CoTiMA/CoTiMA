@@ -51,9 +51,9 @@ a researcher regards as important.}
 
 \item{activeDirectory}{Mandatory. If subsequent fitting is done using different folders or on different computers, it can be}
 
-\item{ctmaPrepObject}{ctmaPrepObject from which studies should be excluded. Only works in combination with the argument exclude.}
+\item{ctmaPrepObject}{previously created object with ctmaPrep, from which studies should be excluded. Only works in combination with the argument excludeStudies.}
 
-\item{excludedStudies}{studies to be excluded from ctmaPrepObject
+\item{excludedStudies}{studies to be excluded from a previously created ctmaPrep-object
 changed so that raw data files can be loaded.}
 }
 \value{

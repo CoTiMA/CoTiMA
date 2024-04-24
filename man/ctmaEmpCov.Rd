@@ -10,7 +10,7 @@ ctmaEmpCov(
   combineVariables = c(),
   combineVariablesNames = c(),
   missingVariables = c(),
-  nlatents = NULL,
+  n.latent = NULL,
   Tpoints = NULL,
   sampleSize = NULL,
   pairwiseN = NULL,
@@ -28,7 +28,7 @@ ctmaEmpCov(
 
 \item{missingVariables}{missing variables}
 
-\item{nlatents}{number of (latent) variables - actually it is the number of all variables}
+\item{n.latent}{number of (latent) variables - actually it is the number of all variables}
 
 \item{Tpoints}{number of time points.}
 
@@ -79,7 +79,7 @@ results17 <- ctmaEmpCov(targetVariables = targetVariables17,
                         combineVariables = combineVariables17,
                         combineVariablesNames = combineVariablesNames17,
                         missingVariables = missingVariables17,
-                        nlatents = 2, sampleSize = sampleSize17,
+                        n.latent = 2, sampleSize = sampleSize17,
                         Tpoints = 2, empcov = empcov17)
 empcov17 <- results17$r
 

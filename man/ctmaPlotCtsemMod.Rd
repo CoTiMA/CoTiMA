@@ -42,11 +42,11 @@ ctmaPlotCtsemMod(
 
 \item{activeDirectory}{defines the active directory (where to save plots)}
 
-\item{Tipred.pos}{the Tipred that represent the moderator. Could be more than one in case of categorical moderators (e.g., Tipred.pos = c(3,4))}
+\item{Tipred.pos}{the Tipred that represents the moderator. Could be more than one in case of dummy variables made from categorical moderators (e.g., Tipred.pos = c(3,4))}
 
-\item{saveFilePrefix}{Prefix used for saved plots}
+\item{saveFilePrefix}{Prefix used for saving plots}
 
-\item{scaleTime}{factor to increase or decrease the time scale (e.g., 1/12 if estimates where based on yearly intervals and figure should show monthly intervals)}
+\item{scaleTime}{Factor to increase or decrease the time scale (e.g., 1/12 if estimates were based on yearly intervals and figure should show monthly intervals)}
 
 \item{mod.sd.to.plot}{The standard deviation vlaues (default -1, 0, +1) for which the drift effects are plotted}
 

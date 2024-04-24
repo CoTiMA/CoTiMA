@@ -7,19 +7,13 @@
 ctmaOptimizeFit(
   activateRPB = FALSE,
   activeDirectory = NULL,
-  checkSingleStudyResults = FALSE,
   coresToUse = c(2),
   CoTiMAStanctArgs = NULL,
   ctmaFitFit = NULL,
   ctmaInitFit = NULL,
   customPar = FALSE,
   finishsamples = NULL,
-  indVarying = FALSE,
-  lambda = NULL,
-  manifestMeans = 0,
-  manifestVars = NULL,
-  n.latent = NULL,
-  posLL = TRUE,
+  iter = 5000,
   primaryStudies = NULL,
   problemStudy = NULL,
   randomPar = FALSE,
@@ -28,21 +22,15 @@ ctmaOptimizeFit(
   saveModelFits = FALSE,
   shuffleStudyList = FALSE,
   reFits = NULL,
-  scaleMod = NULL,
   scaleTime = NULL,
-  scaleTI = TRUE,
-  T0means = 0,
-  transfMod = NULL,
-  parallel = FALSE,
-  verbose = FALSE
+  scaleTI = NULL,
+  verbose = 1
 )
 }
 \arguments{
 \item{activateRPB}{set to TRUE to receive push messages with 'CoTiMA' notifications on your phone}
 
 \item{activeDirectory}{activeDirectory}
-
-\item{checkSingleStudyResults}{displays estimates from single study 'ctsem' models and waits for user input to continue.}
 
 \item{coresToUse}{if neg., the value is subtracted from available cores, else value = cores to use}
 
@@ -52,21 +40,11 @@ ctmaOptimizeFit(
 
 \item{ctmaInitFit}{the ctmaInitFit object that was used to create the ctmaFitFit object with \code{\link{ctmaFit}}}
 
-\item{customPar}{logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
+\item{customPar}{logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
 
 \item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
 
-\item{indVarying}{control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
-
-\item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
-
-\item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
-
-\item{manifestVars}{define the error variances of the manifests within a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest. Useful to check estimates before they are saved.}
-
-\item{n.latent}{number of latent variables of the model (hast to be specified)!}
-
-\item{posLL}{logical. Allows (default = TRUE) of positive loglik (neg -2ll) values}
+\item{iter}{number of iterations (default = 5000)}
 
 \item{primaryStudies}{list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}}
 
@@ -84,17 +62,9 @@ ctmaOptimizeFit(
 
 \item{reFits}{how many reFits should be done}
 
-\item{scaleMod}{scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts}
-
 \item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
 
 \item{scaleTI}{scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dummies representing primary studies.}
-
-\item{T0means}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
-
-\item{transfMod}{more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))}
-
-\item{parallel}{(default = FALSE). When set to trUe parallel fitting on clusters is enabled (could save some time when many refits are done)}
 
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
 }
@@ -113,12 +83,7 @@ Now, optimizing a CoTiMA model generated with \code{\link{ctmaFit}} can also be 
 Using \code{\link{ctmaOptimizeFit}} could be helpful if a model yields out-of-range estimates, which could happen if the fitting
 algorithm unfortunately used random start values that resulted in a locally but not globally optimal fit. Essentially, using
 \code{\link{ctmaOptimizeFit}} is like gambling, hoping that at least one set of starting values (the number it tries is specified in the reFits argument)
-enables finding the global optimal fit. On unix-like machines (e.g. MacOS), this could be done in parallel mode if coresToUse > 1.
-}
-\note{
-All but one of multiple cores are used on unix-type machines for parallel fitting
-
-During fitting, not output is generated. Be patient.
+enables finding the global optimal fit.
 }
 \examples{
 \dontrun{

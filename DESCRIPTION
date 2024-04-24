@@ -1,10 +1,11 @@
 Package: CoTiMA
 Type: Package
 Title: Continuous Time Meta-Analysis ('CoTiMA')
-Version: 0.7.1
-Date: 2023-12-14
+Version: 0.8.0
+Date: 2024-04-24
 Authors@R: c(person("Christian", "Dormann", role = c("aut","cph")),
             person("Markus", "Homberg", email = "cotima@uni-mainz.de", role = c("aut", "com", "cre")),
+            person("Olga", "Diener", role = c("ctb")),
             person("Christina", "Guthier", role = c("ctb")),
             person("Manuel", "Voelkle", role = c("ctb")))    
 Description: The 'CoTiMA' package performs meta-analyses of correlation matrices of repeatedly measured variables taken from 
@@ -16,8 +17,9 @@ Description: The 'CoTiMA' package performs meta-analyses of correlation matrices
    'ctsem', the effects specified in a SEM are related to parameters that are not directly included in the model (i.e., 
    continuous time parameters; together, they represent the continuous time structural equation model, CTSEM). Statistical 
    model comparisons and significance tests are then performed on the continuous time parameter estimates. 'CoTiMA' also allows 
-   analysis of publication bias (Egger's test, PET-PEESE estimates, zcurve analysis etc.) and analysis of statistical power 
-   (post hoc power, required sample sizes). See Dormann, C., Guthier, C., & Cortina, J. M. (2019) <doi:10.1177/1094428119847277>.
+   analysis of publication bias (Egger's test, PET-PEESE estimates, zcurve analysis etc.) and analysis of statistical power
+   (post hoc power, required sample sizes).  
+   See Dormann, C., Guthier, C., & Cortina, J. M. (2019) <doi:10.1177/1094428119847277>.
    and Guthier, C., Dormann, C., & Voelkle, M. C. (2020) <doi:10.1037/bul0000304>.
 License: GPL-3
 URL: https://github.com/CoTiMA/CoTiMA

@@ -69,7 +69,7 @@ ctmaFit(
 
 \item{chains}{number of chains to sample, during HMC or post-optimization importance sampling.}
 
-\item{cint}{default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')}
+\item{cint}{default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indVarying='cint')}
 
 \item{cluster}{vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in \code{\link{ctmaPrep}} in later 'CoTiMA' versions.}
 
@@ -101,7 +101,7 @@ ctmaFit(
 
 \item{indVarying}{allows continuous time intercepts to vary at the individual level (random intercepts model, accounts for unobserved heterogeneity)}
 
-\item{indVaryingT0}{(default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE forces T0MEANS (T0 scores) to vary interindividually, which undos the nesting of T0(co-)variances in primary studies. Was standard until Aug. 2022. Could provide better estimates if set to FALSE.}
+\item{indVaryingT0}{deprecated. Automatically set to NULL.}
 
 \item{inits}{vector of start values}
 
@@ -111,7 +111,7 @@ ctmaFit(
 
 \item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
 
-\item{manifestMeans}{default = 0. Are automatically set free is indvarying is set to TRUE. Can be assigned labels to estimate them freely.}
+\item{manifestMeans}{default = 0. Are automatically set free if indVarying is set to TRUE. Can be assigned labels to estimate them freely.}
 
 \item{manifestVars}{define the error variances (default = 0) of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
 
@@ -131,7 +131,7 @@ ctmaFit(
 
 \item{priors}{if FALSE, any priors are disabled – sometimes desirable for optimization}
 
-\item{randomIntercepts}{(default = FALSE) Experimental. Overrides ctsem's default mode for modelling indvarying cints.}
+\item{randomIntercepts}{(default = FALSE) Experimental. Overrides ctsem's default mode for modelling indVarying cints.}
 
 \item{sameInitialTimes}{Only important for raw data. If TRUE (default=FALSE), T0MEANS occurs for every subject at the same time, rather than just at the earliest observation.}
 

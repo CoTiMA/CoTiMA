@@ -31,7 +31,6 @@ ctmaInit(
   n.latent = NULL,
   n.manifest = 0,
   optimize = TRUE,
-  posLL = TRUE,
   primaryStudies = NULL,
   priors = FALSE,
   randomIntercepts = FALSE,
@@ -58,7 +57,7 @@ ctmaInit(
 
 \item{checkSingleStudyResults}{Displays estimates from single study ctsem models and waits for user input to continue. Useful to check estimates before they are saved.}
 
-\item{cint}{default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indvarying='cint')}
+\item{cint}{default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indVarying='cint')}
 
 \item{coresToUse}{if neg., the value is subtracted from available cores, else value = cores to use}
 
@@ -82,7 +81,7 @@ ctmaInit(
 
 \item{indVarying}{control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
 
-\item{indVaryingT0}{(default = NULL). Automatically set to TRUE if not set to FALSE if indVarying ist set TRUE. indVaryingT0=TRUE fits the regular random intercept models.}
+\item{indVaryingT0}{deprecated. Automatically set to NULL.}
 
 \item{iter}{number of interation (defaul = 1000). Sometimes larger values could be required fom Bayesian estimation}
 
@@ -100,13 +99,11 @@ ctmaInit(
 
 \item{optimize}{if set to FALSE, Stan's Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
 
-\item{posLL}{logical. Allows (default = TRUE) of positive loglik (neg -2ll) values}
-
 \item{primaryStudies}{list of primary study information created with \code{\link{ctmaPrep}}}
 
 \item{priors}{if FALSE, any priors are disabled – sometimes desirable for optimization}
 
-\item{randomIntercepts}{(default = FALSE) Experimental. Overrides ctsem's default mode for modelling indvarying cints.}
+\item{randomIntercepts}{(default = FALSE) Experimental. Overrides ctsem's default mode for modelling indVarying cints.}
 
 \item{sameInitialTimes}{Only important for raw data. If TRUE (default=FALSE), T0MEANS occurs for every subject at the same time, rather than just at the earliest observation.}
 

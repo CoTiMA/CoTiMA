@@ -32,9 +32,7 @@ ctmaShapeRawData(
   negTolDelta = FALSE,
   min.val.n.Vars = 1,
   min.val.Tpoints = 1,
-  standardization = "none",
-  keepTimePoints = FALSE,
-  experimental = FALSE
+  standardization = "none"
 )
 }
 \arguments{
@@ -92,11 +90,7 @@ ctmaShapeRawData(
 
 \item{min.val.Tpoints}{Minimum no. of valid Tpoints (i.e. Tpoints where min.val.n.Vars is met). Default = 1 retains participants with full set of valid variables at least at one single Tpoint (which will become T0). Setting min.val.Tpoints = 2 or higher values retains participants which provide longitudinal information. Since T0 covariances are usually not too interesting, min.val.Tpoints = 2 may be more reasonable then the default = 1.}
 
-\item{standardization}{the way to standardize possible raw ("none", "withinTimeA", "withinTimeB", "withinColumn", "withinPerson", or "overall"). Only applies if the list for specifying raw data information contains the list element 'standardize=TRUE'. 'WithinTimeA' standardizes within time points and deletes cases with missing T0 data. 'WithinTimeB' does not delete cases, and in subsequent ctsem or CoTiMA applications the user is adviced to use the argument 'sameInitialTimes=TRUE'.}
-
-\item{keepTimePoints}{Do not fill any gaps in the data (no left shift).}
-
-\item{experimental}{FALSE (default) or TRUE. Deprecated.}
+\item{standardization}{the way to standardize possible raw data ("none", "withinTimeA", "withinTimeB", "withinColumn", "withinPerson", or "overall"). Only applies if the list for specifying raw data information contains the list element 'standardize=TRUE'. 'WithinTimeA' standardizes within time points and deletes cases with missing T0 data. 'WithinTimeB' does not delete cases, and in subsequent ctsem or CoTiMA applications the user is adviced to use the argument 'sameInitialTimes=TRUE'.}
 }
 \value{
 A reshaped raw data file
