@@ -470,6 +470,13 @@
 #' @keywords data
 "delta_t128"
 
+#' delta_t228 example vector
+#' @name delta_t228
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"delta_t228"
+
 
 #' delta_t313 example vector
 #' @name delta_t313
@@ -799,6 +806,14 @@
 "pairwiseN128"
 
 
+#' pubList_8 example list
+#' @name pubList_8
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"pubList_8"
+
+
 #' rawData228 example list
 #' @name rawData228
 #' @docType data
@@ -894,6 +909,12 @@
 #' @keywords data
 "source4"
 
+#' source18 example vector
+#' @name source18
+#' @docType data
+#' @author C. Dormann & M. Homburg \email{CoTiMA@@uni-mainz.org}
+#' @keywords data
+"source18"
 
 #' source128 example vector
 #' @name source128
