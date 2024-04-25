@@ -4,7 +4,7 @@
 #'
 #' @param ctStanFitObject The fit object with moderator (TIpred) effects to be plotted
 #' @param digits number of digits used for rounding
-#' @param Tipred.pos the Tipred that represents the moderator. Could be more than one in case of dummy variables made from categorical moderators (e.g., Tipred.pos = c(3,4))
+#' @param TIpred.pos the Tipred that represents the moderator. Could be more than one in case of dummy variables made from categorical moderators (e.g., TIpred.pos = c(3,4))
 #' @param scaleTime Factor to increase or decrease the time scale (e.g., 1/12 if estimates were based on yearly intervals and figure should show monthly intervals)
 #' @param activeDirectory defines the active directory (where to save plots)
 #' @param saveFilePrefix Prefix used for saving plots
@@ -56,7 +56,7 @@
 ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
                              fitSummary = NULL,
                              activeDirectory = NULL,
-                             Tipred.pos=1,
+                             TIpred.pos=1,
                              saveFilePrefix="Moderator Plot ",
                              scaleTime=1,
                              mod.sd.to.plot = -1:1,
@@ -135,7 +135,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
       stop(ErrorMsg)
     }
 
-    mod.no.to.plot <- Tipred.pos # only a single continuous moderator can be plotted in a single plot, e.g., 1st, 3rd ...
+    mod.no.to.plot <- TIpred.pos # only a single continuous moderator can be plotted in a single plot, e.g., 1st, 3rd ...
     #                             note that each categorical moderator counts as k, with k = number of moderator categories - 1. (i.e., dummies)
   }
 
