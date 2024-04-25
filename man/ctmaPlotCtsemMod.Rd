@@ -8,7 +8,7 @@ ctmaPlotCtsemMod(
   ctStanFitObject = NULL,
   fitSummary = NULL,
   activeDirectory = NULL,
-  Tipred.pos = 1,
+  TIpred.pos = 1,
   saveFilePrefix = "Moderator Plot ",
   scaleTime = 1,
   mod.sd.to.plot = -1:1,
@@ -42,7 +42,7 @@ ctmaPlotCtsemMod(
 
 \item{activeDirectory}{defines the active directory (where to save plots)}
 
-\item{Tipred.pos}{the Tipred that represents the moderator. Could be more than one in case of dummy variables made from categorical moderators (e.g., Tipred.pos = c(3,4))}
+\item{TIpred.pos}{the Tipred that represents the moderator. Could be more than one in case of dummy variables made from categorical moderators (e.g., TIpred.pos = c(3,4))}
 
 \item{saveFilePrefix}{Prefix used for saving plots}
 
