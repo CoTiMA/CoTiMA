@@ -2,3 +2,5 @@
 ^\.Rproj\.user$
 ^System Setup - R Package Building\.R$
 ^README\.Rmd$
+^doc$
+^Meta$
