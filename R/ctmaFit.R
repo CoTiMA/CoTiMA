@@ -249,8 +249,9 @@ ctmaFit <- function(
 
 
     { # check if scaleMod is not used in combination with transfMod
-      if ( (!(is.null(scaleMod))) & (!(is.null(transfMod))) ) {
-        Msg <- "The arguments scaleMod (default = TRUE) and transfMod cannot be used in combination. ScalMod was set to FALSE."
+      if ( (!(is.null(scaleMod)) | (scaleMod==TRUE)) & (!(is.null(transfMod))) ) {
+        Msg <- "The arguments scaleMod (default = TRUE) and transfMod cannot be used in combination. ScaleMod was set to FALSE."
+        scaleMod <- FALSE
         message(Msg)
       }
     }
@@ -653,6 +654,17 @@ ctmaFit <- function(
         } else {
           unique.mod <- sort(c(unique(tmp)))
         }
+
+        # CHD 13.5.24
+        if (!(is.null(transfMod))) {
+          tmp2 <- unique.mod
+          for (t in 1:length(transfMod)) {
+            x <- tmp2[, t]
+            tmp2[, t] <- as.numeric(eval(parse(text=transfMod[t])))
+          }
+          tmp[ , 1:ncol(tmp)] <- tmp2
+        }
+
 
         # determine number of required dummies
         if (n.moderators > 1) {
