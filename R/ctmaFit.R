@@ -249,7 +249,7 @@ ctmaFit <- function(
 
 
     { # check if scaleMod is not used in combination with transfMod
-      if ( (!(is.null(scaleMod)) | (scaleMod==TRUE)) & (!(is.null(transfMod))) ) {
+      if ( (scaleMod==TRUE) & (!(is.null(transfMod))) ) {
         Msg <- "The arguments scaleMod (default = TRUE) and transfMod cannot be used in combination. ScaleMod was set to FALSE."
         scaleMod <- FALSE
         message(Msg)
@@ -648,16 +648,10 @@ ctmaFit <- function(
       if ((mod.type=="cat") | (ind.mod.type=="cat")) {
         tmp1 <- paste0("mod", 1:n.moderators); tmp1
         if (length(tmp1) == 1) tmp <- matrix(dataTmp[ , tmp1], ncol=length(tmp1)) else tmp <- dataTmp[ , tmp1]
-        if (n.moderators > 1) {
-          unique.mod <- list()
-          for (i in 1:n.moderators) unique.mod[[i]] <- sort(c(unique(tmp[,i])))
-        } else {
-          unique.mod <- sort(c(unique(tmp)))
-        }
 
         # CHD 13.5.24
         if (!(is.null(transfMod))) {
-          tmp2 <- unique.mod
+          tmp2 <- tmp #[ , 1:ncol(tmp)]
           for (t in 1:length(transfMod)) {
             x <- tmp2[, t]
             tmp2[, t] <- as.numeric(eval(parse(text=transfMod[t])))
@@ -665,6 +659,12 @@ ctmaFit <- function(
           tmp[ , 1:ncol(tmp)] <- tmp2
         }
 
+        if (n.moderators > 1) {
+          unique.mod <- list()
+          for (i in 1:n.moderators) unique.mod[[i]] <- sort(c(unique(tmp[,i])))
+        } else {
+          unique.mod <- sort(c(unique(tmp)))
+        }
 
         # determine number of required dummies
         if (n.moderators > 1) {
@@ -1213,9 +1213,9 @@ ctmaFit <- function(
 
   #stanctModel$pars
 
-    #######################################################################################################################
-    ################################################## CoTiMA Fit #########################################################
-    #######################################################################################################################
+  #######################################################################################################################
+  ################################################## CoTiMA Fit #########################################################
+  #######################################################################################################################
 
   if (allInvModel == FALSE) {
     #fitStanctModel <- suppressMessages(ctsem::ctStanFit(
@@ -1315,13 +1315,13 @@ ctmaFit <- function(
         T0COVCoeff <- T0COVCoeffMean <- T0COVCoeffSD <- list()
         n.mod.values.to.plot <- length(colnames(fitStanctModel$data$tipredsdata)[1:(n.studies-1)])+1; n.mod.values.to.plot
         modPos <- 1:(n.studies-1); modPos
-        TIpred.values <- matrix(fitStanctModel$data$tipredsdata[, modPos], ncol=length(modPos)); head(TIpred.values)
+        TIpred.values <- matrix(fitStanctModel$data$tipredsdata[, modPos], ncol=length(modPos))
         effectCodingWeights <- unique(TIpred.values); effectCodingWeights
         #
         tmp1 <- which(!(is.na(fitStanctModel$ctstanmodelbase$pars$param))); tmp1
         tmpPars <- fitStanctModel$ctstanmodelbase$pars[tmp1,]; tmpPars
         T0varPos <- which(tmpPars$matrix == "T0VAR"); T0varPos
-        rawT0varTmp <- fitStanctModel$stanfit$rawposterior[ , T0varPos]; head(rawT0varTmp)
+        rawT0varTmp <- fitStanctModel$stanfit$rawposterior[ , T0varPos]
         #
         tmpNames <- paste0("RI Covriances for Study No ", unlist(lapply(ctmaInitFit$studyList, function(x) x$originalStudyNo)), "."); tmpNames
         #
@@ -1593,7 +1593,7 @@ ctmaFit <- function(
         OpenMx::expm(tmpDriftMatrix * timeRange)[targetRow, targetCol]}
       # use original time scale
       #if (!(is.null(scaleTime))) {
-        tmpDriftMatrix <- driftMatrix * scaleTime
+      tmpDriftMatrix <- driftMatrix * scaleTime
       #} else {
       #  tmpDriftMatrix <- driftMatrix
       #}
@@ -1743,7 +1743,7 @@ ctmaFit <- function(
     if (WEC == TRUE) {
       n.mod.values.to.plot <- length(colnames(fitStanctModel$data$tipredsdata)[1:(n.studies-1)])+1; n.mod.values.to.plot
       modPos <- 1:(n.studies-1); modPos
-      TIpred.values <- matrix(fitStanctModel$data$tipredsdata[, modPos], ncol=length(modPos)); head(TIpred.values)
+      TIpred.values <- matrix(fitStanctModel$data$tipredsdata[, modPos], ncol=length(modPos))
       effectCodingWeights <- unique(TIpred.values); effectCodingWeights
       #
       tmp1 <- which(!(is.na(fitStanctModel$ctstanmodelbase$pars$param))); tmp1
