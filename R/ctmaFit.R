@@ -908,16 +908,14 @@ ctmaFit <- function(
         print(paste0("#################################################################################"))
         T0meansParams <- 'auto'
 
-        # CHD 24.5.2024
         print(paste0("#################################################################################"))
-        #print(paste0("####################### CT intercepts are set free.  ############################"))
-        print(paste0("## CT intercepts are no longer free by default. Do it explicitly if desired #"))
+        print(paste0("####################### CT intercepts are set free.  ############################"))
         print(paste0("#################################################################################"))
 
-        #CINTParams <- c()
-        #for (c in 1:n.latent) {
-        #  CINTParams <- c(CINTParams, paste0("cintV", c))
-        #}
+        CINTParams <- c()
+        for (c in 1:n.latent) {
+          CINTParams <- c(CINTParams, paste0("cintV", c))
+        }
       }
 
       if ( (indVarying == 'CINT') & (indVaryingT0 == FALSE) ) {
@@ -930,16 +928,14 @@ ctmaFit <- function(
         print(paste0("#################################################################################"))
         T0meansParams <- 0
 
-        #CHD 24.5.2024
         print(paste0("#################################################################################"))
-        #print(paste0("####################### CT intercepts are set free.  ########################"))
-        print(paste0("## CT intercepts are no longer free by default. Do it explicitly if desired #"))
+        print(paste0("####################### CT intercepts are set free.  ########################"))
         print(paste0("#################################################################################"))
 
-        #CINTParams <- c()
-        #for (c in 1:n.latent) {
-        #  CINTParams <- c(CINTParams, paste0("cintV", c))
-        #}
+        CINTParams <- c()
+        for (c in 1:n.latent) {
+          CINTParams <- c(CINTParams, paste0("cintV", c))
+        }
       }
 
       if ( (indVarying == TRUE) & (indVaryingT0 == TRUE) ) {
@@ -954,13 +950,11 @@ ctmaFit <- function(
         print(paste0("#################################################################################"))
         T0meansParams <- 'auto'
 
-        # CHD 24.5.2024
         print(paste0("#################################################################################"))
-        #print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
-        print(paste0("# Manifest means (0) are no longer free by default. Do it explicitly if desired #"))
+        print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
         print(paste0("#################################################################################"))
 
-        #manifestMeansParams <- 'auto' # CHD 24.5.2024
+        manifestMeansParams <- 'auto'
       }
 
       if ( (indVarying == TRUE) & (indVaryingT0 == FALSE) ) {
@@ -974,11 +968,10 @@ ctmaFit <- function(
         T0meansParams <- 0
 
         print(paste0("#################################################################################"))
-        #print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
-        print(paste0("# Manifest means (0) are no longer free by default. Do it explicitly if desired #"))
+        print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
         print(paste0("#################################################################################"))
 
-        #manifestMeansParams <- 'auto'  # CHD 24.5.2024
+        manifestMeansParams <- 'auto'
       }
     }
     if (!(is.null(binaries.orig))) {
