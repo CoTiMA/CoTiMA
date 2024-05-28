@@ -5,7 +5,7 @@
 #' @param ctmaFit fit object created with ctmaInit or ctmaFit
 #'
 #' @importFrom ctsem ctCollapse
-#' @importFrom stats quantile
+#' @importFrom stats quantile cov2cor
 #'
 #' @examples
 #' \donttest{
@@ -24,14 +24,18 @@ ctmaMMtoCINT <- function(ctmaFit=NULL) {
   } else {
     n.studies <- 1
   }
-  #fit <- ctmaFit$studyFitList
   arguments <- ctmaFit$argumentList
   n.latent <- arguments$n.latent; n.latent
   n.manifest <- arguments$n.manifest; n.manifest
   digits <- arguments$digits; digits
   popcov_mean <- popcov_sd <- popcov_2.5 <- popcov_97.5 <- popcov_T <- list()
+  popcor_mean <- popcor_sd <- popcor_2.5 <- popcor_97.5 <- popcor_T <- list()
   if (!is.null(arguments$scaleTime)) scaleTime <- arguments$scaleTime else scaleTime <- 1
   if (arguments$indVarying == TRUE) mmRI <- TRUE else mmRI <- FALSE
+  if (arguments$indVarying == "CINT") {
+    ErrorMsg <- "The fit object provided used CINT rather the MANIFESTMEANS to model random intercepts."
+    stop(ErrorMsg)
+  }
 
   for (i in 1:n.studies) {
     #i <- 1
@@ -80,16 +84,27 @@ ctmaMMtoCINT <- function(ctmaFit=NULL) {
         trans <- rbind(cbind(UL, UR), cbind(LL, LR)); trans
         e$popcov_est[k, , ] <- trans %*% e$popcov[k, , ] %*% t(trans)
       }
-      e$popcov <- e$popcov_est
+      e$popcov <- e$popcor <- e$popcov_est
+      for (j in 1:(dim(e$popcor)[1])) {
+        e$popcor[j,,] <- stats::cov2cor(matrix(e$popcor[j,,], n.latent^2, n.latent^2))
+      }
       message <- "Cints (slope means), T0means (initial means), and T0covs (initial (co-)vars) were inferred from a model with individually varying manifest means instead of Cints."
       popcov_mean[[i]] <- ctsem::ctCollapse(e$popcov, 1, mean)
       popcov_sd[[i]] <- ctsem::ctCollapse(e$popcov, 1, sd)
       popcov_T[[i]] <- popcov_mean[[i]]/popcov_sd[[i]]
       popcov_2.5[[i]] <- ctsem::ctCollapse(e$popcov, 1, stats::quantile, probs=.025)
       popcov_97.5[[i]] <- ctsem::ctCollapse(e$popcov, 1, stats::quantile, probs=.975)
+      #
+      popcor_mean[[i]] <- ctsem::ctCollapse(e$popcor, 1, mean)
+      popcor_sd[[i]] <- ctsem::ctCollapse(e$popcor, 1, sd)
+      popcor_T[[i]] <- popcor_mean[[i]]/popcor_sd[[i]]
+      popcor_2.5[[i]] <- ctsem::ctCollapse(e$popcor, 1, stats::quantile, probs=.025)
+      popcor_97.5[[i]] <- ctsem::ctCollapse(e$popcor, 1, stats::quantile, probs=.975)
     }
   }
   return(list(popcov_mean=popcov_mean, popcov_sd=popcov_sd, popcov_T=popcov_T,
               popcov_2.5=popcov_2.5, popcov_97.5=popcov_97.5,
+              popcor_mean=popcor_mean, popcor_sd=popcor_sd, popcor_T=popcor_T,
+              popcor_2.5=popcor_2.5, popcor_97.5=popcor_97.5,
               message=message))
 }
