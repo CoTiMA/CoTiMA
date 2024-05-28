@@ -4,7 +4,8 @@
 #'
 #' @param ctmaFit fit object created with ctmaInit or ctmaFit
 #'
-#' @importFrom ctsem stats
+#' @importFrom ctsem ctCollapse
+#' @importFrom stats quantile
 #'
 #' @examples
 #' \donttest{
@@ -16,7 +17,7 @@
 #'
 #' @return returns covariance of CINT-based random intercepts.
 #'
-MMRItoCINTRI <- function(ctmaFit=NULL) {
+ctmaMMtoCINT <- function(ctmaFit=NULL) {
   ### TRANSFORM RI modeled as manifest means into cint-based estimates
   if (class(ctmaFit$studyFitList[[1]]) == "ctStanFit") {
     n.studies <- length(ctmaFit$studyFitList)

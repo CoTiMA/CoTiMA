@@ -10,6 +10,7 @@ ctmaBiG(
   PETPEESEalpha = 0.1,
   activateRPB = FALSE,
   digits = 4,
+  finishsamples = 1000,
   zcurve = FALSE,
   undoTimeScaling = TRUE,
   dt = NULL
@@ -25,6 +26,8 @@ ctmaBiG(
 \item{activateRPB}{if TRUE, messages (warning, finished) could be send to smart phone (default = FALSE)}
 
 \item{digits}{rounding (default = 4)}
+
+\item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for dt computations (default = 1000).}
 
 \item{zcurve}{performs z-curve analysis. Could fail if too few studies (e.g. around 10) are supplied. default=FALSE}
 
