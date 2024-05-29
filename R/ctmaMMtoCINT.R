@@ -2,14 +2,14 @@
 #'
 #' @description Compute covariance of CINT-based random intercepts obtained with a MANIFESTMEANS model specification
 #'
-#' @param ctmaFit fit object created with ctmaInit or ctmaFit
+#' @param ctmaFitObject fit object created with ctmaInit or ctmaFitObject
 #'
 #' @importFrom ctsem ctCollapse
 #' @importFrom stats quantile cov2cor
 #'
 #' @examples
 #' \donttest{
-#' RI_cov <- ctmaMMtoCINT(ctmaFit=CoTiMAFullFit_3)
+#' RI_cov <- ctmaMMtoCINT(ctmaFitObject=CoTiMAFullFit_3)
 #' print(RI_cov)
 #' }
 #'
@@ -17,17 +17,38 @@
 #'
 #' @return returns covariance of CINT-based random intercepts.
 #'
-ctmaMMtoCINT <- function(ctmaFit=NULL) {
-  ### TRANSFORM RI modeled as manifest means into cint-based estimates
-  if (class(ctmaFit$studyFitList[[1]]) == "ctStanFit") {
-    n.studies <- length(ctmaFit$studyFitList)
+ctmaMMtoCINT <- function(ctmaFitObjectObject=NULL) {
+  # if ctStanFit instead of CoTiMA fit object is provided
+  if (class(ctmaFitObject) == "ctStanFit") ctmaFitObject$studyFitList <- ctmaFitObject
+  # if CoTiMA fit object contains one or more singleStudyFits
+  if (class(ctmaFitObject$studyFitList[[1]]) == "ctStanFit") {
+    n.studies <- length(ctmaFitObject$studyFitList)
   } else {
     n.studies <- 1
   }
-  arguments <- ctmaFit$argumentList
-  n.latent <- arguments$n.latent; n.latent
-  n.manifest <- arguments$n.manifest; n.manifest
-  digits <- arguments$digits; digits
+  # if CoTiMA fit object is provided
+  if (class(ctmaFitObject) == "CoTiMAFit") {
+    arguments <- ctmaFitObject$argumentList
+    n.latent <- arguments$n.latent; n.latent
+    n.manifest <- arguments$n.manifest; n.manifest
+    digits <- arguments$digits; digits
+  }
+  if (class(ctmaFitObject) == "ctStanFit") {
+    arguments <- ctmaFitObject$ctstanmodelbase
+    arguments$scaleTime <- 1
+    n.latent <- arguments$n.latent; n.latent
+    n.manifest <- arguments$n.manifest; n.manifest
+    digits <- 4; digits
+    #
+    pars <- arguments$pars
+    if (all(pars[pars$matrix=="MANIFESTMEANS", "indvarying"] == TRUE)) arguments$indVarying <- TRUE
+    if (all(pars[pars$matrix=="CINT", "indvarying"] == TRUE)) arguments$indVarying <- "CINT"
+    if (is.null(arguments$indVarying)) {
+      ErrorMsg <- "The fit object provided used neither CINT nor MANIFESTMEANS to model random intercepts."
+      stop(ErrorMsg)
+    }
+  }
+
   popcov_mean <- popcov_sd <- popcov_2.5 <- popcov_97.5 <- popcov_T <- list()
   popcor_mean <- popcor_sd <- popcor_2.5 <- popcor_97.5 <- popcor_T <- list()
   if (!is.null(arguments$scaleTime)) scaleTime <- arguments$scaleTime else scaleTime <- 1
@@ -38,14 +59,12 @@ ctmaMMtoCINT <- function(ctmaFit=NULL) {
   }
 
   for (i in 1:n.studies) {
-    #i <- 1
-    if (class(ctmaFit$studyFitList[[i]]) == "ctStanFit") {
-      fit <- ctmaFit$studyFitList[[i]]
+    if (class(ctmaFitObject$studyFitList[[i]]) == "ctStanFit") {
+      fit <- ctmaFitObject$studyFitList[[i]]
     } else {
-      fit <- ctmaFit$studyFitList
+      fit <- ctmaFitObject$studyFitList
     }
     e <- ctsem::ctExtract(fit)
-    #dim(e$pop_DRIFT)
     e$pop_DRIFT <- e$pop_DRIFT * scaleTime
 
     # get random intercept stats
@@ -61,16 +80,9 @@ ctmaMMtoCINT <- function(ctmaFit=NULL) {
       e$pop_MANIFESTMEANS <- e$pop_MANIFESTMEANS[ ,1:n.latent,]
       for (j in 1:(dim(e$pop_T0MEANS_est)[1])) e$pop_T0MEANS_est[j,] <- e$pop_T0MEANS[j,] + e$pop_MANIFESTMEANS[j,]
       e$pop_T0MEANS <- e$pop_T0MEANS_est
-      e$pop_MANIFESTMEANS_backup <- e$pop_MANIFESTMEANS
+      #e$pop_MANIFESTMEANS_backup <- e$pop_MANIFESTMEANS
       e$pop_MANIFESTMEANS[e$pop_MANIFESTMEANS != 0] <- 0
     }
-    #
-    #if ( mmRI ) { # if random intercepts are modelled as manifest means instead cint
-    #  initialMeans <- round(ctsem::ctCollapse(e$pop_T0MEANS, 1, mean), digits = digits); initialMeans
-    #  initialMeansSD <- round(ctsem::ctCollapse(e$pop_T0MEANS, 1, stats::sd), digits = digits); initialMeansSD
-    #  initialMeansLL <- ctsem::ctCollapse(e$pop_T0MEANS, 1, function(x) stats::quantile(x, .025)); initialMeansLL
-    #  initialMeansUL <- ctsem::ctCollapse(e$pop_T0MEANS, 1, function(x) stats::quantile(x, .975)); initialMeansUL
-    #}
     #
     if ( mmRI ) { # if random intercepts are modelled as manifest means instead cint
       #### IDEA: Transformation matrix describing popcov_MM into popciv_cint transformations and then popcov_cint <- trans %*% popcov_mm %*% t(trans) (see: #https://stats.stackexchange.com/questions/113700/covariance-of-a-random-vector-after-a-linear-transformation)
