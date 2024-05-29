@@ -1810,7 +1810,8 @@ ctmaFit <- function(
       estimates_original_time_scale <- estimates_original_time_scale[-toDelete, ]
     } else {
       if ( (indVarying == 'CINT') | (indVarying == TRUE)  | (indVarying != FALSE)){
-        randomIntercepts <- list(popsd=model_popsd,
+        randomIntercepts <- list(note="covariances are time-scaled, correlations are unaffected by time scale",
+                                 popsd=model_popsd,
                                  popcov_mean=model_popcov_m, model_popcov_sd=model_popcov_sd,
                                  model_popcov_T=model_popcov_T, model_popcov_025=model_popcov_025,
                                  model_popcov_50=model_popcov_50, model_popcov_975=model_popcov_975,
