@@ -3,6 +3,8 @@
 #' @description Compute covariance of CINT-based random intercepts obtained with a MANIFESTMEANS model specification
 #'
 #' @param ctmaFitObject fit object created with ctmaInit or ctmaFitObject
+#' @param digits digits used for rounding
+#' @param undoTimeScaling if FALSE (default), results will correspond to the $randomIntercepts part of the summary of the equivalent model with indVarying="CINT"
 #'
 #' @importFrom ctsem ctCollapse
 #' @importFrom stats quantile cov2cor
@@ -17,7 +19,7 @@
 #'
 #' @return returns covariance of CINT-based random intercepts.
 #'
-ctmaMMtoCINT <- function(ctmaFitObject=NULL) {
+ctmaMMtoCINT <- function(ctmaFitObject=NULL, undoTimeScaling=FALSE, digits=4) {
   # if ctStanFit instead of CoTiMA fit object is provided
   if (class(ctmaFitObject) == "ctStanFit") ctmaFitObject$studyFitList <- ctmaFitObject
   # if CoTiMA fit object contains one or more singleStudyFits
@@ -28,17 +30,18 @@ ctmaMMtoCINT <- function(ctmaFitObject=NULL) {
   }
   # if CoTiMA fit object is provided
   if (class(ctmaFitObject) == "CoTiMAFit") {
-    arguments <- ctmaFitObject$
-    n.latent <- arguments$n.latent; n.latent
-    n.manifest <- arguments$n.manifest; n.manifest
-    digits <- arguments$digits; digits
+    #arguments <- ctmaFitObject$ctModel
+    arguments <- ctmaFitObject$argumentList
+    n.latent <- ctmaFitObject$ctModel$n.latent; n.latent
+    n.manifest <- ctmaFitObject$ctModel$n.manifest; n.manifest
+    #digits <- arguments$digits; digits
   }
   if (class(ctmaFitObject) == "ctStanFit") {
     arguments <- ctmaFitObject$ctstanmodelbase
     arguments$scaleTime <- 1
     n.latent <- arguments$n.latent; n.latent
     n.manifest <- arguments$n.manifest; n.manifest
-    digits <- 4; digits
+    #digits <- 4; digits
     #
     pars <- arguments$pars
     if (all(pars[pars$matrix=="MANIFESTMEANS", "indvarying"] == TRUE)) arguments$indVarying <- TRUE
@@ -65,7 +68,7 @@ ctmaMMtoCINT <- function(ctmaFitObject=NULL) {
       fit <- ctmaFitObject$studyFitList
     }
     e <- ctsem::ctExtract(fit)
-    e$pop_DRIFT <- e$pop_DRIFT * scaleTime
+    if (undoTimeScaling == TRUE) e$pop_DRIFT <- e$pop_DRIFT * scaleTime
 
     # get random intercept stats
     tmp1 <- ctsem::ctCollapse(e$pop_CINT, 1, mean); tmp1
@@ -101,17 +104,17 @@ ctmaMMtoCINT <- function(ctmaFitObject=NULL) {
         e$popcor[j,,] <- stats::cov2cor(matrix(e$popcor[j,,], n.latent^2, n.latent^2))
       }
       message <- "Cints (slope means), T0means (initial means), and T0covs (initial (co-)vars) were inferred from a model with individually varying manifest means instead of Cints."
-      popcov_mean[[i]] <- ctsem::ctCollapse(e$popcov, 1, mean)
-      popcov_sd[[i]] <- ctsem::ctCollapse(e$popcov, 1, sd)
-      popcov_T[[i]] <- popcov_mean[[i]]/popcov_sd[[i]]
-      popcov_2.5[[i]] <- ctsem::ctCollapse(e$popcov, 1, stats::quantile, probs=.025)
-      popcov_97.5[[i]] <- ctsem::ctCollapse(e$popcov, 1, stats::quantile, probs=.975)
+      popcov_mean[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits)
+      popcov_sd[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, sd), digits)
+      popcov_T[[i]] <- round(popcov_mean[[i]]/popcov_sd[[i]], digits)
+      popcov_2.5[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, stats::quantile, probs=.025), digits)
+      popcov_97.5[[i]] <- round(ctsem::ctCollapse(e$popcov, 1, stats::quantile, probs=.975), digits)
       #
-      popcor_mean[[i]] <- ctsem::ctCollapse(e$popcor, 1, mean)
-      popcor_sd[[i]] <- ctsem::ctCollapse(e$popcor, 1, sd)
-      popcor_T[[i]] <- popcor_mean[[i]]/popcor_sd[[i]]
-      popcor_2.5[[i]] <- ctsem::ctCollapse(e$popcor, 1, stats::quantile, probs=.025)
-      popcor_97.5[[i]] <- ctsem::ctCollapse(e$popcor, 1, stats::quantile, probs=.975)
+      popcor_mean[[i]] <- round(ctsem::ctCollapse(e$popcor, 1, mean), digits)
+      popcor_sd[[i]] <- round(ctsem::ctCollapse(e$popcor, 1, sd), digits)
+      popcor_T[[i]] <- round(popcor_mean[[i]]/popcor_sd[[i]], digits)
+      popcor_2.5[[i]] <- round(ctsem::ctCollapse(e$popcor, 1, stats::quantile, probs=.025), digits)
+      popcor_97.5[[i]] <- round(ctsem::ctCollapse(e$popcor, 1, stats::quantile, probs=.975), digits)
     }
   }
   return(list(popcov_mean=popcov_mean, popcov_sd=popcov_sd, popcov_T=popcov_T,
