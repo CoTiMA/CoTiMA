@@ -1887,7 +1887,9 @@ ctmaInit <- function(
       } # end skip
     } else {
       if ( (indVarying == 'CINT') | (indVarying == TRUE) ){
-        randomIntercepts <- list(popsd=model_popsd,
+        randomIntercepts <- list(note1="Covariances are time-scaled, correlations are unaffected by time scale.",
+                                 note2="Undo time-scaling by multiplying the LR parts by (1/scaleTime)^2, and the LL and UR part by (1/scaleTime).",
+                                 popsd=model_popsd,
                                  popcov_mean=model_popcov_m, model_popcov_sd=model_popcov_sd,
                                  model_popcov_T=model_popcov_T, model_popcov_025=model_popcov_025,
                                  model_popcov_50=model_popcov_50, model_popcov_975=model_popcov_975,
