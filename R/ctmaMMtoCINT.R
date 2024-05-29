@@ -17,7 +17,7 @@
 #'
 #' @return returns covariance of CINT-based random intercepts.
 #'
-ctmaMMtoCINT <- function(ctmaFitObjectObject=NULL) {
+ctmaMMtoCINT <- function(ctmaFitObject=NULL) {
   # if ctStanFit instead of CoTiMA fit object is provided
   if (class(ctmaFitObject) == "ctStanFit") ctmaFitObject$studyFitList <- ctmaFitObject
   # if CoTiMA fit object contains one or more singleStudyFits
@@ -28,7 +28,7 @@ ctmaMMtoCINT <- function(ctmaFitObjectObject=NULL) {
   }
   # if CoTiMA fit object is provided
   if (class(ctmaFitObject) == "CoTiMAFit") {
-    arguments <- ctmaFitObject$argumentList
+    arguments <- ctmaFitObject$
     n.latent <- arguments$n.latent; n.latent
     n.manifest <- arguments$n.manifest; n.manifest
     digits <- arguments$digits; digits
