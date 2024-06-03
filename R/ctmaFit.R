@@ -183,6 +183,8 @@ ctmaFit <- function(
       if ( (indVarying == "CINT") | (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
       if ( (indVarying == "MANIFEST") | (indVarying == "Manifest") | (indVarying == "manifest")) indVarying <- TRUE
       #
+      randomInterceptsSettings <- randomIntercepts
+      #
       if (is.null(randomIntercepts)) randomIntercepts <- FALSE
       if ( (randomIntercepts == 'CINT') | (randomIntercepts == 'cint')  | (randomIntercepts == 'Cint')) randomIntercepts <- TRUE
       if ( (randomIntercepts == "Manifest") | (randomIntercepts == "manifest") | (randomIntercepts == "MANIFEST")) randomIntercepts <- "MANIFEST"
@@ -190,7 +192,7 @@ ctmaFit <- function(
         indVarying <- FALSE
         indVaryingT0 <- NULL
       }
-      randomInterceptsSettings <- randomIntercepts
+      #randomInterceptsSettings <- randomIntercepts
     }
 
     # adapt display of information during model fit
