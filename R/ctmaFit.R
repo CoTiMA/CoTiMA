@@ -211,7 +211,6 @@ ctmaFit <- function(
             ErrorMsg <- "\n The arguments \"indVarying\" and \"randomIntercepts\" have to be TRUE or FALSE or \"MANIFEST\" or \"CINT\". "
             stop(ErrorMsg)
           }
-
     }
 
     # adapt display of information during model fit
