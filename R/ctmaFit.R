@@ -180,15 +180,22 @@ ctmaFit <- function(
     }
 
     {
-      if ( (indVarying == "CINT") | (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
-      if ( (indVarying == "MANIFEST") | (indVarying == "Manifest") | (indVarying == "manifest")) indVarying <- TRUE
+      #if ( (indVarying == "CINT") | (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
+      if (  (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
+      #if ( (indVarying == "MANIFEST") | (indVarying == "Manifest") | (indVarying == "manifest")) indVarying <- TRUE
+      if ( (indVarying == "Manifest") | (indVarying == "manifest")) indVarying <- "MANIFEST"
+      if (indVarying == TRUE) indVarying <- "MANIFEST"
       #
       randomInterceptsSettings <- randomIntercepts
       #
-      if (is.null(randomIntercepts)) randomIntercepts <- FALSE
-      if ( (randomIntercepts == 'CINT') | (randomIntercepts == 'cint')  | (randomIntercepts == 'Cint')) randomIntercepts <- TRUE
-      if ( (randomIntercepts == "Manifest") | (randomIntercepts == "manifest") | (randomIntercepts == "MANIFEST")) randomIntercepts <- "MANIFEST"
-      if ( (randomIntercepts == "MANIFEST") | (randomIntercepts == TRUE) ) {
+      #if (is.null(randomIntercepts)) randomIntercepts <- FALSE
+      #if ( (randomIntercepts == 'CINT') | (randomIntercepts == 'cint')  | (randomIntercepts == 'Cint')) randomIntercepts <- TRUE
+      if ( (randomIntercepts == 'cint')  | (randomIntercepts == 'Cint')) randomIntercepts <- "CINT"
+      #if ( (randomIntercepts == "Manifest") | (randomIntercepts == "manifest") | (randomIntercepts == "MANIFEST")) randomIntercepts <- "MANIFEST"
+      if ( (randomIntercepts == "Manifest") | (randomIntercepts == "manifest") ) randomIntercepts <- "MANIFEST"
+      if (randomIntercepts == TRUE)  randomIntercepts <- "MANIFEST"
+      #if ( (randomIntercepts == "MANIFEST") | (randomIntercepts == TRUE) ) {
+      if (randomIntercepts == "MANIFEST") {
         indVarying <- FALSE
         indVaryingT0 <- NULL
       }
@@ -899,7 +906,8 @@ ctmaFit <- function(
     if ((indVarying == 'CINT') & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
     if (is.null(indVaryingT0)) indVaryingT0 <- FALSE
 
-    if ( (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
+    #if ( (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
+    if ( (randomIntercepts != "CINT") & (randomIntercepts != "MANIFEST") ) {
       if ( (indVarying == 'CINT') & (indVaryingT0 == TRUE) ) {
         print(paste0("#################################################################################"))
         print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
@@ -1076,7 +1084,8 @@ ctmaFit <- function(
       stanctModel$pars[(stanctModel$pars$matrix %in% 'CINT'), ][tmp2, tmp1] <- TRUE
     }
 
-    if ((randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
+    #if ((randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
+    if ((randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") ) {
       print(paste0("#################################################################################"))
       print(paste0("#### Note: Correct random intercept model instead of rstan default requested ####"))
       print(paste0("#################################################################################"))
@@ -1187,7 +1196,7 @@ ctmaFit <- function(
         tmp2 <- which(binaries.orig == 1); tmp2
         stanctModel$pars[(stanctModel$pars$matrix %in% 'CINT'), ][tmp2, tmp1] <- TRUE
       }
-    } # end if ((randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") )
+    } # end if ((randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") )
 
     if (!(optimize)) {
       customPar <- FALSE
@@ -1266,7 +1275,8 @@ ctmaFit <- function(
 
   if (fit == TRUE) { # CHD 16. Oct 2023 (end ~line 1900)
     # CHD 22.1.2024
-    if ( ( (indVarying == TRUE) | (indVarying == 'CINT') ) & ( (randomIntercepts != TRUE) | (randomIntercepts != "MANIFETS") ) ) {
+    #if ( ( (indVarying == TRUE) | (indVarying == 'CINT') ) & ( (randomIntercepts != TRUE) | (randomIntercepts != "MANIFETS") ) ) { # !! TYPO!!
+    if ( ( (indVarying == "MANIFEST") | (indVarying == 'CINT') ) & ( (randomIntercepts != "CINT") | (randomIntercepts != "MANIFEST") ) ) {
       e <- ctsem::ctExtract(fitStanctModel)
       # CHD 12.6.2023
       model_popsd <- fitStanctModel_summary$popsd
@@ -1292,13 +1302,15 @@ ctmaFit <- function(
       }
     }
 
-    if ( (indVarying != TRUE) & (indVarying != 'CINT') & (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
+    #if ( (indVarying != TRUE) & (indVarying != 'CINT') & (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
+    if ( (indVarying != "MANIFEST") & (indVarying != 'CINT') & (randomIntercepts != "CINT") & (randomIntercepts != "MANIFEST") ) {
       model_popsd <- "no random Intercepts estimated"
       model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- "no random intercepts estimated"
       model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- "no random intercepts estimated"
     }
 
-    if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST")  ) {
+    #if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST")  ) {
+    if ( (randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST")  ) {
       #parNames <- ctsem:::getparnames(fitStanctModel); parNames
       # since getparnames is not exported, I took part fo the function and replicated it here # CHD 26.1.2024
       ms <- fitStanctModel$setup$matsetup
@@ -1423,7 +1435,8 @@ ctmaFit <- function(
     {
       if (ctsem341 == TRUE) {
         tmp1 <- which(invariantDrift_Coeff[, "matrix"] == "DRIFT"); tmp1
-        if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
+        #if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
+        if ( (randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") ) {
           tmp1 <- tmp1[which( (invariantDrift_Coeff[tmp1, "row"] <= n.latent) & (invariantDrift_Coeff[tmp1, "col"] <= n.latent) )]; tmp1
         }
         # replace row numbers by newly created names
@@ -1485,7 +1498,8 @@ ctmaFit <- function(
       } else {
         model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
       }
-      if ( (randomIntercepts == TRUE) |  (randomIntercepts == "MANIFEST") ) {
+      #if ( (randomIntercepts == TRUE) |  (randomIntercepts == "MANIFEST") ) {
+      if ( (randomIntercepts == "CINT") |  (randomIntercepts == "MANIFEST") ) {
         tmp <- which(model_Diffusion_Coef != 0)
         model_Diffusion_Coef <- model_Diffusion_Coef[tmp]
         names(model_Diffusion_Coef) <- diffFullNames[tmp]; model_Diffusion_Coef
@@ -1499,7 +1513,8 @@ ctmaFit <- function(
       } else {
         model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
       }
-      if ( (randomIntercepts == TRUE) |  (randomIntercepts == "MANIFEST") ) model_T0var_Coef <- c(T0varMean[1:n.latent, 1:n.latent])
+      #if ( (randomIntercepts == TRUE) |  (randomIntercepts == "MANIFEST") ) model_T0var_Coef <- c(T0varMean[1:n.latent, 1:n.latent])
+      if ( (randomIntercepts == "CINT") |  (randomIntercepts == "MANIFEST") ) model_T0var_Coef <- c(T0varMean[1:n.latent, 1:n.latent])
       names(model_T0var_Coef) <- driftFullNames; model_T0var_Coef
     }
 
@@ -1789,7 +1804,8 @@ ctmaFit <- function(
       }
     } # end if (WEC == TRUE)
 
-    if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
+    #if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
+    if ( (randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") ) {
       randomIntercepts <- list(popsd=model_popsd,
                                popcov_mean=model_popcov_m,
                                popcov_sd=model_popcov_sd)
