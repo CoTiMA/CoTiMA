@@ -167,7 +167,8 @@ ctmaFit <- function(
     # indVaryingT0 previously allowed the T0cov to vary across primaries, the cints to covary randomly for the entire sample, and
     # the cints NOT to covary with the latents at T0. The next three line prvent this, but can be deleted to make it work again.
     if (!(is.null(indVaryingT0))) {
-      Msg <- "The argument \"indVaryingT0\" was deprecated and set to NULL. Try \"indVarying = TRUE\" or \"randomIntercepts = TRUE\" instead.\n"
+      #Msg <- "The argument \"indVaryingT0\" was deprecated and set to NULL. Try \"indVarying = TRUE\" or \"randomIntercepts = TRUE\" instead.\n"
+      Msg <- "The argument \"indVaryingT0\" was deprecated and set to NULL. Try \"indVarying = \"MANIFEST\"\" or \"randomIntercepts = \"MANIFEST\"\" instead.\n"
       message(Msg)
     }
 
@@ -200,6 +201,17 @@ ctmaFit <- function(
         indVaryingT0 <- NULL
       }
       #randomInterceptsSettings <- randomIntercepts
+      err <- FALSE
+      if ( (!(randomIntercepts %in% c("MANIFEST", "CINT", FALSE))) &
+           (!(indVarying %in% c("MANIFEST", "CINT", FALSE))) ) {
+        err <- TRUE
+      }
+          if (err){
+            if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+            ErrorMsg <- "\n The arguments \"indVarying\" and \"randomIntercepts\" have to be TRUE or FALSE or \"MANIFEST\" or \"CINT\". "
+            stop(ErrorMsg)
+          }
+
     }
 
     # adapt display of information during model fit
