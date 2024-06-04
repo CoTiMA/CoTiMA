@@ -202,7 +202,7 @@ ctmaFit <- function(
       }
       #randomInterceptsSettings <- randomIntercepts
       err <- FALSE
-      if ( (!(randomIntercepts %in% c("MANIFEST", "CINT", FALSE))) &
+      if ( (!(randomIntercepts %in% c("MANIFEST", "CINT", FALSE))) |
            (!(indVarying %in% c("MANIFEST", "CINT", FALSE))) ) {
         err <- TRUE
       }
