@@ -255,7 +255,9 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
         if (mod.type == "cat") {
           if (counter == 1) {
             tmpNames <- paste0("Raw Drift for Moderator Category No ", counter, ". (= raw Drift)"); tmpNames
-            DRIFTCoeff[[counter]] <- matrix(tmp1, n.latent, n.latent); DRIFTCoeff[[counter]] # copy main effects (= comparison group)
+            #DRIFTCoeff[[counter]] <- matrix(tmp1, n.latent, n.latent); DRIFTCoeff[[counter]] # copy main effects (= comparison group)
+            # CHD 9.6.2024
+            DRIFTCoeff[[counter]] <- matrix(rawDrift, n.latent, n.latent); DRIFTCoeff[[counter]] # copy main effects (= comparison group)
           } else {
             tmp2 <- ctStanFitObject$stanfit$transformedparsfull$TIPREDEFFECT[,driftPos, modPos[counter-1]]; tmp2
             rawMod <- matrix(tmp2, n.latent, n.latent, byrow=TRUE); rawMod
