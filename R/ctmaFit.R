@@ -913,12 +913,15 @@ ctmaFit <- function(
 
     # Make model
     # CHD 14. Jun 2023
-    if ((indVarying == TRUE) & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
+    #if ((indVarying == TRUE) & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
+    if ((indVarying == "MANIFEST") & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
     if ((indVarying == 'CINT') & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
     if (is.null(indVaryingT0)) indVaryingT0 <- FALSE
 
     #if ( (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
+    #( (randomIntercepts != "CINT") & (randomIntercepts != "MANIFEST") )
     if ( (randomIntercepts != "CINT") & (randomIntercepts != "MANIFEST") ) {
+      #( (indVarying == 'CINT') & (indVaryingT0 == TRUE) )
       if ( (indVarying == 'CINT') & (indVaryingT0 == TRUE) ) {
         print(paste0("#################################################################################"))
         print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
@@ -939,6 +942,7 @@ ctmaFit <- function(
         }
       }
 
+      #( (indVarying == 'CINT') & (indVaryingT0 == FALSE) )
       if ( (indVarying == 'CINT') & (indVaryingT0 == FALSE) ) {
         print(paste0("#################################################################################"))
         print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
@@ -959,7 +963,9 @@ ctmaFit <- function(
         }
       }
 
-      if ( (indVarying == TRUE) & (indVaryingT0 == TRUE) ) {
+      #if ( (indVarying == TRUE) & (indVaryingT0 == TRUE) ) {
+      #( (indVarying == "MANIFEST") & (indVaryingT0 == TRUE) )
+      if ( (indVarying == "MANIFEST") & (indVaryingT0 == TRUE) ) {
         print(paste0("#################################################################################"))
         print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
         print(paste0("#################################################################################"))
@@ -978,7 +984,9 @@ ctmaFit <- function(
         manifestMeansParams <- 'auto'
       }
 
-      if ( (indVarying == TRUE) & (indVaryingT0 == FALSE) ) {
+      #if ( (indVarying == TRUE) & (indVaryingT0 == FALSE) ) {
+      #( (indVarying == "MANIFEST") & (indVaryingT0 == FALSE) )
+      if ( (indVarying == "MANIFEST") & (indVaryingT0 == FALSE) ) {
         print(paste0("#################################################################################"))
         print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
         print(paste0("#################################################################################"))
@@ -1022,12 +1030,15 @@ ctmaFit <- function(
     } else {
       stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
     }
+
     if (indVarying == 'CINT') {
       stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
     } else {
       stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- FALSE
     }
-    if (indVarying == TRUE) {
+
+    #if (indVarying == TRUE) {
+    if (indVarying == "MANIFEST") {
       stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- TRUE
     } else {
       stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- FALSE
@@ -1361,7 +1372,6 @@ ctmaFit <- function(
           tmp1 <- t(apply(rawT0varTmp, 1 , function(x) x+tmp2))
           T0COVCoeff[[tmpNames[d]]] <- tmp1
         }
-        T0COVCoeff
         tmp1a <- fitStanctModel$ctstanmodelbase$pars[, "transform"]; tmp1a
         tmp1b <- fitStanctModel$ctstanmodelbase$pars[, "param"]; tmp1b
         tmp1c <- grep("ov_", tmp1b); tmp1c
@@ -1838,7 +1848,8 @@ ctmaFit <- function(
       }
       estimates_original_time_scale <- estimates_original_time_scale[-toDelete, ]
     } else {
-      if ( (indVarying == 'CINT') | (indVarying == TRUE)  | (indVarying != FALSE)){
+    #  if ( (indVarying == 'CINT') | (indVarying == TRUE)  | (indVarying != FALSE)){
+      if ( (indVarying == 'CINT') | (indVarying == "MANIFEST")  | (indVarying != FALSE)){
         randomIntercepts <- list(note1="Covariances are time-scaled, correlations are unaffected by time scale.",
                                  note2="Undo time-scaling by multiplying the LR parts by (1/scaleTime)^2, and the LL and UR part by (1/scaleTime).",
                                  popsd=model_popsd,
