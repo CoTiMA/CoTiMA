@@ -18,6 +18,7 @@
 #' @param digits Number of digits used for rounding (in outputs)
 #' @param drift labels for drift effects. Have to be either of the type 'V1toV2' or '0' for effects to be excluded.
 #' @param driftsToCompare when performing contrasts for categorical moderators, the (subset of) drift effects analyzed
+#' @param experimental Adds main effect of ind. level moderators
 #' @param equalDrift Constrains all listed effects to be equal (e.g., equalDrift = c("V1toV2", "V2toV1")). Note that this is not required for testing the assumption that two effects are equal in the population. Use the invariantDrift argument and then \code{\link{ctmaEqual}})
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param fit TRUE (default) fits the requested model. FALSE returns the \code{\link{ctsem}} code CoTiMA uses to set up the model, the ctsemmodelbase which can be modified to match users requirements, and the data set (in long format created). The model can then be fitted using \code{\link{ctStanFit}})
@@ -122,6 +123,7 @@ ctmaFit <- function(
     drift=NULL,
     driftsToCompare=NULL,
     equalDrift=NULL,
+    experimental=FALSE,
     finishsamples=NULL,
     fit=TRUE,
     ind.mod.names=NULL,
@@ -1082,6 +1084,17 @@ ctmaFit <- function(
         for (c4 in targetCols2) targetCols3 <- c(targetCols3, grep(c4, colnames(stanctModel$pars)))
         stanctModel$pars[targetRows2, targetCols3] <- FALSE
       }
+    }
+
+    if (experimental == TRUE) {
+      tmp1 <- which(stanctModel$pars$matrix == "T0MEANS"); tmp1
+      if (indVarying == "CINT") tmp2 <- which(stanctModel$pars$matrix == "CINT")
+      if (indVarying == "MANIFEST") tmp2 <- which(stanctModel$pars$matrix == "MANIFEST")
+      targetCols <- (n.studies):(n.studies-1+n.all.moderators); targetCols
+      #stanctModel$pars[ , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- FALSE
+      #stanctModel$pars[tmp1[tmp2] , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
+      stanctModel$pars[c(tmp1,tmp2) ,paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
+      #stanctModel$pars
     }
 
     # the target effects
