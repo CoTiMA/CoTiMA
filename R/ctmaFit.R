@@ -1642,12 +1642,7 @@ ctmaFit <- function(
     if (length(invariantDriftNames) == length(driftNames)) {
       OTL <- function(timeRange) {
         OpenMx::expm(tmpDriftMatrix * timeRange)[targetRow, targetCol]}
-      # use original time scale
-      #if (!(is.null(scaleTime))) {
       tmpDriftMatrix <- driftMatrix * scaleTime
-      #} else {
-      #  tmpDriftMatrix <- driftMatrix
-      #}
       # loop through all cross effects
       tmp1 <- 0
       if (0 %in% usedTimeRange) tmp1 <- 1
@@ -1661,7 +1656,9 @@ ctmaFit <- function(
             if (tmpDriftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
               targetParameters <- sapply(usedTimeRange, OTL); targetParameters
               maxCrossEffect[j,h] <- max(abs(targetParameters))[1]; maxCrossEffect[j,h]
-              optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])[1]*1 - tmp1 # first targetParam is calculated for lag=0
+              #optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])[1]*1 - tmp1 # first targetParam is calculated for lag=0
+              tmp <- which(abs(targetParameters)==maxCrossEffect[j,h])[1]*1 - tmp1
+              optimalCrossLag[j,h] <- usedTimeRange[tmp]
             } else {
               optimalCrossLag[j,h] <- NA
             }
