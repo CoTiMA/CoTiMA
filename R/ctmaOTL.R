@@ -9,8 +9,10 @@
 #' @param digits digits used for rounding
 #'
 #' @examples
+#' \dontrun{
 #' OTL <- ctmaOTL(ctmaFitFit=CoTiMA::CoTiMAFullFit_6_new)
 #' print(OTL)
+#' }
 #'
 #' @importFrom  OpenMx expm
 #'
