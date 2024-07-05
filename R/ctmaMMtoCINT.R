@@ -21,15 +21,15 @@
 #'
 ctmaMMtoCINT <- function(ctmaFitObject=NULL, undoTimeScaling=FALSE, digits=4) {
   # if ctStanFit instead of CoTiMA fit object is provided
-  if (is(ctmaFitObject) == "ctStanFit") ctmaFitObject$studyFitList <- ctmaFitObject
+  if (is(ctmaFitObject)[1] == "ctStanFit") ctmaFitObject$studyFitList <- ctmaFitObject
   # if CoTiMA fit object contains one or more singleStudyFits
-  if (is(ctmaFitObject$studyFitList[[1]]) == "ctStanFit") {
+  if (is(ctmaFitObject$studyFitList[[1]])[1] == "ctStanFit") {
     n.studies <- length(ctmaFitObject$studyFitList)
   } else {
     n.studies <- 1
   }
   # if CoTiMA fit object is provided
-  if (is(ctmaFitObject) == "CoTiMAFit") {
+  if (is(ctmaFitObject)[1] == "CoTiMAFit") {
     #arguments <- ctmaFitObject$ctModel
     arguments <- ctmaFitObject$argumentList
     n.latent <- ctmaFitObject$ctModel$n.latent; n.latent
@@ -38,7 +38,7 @@ ctmaMMtoCINT <- function(ctmaFitObject=NULL, undoTimeScaling=FALSE, digits=4) {
     n.manifest <- ctmaFitObject$ctModel$n.manifest; n.manifest
     #digits <- arguments$digits; digits
   }
-  if (is(ctmaFitObject) == "ctStanFit") {
+  if (is(ctmaFitObject)[1] == "ctStanFit") {
     arguments <- ctmaFitObject$ctstanmodelbase
     arguments$scaleTime <- 1
     n.latent <- arguments$n.latent; n.latent
@@ -67,7 +67,7 @@ ctmaMMtoCINT <- function(ctmaFitObject=NULL, undoTimeScaling=FALSE, digits=4) {
 
   for (i in 1:n.studies) {
     #i <- 1; n.studies
-    if (is(ctmaFitObject$studyFitList[[i]]) == "ctStanFit") {
+    if (is(ctmaFitObject$studyFitList[[i]])[1] == "ctStanFit") {
       fit <- ctmaFitObject$studyFitList[[i]]
     } else {
       fit <- ctmaFitObject$studyFitList
