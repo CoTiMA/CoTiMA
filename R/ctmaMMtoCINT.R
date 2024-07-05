@@ -21,15 +21,15 @@
 #'
 ctmaMMtoCINT <- function(ctmaFitObject=NULL, undoTimeScaling=FALSE, digits=4) {
   # if ctStanFit instead of CoTiMA fit object is provided
-  if (class(ctmaFitObject) == "ctStanFit") ctmaFitObject$studyFitList <- ctmaFitObject
+  if (is(ctmaFitObject) == "ctStanFit") ctmaFitObject$studyFitList <- ctmaFitObject
   # if CoTiMA fit object contains one or more singleStudyFits
-  if (class(ctmaFitObject$studyFitList[[1]]) == "ctStanFit") {
+  if (is(ctmaFitObject$studyFitList[[1]]) == "ctStanFit") {
     n.studies <- length(ctmaFitObject$studyFitList)
   } else {
     n.studies <- 1
   }
   # if CoTiMA fit object is provided
-  if (class(ctmaFitObject) == "CoTiMAFit") {
+  if (is(ctmaFitObject) == "CoTiMAFit") {
     #arguments <- ctmaFitObject$ctModel
     arguments <- ctmaFitObject$argumentList
     n.latent <- ctmaFitObject$ctModel$n.latent; n.latent
@@ -38,7 +38,7 @@ ctmaMMtoCINT <- function(ctmaFitObject=NULL, undoTimeScaling=FALSE, digits=4) {
     n.manifest <- ctmaFitObject$ctModel$n.manifest; n.manifest
     #digits <- arguments$digits; digits
   }
-  if (class(ctmaFitObject) == "ctStanFit") {
+  if (is(ctmaFitObject) == "ctStanFit") {
     arguments <- ctmaFitObject$ctstanmodelbase
     arguments$scaleTime <- 1
     n.latent <- arguments$n.latent; n.latent
@@ -67,7 +67,7 @@ ctmaMMtoCINT <- function(ctmaFitObject=NULL, undoTimeScaling=FALSE, digits=4) {
 
   for (i in 1:n.studies) {
     #i <- 1; n.studies
-    if (class(ctmaFitObject$studyFitList[[i]]) == "ctStanFit") {
+    if (is(ctmaFitObject$studyFitList[[i]]) == "ctStanFit") {
       fit <- ctmaFitObject$studyFitList[[i]]
     } else {
       fit <- ctmaFitObject$studyFitList
@@ -196,7 +196,7 @@ ctmaMMtoCINT <- function(ctmaFitObject=NULL, undoTimeScaling=FALSE, digits=4) {
             popcovTmp[lower.tri(popcovTmp)]  <- t(popcovTmp)[lower.tri(popcovTmp)]
             popcov_est[k, , ] <- trans %*% popcovTmp %*% t(trans)
           }
-          for (k in 1:(dim(popcor)[1])) {
+          for (k in 1:(dim(e$popcor)[1])) {
             popcor_est[k,,] <- stats::cov2cor(matrix(popcov_est[k,,], n.latent^2, n.latent^2))
           }
           message <- "Cints (slope means), T0means (initial means), and T0covs (initial (co-)vars) were inferred from a model with individually varying manifest means instead of Cints."

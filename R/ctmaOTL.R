@@ -47,7 +47,7 @@ ctmaOTL <- function(ctmaFitFit=NULL, timeRange=NULL, driftMat=NULL, undoTimeScal
   }
 
   if (!(is.null(ctmaFitFit)) ) {
-    if (class(ctmaFitFit) != "CoTiMAFit") {
+    if (is(ctmaFitFit) != "CoTiMAFit") {
       ErrorMsg <- "\nThe argument ctmaFitFit was to used, but the object supplied was not created with ctmaFit!"
       stop(ErrorMsg)
     }
