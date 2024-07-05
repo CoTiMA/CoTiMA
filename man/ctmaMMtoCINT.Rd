@@ -4,10 +4,14 @@
 \alias{ctmaMMtoCINT}
 \title{ctmaMMtoCINT}
 \usage{
-ctmaMMtoCINT(ctmaFit = NULL)
+ctmaMMtoCINT(ctmaFitObject = NULL, undoTimeScaling = FALSE, digits = 4)
 }
 \arguments{
-\item{ctmaFit}{fit object created with ctmaInit or ctmaFit}
+\item{ctmaFitObject}{fit object created with ctmaInit or ctmaFitObject}
+
+\item{undoTimeScaling}{if FALSE (default), results will correspond to the $randomIntercepts part of the summary of the equivalent model with indVarying="CINT"}
+
+\item{digits}{digits used for rounding}
 }
 \value{
 returns covariance of CINT-based random intercepts.
@@ -17,7 +21,7 @@ Compute covariance of CINT-based random intercepts obtained with a MANIFESTMEANS
 }
 \examples{
 \donttest{
-RI_cov <- ctmaMMtoCINT(ctmaFit=CoTiMAFullFit_3)
+RI_cov <- ctmaMMtoCINT(ctmaFitObject=CoTiMAFullFit_3)
 print(RI_cov)
 }
 
