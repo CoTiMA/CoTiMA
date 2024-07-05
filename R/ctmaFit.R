@@ -412,7 +412,7 @@ ctmaFit <- function(
       maxTpoints <- max(allTpoints); maxTpoints
       allDeltas <- ctmaInitFit$statisticsList$allDeltas; allDeltas
       maxDelta <- max(allDeltas, na.rm=TRUE); maxDelta
-      usedTimeRange <- seq(0, 3*maxDelta, 1); usedTimeRange # new 8.7.2022
+      usedTimeRange <- seq(0, 3*maxDelta, .1); usedTimeRange # new 5.7.2024
       lambda <- ctmaInitFit$statisticsList$lambda
     }
 
