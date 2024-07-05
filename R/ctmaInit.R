@@ -146,17 +146,44 @@ ctmaInit <- function(
       message(Msg)
     }
 
-    if ( (indVarying == "CINT") | (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
-    if ( (indVarying == "MANIFEST") | (indVarying == "Manifest") | (indVarying == "manifest")) indVarying <- TRUE
+    #if ( (indVarying == "CINT") | (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
+    #if ( (indVarying == "MANIFEST") | (indVarying == "Manifest") | (indVarying == "manifest")) indVarying <- TRUE
+    ##
+    #randomInterceptsSettings <- randomIntercepts
+    #if (is.null(randomIntercepts)) randomIntercepts <- FALSE
+    #if ( (randomIntercepts == 'CINT') | (randomIntercepts == 'cint')  | (randomIntercepts == 'Cint')) randomIntercepts <- TRUE
+    #if ( (randomIntercepts == "Manifest") | (randomIntercepts == "manifest") | (randomIntercepts == "MANIFEST")) randomIntercepts <- "MANIFEST"
+    #if ( (randomIntercepts == "MANIFEST") | (randomIntercepts == TRUE) ) {
+    #  indVarying <- FALSE
+    #  indVaryingT0 <- NULL
+    #}
+
+    # replaced on 4.6.2024 by
+    if (  (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
+    if ( (indVarying == "Manifest") | (indVarying == "manifest")) indVarying <- "MANIFEST"
+    if (indVarying == TRUE) indVarying <- "MANIFEST"
     #
     randomInterceptsSettings <- randomIntercepts
-    if (is.null(randomIntercepts)) randomIntercepts <- FALSE
-    if ( (randomIntercepts == 'CINT') | (randomIntercepts == 'cint')  | (randomIntercepts == 'Cint')) randomIntercepts <- TRUE
-    if ( (randomIntercepts == "Manifest") | (randomIntercepts == "manifest") | (randomIntercepts == "MANIFEST")) randomIntercepts <- "MANIFEST"
-    if ( (randomIntercepts == "MANIFEST") | (randomIntercepts == TRUE) ) {
+    #
+    if ( (randomIntercepts == 'cint')  | (randomIntercepts == 'Cint')) randomIntercepts <- "CINT"
+    if ( (randomIntercepts == "Manifest") | (randomIntercepts == "manifest") ) randomIntercepts <- "MANIFEST"
+    if (randomIntercepts == TRUE)  randomIntercepts <- "MANIFEST"
+    if (randomIntercepts == "MANIFEST") {
       indVarying <- FALSE
       indVaryingT0 <- NULL
     }
+    err <- FALSE
+    if ( (!(randomIntercepts %in% c("MANIFEST", "CINT", FALSE))) |
+         (!(indVarying %in% c("MANIFEST", "CINT", FALSE))) ) {
+      err <- TRUE
+    }
+    if (err){
+      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      ErrorMsg <- "\n The arguments \"indVarying\" and \"randomIntercepts\" have to be TRUE or FALSE or \"MANIFEST\" or \"CINT\". "
+      stop(ErrorMsg)
+    }
+  #}
+
 
     #if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMA::CoTiMAStanctArgs$verbose}
     if (is.null(verbose)) tmp1 <- 1 else tmp1 <- 0
@@ -944,14 +971,16 @@ ctmaInit <- function(
 
         # CHD 13.6.2023
         if ((indVarying == 'cint') | (indVarying == 'Cint')) indVarying <- 'CINT'
-        if ((indVarying == TRUE) & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
+        #if ((indVarying == TRUE) & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
+        if ((indVarying == "MANIFEST") & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
         if ((indVarying == 'CINT') & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
         if (is.null(indVaryingT0)) indVaryingT0 <- FALSE
 
         # CHD 9.6.2023
 
         #if (randomIntercepts == FALSE) {
-        if ( (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
+        #if ( (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
+        if ( (randomIntercepts != "CINT") & (randomIntercepts != "MANIFEST") ) {
           if ( (indVarying == 'CINT') & (indVaryingT0 == TRUE) ) {
             print(paste0("#################################################################################"))
             print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
@@ -987,7 +1016,8 @@ ctmaInit <- function(
             }
           }
 
-          if ( (indVarying == TRUE) & (indVaryingT0 == TRUE) ) {
+          #if ( (indVarying == TRUE) & (indVaryingT0 == TRUE) ) {
+          if ( (indVarying == "MANIFEST") & (indVaryingT0 == TRUE) ) {
             print(paste0("#################################################################################"))
             print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
             print(paste0("#################################################################################"))
@@ -1001,7 +1031,8 @@ ctmaInit <- function(
             manifestMeansParams <- 'auto'
           }
 
-          if ( (indVarying == TRUE) & (indVaryingT0 == FALSE) ) {
+          #if ( (indVarying == TRUE) & (indVaryingT0 == FALSE) ) {
+          if ( (indVarying == "MANIFEST") & (indVaryingT0 == FALSE) ) {
             print(paste0("#################################################################################"))
             print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
             print(paste0("#################################################################################"))
@@ -1043,7 +1074,7 @@ ctmaInit <- function(
         } else {
           currentModel$pars[currentModel$pars$matrix %in% 'CINT','indvarying'] <- FALSE
         }
-        if (indVarying == TRUE) {
+        if (indVarying == "MANIFEST") {
           currentModel$pars[currentModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- TRUE
         } else {
           currentModel$pars[currentModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- FALSE
@@ -1053,7 +1084,8 @@ ctmaInit <- function(
         currentModel$manifesttype <- binaries
 
         #if (randomIntercepts == TRUE) { # override ctsem's default setup for indvarying cints
-        if ((randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
+        #if ((randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
+        if ((randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") ) {
           print(paste0("#################################################################################"))
           print(paste0("# Note: Random intercepts modelled as processes, not as cint or manifest means. #"))
           print(paste0("#################################################################################"))
@@ -1512,7 +1544,8 @@ ctmaInit <- function(
 
         # changed 17. Aug. 2022
         #if ( ((indVarying == TRUE) | (indVarying == "CINT") | (indVarying == 'cint')) & (randomIntercepts == FALSE) )  {
-        if ( ( (indVarying == TRUE) | (indVarying == 'CINT') ) & ( (randomIntercepts != TRUE) | (randomIntercepts != "MANIFETS") ) ) {
+        #if ( ( (indVarying == TRUE) | (indVarying == 'CINT') ) & ( (randomIntercepts != TRUE) | (randomIntercepts != "MANIFEST") ) ) {
+        if ( ( (indVarying == "MANIFEST") | (indVarying == 'CINT') ) & ( (randomIntercepts != "CINT") | (randomIntercepts != "MANIFEST") ) ) {
           # CHD 12.6.2023
           e <- ctsem::ctExtract(studyFit[[i]])
           model_popsd_tmp <- resultsSummary$popsd
@@ -1559,14 +1592,16 @@ ctmaInit <- function(
 
         # CHD 22.1.2024
         #if ( ( !((indVarying == TRUE) | (indVarying == 'cint') | (indVarying == 'CINT')) & (randomIntercepts == FALSE)) ) {
-        if ( (indVarying != TRUE) & (indVarying != 'CINT') & (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
+        #if ( (indVarying != TRUE) & (indVarying != 'CINT') & (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
+        if ( (indVarying != "MANIFEST") & (indVarying != 'CINT') & (randomIntercepts != "CINT") & (randomIntercepts != "MANIFEST") ) {
           model_popsd[[i]] <- "no random intercepts estimated"
           model_popcov_m[[i]] <- model_popcov_sd[[i]] <- model_popcov_T[[i]] <- model_popcov_025[[i]] <- model_popcov_50[[i]] <- model_popcov_975[[i]] <- "no random intercepts estimated"
           model_popcor_m[[i]] <- model_popcor_sd[[i]] <- model_popcor_T[[i]] <- model_popcor_025[[i]] <- model_popcor_50[[i]] <- model_popcor_975[[i]] <- "no random intercepts estimated"
         }
 
         #if (randomIntercepts == TRUE) {
-        if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST")  ) {
+        #if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST")  ) {
+        if ( (randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST")  ) {
           e <- ctsem::ctExtract(studyFit[[i]])
           ctsem::ctCollapse(e$pop_T0cov, 1, mean)
           model_popcov_m[[i]] <- round(ctsem::ctCollapse(e$pop_T0cov, 1, mean), digits = digits)
@@ -1886,7 +1921,8 @@ ctmaInit <- function(
         #estimates_original_time_scale
       } # end skip
     } else {
-      if ( (indVarying == 'CINT') | (indVarying == TRUE) ){
+      #if ( (indVarying == 'CINT') | (indVarying == TRUE) ){
+      if ( (indVarying == 'CINT') | (indVarying == "MANIFEST") ){
         randomIntercepts <- list(note1="Covariances are time-scaled, correlations are unaffected by time scale.",
                                  note2="Undo time-scaling by multiplying the LR parts by (1/scaleTime)^2, and the LL and UR part by (1/scaleTime).",
                                  popsd=model_popsd,
