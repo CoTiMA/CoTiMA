@@ -378,7 +378,11 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
         }
 
         # dots
-        if ((!(all(x.Values.For.Mod.Values == 0))) | (is.null(x.Values.For.Mod.Values)))  {
+        doIt = FALSE
+        if (is.null(x.Values.For.Mod.Values)) doIt <- TRUE
+        if (!(all(x.Values.For.Mod.Values == 0))) doIt <- TRUE
+        #if ((!(all(x.Values.For.Mod.Values == 0))) | (is.null(x.Values.For.Mod.Values)))  {
+        if ( doIt == TRUE)  {
           currentPlotPair <- dotPlotPairs[h, ,i]
           currentPlotPair <- cbind(1:length(usedTimeRange), currentPlotPair)
           tmp1 <- which(!(is.na(currentPlotPair[,2]))); tmp1 #retain only first and the dot position
