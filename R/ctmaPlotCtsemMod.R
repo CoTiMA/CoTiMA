@@ -298,9 +298,10 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
 
     # compute dt drift coefficients (extracted rowumnwise; in the order of driftnames, not yet in ctmaPlot)
     # Function to compute discrete parameters using drift parameters and time-scaling factors
-    discreteDrift <- function(driftMatrix, timeScale, number) {
+    #discreteDrift <- function(driftMatrix, timeScale, number) {
+    discreteDrift <- function(driftMatrix, timeScale) {
       discreteDriftValue <- OpenMx::expm(timeScale %x% driftMatrix)
-      discreteDriftValue[number] }
+      discreteDriftValue }
     # values where to plot symbol for moderator value/cat
     if (is.null(x.Values.For.Mod.Values)) {
       xValueForModValue2 <- xValueForModValue[-length(xValueForModValue)]; xValueForModValue2
