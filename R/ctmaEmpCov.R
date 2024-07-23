@@ -106,6 +106,7 @@ ctmaEmpCov <- function(targetVariables=NULL, recodeVariables=c(), combineVariabl
 
   if(length(combineVariables) > 0) {
     for (i in 1:length(combineVariables)) {
+      #i <- 2
       tmp1 <- which(targetVariables %in% combineVariables[[i]]); tmp1
       if (length(tmp1) > 1) {
         newPairwiseN[i] <- min(pairwiseNbackup[tmp1, tmp1]); newPairwiseN[i]
@@ -142,7 +143,8 @@ ctmaEmpCov <- function(targetVariables=NULL, recodeVariables=c(), combineVariabl
   tmp <- psych::corr.test(data, ci=FALSE)
   empcovNew <- tmp$r
   pairwiseNNew  <- tmp$n
-  if (exists("pairwiseNbackup")) pairwiseNNew <- pairwiseNbackup
+  #if (exists("pairwiseNbackup")) pairwiseNNew <- pairwiseNbackup
+  if (exists("pairwiseNbackup")) pairwiseNNew <- pairwiseN
 
   # the var of combined variables != 0 => cov to cor
   dc <- diag(empcovNew)
