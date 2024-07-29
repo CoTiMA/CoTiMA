@@ -246,12 +246,7 @@ ctmaFit <- function(
 
     { # set fitting params
 
-      #if (!(is.null(scaleTI))) CoTiMAStanctArgs$scaleTI <- scaleTI
-      #if (!(is.null(scaleClus))) CoTiMAStanctArgs$scaleClus <- scaleClus
-      #if (!(is.null(scaleMod))) CoTiMAStanctArgs$scaleMod <- scaleMod
-      #if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
-      #if  (!(is.null(nopriors))) CoTiMAStanctArgs$nopriors <- nopriors # changed Aug 2023
       if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
       if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
       if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
@@ -1672,7 +1667,6 @@ ctmaFit <- function(
     }
 
     # CHD 12.7.23
-    #if ( (!(is.null(scaleTime))) & (length(invariantDriftNames) == length(driftNames)) ) {
     if (length(invariantDriftNames) == length(driftNames))  {
       optimalCrossLag_scaledTime <- optimalCrossLag * scaleTime
     }
@@ -1690,9 +1684,6 @@ ctmaFit <- function(
     suggestedScaleTime <- as.numeric(names(tmp1[tmp2])); suggestedScaleTime
     suggestedScaleTime <- round(suggestedScaleTime, digits); suggestedScaleTime
     message <- c()
-    #if (meanDeltas > 3) {
-    # CHD AUG 2023
-    #if ((meanDeltas * CoTiMAStanctArgs$scaleTime) > 3) { #
     if ((meanDeltas * scaleTime) > 3) { #
       tmp2 <- paste0("Mean time interval was ", meanDeltas, "."); tmp2
       tmp3 <- paste0("scaleTime=1/", suggestedScaleTime); tmp3
