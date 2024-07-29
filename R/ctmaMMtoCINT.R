@@ -323,11 +323,10 @@ ctmaMMtoCINT <- function(ctmaFitObject=NULL, undoTimeScaling=FALSE, digits=4,
       #
       tmpNames <- paste0("RI Covriances for Study No ", unlist(lapply(ctmaFitObject$studyList, function(x) x$originalStudyNo)), "."); tmpNames
       #
-      alternative <- 1
+      alternative <- 0
       if (alternative == 0) {
         TIpredEffTmp <- fit$stanfit$transformedparsfull$TIPREDEFFECT[,T0varPos, modPos]; head(TIpredEffTmp)
       }
-      #str(TIpredEffTmp)
 
       # alternative to above
       if (alternative == 1) {
@@ -496,7 +495,8 @@ ctmaMMtoCINT <- function(ctmaFitObject=NULL, undoTimeScaling=FALSE, digits=4,
         for (k in 1:nrow(popcov_tmp)) { # non-transformed covariances & correlations
           upperTri <- popcov_tmp[k,]; upperTri
           popcov[k,,][upper.tri(popcov[k,,], diag=T)] <- upperTri
-          popcov[k,,][lower.tri(popcov[k,,])] <- t(popcov[k,,][upper.tri(popcov[k,,])])
+          #popcov[k,,][lower.tri(popcov[k,,])] <- t(popcov[k,,][upper.tri(popcov[k,,])])
+          popcov[k,,][lower.tri(popcov[k,,])]  <- t(popcov[k,,])[lower.tri(popcov[k,,])]
           popcor[k,,] <- stats::cov2cor(matrix(popcov[k,,], n.latent^2, n.latent^2))
         }
         # save CINT estimates
