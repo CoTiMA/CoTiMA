@@ -55,7 +55,6 @@
 #'
 ctmaOptimizeFit <- function(activateRPB=FALSE,
                             activeDirectory=NULL,
-                            #checkSingleStudyResults=FALSE,
                             coresToUse=c(2),
                             CoTiMAStanctArgs=NULL,
                             ctmaFitFit=NULL,
@@ -63,11 +62,6 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             customPar=FALSE,
                             finishsamples=NULL,
                             iter=5000,
-                            #indVarying=NULL,
-                            #lambda=NULL,
-                            #manifestMeans=0,
-                            #manifestVars=NULL,
-                            #n.latent=NULL,
                             primaryStudies=NULL,
                             problemStudy=NULL,
                             randomPar=FALSE,
@@ -78,8 +72,6 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             reFits=NULL,
                             scaleTime=NULL,
                             scaleTI=NULL,
-                            #T0means=0,
-                            #parallel=FALSE,
                             verbose=1
 )
 {
@@ -167,9 +159,6 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     if (is.null(reFits)) stop(ErrorMsg)
     ErrorMsg <- "argument activeDirectory is missing"
     if (is.null(activeDirectory)) stop(ErrorMsg)
-    #ErrorMsg <- "argument n.latent is missing"
-    #if (is.null(n.latent)) stop(ErrorMsg)
-
 
     # create new study list with a single problem study only
     listElements <- names(primaryStudies); listElements
@@ -197,6 +186,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     currentLL <- 10^20; currentLL
     all_minus2ll <- c()
     for (i in 1:reFits) {
+      #i <- 1
       scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
       if (randomPar == TRUE) {
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
@@ -212,10 +202,10 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       }
 
       if (is.null(finishsamples)) finishsamples <- ctmaInitFit$argumentList$finishsamples
-      #if (is.null(iter)) iter <- 5000
 
       # CHD 12.4.24
       #if (is.null(indVarying)) indVarying <- ctmaFitFit$argumentList$indVarying
+      if (is.null(ctmaInitFit$argumentList$randomInterceptsSettings)) ctmaInitFit$argumentList$randomInterceptsSettings <- FALSE
 
       problem <- FALSE
       fit <- tryCatch(ctmaInit(primaryStudies=newStudyList,
