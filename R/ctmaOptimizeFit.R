@@ -15,6 +15,8 @@
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
 #' @param ctmaFitFit a object fitted with \code{\link{ctmaFit}}
 #' @param ctmaInitFit the ctmaInitFit object that was used to create the ctmaFitFit object with \code{\link{ctmaFit}}
+#' @param ctStanFit a fit object created with ctStanFit
+#' @param ctStanFitArgs list of arguments passed forward to ctStanFit except datalong, ctstanmodel, cores & verbose
 #' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param iter number of iterations (default = 5000)
@@ -29,13 +31,12 @@
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
 #' @param shuffleStudyList (default = FALSE) randomly re-arranges studies in primaryStudyList. We encountered a few cases where this mattered, even though it should not. Only works if ctmaFit is optimized.
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
-
 #'
 #' @importFrom foreach %dopar%
 #' @importFrom RPushbullet pbPost
 #' @importFrom stats runif
 #' @importFrom methods is
-#'
+#' @importFrom ctsem ctStanFit
 #'
 #' @examples
 #' \dontrun{
@@ -59,6 +60,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             CoTiMAStanctArgs=NULL,
                             ctmaFitFit=NULL,
                             ctmaInitFit=NULL,
+                            ctStanFit=NULL,
                             customPar=FALSE,
                             finishsamples=NULL,
                             iter=5000,
@@ -72,7 +74,36 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             reFits=NULL,
                             scaleTime=NULL,
                             scaleTI=NULL,
-                            verbose=1
+                            verbose=1,
+                            ctStanFitArgs=list(ctstanmodel,
+                                               stanmodeltext = NA,
+                                               iter = 1000,
+                                               intoverstates = TRUE,
+                                               binomial = FALSE,
+                                               fit = TRUE,
+                                               intoverpop = "auto",
+                                               sameInitialTimes = FALSE,
+                                               stationary = FALSE,
+                                               plot = FALSE,
+                                               derrind = NA,
+                                               optimize = TRUE,
+                                               optimcontrol = list(),
+                                               nlcontrol = list(),
+                                               nopriors = NA,
+                                               priors = FALSE,
+                                               chains = 2,
+                                               #cores = ifelse(optimize, getOption("mc.cores", 2L), "maxneeded"),
+                                               inits = NULL,
+                                               compileArgs = list(),
+                                               forcerecompile = FALSE,
+                                               saveCompile = TRUE,
+                                               savescores = FALSE,
+                                               savesubjectmatrices = FALSE,
+                                               saveComplexPars = FALSE,
+                                               gendata = FALSE,
+                                               control = list(),
+                                               #verbose = 0,
+                                               vb = FALSE)
 )
 {
 
@@ -93,22 +124,31 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       }
     }
 
+    if (!(is.null(ctStanFit))) {
+      if (!(is(ctStanFit, "ctStanFit"))) {
+       ErrorMsg <- "\nThe ctStanFit object provided was not created with ctStanFit! \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+    }
+
     # Dealing with CoTiMAStanctArgs
-    CoTiMAStanctArgsTmp <- CoTiMAStanctArgs
-    if( (!(is.null(ctmaFitFit))) & (is.null(CoTiMAStanctArgs)) ) {
-      CoTiMAStanctArgs <- ctmaFitFit$argumentList$CoTiMAStanctArgs
+    if (is.null(ctStanFit)) {
+      CoTiMAStanctArgsTmp <- CoTiMAStanctArgs
+      if( (!(is.null(ctmaFitFit))) & (is.null(CoTiMAStanctArgs)) ) {
+        CoTiMAStanctArgs <- ctmaFitFit$argumentList$CoTiMAStanctArgs
+      }
+      if( (is.null(ctmaFitFit)) & (is.null(CoTiMAStanctArgs)) & (!(is.null(ctmaInitFit))) ) {
+        CoTiMAStanctArgs <- ctmaInitFit$argumentList$CoTiMAStanctArgs
+      }
+      if (!(is.null(CoTiMAStanctArgsTmp))) {
+        tmp1 <- which(names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgsTmp)); tmp1
+        tmp2 <- CoTiMA::CoTiMAStanctArgs
+        tmp2[tmp1] <- CoTiMAStanctArgsTmp
+        CoTiMAStanctArgs <- tmp2
+      }
+      if (is.null(CoTiMAStanctArgsTmp)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
+      if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
     }
-    if( (is.null(ctmaFitFit)) & (is.null(CoTiMAStanctArgs)) & (!(is.null(ctmaInitFit))) ) {
-      CoTiMAStanctArgs <- ctmaInitFit$argumentList$CoTiMAStanctArgs
-    }
-    if (!(is.null(CoTiMAStanctArgsTmp))) {
-      tmp1 <- which(names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgsTmp)); tmp1
-      tmp2 <- CoTiMA::CoTiMAStanctArgs
-      tmp2[tmp1] <- CoTiMAStanctArgsTmp
-      CoTiMAStanctArgs <- tmp2
-    }
-    if (is.null(CoTiMAStanctArgsTmp)) CoTiMAStanctArgs <- CoTiMA::CoTiMAStanctArgs
-    if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
 
   }
 
@@ -145,11 +185,17 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     }
   }
 
+  if((!is.null(ctStanFit)) & ( (!(is.null(ctmaFitFit))) | ((is.null(ctmaInitFit))) ) ) {
+    ErrorMsg <- "A ctStanFit was provided together with a ctmaFitFit or ctmaIniFit object. Make a decision!"
+    stop(ErrorMsg)
+  }
+
+
   # Moderator Checks Moved to Sectioon where ctmaInit is optimized (not relevant if ctmaFit is optimized) # CHD Auf 2023
 
 
   # INIT Fit
-  if (is.null(ctmaFitFit)) {
+  if ((is.null(ctmaFitFit)) & (is.null(ctStanFit))) {
     # CHD changed 21 SEP 2022
     ErrorMsg <- "argument primaryStudies is missing"
     if (is.null(primaryStudies))  stop(ErrorMsg)
@@ -427,10 +473,110 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     }
   }
 
+  if (!(is.null(ctStanFit))) {
+    currentLL <- 10^20; currentLL
+    all_minus2ll <- c()
+    for (i in 1:reFits) {
+      scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
+      if (randomPar == TRUE) {
+        tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
+        customPar <- c(TRUE, FALSE)[tmp1]
+      } else {
+        if (is.null(customPar)) customPar <- FALSE # ctmaFitFit$argumentList$customPar
+      }
+      scaleTI <- FALSE
+      #
+      if (!(is.null(randomScaleTime))) {
+        Msg <- paste0("Argument scaleTime is set to: ", scaleTime, ".")
+        message(Msg)
+      }
+      if (randomPar == TRUE) {
+        Msg <- paste0("Argument customPar is set to: ", customPar, ".")
+        message(Msg)
+      }
+      #if (randomScaleTI == TRUE) {
+      #  Msg <- paste0("Argument scaleTI is set to: ", scaleTI, ".")
+      #  message(Msg)
+      #}
+      #if (shuffleStudyList == TRUE ) {
+      #  tmp <- unlist(ctmaInitFit$primaryStudyList$studyNumbers)
+      #  #tmp <- tmp[-length(tmp)]
+      #  tmp <- paste(tmp, collapse=" ")
+      #  Msg <- paste0("Order of studies in the shuffled study list is: ", tmp, ".")
+      #  message(Msg)
+      #}
+
+      if (is.null(finishsamples)) finishsamples <- 1000
+      if (is.null(iter)) iter <- 5000
+
+      datalong <- cbind(ctStanFit$data$subject, matrix(ctStanFit$data$time, ncol=1),
+                        ctStanFit$data$Y, ctStanFit$data$tdpreds,
+                        matrix(ctStanFit$data$tipreds, nrow=length(ctStanFit$data$subject)))
+      colnames(datalong) <- colnames(m1f$ctdatastruct)
+      datalong[,2] <- datalong[,2] * scaleTime
+      ctStanModel <- ctStanFit$ctstanmodelbase
+      ctStanFitArgs$optimcontrol$finishsamples <- finishsamples
+
+      fit <- ctsem::ctStanFit(datalong=datalong,
+                     ctStanModel=ctStanModel,
+                     coresToUse=coresToUse,
+                     finishsamples=finishsamples,
+                     stanmodeltext = ctStanFitArgs$stanmodeltext,
+                     iter=iter,
+                     intoverstates = ctStanFitArgs$intoverstates,
+                     binomial = ctStanFitArgs$binomial,
+                     fit = ctStanFitArgs$fit,
+                     intoverpop = ctStanFitArgs$intoverpop,
+                     sameInitialTimes = ctStanFitArgs$sameInitialTimes,
+                     stationary = ctStanFitArgs$stationary,
+                     plot = ctStanFitArgs$plot,
+                     derrind = ctStanFitArgs$derrind,
+                     optimize = ctStanFitArgs$optimize,
+                     optimcontrol = ctStanFitArgs$optimcontrol,
+                     nlcontrol = ctStanFitArgs$nlcontrol,
+                     nopriors = ctStanFitArgs$nopriors,
+                     priors = ctStanFitArgs$priors,
+                     chains = ctStanFitArgs$chains,
+                     cores = coresToUse,
+                     inits = ctStanFitArgs$inits,
+                     compileArgs = ctStanFitArgs$compileArgs,
+                     forcerecompile = ctStanFitArgs$forcerecompile,
+                     saveCompile = ctStanFitArgs$saveCompile,
+                     savescores = ctStanFitArgs$savescores,
+                     savesubjectmatrices = ctStanFitArgs$savesubjectmatrices,
+                     saveComplexPars = ctStanFitArgs$saveComplexPars,
+                     gendata = ctStanFitArgs$gendata,
+                     control = ctStanFitArgs$control,
+                     verbose = verbose,
+                     vb = ctStanFitArgs$vb
+      )
+      fit$summary <- summary(fit)
+      fit$summary$minus2ll <- fit$summary$logposterior * -2
+
+      all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
+
+      if (saveModelFits != FALSE) {
+        saveRDS(fit, paste0(activeDirectory, saveModelFits, " ", i, " .rds"))
+      }
+
+      if (fit$summary$minus2ll < currentLL) {
+        currentLL <- fit$summary$minus2ll
+        bestFit <- fit
+        usedStudyList <- NA
+        usedTimeScale <- scaleTime
+        usedScaleTI <- NA
+      }
+    }
+    resultsSummary <- NA
+  } else {
+    resultsSummary <- bestFit$studyFitList[[1]]$resultsSummary
+  }
 
   results <- list(bestFit=bestFit, all_minus2ll=all_minus2ll, summary=bestFit$summary,
-                  usedStudyList=ctmaInitFit$primaryStudyList, usedTimeScale=usedTimeScale, usedScaleTI=usedScaleTI,
-                  resultsSummary=bestFit$studyFitList[[1]]$resultsSummary
+                  usedStudyList=ctmaInitFit$primaryStudyList,
+                  usedTimeScale=usedTimeScale, usedScaleTI=usedScaleTI,
+                  #resultsSummary=bestFit$studyFitList[[1]]$resultsSummary
+                  resultsSummary=resultsSummary
   )
   class(results) <- "CoTiMAFit"
 
