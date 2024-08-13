@@ -126,7 +126,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
 
     if (!(is.null(ctStanFit))) {
       if (!(is(ctStanFit, "ctStanFit"))) {
-       ErrorMsg <- "\nThe ctStanFit object provided was not created with ctStanFit! \nGood luck for the next try!"
+        ErrorMsg <- "\nThe ctStanFit object provided was not created with ctStanFit! \nGood luck for the next try!"
         stop(ErrorMsg)
       }
     }
@@ -477,6 +477,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     currentLL <- 10^20; currentLL
     all_minus2ll <- c()
     for (i in 1:reFits) {
+      #i <- 1
       scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
       if (randomPar == TRUE) {
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
@@ -510,45 +511,54 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       if (is.null(iter)) iter <- 5000
 
       datalong <- cbind(ctStanFit$data$subject, matrix(ctStanFit$data$time, ncol=1),
-                        ctStanFit$data$Y, ctStanFit$data$tdpreds,
-                        matrix(ctStanFit$data$tipreds, nrow=length(ctStanFit$data$subject)))
-      colnames(datalong) <- colnames(m1f$ctdatastruct)
+                        ctStanFit$data$Y, ctStanFit$data$tdpreds)
+
+      if (ctStanFit$standata$ntipred == 0) {
+        colnames(datalong) <- colnames(ctStanFit$ctdatastruct)[1:ncol(datalong)]
+      }
+
+      if (ctStanFit$standata$ntipred > 0) {
+        datalong <- cbind(datalong, matrix(ctStanFit$data$tipreds,
+                                           nrow=length(ctStanFit$data$subject)))
+        colnames(datalong) <- colnames(ctStanFit$ctdatastruct)
+      }
+
       datalong[,2] <- datalong[,2] * scaleTime
       ctStanModel <- ctStanFit$ctstanmodelbase
       ctStanFitArgs$optimcontrol$finishsamples <- finishsamples
 
       fit <- ctsem::ctStanFit(datalong=datalong,
-                     ctStanModel=ctStanModel,
-                     coresToUse=coresToUse,
-                     finishsamples=finishsamples,
-                     stanmodeltext = ctStanFitArgs$stanmodeltext,
-                     iter=iter,
-                     intoverstates = ctStanFitArgs$intoverstates,
-                     binomial = ctStanFitArgs$binomial,
-                     fit = ctStanFitArgs$fit,
-                     intoverpop = ctStanFitArgs$intoverpop,
-                     sameInitialTimes = ctStanFitArgs$sameInitialTimes,
-                     stationary = ctStanFitArgs$stationary,
-                     plot = ctStanFitArgs$plot,
-                     derrind = ctStanFitArgs$derrind,
-                     optimize = ctStanFitArgs$optimize,
-                     optimcontrol = ctStanFitArgs$optimcontrol,
-                     nlcontrol = ctStanFitArgs$nlcontrol,
-                     nopriors = ctStanFitArgs$nopriors,
-                     priors = ctStanFitArgs$priors,
-                     chains = ctStanFitArgs$chains,
-                     cores = coresToUse,
-                     inits = ctStanFitArgs$inits,
-                     compileArgs = ctStanFitArgs$compileArgs,
-                     forcerecompile = ctStanFitArgs$forcerecompile,
-                     saveCompile = ctStanFitArgs$saveCompile,
-                     savescores = ctStanFitArgs$savescores,
-                     savesubjectmatrices = ctStanFitArgs$savesubjectmatrices,
-                     saveComplexPars = ctStanFitArgs$saveComplexPars,
-                     gendata = ctStanFitArgs$gendata,
-                     control = ctStanFitArgs$control,
-                     verbose = verbose,
-                     vb = ctStanFitArgs$vb
+                              ctstanmodel=ctStanModel,
+                              coresToUse=coresToUse,
+                              finishsamples=finishsamples,
+                              stanmodeltext = ctStanFitArgs$stanmodeltext,
+                              iter=iter,
+                              intoverstates = ctStanFitArgs$intoverstates,
+                              binomial = ctStanFitArgs$binomial,
+                              fit = ctStanFitArgs$fit,
+                              intoverpop = ctStanFitArgs$intoverpop,
+                              sameInitialTimes = ctStanFitArgs$sameInitialTimes,
+                              stationary = ctStanFitArgs$stationary,
+                              plot = ctStanFitArgs$plot,
+                              derrind = ctStanFitArgs$derrind,
+                              optimize = ctStanFitArgs$optimize,
+                              optimcontrol = ctStanFitArgs$optimcontrol,
+                              nlcontrol = ctStanFitArgs$nlcontrol,
+                              nopriors = ctStanFitArgs$nopriors,
+                              priors = ctStanFitArgs$priors,
+                              chains = ctStanFitArgs$chains,
+                              cores = coresToUse,
+                              inits = ctStanFitArgs$inits,
+                              compileArgs = ctStanFitArgs$compileArgs,
+                              forcerecompile = ctStanFitArgs$forcerecompile,
+                              saveCompile = ctStanFitArgs$saveCompile,
+                              savescores = ctStanFitArgs$savescores,
+                              savesubjectmatrices = ctStanFitArgs$savesubjectmatrices,
+                              saveComplexPars = ctStanFitArgs$saveComplexPars,
+                              gendata = ctStanFitArgs$gendata,
+                              control = ctStanFitArgs$control,
+                              verbose = verbose,
+                              vb = ctStanFitArgs$vb
       )
       fit$summary <- summary(fit)
       fit$summary$minus2ll <- fit$summary$logposterior * -2
@@ -562,12 +572,12 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       if (fit$summary$minus2ll < currentLL) {
         currentLL <- fit$summary$minus2ll
         bestFit <- fit
-        usedStudyList <- NA
+        usedStudyList <- "Available only if CoTiMA models are optimized."
         usedTimeScale <- scaleTime
-        usedScaleTI <- NA
+        usedScaleTI <- "Available only if CoTiMA models are optimized."
       }
     }
-    resultsSummary <- NA
+    resultsSummary <- "Available only if CoTiMA models are optimized."
   } else {
     resultsSummary <- bestFit$studyFitList[[1]]$resultsSummary
   }
