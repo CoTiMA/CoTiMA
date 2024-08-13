@@ -185,7 +185,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     }
   }
 
-  if((!is.null(ctStanFit)) & ( (!(is.null(ctmaFitFit))) | ((is.null(ctmaInitFit))) ) ) {
+  if((!is.null(ctStanFit)) & ( (!(is.null(ctmaFitFit))) | ((!is.null(ctmaInitFit))) ) ) {
     ErrorMsg <- "A ctStanFit was provided together with a ctmaFitFit or ctmaIniFit object. Make a decision!"
     stop(ErrorMsg)
   }
