@@ -15,8 +15,9 @@
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
 #' @param ctmaFitFit a object fitted with \code{\link{ctmaFit}}
 #' @param ctmaInitFit the ctmaInitFit object that was used to create the ctmaFitFit object with \code{\link{ctmaFit}}
-#' @param ctStanFit a fit object created with ctStanFit
-#' @param ctStanFitArgs list of arguments passed forward to ctStanFit except datalong, ctstanmodel, cores & verbose
+#' @param ctStanFit a fit object created with ctStanFit (default=NULL)
+#' @param ctStanFitArgs list of arguments passed forward to ctStanFit except datalong, ctstanmodel, cores & verbose  (default=NULL)
+#' @param ctStanData data to be used for ctStanFit  (default=NULL)
 #' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param iter number of iterations (default = 5000)
@@ -61,6 +62,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             ctmaFitFit=NULL,
                             ctmaInitFit=NULL,
                             ctStanFit=NULL,
+                            ctStanData=NULL,
                             customPar=FALSE,
                             finishsamples=NULL,
                             iter=5000,
@@ -126,6 +128,10 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     if (!(is.null(ctStanFit))) {
       if (!(is(ctStanFit, "ctStanFit"))) {
         ErrorMsg <- "\nThe ctStanFit object provided was not created with ctStanFit! \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if (is.null(ctStanData)) {
+        ErrorMsg <- "\nA ctStanFit object was provided. A data frame for the argument ctStanData is required, too! \nGood luck for the next try!"
         stop(ErrorMsg)
       }
     }
