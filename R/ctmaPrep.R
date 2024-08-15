@@ -221,7 +221,8 @@ ctmaPrep <- function(selectedStudies=NULL,
         if (exists(paste0("pairwiseN", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
           sampleSizes[[i]] <- mean(c(get(paste0("pairwiseN", selectedStudies[i]))), na.rm=T)
         } else {
-          ErrorMsg <- paste0("I need a sampleSize", i, " object or a pairwiseN", i, " object. \nGood luck for the next try!")
+          #ErrorMsg <- paste0("I need a sampleSize", i, " object or a pairwiseN", i, " object. \nGood luck for the next try!")
+          ErrorMsg <- paste0("I need a sampleSize", selectedStudies[i], " object or a pairwiseN", selectedStudies[i], " object. \nGood luck for the next try!")
           stop(ErrorMsg)
         }
       }
