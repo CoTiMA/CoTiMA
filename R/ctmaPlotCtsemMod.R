@@ -309,6 +309,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
     } else {
       xValueForModValue2 <- xValueForModValue; xValueForModValue2
     }
+
     #
     discreteDriftCoeff <- array(dim=c(n.mod.values.to.plot, length(usedTimeRange), n.latent^2))
     for (h in 1:n.mod.values.to.plot) {
