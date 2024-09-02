@@ -305,7 +305,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
     # values where to plot symbol for moderator value/cat
     if (is.null(x.Values.For.Mod.Values)) {
       xValueForModValue2 <- xValueForModValue[-length(xValueForModValue)]; xValueForModValue2
-      xValueForModValue2 <- xValueForModValue[-1]; xValueForModValue2
+      xValueForModValue2 <- xValueForModValue2[-1]; xValueForModValue2
     } else {
       xValueForModValue2 <- xValueForModValue; xValueForModValue2
     }
