@@ -179,7 +179,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
   }
 
   if( (!(is.null(ctmaFitFit))) & ((is.null(ctmaInitFit))) ) {
-    ErrorMsg <- "Argument for ctmaFitFit was provided but not for ctmaInitFit. Need the latter, too!"
+    ErrorMsg <- "Argument for ctmaFitFit was provided but not for ctmaInitFit. Need a ctmaInitFit, too!"
     stop(ErrorMsg)
   }
 
@@ -192,6 +192,11 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
 
   if((!is.null(ctStanFit)) & ( (!(is.null(ctmaFitFit))) | ((!is.null(ctmaInitFit))) ) ) {
     ErrorMsg <- "A ctStanFit was provided together with a ctmaFitFit or ctmaIniFit object. Make a decision!"
+    stop(ErrorMsg)
+  }
+
+  if ( is.null(ctStanFit) & is.null(ctmaFitFit) & is.null(ctmaInitFit) )  {
+    ErrorMsg <- "The ctmaFitFit or ctmaIniFit (or ctStanFit) argument has to be used."
     stop(ErrorMsg)
   }
 
