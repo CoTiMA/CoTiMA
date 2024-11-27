@@ -141,10 +141,10 @@ ctmaInit <- function(
     message(Msg)
 
 
-    if (!(is.null(indVaryingT0))) {
-      Msg <- "The argument \"indVaryingT0\" was deprecated and set to NULL. Try \"indVarying = TRUE\" or \"randomIntercepts = TRUE\" instead.\n"
-      message(Msg)
-    }
+    #if (!(is.null(indVaryingT0))) {
+    #  Msg <- "The argument \"indVaryingT0\" was deprecated and set to NULL. Try \"indVarying = TRUE\" or \"randomIntercepts = TRUE\" instead.\n"
+    #  message(Msg)
+    #}
 
     #if ( (indVarying == "CINT") | (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
     #if ( (indVarying == "MANIFEST") | (indVarying == "Manifest") | (indVarying == "manifest")) indVarying <- TRUE
@@ -170,7 +170,8 @@ ctmaInit <- function(
     if (randomIntercepts == TRUE)  randomIntercepts <- "MANIFEST"
     if (randomIntercepts == "MANIFEST") {
       indVarying <- FALSE
-      indVaryingT0 <- NULL
+      # CHD 27.11.2024
+      #indVaryingT0 <- NULL
     }
     err <- FALSE
     if ( (!(randomIntercepts %in% c("MANIFEST", "CINT", FALSE))) |
@@ -972,34 +973,38 @@ ctmaInit <- function(
         # CHD 13.6.2023
         if ((indVarying == 'cint') | (indVarying == 'Cint')) indVarying <- 'CINT'
         #if ((indVarying == TRUE) & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
-        if ((indVarying == "MANIFEST") & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
-        if ((indVarying == 'CINT') & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
-        if (is.null(indVaryingT0)) indVaryingT0 <- FALSE
+        # CHD 27.11.2024
+        #if ((indVarying == "MANIFEST") & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
+        #if ((indVarying == 'CINT') & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
+        #if (is.null(indVaryingT0)) indVaryingT0 <- FALSE
 
         # CHD 9.6.2023
 
         #if (randomIntercepts == FALSE) {
         #if ( (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
         if ( (randomIntercepts != "CINT") & (randomIntercepts != "MANIFEST") ) {
-          if ( (indVarying == 'CINT') & (indVaryingT0 == TRUE) ) {
-            print(paste0("#################################################################################"))
-            print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
-            print(paste0("#################################################################################"))
+          # CHD 27.11.2024
+          #if ( (indVarying == 'CINT') & (indVaryingT0 == TRUE) ) {
+          #  print(paste0("#################################################################################"))
+          #  print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
+          #  print(paste0("#################################################################################"))
 
-            T0meansParams <- 'auto'
+          #  T0meansParams <- 'auto'
 
-            print(paste0("#################################################################################"))
-            print(paste0("######################### CT intercepts are set free.  ##########################"))
-            print(paste0("#################################################################################"))
+          #  print(paste0("#################################################################################"))
+          #  print(paste0("######################### CT intercepts are set free.  ##########################"))
+          #  print(paste0("#################################################################################"))
 
-            CINTParams <- c()
-            for (c in 1:n.latent) {
-              CINTParams <- c(CINTParams, paste0("cintV", c))
-            }
-          }
+          #  CINTParams <- c()
+          #  for (c in 1:n.latent) {
+          #    CINTParams <- c(CINTParams, paste0("cintV", c))
+          #  }
+          #}
           #CINTParams
 
-          if ( (indVarying == 'CINT') & (indVaryingT0 == FALSE) ) {
+          # CHD 27.11.2024
+          #if ( (indVarying == 'CINT') & (indVaryingT0 == FALSE) ) {
+          if (indVarying == 'CINT')  {
             print(paste0("#################################################################################"))
             print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
             print(paste0("#################################################################################"))
@@ -1017,22 +1022,25 @@ ctmaInit <- function(
           }
 
           #if ( (indVarying == TRUE) & (indVaryingT0 == TRUE) ) {
-          if ( (indVarying == "MANIFEST") & (indVaryingT0 == TRUE) ) {
-            print(paste0("#################################################################################"))
-            print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
-            print(paste0("#################################################################################"))
+          # CHD 27.11.2024
+          #if ( (indVarying == "MANIFEST") & (indVaryingT0 == TRUE) ) {
+          #  print(paste0("#################################################################################"))
+          #  print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
+          #  print(paste0("#################################################################################"))
 
-            T0meansParams <- 'auto'
+          #  T0meansParams <- 'auto'
 
-            print(paste0("#################################################################################"))
-            print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
-            print(paste0("#################################################################################"))
+          #  print(paste0("#################################################################################"))
+          #  print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
+          #  print(paste0("#################################################################################"))
 
-            manifestMeansParams <- 'auto'
-          }
+          #  manifestMeansParams <- 'auto'
+          #}
 
           #if ( (indVarying == TRUE) & (indVaryingT0 == FALSE) ) {
-          if ( (indVarying == "MANIFEST") & (indVaryingT0 == FALSE) ) {
+          # CHD 27.11.2024
+          #if ( (indVarying == "MANIFEST") & (indVaryingT0 == FALSE) ) {
+          if (indVarying == "MANIFEST") {
             print(paste0("#################################################################################"))
             print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
             print(paste0("#################################################################################"))
@@ -1063,11 +1071,12 @@ ctmaInit <- function(
 
         if (indVarying == FALSE) currentModel$pars[, "indvarying"] <- FALSE
         #CHD 13.6.2023
-        if (indVaryingT0 == TRUE) {
-          currentModel$pars[currentModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
-        } else {
+        # CHD 27.11.2024
+        #if (indVaryingT0 == TRUE) {
+        #  currentModel$pars[currentModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
+        #} else {
           currentModel$pars[currentModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
-        }
+        #}
         # CHD 13.6.2023
         if (indVarying == 'CINT') {
           currentModel$pars[currentModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
