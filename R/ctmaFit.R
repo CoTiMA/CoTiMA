@@ -1680,8 +1680,7 @@ ctmaFit <- function(
     # CHD 12.7.23
     if (length(invariantDriftNames) == length(driftNames))  {
       optimalCrossLag_scaledTime <- optimalCrossLag * scaleTime
-    }
-    else {
+    } else {
       optimalCrossLag_scaledTime <- 'Not available for this model.'
     }
 
