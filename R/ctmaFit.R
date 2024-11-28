@@ -162,7 +162,7 @@ ctmaFit <- function(
 {  # begin function definition (until end of file)
 
   {
-    ctmaInitFitName <- deparse(substitute(ctmaInitFit))
+    ctmaInitFitName <- deparse(substitute(ctmaInitFit)); ctmaInitFitName
 
     if (is.null(scaleTime)) scaleTime <- 1
 
@@ -952,7 +952,7 @@ ctmaFit <- function(
         print(paste0("#################################################################################"))
         print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
         print(paste0("#################################################################################"))
-        T0meansParams <- 0
+        T0meansParams <- 'auto'#0
 
         print(paste0("#################################################################################"))
         print(paste0("####################### CT intercepts are set free.  ########################"))
@@ -1000,7 +1000,7 @@ ctmaFit <- function(
         print(paste0("#################################################################################"))
         print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
         print(paste0("#################################################################################"))
-        T0meansParams <- 0
+        T0meansParams <- 'auto' #0
 
         print(paste0("#################################################################################"))
         print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
@@ -1034,8 +1034,14 @@ ctmaFit <- function(
     #if (indVaryingT0 == TRUE) {
     #  stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
     #} else {
-    stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
+    #stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
     #}
+    # CHD 27.11.2024
+    if ( (indVarying != "CINT") & (indVarying != "MANIFEST") ) {
+      stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
+    } else {
+      stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
+    }
 
     if (indVarying == 'CINT') {
       stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
@@ -1043,12 +1049,12 @@ ctmaFit <- function(
       stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- FALSE
     }
 
-    #if (indVarying == TRUE) {
     if (indVarying == "MANIFEST") {
       stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- TRUE
     } else {
       stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- FALSE
     }
+    #stanctModel$pars[1:26, 1:8]
 
     # general setting for params
     stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
@@ -1261,7 +1267,7 @@ ctmaFit <- function(
     }
   } # end if (allInvModel == FALSE)
 
-  #stanctModel$pars
+  #stanctModel$pars[1:26, 1:10]
 
   #######################################################################################################################
   ################################################## CoTiMA Fit #########################################################
@@ -1321,6 +1327,7 @@ ctmaFit <- function(
       e <- ctsem::ctExtract(fitStanctModel)
       # CHD 12.6.2023
       model_popsd <- fitStanctModel_summary$popsd
+      (dim(model_popsd)[1] != n.latent)
       if (dim(model_popsd)[1] != n.latent) {
         model_popsd <- fitStanctModel_summary$popsd
         model_popcov_m <- round(ctsem::ctCollapse(e$popcov, 1, mean), digits = digits)
