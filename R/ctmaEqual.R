@@ -107,10 +107,11 @@ ctmaEqual <- function(
   if (is.null(prevStanctModel)) prevStanctModel <- ctmaInvariantFit$studyFitList$ctstanmodelbase
   prevStanctModelFit <- summary(ctmaInvariantFit$studyFitList[[1]])
   if (!("npars" %in% names(prevStanctModelFit))) prevStanctModelFit <- summary(ctmaInvariantFit$studyFitList)
-  prevStanctModelFit
+  #prevStanctModelFit
 
   # identify Drift coefficents that were fixed (across all TI, which is just a check)
   tmpRow <- which(prevStanctModel$pars$matrix == "DRIFT"); tmpRow
+  prevStanctModel$pars[tmpRow,]
   # CHD 28.11.2024
   if ( (randomIntercepts != "MANIFEST") & (randomIntercepts != "CINT") ) {
     equalDriftPos <- grep("invariant", names(ctmaInvariantFit$modelResults$DRIFT)); equalDriftPos
@@ -120,6 +121,7 @@ ctmaEqual <- function(
     equalDriftPos <- grep("DRIFT", prevStanctModel$pars$matrix); equalDriftPos
     equalDriftPos <- equalDriftPos[which(is.na(prevStanctModel$pars$value)[equalDriftPos])]; equalDriftPos
     tmpRow <- equalDriftPos[which(prevStanctModel$pars$TI1_effect[equalDriftPos] == FALSE)]; tmpRow
+    equalDriftPos <- which(equalDriftPos %in% tmpRow); equalDriftPos
   }
   tmp1 <- prevStanctModel$pars[tmpRow, paste0(prevStanctModel$TIpredNames,'_effect')]; tmp1
   tmp2 <- apply(tmp1, 1, unique); tmp2
