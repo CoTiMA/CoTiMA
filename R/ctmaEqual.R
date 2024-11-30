@@ -100,6 +100,8 @@ ctmaEqual <- function(
     parameterNames <- ctmaInvariantFit$parameterNames; parameterNames
     driftNames <- ctmaInvariantFit$parameterNames$DRIFT; driftNames
     targetNames <- names(ctmaInvariantFit$modelResults$DRIFT[grep("invariant", names(ctmaInvariantFit$modelResults$DRIFT))]); targetNames
+    # CHD 30.11.2024
+    randomIntercepts <- ctmaInvariantFit$argumentList$randomIntercepts
   }
 
   # copy previous model
