@@ -1009,7 +1009,10 @@ ctmaInit <- function(
             print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
             print(paste0("#################################################################################"))
 
-            T0meansParams <- 0
+            # CHD 2.12.2024
+            #T0meansParams <- 0
+            T0meansParams <- 'auto'
+
 
             print(paste0("#################################################################################"))
             print(paste0("####################### CT intercepts are set free.  ########################"))
@@ -1045,7 +1048,9 @@ ctmaInit <- function(
             print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
             print(paste0("#################################################################################"))
 
-            T0meansParams <- 0
+            # CHD 2.12.2024
+            #T0meansParams <- 0
+            T0meansParams <- 'auto'
 
             print(paste0("#################################################################################"))
             print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
