@@ -1080,8 +1080,9 @@ ctmaInit <- function(
         #if (indVaryingT0 == TRUE) {
         #  currentModel$pars[currentModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
         #} else {
+        if ( (indVarying != "MANIFEST") & (indVarying != "CINT") ) {
           currentModel$pars[currentModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
-        #}
+        }
         # CHD 13.6.2023
         if (indVarying == 'CINT') {
           currentModel$pars[currentModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
