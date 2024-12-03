@@ -162,7 +162,7 @@ ctmaInit <- function(
       ErrorMsg <- "\n The arguments \"indVarying\" and \"randomIntercepts\" have to be TRUE or FALSE or \"MANIFEST\" or \"CINT\". "
       stop(ErrorMsg)
     }
-  #}
+    #}
 
 
     #if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMA::CoTiMAStanctArgs$verbose}
@@ -415,7 +415,10 @@ ctmaInit <- function(
         currentSampleSizeTmp <- currentSampleSize
         currentPairwiseNTmp <- currentPairwiseN
         currentEmpcovTmp <- currentEmpcov
-        if (length(loadSingleStudyModelFit) > 0) {
+        # CHD 3.12.2024
+        x1 <- paste0(activeDirectory, loadSingleStudyModelFit[1], " singleStudyFits/",loadSingleStudyModelFit[1], " studyFit", studyList[[i]]$originalStudyNo, ".rds"); x1
+        #if (length(loadSingleStudyModelFit) > 0) {
+        if ( (length(loadSingleStudyModelFit) > 0) & exists(x1) ) {
           tmp <- as.numeric(loadSingleStudyModelFit[2:length(loadSingleStudyModelFit)]); tmp
           if (studyList[[i]]$originalStudyNo %in% tmp) {
             currentSampleSizeTmp <- (n.latent * currentTpoints)^2; currentSampleSizeTmp
