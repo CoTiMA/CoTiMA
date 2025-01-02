@@ -361,6 +361,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         newStudyList <- list()
         for (s in 1:length(tmpStudyList)) {
           newStudyList[[s]] <- tmpStudyList[[which(studyNumbers %in% newStudyOrder[s])]]
+          # CHD 2.1.2025
+          newStudyList[[s]]$studyNumber <- newStudyOrder[s]
         }
         ctmaInitFit$studyList <- newStudyList
         #
