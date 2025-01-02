@@ -337,7 +337,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     currentLL <- 10^20; currentLL
     all_minus2ll <- c()
     for (i in 1:reFits) {
-      cat(paste0("This is fit attempt #", i, " out of ", refit, "re-fits."))
+      cat(paste0("This is fit attempt #", i, " out of ", reFits, "re-fits."))
       scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
       if (randomPar == TRUE) {
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
