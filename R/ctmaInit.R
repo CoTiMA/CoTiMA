@@ -600,7 +600,9 @@ ctmaInit <- function(
 
 
           # change sample size if entire cases were deleted
-          studyList[[i]]$sampleSize <- (dim(empraw[[i]]))[1]
+          #studyList[[i]]$sampleSize <- (dim(empraw[[i]]))[1]
+          #CHD 2.1.2025
+          studyList[[i]]$sampleSize <- (dim(empraw[[i]]))[1] / mean(table(emprawLongTmp[,1]))
           allSampleSizes[[i]] <- dim(empraw[[i]])[1]; allSampleSizes[[i]]
           currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
           currentTpoints <- allTpoints[[i]]; currentTpoints
