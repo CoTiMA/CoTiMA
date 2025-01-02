@@ -594,7 +594,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
   }
 
   results <- list(bestFit=bestFit, all_minus2ll=all_minus2ll, summary=bestFit$summary,
-                  usedStudyList=ctmaInitFit$primaryStudyList,
+                  #usedStudyList=ctmaInitFit$primaryStudyList,
+                  usedStudyList=ctmaFitToPrep(bestFit, reUseEmprawData=TRUE),
                   usedTimeScale=usedTimeScale, usedScaleTI=usedScaleTI,
                   #resultsSummary=bestFit$studyFitList[[1]]$resultsSummary
                   resultsSummary=resultsSummary
