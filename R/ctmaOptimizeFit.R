@@ -623,6 +623,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                   #usedScaleTI=usedScaleTI,
                   usedScaleTI=bestFit$argumentList$scaleTI,
                   #resultsSummary=bestFit$studyFitList[[1]]$resultsSummary
+                  randomIV = randomIV,
+                  randomRI = randomRI,
                   resultsSummary=resultsSummary
   )
   class(results) <- "CoTiMAFit"
