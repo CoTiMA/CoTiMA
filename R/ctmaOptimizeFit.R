@@ -23,7 +23,9 @@
 #' @param iter number of iterations (default = 5000)
 #' @param primaryStudies list of primary study information created with \code{\link{ctmaPrep}} or \code{\link{ctmaFitToPrep}}
 #' @param problemStudy number (position in list) where the problem study in primaryStudies is found
+#' @param randomIV logical (default = FALSE). randomly varies between "indVarying='MANIFEST'" and "indVarying='CINT'"
 #' @param randomPar logical (default = FALSE). Overrides arguments used for customPar and randomly sets customPar either TRUE or FALSE
+#' @param randomRI logical (default = FALSE). randomly varies between "randomIntercepts='MANIFEST'" and "randomIntercepts='CINT'"
 #' @param randomScaleTime lower and upper limit (default = c(1,1)) of uniform distribution from which timeScale argument for ctmaInit is uniformly shuffled (integer)
 #' @param randomScaleTI logical (default = FALSE). Overrides arguments used for scaleTI and randomly sets scaleTI either TRUE or FALSE
 #' @param reFits how many reFits should be done
@@ -68,7 +70,9 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                             iter=5000,
                             primaryStudies=NULL,
                             problemStudy=NULL,
+                            randomIV=FALSE,
                             randomPar=FALSE,
+                            randomRI=FALSE,
                             randomScaleTI=FALSE,
                             randomScaleTime=c(1,1),
                             saveModelFits=FALSE,
@@ -353,6 +357,20 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         if (is.null(scaleTI)) scaleTI <- ctmaFitFit$argumentList$scaleTI
       }
       #
+      if (randomIV == TRUE) {
+        tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
+        indVarying <- c("MANIFEST", "CINT")[tmp1]
+      } else {
+        indVarying <- ctmaFitFit$argumentList$indVarying
+      }
+      #
+      if (randomRI == TRUE) {
+        tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
+        randomIntercepts <- c("MANIFEST", "CINT")[tmp1]
+      } else {
+        randomIntercepts <- ctmaFitFit$argumentList$randomIntercepts
+      }
+      #
       if (shuffleStudyList == TRUE) {
         #
         tmpStudyList <- ctmaInitFit$studyList; length(tmpStudyList)
@@ -431,7 +449,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                      mod.number=ctmaFitFit$argumentList$mod.number,
                      mod.type=ctmaFitFit$argumentList$mod.type,
                      mod.names=ctmaFitFit$argumentList$mod.names,
-                     indVarying=ctmaFitFit$argumentList$indVarying,
+                     #indVarying=ctmaFitFit$argumentList$indVarying,
+                     indVarying=indVarying,
                      coresToUse=coresToUse, # changed Aug 2023
                      sameInitialTimes=ctmaFitFit$argumentList$sameInitialTimes,
                      scaleTI=scaleTI,
@@ -456,7 +475,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                      T0means=ctmaFitFit$argumentList$T0means,
                      manifestMeans=ctmaFitFit$argumentList$manifestMeans,
                      CoTiMAStanctArgs=CoTiMAStanctArgs,
-                     randomIntercepts=ctmaFitFit$argumentList$randomIntercepts,
+                     #randomIntercepts=ctmaFitFit$argumentList$randomIntercepts,
+                     randomIntercepts=randomIntercepts,
                      manifestVars=ctmaFitFit$argumentList$manifestVars,
                      WEC=ctmaFitFit$argumentList$WEC,
                      priors=ctmaFitFit$argumentList$priors,
