@@ -1383,6 +1383,9 @@ ctmaFit <- function(
         tmp1 <- which(!(is.na(fitStanctModel$ctstanmodelbase$pars$param))); tmp1
         tmpPars <- fitStanctModel$ctstanmodelbase$pars[tmp1,]; tmpPars
         T0varPos <- which(tmpPars$matrix == "T0VAR"); T0varPos
+        # CHD 3.1.205 correction (in case some drift have identical names)
+        tmp2 <- table(tmpPars$param[1:(T0varPos[1]-1)]); tmp2
+        if (length(tmp2[tmp2 >1]) > 0) T0varPos <- T0varPos - length(tmp2[tmp2 >1])
         rawT0varTmp <- fitStanctModel$stanfit$rawposterior[ , T0varPos]
         #
         tmpNames <- paste0("RI Covriances for Study No ", unlist(lapply(ctmaInitFit$studyList, function(x) x$originalStudyNo)), "."); tmpNames
