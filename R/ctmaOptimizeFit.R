@@ -340,9 +340,15 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
 
     currentLL <- 10^20; currentLL
     all_minus2ll <- c()
+    all_scaleTime <- all_customPar <- c()
+    all_scaleTI <- c()
+    all_usedStudyList <- c()
+    all_randomIV <- all_randomRI <- c()
+
     for (i in 1:reFits) {
       cat(paste0("This is fit attempt #", i, " out of ", reFits, "re-fits."))
       scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
+      all_scaleTime <- c(all_scaleTime, scaleTime)
       if (randomPar == TRUE) {
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         customPar <- c(TRUE, FALSE)[tmp1]
@@ -350,6 +356,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         if (is.null(customPar)) customPar <- ctmaFitFit$argumentList$customPar
       }
       #
+      all_customPar <- c(all_customPar, customPar)
       if (randomScaleTI == TRUE) {
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         scaleTI <- c(TRUE, FALSE)[tmp1]
@@ -360,15 +367,19 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       if (randomIV == TRUE) {
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         indVarying <- c("MANIFEST", "CINT")[tmp1]
+        all_randomIV <- c(all_randomIV, indVarying)
       } else {
         indVarying <- ctmaFitFit$argumentList$indVarying
+        all_randomIV <- c(all_randomIV, indVarying)
       }
       #
       if (randomRI == TRUE) {
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         randomIntercepts <- c("MANIFEST", "CINT")[tmp1]
+        all_randomRI <- c(all_randomRI, randomIntercepts)
       } else {
         randomIntercepts <- ctmaFitFit$argumentList$randomIntercepts
+        all_randomRI <- c(all_randomRI, randomIntercepts)
       }
       #
       if (shuffleStudyList == TRUE) {
@@ -411,6 +422,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         }
         ctmaInitFit$emprawList <- newEmprawList
         ctmaInitFit$studyFitList <- newStudyFitList
+
+        all_usedStudyList <- c(all_usedStudyList, newStudyOrder)
       }
 
       if (!(is.null(randomScaleTime))) {
@@ -436,59 +449,63 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       if (is.null(finishsamples)) finishsamples <- ctmaFitFit$argumentList$finishsamples
       if (is.null(iter)) iter <- 5000
 
-      fit <- ctmaFit(ctmaInitFit=ctmaInitFit,
-                     primaryStudyList=ctmaInitFit$primaryStudyList,
-                     cluster=ctmaFitFit$argumentList$cluster,
-                     activeDirectory=activeDirectory,
-                     activateRPB=ctmaFitFit$argumentList$activateRPB,
-                     digits=ctmaFitFit$argumentList$digits,
-                     drift=ctmaFitFit$argumentList$drift,
-                     invariantDrift=ctmaFitFit$argumentList$invariantDrift,
-                     moderatedDrift=ctmaFitFit$argumentList$moderatedDrift,
-                     equalDrift=ctmaFitFit$argumentList$equalDrift,
-                     mod.number=ctmaFitFit$argumentList$mod.number,
-                     mod.type=ctmaFitFit$argumentList$mod.type,
-                     mod.names=ctmaFitFit$argumentList$mod.names,
-                     #indVarying=ctmaFitFit$argumentList$indVarying,
-                     indVarying=indVarying,
-                     coresToUse=coresToUse, # changed Aug 2023
-                     sameInitialTimes=ctmaFitFit$argumentList$sameInitialTimes,
-                     scaleTI=scaleTI,
-                     scaleMod=ctmaFitFit$argumentList$scaleMod,
-                     transfMod=ctmaFitFit$argumentList$transfMod,
-                     scaleClus=ctmaFitFit$argumentList$scaleClus,
-                     #scaleTime=ctmaFitFit$argumentList$scaleTime,
-                     scaleTime=scaleTime,
-                     optimize=ctmaFitFit$argumentList$optimize,
-                     #nopriors=ctmaFitFit$argumentList$nopriors,
-                     finishsamples=finishsamples,
-                     iter=iter,
-                     chains=ctmaFitFit$argumentList$chains,
-                     verbose=verbose,
-                     allInvModel=ctmaFitFit$argumentList$allInvModel,
-                     customPar=customPar,
-                     inits=ctmaFitFit$argumentList$inits,
-                     modsToCompare=ctmaFitFit$argumentList$modsToCompare,
-                     catsToCompare=ctmaFitFit$argumentList$catsToCompare,
-                     driftsToCompare=ctmaFitFit$argumentList$driftsToCompare,
-                     useSampleFraction=ctmaFitFit$argumentList$useSampleFraction,
-                     T0means=ctmaFitFit$argumentList$T0means,
-                     manifestMeans=ctmaFitFit$argumentList$manifestMeans,
-                     CoTiMAStanctArgs=CoTiMAStanctArgs,
-                     #randomIntercepts=ctmaFitFit$argumentList$randomIntercepts,
-                     randomIntercepts=randomIntercepts,
-                     manifestVars=ctmaFitFit$argumentList$manifestVars,
-                     WEC=ctmaFitFit$argumentList$WEC,
-                     priors=ctmaFitFit$argumentList$priors,
-                     binaries=ctmaFitFit$argumentList$binaries,
-                     T0var=ctmaFitFit$argumentList$T0var,
-                     ind.mod.names=ctmaFitFit$argumentList$ind.mod.names,
-                     ind.mod.number=ctmaFitFit$argumentList$ind.mod.number,
-                     ind.mod.type=ctmaFitFit$argumentList$ind.mod.type,
-                     cint=ctmaFitFit$argumentList$cint,
-                     indVaryingT0=ctmaFitFit$argumentList$indVaryingT0,
-                     fit=ctmaFitFit$argumentList$fit
-      )
+      fit <- tryCatch(withCallingHandlers(
+        expr = ctmaFit(ctmaInitFit=ctmaInitFit,
+                       primaryStudyList=ctmaInitFit$primaryStudyList,
+                       cluster=ctmaFitFit$argumentList$cluster,
+                       activeDirectory=activeDirectory,
+                       activateRPB=ctmaFitFit$argumentList$activateRPB,
+                       digits=ctmaFitFit$argumentList$digits,
+                       drift=ctmaFitFit$argumentList$drift,
+                       invariantDrift=ctmaFitFit$argumentList$invariantDrift,
+                       moderatedDrift=ctmaFitFit$argumentList$moderatedDrift,
+                       equalDrift=ctmaFitFit$argumentList$equalDrift,
+                       mod.number=ctmaFitFit$argumentList$mod.number,
+                       mod.type=ctmaFitFit$argumentList$mod.type,
+                       mod.names=ctmaFitFit$argumentList$mod.names,
+                       #indVarying=ctmaFitFit$argumentList$indVarying,
+                       indVarying=indVarying,
+                       coresToUse=coresToUse, # changed Aug 2023
+                       sameInitialTimes=ctmaFitFit$argumentList$sameInitialTimes,
+                       scaleTI=scaleTI,
+                       scaleMod=ctmaFitFit$argumentList$scaleMod,
+                       transfMod=ctmaFitFit$argumentList$transfMod,
+                       scaleClus=ctmaFitFit$argumentList$scaleClus,
+                       #scaleTime=ctmaFitFit$argumentList$scaleTime,
+                       scaleTime=scaleTime,
+                       optimize=ctmaFitFit$argumentList$optimize,
+                       #nopriors=ctmaFitFit$argumentList$nopriors,
+                       finishsamples=finishsamples,
+                       iter=iter,
+                       chains=ctmaFitFit$argumentList$chains,
+                       verbose=verbose,
+                       allInvModel=ctmaFitFit$argumentList$allInvModel,
+                       customPar=customPar,
+                       inits=ctmaFitFit$argumentList$inits,
+                       modsToCompare=ctmaFitFit$argumentList$modsToCompare,
+                       catsToCompare=ctmaFitFit$argumentList$catsToCompare,
+                       driftsToCompare=ctmaFitFit$argumentList$driftsToCompare,
+                       useSampleFraction=ctmaFitFit$argumentList$useSampleFraction,
+                       T0means=ctmaFitFit$argumentList$T0means,
+                       manifestMeans=ctmaFitFit$argumentList$manifestMeans,
+                       CoTiMAStanctArgs=CoTiMAStanctArgs,
+                       #randomIntercepts=ctmaFitFit$argumentList$randomIntercepts,
+                       randomIntercepts=randomIntercepts,
+                       manifestVars=ctmaFitFit$argumentList$manifestVars,
+                       WEC=ctmaFitFit$argumentList$WEC,
+                       priors=ctmaFitFit$argumentList$priors,
+                       binaries=ctmaFitFit$argumentList$binaries,
+                       T0var=ctmaFitFit$argumentList$T0var,
+                       ind.mod.names=ctmaFitFit$argumentList$ind.mod.names,
+                       ind.mod.number=ctmaFitFit$argumentList$ind.mod.number,
+                       ind.mod.type=ctmaFitFit$argumentList$ind.mod.type,
+                       cint=ctmaFitFit$argumentList$cint,
+                       indVaryingT0=ctmaFitFit$argumentList$indVaryingT0,
+                       fit=ctmaFitFit$argumentList$fit
+        ),
+        warning = function(w) {warns[[i]] <<- w}),
+        error = function(e) {errs[[i]] <<- e}
+        )
 
       all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
 
@@ -509,15 +526,20 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
   if (!(is.null(ctStanFit))) {
     currentLL <- 10^20; currentLL
     all_minus2ll <- c()
+    all_scaleTime <- all_customPar <- c()
+    all_scaleTI <- "Available only if CoTiMA models are optimized."
+    all_usedStudyList <- "Available only if CoTiMA models are optimized."
     for (i in 1:reFits) {
       #i <- 1
       scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
+      all_scaleTime <- c(all_scaleTime, scaleTime)
       if (randomPar == TRUE) {
         tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
         customPar <- c(TRUE, FALSE)[tmp1]
       } else {
         if (is.null(customPar)) customPar <- FALSE # ctmaFitFit$argumentList$customPar
       }
+      all_customPar <- c(all_customPar, customPar)
       scaleTI <- FALSE
       #
       if (!(is.null(randomScaleTime))) {
@@ -560,38 +582,42 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       ctStanModel <- ctStanFit$ctstanmodelbase
       ctStanFitArgs$optimcontrol$finishsamples <- finishsamples
 
-      fit <- ctsem::ctStanFit(datalong=datalong,
-                              ctstanmodel=ctStanModel,
-                              coresToUse=coresToUse,
-                              finishsamples=finishsamples,
-                              stanmodeltext = ctStanFitArgs$stanmodeltext,
-                              iter=iter,
-                              intoverstates = ctStanFitArgs$intoverstates,
-                              binomial = ctStanFitArgs$binomial,
-                              fit = ctStanFitArgs$fit,
-                              intoverpop = ctStanFitArgs$intoverpop,
-                              sameInitialTimes = ctStanFitArgs$sameInitialTimes,
-                              stationary = ctStanFitArgs$stationary,
-                              plot = ctStanFitArgs$plot,
-                              derrind = ctStanFitArgs$derrind,
-                              optimize = ctStanFitArgs$optimize,
-                              optimcontrol = ctStanFitArgs$optimcontrol,
-                              nlcontrol = ctStanFitArgs$nlcontrol,
-                              nopriors = ctStanFitArgs$nopriors,
-                              priors = ctStanFitArgs$priors,
-                              chains = ctStanFitArgs$chains,
-                              cores = coresToUse,
-                              inits = ctStanFitArgs$inits,
-                              compileArgs = ctStanFitArgs$compileArgs,
-                              forcerecompile = ctStanFitArgs$forcerecompile,
-                              saveCompile = ctStanFitArgs$saveCompile,
-                              savescores = ctStanFitArgs$savescores,
-                              savesubjectmatrices = ctStanFitArgs$savesubjectmatrices,
-                              saveComplexPars = ctStanFitArgs$saveComplexPars,
-                              gendata = ctStanFitArgs$gendata,
-                              control = ctStanFitArgs$control,
-                              verbose = verbose,
-                              vb = ctStanFitArgs$vb
+      fit <- tryCatch(withCallingHandlers(
+        expr = ctsem::ctStanFit(datalong=datalong,
+                                ctstanmodel=ctStanModel,
+                                coresToUse=coresToUse,
+                                finishsamples=finishsamples,
+                                stanmodeltext = ctStanFitArgs$stanmodeltext,
+                                iter=iter,
+                                intoverstates = ctStanFitArgs$intoverstates,
+                                binomial = ctStanFitArgs$binomial,
+                                fit = ctStanFitArgs$fit,
+                                intoverpop = ctStanFitArgs$intoverpop,
+                                sameInitialTimes = ctStanFitArgs$sameInitialTimes,
+                                stationary = ctStanFitArgs$stationary,
+                                plot = ctStanFitArgs$plot,
+                                derrind = ctStanFitArgs$derrind,
+                                optimize = ctStanFitArgs$optimize,
+                                optimcontrol = ctStanFitArgs$optimcontrol,
+                                nlcontrol = ctStanFitArgs$nlcontrol,
+                                nopriors = ctStanFitArgs$nopriors,
+                                priors = ctStanFitArgs$priors,
+                                chains = ctStanFitArgs$chains,
+                                cores = coresToUse,
+                                inits = ctStanFitArgs$inits,
+                                compileArgs = ctStanFitArgs$compileArgs,
+                                forcerecompile = ctStanFitArgs$forcerecompile,
+                                saveCompile = ctStanFitArgs$saveCompile,
+                                savescores = ctStanFitArgs$savescores,
+                                savesubjectmatrices = ctStanFitArgs$savesubjectmatrices,
+                                saveComplexPars = ctStanFitArgs$saveComplexPars,
+                                gendata = ctStanFitArgs$gendata,
+                                control = ctStanFitArgs$control,
+                                verbose = verbose,
+                                vb = ctStanFitArgs$vb
+        ),
+        warning = function(w) {warns[[i]] <<- w}),
+        error = function(e) {errs[[i]] <<- e}
       )
       fit$summary <- summary(fit)
       fit$summary$minus2ll <- fit$summary$logposterior * -2
@@ -625,7 +651,12 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                   #resultsSummary=bestFit$studyFitList[[1]]$resultsSummary
                   randomIV = randomIV,
                   randomRI = randomRI,
-                  resultsSummary=resultsSummary
+                  resultsSummary=resultsSummary,
+                  all_scaleTime = all_scaleTime,
+                  all_customPar = all_customPar,
+                  all_scaleTI = all_scaleTI,
+                  all_usedStudyList = all_usedStudyList
+
   )
   class(results) <- "CoTiMAFit"
 
