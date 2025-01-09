@@ -344,6 +344,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     all_scaleTI <- c()
     all_usedStudyList <- c()
     all_randomIV <- all_randomRI <- c()
+    warns <- errs <- list()
 
     for (i in 1:reFits) {
       cat(paste0("This is fit attempt #", i, " out of ", reFits, "re-fits."))
@@ -529,6 +530,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     all_scaleTime <- all_customPar <- c()
     all_scaleTI <- "Available only if CoTiMA models are optimized."
     all_usedStudyList <- "Available only if CoTiMA models are optimized."
+    warns <- errs <- list()
     for (i in 1:reFits) {
       #i <- 1
       scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
