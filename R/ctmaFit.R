@@ -1578,7 +1578,9 @@ ctmaFit <- function(
       modTI_Coeff <- round(cbind(fitStanctModel_summary$tipreds[tmp1, ], Tvalues), digits); modTI_Coeff
 
       # re-label
-      if (!(is.null(mod.names))) {
+      # CHD 13.1.2025
+      if(is.null(mod.names)) mod.names <- "unnamed moderator"
+      #if (!(is.null(mod.names))) {
         if (mod.type == "cont") {
           counter <- 0
           for (i in modTIs) {
@@ -1609,7 +1611,7 @@ ctmaFit <- function(
             modNameCounter <- modNameCounter + 1
           }
         }
-      }
+      #}
       # eliminate z
       modTI_Coeff[, "z"] <- NULL; modTI_Coeff
     }
