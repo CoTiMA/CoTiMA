@@ -463,6 +463,8 @@ ctmaFit <- function(
             ErrorMsg <- "\nModerator is constant across cases.\nGood luck for the next try!"
             stop(ErrorMsg)
           }
+          # CHD ADDED 14. Jan 2025 (prevent error when plotting moderator effects)
+          if (is.nul(mod.names)) mod.names <- "unnamed moderator"
         }
       }
 
