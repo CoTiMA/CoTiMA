@@ -464,7 +464,7 @@ ctmaFit <- function(
             stop(ErrorMsg)
           }
           # CHD ADDED 14. Jan 2025 (prevent error when plotting moderator effects)
-          if (is.nul(mod.names)) mod.names <- "unnamed moderator"
+          if (is.null(mod.names)) mod.names <- "unnamed moderator"
         }
       }
 
