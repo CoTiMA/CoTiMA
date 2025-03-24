@@ -25,6 +25,7 @@
 #' @param plot.lty default = 1
 #' @param plot.col default = "grey"
 #' @param plot.lwd default =  1.5
+#' @param dot.plot <- TRUE default =  plot dots
 #' @param dot.plot.type default =  "b" for the dots indicating the moderator values
 #' @param dot.plot.col default ="black" for the dots indicating the moderator values
 #' @param dot.plot.lwd default =  .5 for the dots indicating the moderator values
@@ -78,6 +79,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
                              plot.lty = 1,
                              plot.col = "grey",
                              plot.lwd = 1.5,
+                             dot.plot = TRUE,
                              dot.plot.type = "b",
                              dot.plot.col = "black",
                              dot.plot.lwd = .5,
@@ -383,7 +385,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
         if (is.null(x.Values.For.Mod.Values)) doIt <- TRUE
         if (!(all(x.Values.For.Mod.Values == 0))) doIt <- TRUE
         #if ((!(all(x.Values.For.Mod.Values == 0))) | (is.null(x.Values.For.Mod.Values)))  {
-        if ( doIt == TRUE)  {
+        if ( (doIt == TRUE) & (dot.plot == TRUE))  {
           currentPlotPair <- dotPlotPairs[h, ,i]
           currentPlotPair <- cbind(1:length(usedTimeRange), currentPlotPair)
           tmp1 <- which(!(is.na(currentPlotPair[,2]))); tmp1 #retain only first and the dot position
