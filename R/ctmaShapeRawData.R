@@ -255,7 +255,9 @@ ctmaShapeRawData <- function(
 
   ### Step 2a - (re-)label variables
   if ( !(is.null(allInputVariablesNames)) ) {
-    colnames(dataFrame) <- allInputVariablesNames
+    # CHD changed 7. May 2025
+    #colnames(dataFrame) <- allInputVariablesNames
+    colnames(tmpData) <- allInputVariablesNames
   }
 
   ### Step 2 - (Transpose data into wide format if they are in long format)
@@ -310,10 +312,12 @@ ctmaShapeRawData <- function(
     #}
 
   }
-
   # Step 3 (Select the desired "target variables" (at least X and Y and time) and kick out the remaining stuff.)
   #c(targetInputVariablesNames,  targetInputTDpredNames, targetTimeVariablesNames, targetInputTIpredNames)
   tmp1 <- c(targetInputVariablesNames,  targetInputTDpredNames, targetTimeVariablesNames, targetInputTIpredNames); tmp1
+  which(colnames(tmpData) %in% tmp1)
+  targetInputVariablesNames
+  tmpData
   tmpData <- tmpData[, tmp1]
   #head(tmpData, 30)
   #apply(tmpData, 2, mean, na.rm=T)

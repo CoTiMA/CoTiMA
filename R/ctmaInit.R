@@ -128,7 +128,8 @@ ctmaInit <- function(
 
   #start.time <- Sys.time()
 
-  original.options <- options("scipen"); original.options
+  #original.options <- options("scipen"); original.options
+  original.options <- getOption("scipen"); original.options
   options(scipen = 999); options("scipen") # turn scientific notation off.
   on.exit(options(scipen = original.options))  # scientific notation as user's original
 
