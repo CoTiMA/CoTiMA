@@ -358,6 +358,13 @@ ctmaPrep <- function(selectedStudies=NULL,
       maxWaves <- max(unlist(lapply(primaryStudies$deltas, length)))+1; maxWaves
       maxEmpcov <- max(unlist(lapply(primaryStudies$empcovs, length)))^.5; maxEmpcov
       #maxPairwiseNs <- max(unlist(lapply(primaryStudies$pairwiseNs, length)))^.5; maxPairwiseNs
+      tmp1 <- lapply(primaryStudies$rawData, function(x) colnames(x))
+      tmp2 <- unlist(lapply(tmp1, function(x) length(x))); tmp2
+      if (any(tmp2) > 0) {
+      tmp3 <- tmp1[[which(tmp2 == max(tmp2))]]; tmp3
+      tmp4 <- which(tmp3 == "T0") -1; tmp4
+      maxEmpcov <- max(c(maxEmpcov, tmp4))
+      }
       n.variables <- maxEmpcov/maxWaves; n.variables
 
       studyListCategories <- vector("list", length=length(names(primaryStudies2))); studyListCategories
