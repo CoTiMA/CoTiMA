@@ -45,7 +45,8 @@ ctmaEqual <- function(
   CoTiMAStanctArgs <- ctmaInvariantFit$argumentList$CoTiMAStanctArgs
 
   # check if mutipleDriftFit object is supplied
-  if (! ((ctmaInvariantFit$model.type == "mx") || (ctmaInvariantFit$model.type == "stanct")) ) {
+  if (! ((ctmaInvariantFit$model.type == "mx") || (ctmaInvariantFit$model.type == "stanct")
+         || (ctmaInvariantFit$model.type == "ct") )) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
     ErrorMsg <- "\nA fitted CoTiMA object with more than a single invariant drift effect (fit of ctmaFit) has to be supplied compare the effects. \nGood luck for the next try!"
     stop(ErrorMsg)
