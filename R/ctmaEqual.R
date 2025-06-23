@@ -114,7 +114,6 @@ ctmaEqual <- function(
 
   # identify Drift coefficents that were fixed (across all TI, which is just a check)
   tmpRow <- which(prevStanctModel$pars$matrix == "DRIFT"); tmpRow
-  prevStanctModel$pars[tmpRow,]
   # CHD 28.11.2024
   if ( (randomIntercepts != "MANIFEST") & (randomIntercepts != "CINT") ) {
     equalDriftPos <- grep("invariant", names(ctmaInvariantFit$modelResults$DRIFT)); equalDriftPos
@@ -133,7 +132,6 @@ ctmaEqual <- function(
 
   # new model
   stanctModel <- prevStanctModel
-  stanctModel$pars[targetDriftRow, "param"]
   newDriftLabel <- paste(stanctModel$pars[targetDriftRow, "param"], collapse = "_eq_"); newDriftLabel
   stanctModel$pars[targetDriftRow, "param"] <- newDriftLabel
 
@@ -205,7 +203,7 @@ ctmaEqual <- function(
                                          equalDrift_Coeff[, c("row")], "_",
                                          equalDrift_Coeff[, c("col")])
   } else {
-    tmp1 <- which(rownames(equalDrift_Coeff) == "DRIFT")
+    tmp1 <- which(rownames(equalDrift_Coeff) == "DRIFT"); tmp1
     driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); driftNamesTmp
   }
 
@@ -214,16 +212,20 @@ ctmaEqual <- function(
   if ( (randomIntercepts != "MANIFEST") & (randomIntercepts != "CINT") ) {
     rownames(equalDrift_Coeff)[tmp1] <- driftNamesTmp
   }
+
   if ( (randomIntercepts == "MANIFEST") | (randomIntercepts == "CINT") ) {
-    #targetDriftNames1 <- driftFullNames
-    targetDriftNames1 <- driftNamesTmp
-    targetDriftNames1 <- gsub("V", "", targetDriftNames1)
-    targetDriftNames1 <- gsub("to", "_", targetDriftNames1)
-    targetDriftNames2 <- rownames(equalDrift_Coeff)[tmp1]
-    targetDriftNames2 <- gsub("DRIFT_", "", targetDriftNames2)
-    tmp2 <- which(targetDriftNames2 %in% targetDriftNames1); tmp2
-    rownames(equalDrift_Coeff)[tmp1][tmp2] <- driftNamesTmp
-    rm(tmp2)
+    tmp1 <- tmp2 <- grep("DRIFT_", rownames(equalDrift_Coeff)); tmp1
+    allDriftNames <- rownames(equalDrift_Coeff)[tmp1]; allDriftNames
+    tmp1 <- grep("dt", allDriftNames); tmp1
+    allDriftNames2 <- allDriftNames[-tmp1]; allDriftNames2
+    driftNamesTmp2 <- gsub(" \\(invariant & equal\\)", "", driftNamesTmp)
+    driftNamesTmp2 <- gsub("V", "", driftNamesTmp2)
+    driftNamesTmp2 <- gsub("to", "_", driftNamesTmp2)
+    tmp1 <- c()
+    for (z in 1:length(driftNamesTmp2)) tmp1 <- c(tmp1, grep(driftNamesTmp2[z], allDriftNames2))
+    allDriftNames[tmp1] <- driftNamesTmp
+    rownames(equalDrift_Coeff)[tmp2] <- allDriftNames
+    rm(tmp1); rm(tmp2)
   }
 
   tmp2 <- grep("toV", rownames(equalDrift_Coeff)); tmp2
