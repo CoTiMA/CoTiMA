@@ -461,6 +461,7 @@ ctmaInit <- function(
       }
 
       # load raw data on request
+      preProcessed <- FALSE
       if (studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers) {
         if ( (!(is.null(primaryStudies$emprawList[[i]]))) &
              (
@@ -471,6 +472,7 @@ ctmaInit <- function(
              )
         ) {
           # if the function list of primary studies is already post-processed (ctmaSV) and called from ctmaOptimizeINit)
+          preProcessed <- TRUE
           empraw[[i]] <- primaryStudies$emprawList[[i]]
           if (!(exists("n.var"))) n.var <- max(c(n.latent, n.manifest))
           tmp1 <- dim(empraw[[i]])[2]; tmp1
@@ -549,12 +551,15 @@ ctmaInit <- function(
 
           ## START correction of current lags if entire time point is missing for a case
           # if called from ctmaOptimize
-          if (!(exists("n.var"))) n.var <- max(n.latent, n.manifest)
-          # change variable names
-          tmp1 <- dim(empraw[[i]])[2]; tmp1
-          currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
+          if (preProcessed == TRUE) {
+            if (!(exists("n.var"))) n.var <- max(n.latent, n.manifest)
+            # change variable names
+            tmp1 <- dim(empraw[[i]])[2]; tmp1
+            currentTpoints <- (tmp1 + 1)/(n.var+1); currentTpoints
+          }
 
           # CHD 19.6.2023 this is an error check (n.ind.mod set to 0 but data set includes TI at the end)
+          #if ((!is.na(empraw.ind.mod[[i]]))  & (currentTpoints != round(currentTpoints, 0))) {
           if (currentTpoints != round(currentTpoints, 0)) {
             if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
             ErrorMsg <- "\nI have problems with the raw data set. Possibly you specified n.ind.mod incorrectly before doing ctmaPrep. The n.ind.mod should by > 0 if the raw data set does not have the last time interval as last column.\nGood luck for the next try!"
