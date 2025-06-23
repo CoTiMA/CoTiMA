@@ -171,7 +171,7 @@ included in ' n.moderators. The most important new results are returned as the l
 function is applied to the returned object. The summary list element comprises "estimates" (the aggregated effects), possible
 randomEffects (not yet fully working),  the minus2ll value and its n.parameters, the opt.lag sensu Dormann & Griffin (2015) and the
 max.effects that occur at the opt.lag, clus.effects and mod.effects, and possible warning messages (message). Plot type is
-plot.type=c("drift") and model.type="stanct" ("omx" was deprecated).
+plot.type=c("drift") and model.type="ct" ("omx" was deprecated, "stanct" was used until ctsem version 3.10.2).
 }
 \description{
 Fits a ctsem model with invariant drift effects across primary studies, possible multiple moderators (but all of them of the

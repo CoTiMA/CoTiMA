@@ -18,15 +18,17 @@ ctmaPlotCtsemMod(
   mod.type = "cont",
   no.mod.cats = NULL,
   n.x.labels = NULL,
+  x.Values.For.Mod.Values = NULL,
   plot = TRUE,
   plot.xMin = 0,
   plot.xMax = NULL,
-  plot.yMin = -1,
-  plot.yMax = 1,
+  plot.yMin = NULL,
+  plot.yMax = NULL,
   plot..type = "l",
   plot.lty = 1,
   plot.col = "grey",
   plot.lwd = 1.5,
+  dot.plot = TRUE,
   dot.plot.type = "b",
   dot.plot.col = "black",
   dot.plot.lwd = 0.5,
@@ -62,15 +64,17 @@ ctmaPlotCtsemMod(
 
 \item{n.x.labels}{How many values to be used for indicating time points on the x-axis (0 is automatically added and should not be counted)}
 
+\item{x.Values.For.Mod.Values}{Positions where to plot the dots with moderator values. If set to 0, not moderator values will be plotted (default = NULL).}
+
 \item{plot}{plots figures if TRUE (default) otherwise only return moderated drift matrices}
 
 \item{plot.xMin}{default = 0}
 
 \item{plot.xMax}{default = NULL}
 
-\item{plot.yMin}{default = -1}
+\item{plot.yMin}{default = NULL. NULL sets the smallest y value to the smalles of all auto/cross effects plotted.}
 
-\item{plot.yMax}{default = 1}
+\item{plot.yMax}{default = NULL. NULL sets the largest y value to the largest of all auto/cross effects plotted.}
 
 \item{plot..type}{default = "l", # 2 dots .. are correct}
 
@@ -79,6 +83,8 @@ ctmaPlotCtsemMod(
 \item{plot.col}{default = "grey"}
 
 \item{plot.lwd}{default =  1.5}
+
+\item{dot.plot}{<- TRUE default =  plot dots}
 
 \item{dot.plot.type}{default =  "b" for the dots indicating the moderator values}
 

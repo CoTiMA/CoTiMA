@@ -209,12 +209,14 @@ ctmaEqual <- function(
     driftNamesTmp <- c(matrix(driftNames, n.latent, n.latent, byrow=FALSE)); driftNamesTmp
   }
 
+  driftNamesTmpBackup <- driftNamesTmp
   driftNamesTmp[equalDriftPos] <- paste0(driftNamesTmp[equalDriftPos], " (invariant & equal)"); driftNamesTmp
   if ( (randomIntercepts != "MANIFEST") & (randomIntercepts != "CINT") ) {
     rownames(equalDrift_Coeff)[tmp1] <- driftNamesTmp
   }
   if ( (randomIntercepts == "MANIFEST") | (randomIntercepts == "CINT") ) {
-    targetDriftNames1 <- driftFullNames
+    #targetDriftNames1 <- driftFullNames
+    targetDriftNames1 <- driftNamesTmp
     targetDriftNames1 <- gsub("V", "", targetDriftNames1)
     targetDriftNames1 <- gsub("to", "_", targetDriftNames1)
     targetDriftNames2 <- rownames(equalDrift_Coeff)[tmp1]

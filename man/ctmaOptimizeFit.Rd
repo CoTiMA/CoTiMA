@@ -11,12 +11,16 @@ ctmaOptimizeFit(
   CoTiMAStanctArgs = NULL,
   ctmaFitFit = NULL,
   ctmaInitFit = NULL,
+  ctStanFit = NULL,
+  ctStanData = NULL,
   customPar = FALSE,
   finishsamples = NULL,
   iter = 5000,
   primaryStudies = NULL,
   problemStudy = NULL,
+  randomIV = FALSE,
   randomPar = FALSE,
+  randomRI = FALSE,
   randomScaleTI = FALSE,
   randomScaleTime = c(1, 1),
   saveModelFits = FALSE,
@@ -24,7 +28,14 @@ ctmaOptimizeFit(
   reFits = NULL,
   scaleTime = NULL,
   scaleTI = NULL,
-  verbose = 1
+  verbose = 1,
+  ctStanFitArgs = list(stanmodeltext = NA, iter = 1000, intoverstates = TRUE, binomial =
+    FALSE, fit = TRUE, intoverpop = "auto", sameInitialTimes = FALSE, stationary = FALSE,
+    plot = FALSE, derrind = NA, optimize = TRUE, optimcontrol = list(), nlcontrol =
+    list(), nopriors = NA, priors = FALSE, chains = 2, inits = NULL, compileArgs =
+    list(), forcerecompile = FALSE, saveCompile = TRUE, savescores = FALSE,
+    savesubjectmatrices = FALSE, saveComplexPars = FALSE, gendata = FALSE, control =
+    list(), vb = FALSE)
 )
 }
 \arguments{
@@ -40,6 +51,10 @@ ctmaOptimizeFit(
 
 \item{ctmaInitFit}{the ctmaInitFit object that was used to create the ctmaFitFit object with \code{\link{ctmaFit}}}
 
+\item{ctStanFit}{a fit object created with ctStanFit (default=NULL)}
+
+\item{ctStanData}{data to be used for ctStanFit  (default=NULL)}
+
 \item{customPar}{logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
 
 \item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
@@ -50,7 +65,11 @@ ctmaOptimizeFit(
 
 \item{problemStudy}{number (position in list) where the problem study in primaryStudies is found}
 
+\item{randomIV}{logical (default = FALSE). randomly varies between "indVarying='MANIFEST'" and "indVarying='CINT'"}
+
 \item{randomPar}{logical (default = FALSE). Overrides arguments used for customPar and randomly sets customPar either TRUE or FALSE}
+
+\item{randomRI}{logical (default = FALSE). randomly varies between "randomIntercepts='MANIFEST'" and "randomIntercepts='CINT'"}
 
 \item{randomScaleTI}{logical (default = FALSE). Overrides arguments used for scaleTI and randomly sets scaleTI either TRUE or FALSE}
 
@@ -67,6 +86,8 @@ ctmaOptimizeFit(
 \item{scaleTI}{scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dummies representing primary studies.}
 
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
+
+\item{ctStanFitArgs}{list of arguments passed forward to ctStanFit except datalong, ctstanmodel, cores & verbose  (default=NULL)}
 }
 \value{
 returns a list with bestFit (= the best fit achieved), all_minus2ll (= all -2ll values for all fitted models), and summary, which

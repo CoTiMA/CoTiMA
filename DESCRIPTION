@@ -1,8 +1,8 @@
 Package: CoTiMA
 Type: Package
 Title: Continuous Time Meta-Analysis ('CoTiMA')
-Version: 0.8.0
-Date: 2024-04-24
+Version: 1.0.1
+Date: 2025-06-23
 Authors@R: c(person("Christian", "Dormann", role = c("aut","cph")),
             person("Markus", "Homberg", email = "cotima@uni-mainz.de", role = c("aut", "com", "cre")),
             person("Olga", "Diener", role = c("ctb")),
@@ -27,7 +27,7 @@ Encoding: UTF-8
 LazyData: true
 Depends:
     OpenMx (>= 2.18.1),
-    ctsem (>= 3.8.1),
+    ctsem (>= 3.10.3),
     lavaan (>= 0.6),
     foreach (>= 1.5.1),
     R (>= 3.5.0)
@@ -47,4 +47,4 @@ Imports:
     methods
 Suggests: R.rsp
 VignetteBuilder: R.rsp
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2

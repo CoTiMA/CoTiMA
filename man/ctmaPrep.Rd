@@ -12,6 +12,7 @@ ctmaPrep(
   moderatorLabels = NULL,
   moderatorValues = NULL,
   newRawDataDirectory = NULL,
+  n.latent = NULL,
   summary = TRUE,
   activeDirectory = NULL,
   ctmaPrepObject = NULL,
@@ -46,6 +47,8 @@ a researcher regards as important.}
 \item{moderatorValues}{list of character vectors}
 
 \item{newRawDataDirectory}{(NULL = default) Change paths for all raw data files.}
+
+\item{n.latent}{(NULL = default) Only required for summary and if rawData are provided}
 
 \item{summary}{if TRUE (default) creates summary table and xlsx sheets. Could be set to FALSE in case of errors.}
 

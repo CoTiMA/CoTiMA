@@ -9,11 +9,11 @@
 #' @param mmCov Covariance matrix of manifest means and T0MEANS (default NULL). Requires drift matrix of same dimensions to be supplied, too.
 #' @param drift matrix of drift parameters (default NULL). When drift together with cintCov or mmCov is supplied, any ctmaFitObject supplied is ignored.
 #'
-#' @importFrom ctsem ctCollapse
+#' @importFrom ctsem ctCollapse ctExtract
 #' @importFrom stats quantile cov2cor
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' RI_cov <- ctmaMMtoCINT(ctmaFitObject=CoTiMAFullFit_3)
 #' print(RI_cov)
 #' }

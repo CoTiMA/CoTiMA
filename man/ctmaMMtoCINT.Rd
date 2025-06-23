@@ -4,23 +4,36 @@
 \alias{ctmaMMtoCINT}
 \title{ctmaMMtoCINT}
 \usage{
-ctmaMMtoCINT(ctmaFitObject = NULL, undoTimeScaling = FALSE, digits = 4)
+ctmaMMtoCINT(
+  ctmaFitObject = NULL,
+  undoTimeScaling = FALSE,
+  digits = 4,
+  cintCov = NULL,
+  mmCov = NULL,
+  drift = NULL
+)
 }
 \arguments{
-\item{ctmaFitObject}{fit object created with ctmaInit or ctmaFitObject}
+\item{ctmaFitObject}{fit object created with ctmaInit or ctmaFit (or with ctStanFit)}
 
 \item{undoTimeScaling}{if FALSE (default), results will correspond to the $randomIntercepts part of the summary of the equivalent model with indVarying="CINT"}
 
 \item{digits}{digits used for rounding}
+
+\item{cintCov}{Covariance matrix of continuous time intercepts and T0MEANS (default NULL). Requires drift matrix of same dimensions to be supplied, too.}
+
+\item{mmCov}{Covariance matrix of manifest means and T0MEANS (default NULL). Requires drift matrix of same dimensions to be supplied, too.}
+
+\item{drift}{matrix of drift parameters (default NULL). When drift together with cintCov or mmCov is supplied, any ctmaFitObject supplied is ignored.}
 }
 \value{
 returns covariance of CINT-based random intercepts.
 }
 \description{
-Compute covariance of CINT-based random intercepts obtained with a MANIFESTMEANS model specification
+Compute covariance of CINT-based random intercepts obtained with a MANIFESTMEANS model specification and vice versa.
 }
 \examples{
-\donttest{
+\dontrun{
 RI_cov <- ctmaMMtoCINT(ctmaFitObject=CoTiMAFullFit_3)
 print(RI_cov)
 }

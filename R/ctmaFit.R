@@ -58,6 +58,7 @@
 #' @importFrom  parallel detectCores
 #' @importFrom  ctsem ctWideToLong ctDeintervalise ctModel ctStanFit ctCollapse
 #' @importFrom  OpenMx vech2full expm
+#' @importFrom  utils packageDescription
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
 #' @importFrom  stats cov2cor quantile sd
 #'
@@ -164,7 +165,7 @@ ctmaFit <- function(
   {
     ctmaInitFitName <- deparse(substitute(ctmaInitFit)); ctmaInitFitName
 
-    if (packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
+    if (utils::packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
 
     if (is.null(scaleTime)) scaleTime <- 1
 
