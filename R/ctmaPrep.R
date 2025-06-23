@@ -27,6 +27,7 @@
 #' @param moderatorLabels character vector of names
 #' @param moderatorValues list of character vectors
 #' @param newRawDataDirectory (NULL = default) Change paths for all raw data files.
+#' @param n.latent (NULL = default) Only required for summary and if rawData are provided
 #' @param summary if TRUE (default) creates summary table and xlsx sheets. Could be set to FALSE in case of errors.
 #' @param activeDirectory Mandatory. If subsequent fitting is done using different folders or on different computers, it can be
 #' @param ctmaPrepObject  previously created object with ctmaPrep, from which studies should be excluded. Only works in combination with the argument excludeStudies.
@@ -104,6 +105,7 @@ ctmaPrep <- function(selectedStudies=NULL,
                      moderatorLabels=NULL,
                      moderatorValues=NULL,
                      newRawDataDirectory=NULL,
+                     n.latent=NULL,
                      summary=TRUE,
                      activeDirectory=NULL,
                      ctmaPrepObject=NULL,
@@ -112,6 +114,7 @@ ctmaPrep <- function(selectedStudies=NULL,
 
   ctma <- globalenv()
 
+  # some checks ####
   if ( (is.null(selectedStudies)) & ( (is.null(ctmaPrepObject)) | (is.null(excludedStudies)) ) ) {
     ErrorMsg <- "Number of primary studies to combine in the list was not specified! \nGood luck for the next try!"
     stop(ErrorMsg)
@@ -137,6 +140,7 @@ ctmaPrep <- function(selectedStudies=NULL,
     stop(ErrorMsg)
   }
 
+  # if ####
   if ( (!is.null(ctmaPrepObject)) & (!is.null(excludedStudies)) )  {
     old.n.studies <- ctmaPrepObject$n.studies
     ctmaPrepObject$n.studies <- ctmaPrepObject$n.studies - length(excludedStudies)
@@ -158,6 +162,7 @@ ctmaPrep <- function(selectedStudies=NULL,
         primaryStudies$rawData[[i]]$fileName <- gsub(paste0(dirname(primaryStudies$rawData[[1]]$fileName), "/"), newRawDataDirectory, primaryStudies$rawData[[i]]$fileName)
       }
     }
+    # else ####
   } else {
 
     deltas <- sampleSizes <- empcovs <- moderators <- startValues <- studyNumbers <- pairwiseNs <- rawData <- empMeans <- empVars <- source <- list()
@@ -175,8 +180,6 @@ ctmaPrep <- function(selectedStudies=NULL,
     }
 
 
-    #insideRawData <- list(NULL, NULL, -99, TRUE, FALSE, ".", " ")
-    #names(insideRawData) <- list("fileName", "studyNumbers", "missingValues", "standardize", "header", "dec", "sep")
     insideRawData <- list(fileName=NULL, studyNumbers=NULL, missingValues=-99,
                           standardize=TRUE, header=FALSE, dec =".", sep=" ",
                           n.ind.mod=0)
@@ -205,6 +208,7 @@ ctmaPrep <- function(selectedStudies=NULL,
 
       if (!(is.null(addElements))) for (j in 1:length(addElements)) addElementsList[[j]][[i]] <- NA
     }
+
     for (i in 1:length(selectedStudies)) { # 'length' ensures consecutive numbering
       #i <- 1
       if (exists(paste0("delta_t", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) deltas[[i]] <- get(paste0("delta_t", selectedStudies[i]))
@@ -226,15 +230,6 @@ ctmaPrep <- function(selectedStudies=NULL,
           stop(ErrorMsg)
         }
       }
-
-      #if (exists(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) {
-      #  tmp1 <- get(paste0("sampleSize", selectedStudies[i]), envir =parent.frame(), inherits=FALSE); tmp1
-      #  if (!(is.null(tmp1))) sampleSizes[[i]] <- get(paste0("sampleSize", selectedStudies[i]),
-      #                                                envir =parent.frame(), inherits=FALSE) else sampleSizes[[i]] <- NA
-      #} else {
-      #  sampleSizes[[i]] <- NA
-      #}
-
 
       if (exists(paste0("empMeans", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) empMeans[[i]] <- get(paste0("empMeans", selectedStudies[i]))
       if (exists(paste0("empVars", selectedStudies[i]), envir =parent.frame(), inherits=FALSE)) empVars[[i]] <- get(paste0("empVars", selectedStudies[i]))
@@ -355,17 +350,23 @@ ctmaPrep <- function(selectedStudies=NULL,
       # values required for printing matrix values in a single row
       primaryStudies2 <- primaryStudies
       n.studies  <- primaryStudies$n.studies
-      maxWaves <- max(unlist(lapply(primaryStudies$deltas, length)))+1; maxWaves
-      maxEmpcov <- max(unlist(lapply(primaryStudies$empcovs, length)))^.5; maxEmpcov
-      #maxPairwiseNs <- max(unlist(lapply(primaryStudies$pairwiseNs, length)))^.5; maxPairwiseNs
-      tmp1 <- lapply(primaryStudies$rawData, function(x) colnames(x))
-      tmp2 <- unlist(lapply(tmp1, function(x) length(x))); tmp2
-      if (any(tmp2) > 0) {
-      tmp3 <- tmp1[[which(tmp2 == max(tmp2))]]; tmp3
-      tmp4 <- which(tmp3 == "T0") -1; tmp4
-      maxEmpcov <- max(c(maxEmpcov, tmp4))
+      existExmpcov <- which(lapply(primaryStudies$empcov, function(x) length(c(x))) > 0)
+      if(length(existExmpcov) > 0) {
+        maxWaves <- max(unlist(lapply(primaryStudies$deltas, length)))+1; maxWaves
+        maxEmpcov <- max(unlist(lapply(primaryStudies$empcovs, length)))^.5; maxEmpcov
+        n.variables <- maxEmpcov/maxWaves; n.variables
       }
-      n.variables <- maxEmpcov/maxWaves; n.variables
+      n.variables
+      #maxPairwiseNs <- max(unlist(lapply(primaryStudies$pairwiseNs, length)))^.5; maxPairwiseNs
+      primaryStudies$rawData
+      fileNames <- unlist(lapply(primaryStudies$rawData, function(x) x$fileName)); fileNames
+      if ((any(length(fileNames) > 0)) & (n.latent == NULL)) {
+        ErrorMsg <- "The arguments \"n.latent\" has to be provided because at leat one primary study provides raw data! \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if ((any(length(fileNames) > 0)) & (n.latent != NULL)) {
+        n.variables <- n.latent
+      }
 
       studyListCategories <- vector("list", length=length(names(primaryStudies2))); studyListCategories
       names(studyListCategories) <- names(primaryStudies2); studyListCategories
