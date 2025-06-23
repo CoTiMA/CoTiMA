@@ -35,8 +35,11 @@ CoTiMAStanctArgs<-list(test=TRUE,
                                          #stochasticHessianEpsilon = 1e-05,
                                          is = FALSE,
                                          #isloopsize = 1000,
+<<<<<<< HEAD
                                          isitersize = 1000,
                                          isESS = 100,
+=======
+>>>>>>> e9c5ed7ddd285391c3a8f2b8cf608815afccd1ce
                                          finishsamples = 1000,
                                          tdf = 10,
                                          chancethreshold = 100,
