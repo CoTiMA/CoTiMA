@@ -275,7 +275,6 @@ ctmaInit <- function(
       if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
       if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
-      if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors # added Aug 2023
       if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
       if (!(is.null(chains))) CoTiMAStanctArgs$chains <- chains
       if (!(is.null(iter))) CoTiMAStanctArgs$iter <- iter
@@ -1079,26 +1078,29 @@ ctmaInit <- function(
               fit=fit,
               sameInitialTimes=sameInitialTimes,
               #inits=studyList[[i]]$startValues,
-              inits=inits,
-              savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
-              stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
-              iter=CoTiMAStanctArgs$iter,
-              intoverstates=CoTiMAStanctArgs$intoverstates,
-              binomial=CoTiMAStanctArgs$binomial,
-              intoverpop=CoTiMAStanctArgs$intoverpop,
-              stationary=CoTiMAStanctArgs$stationary,
-              plot=CoTiMAStanctArgs$plot,
-              optimize=CoTiMAStanctArgs$optimize,
-              optimcontrol=CoTiMAStanctArgs$optimcontrol,
-              nlcontrol=CoTiMAStanctArgs$nlcontrol,
-              priors=CoTiMAStanctArgs$priors,
-              chains=CoTiMAStanctArgs$chains,
-              forcerecompile=CoTiMAStanctArgs$forcerecompile,
-              savescores=CoTiMAStanctArgs$savescores,
-              gendata=CoTiMAStanctArgs$gendata,
-              control=CoTiMAStanctArgs$control,
+              stanmodeltext = CoTiMAStanctArgs$stanmodeltext,
+              iter = CoTiMAStanctArgs$iter,
+              intoverstates = CoTiMAStanctArgs$intoverstates,
+              binomial = CoTiMAStanctArgs$binomial,
+              intoverpop = CoTiMAStanctArgs$intoverpop,
+              stationary = CoTiMAStanctArgs$stationary,
+              plot = CoTiMAStanctArgs$plot,
+              derrind = CoTiMAStanctArgs$derrind,
+              optimize = optimize,
+              optimcontrol = CoTiMAStanctArgs$optimcontrol,
+              nlcontrol = CoTiMAStanctArgs$nlcontrol,
+              #nopriors = NA,
+              priors = priors,
+              forcerecompile = CoTiMAStanctArgs$forcerecompile,
+              saveCompile = CoTiMAStanctArgs$saveCompile,
+              savescores = CoTiMAStanctArgs$savescores,
+              savesubjectmatrices = CoTiMAStanctArgs$savesubjectmatrices,
+              saveComplexPars = CoTiMAStanctArgs$saveComplexPars,
+              gendata = CoTiMAStanctArgs$gendata,
+              control = CoTiMAStanctArgs$control,
+              vb = CoTiMAStanctArgs$vb,
+              #warmup=CoTiMAStanctArgs$warmup,
               verbose=verbose,
-              warmup=CoTiMAStanctArgs$warmup,
               cores=coresToUse) )
           }
           if (doPar > 1) {
