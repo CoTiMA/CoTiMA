@@ -164,6 +164,8 @@ ctmaFit <- function(
   {
     ctmaInitFitName <- deparse(substitute(ctmaInitFit)); ctmaInitFitName
 
+    if (packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
+
     if (is.null(scaleTime)) scaleTime <- 1
 
     # indVaryingT0 previously allowed the T0cov to vary across primaries, the cints to covary randomly for the entire sample, and
@@ -1017,7 +1019,6 @@ ctmaFit <- function(
     }
 
     #stanctModel <- suppressMessages(
-    if (packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
     stanctModel <- (
       ctsem::ctModel(n.latent=n.latent, n.manifest=n.var,
                      manifestNames=manifestNames,
@@ -1169,8 +1170,6 @@ ctmaFit <- function(
       latentNamesTmp <- c(latentNames, paste0(latentNames, "_cint")); latentNamesTmp
       T0MEANStmp <- matrix(paste0("Mean", latentNamesTmp), n.latent*2, 1); T0MEANStmp
       TIpredNames <- paste0("TI", 1:n.TIpred); TIpredNames
-
-      if (packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
 
       stanctModel <- (
         ctsem::ctModel(n.latent=n.latent*2,

@@ -141,6 +141,8 @@ ctmaInit <- function(
     Msg <- "################################################################################# \n########################## Check Model Specification ############################ \n#################################################################################"
     message(Msg)
 
+    if (packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
+
     if (  (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
     if ( (indVarying == "Manifest") | (indVarying == "manifest")) indVarying <- "MANIFEST"
     if (indVarying == TRUE) indVarying <- "MANIFEST"
@@ -948,8 +950,6 @@ ctmaInit <- function(
           }
         } # end  if ( (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") )
 
-        if (packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
-
         currentModel <- suppressMessages(
           ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
                          DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
@@ -1020,8 +1020,6 @@ ctmaInit <- function(
           manifestNamesTmp <- manifestNames; manifestNamesTmp
           latentNamesTmp <- c(latentNames, paste0(latentNames, "_cint")); latentNamesTmp
           T0MEANStmp <- matrix(paste0("Mean", latentNamesTmp), n.latent*2, 1); T0MEANStmp
-
-          if (packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
 
           currentModel <- (
             ctsem::ctModel(n.latent=n.latent*2,
