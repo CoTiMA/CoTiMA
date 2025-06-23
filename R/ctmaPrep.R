@@ -351,21 +351,25 @@ ctmaPrep <- function(selectedStudies=NULL,
       primaryStudies2 <- primaryStudies
       n.studies  <- primaryStudies$n.studies
       existExmpcov <- which(lapply(primaryStudies$empcov, function(x) length(c(x))) > 0)
-      if(length(existExmpcov) > 0) {
+      if (length(existExmpcov) > 0) {
         maxWaves <- max(unlist(lapply(primaryStudies$deltas, length)))+1; maxWaves
         maxEmpcov <- max(unlist(lapply(primaryStudies$empcovs, length)))^.5; maxEmpcov
         n.variables <- maxEmpcov/maxWaves; n.variables
       }
-      n.variables
       #maxPairwiseNs <- max(unlist(lapply(primaryStudies$pairwiseNs, length)))^.5; maxPairwiseNs
-      primaryStudies$rawData
       fileNames <- unlist(lapply(primaryStudies$rawData, function(x) x$fileName)); fileNames
-      if ((any(length(fileNames) > 0)) & (n.latent == NULL)) {
+      if ((any(length(fileNames) > 0)) & (is.null(n.latent))) {
         ErrorMsg <- "The arguments \"n.latent\" has to be provided because at leat one primary study provides raw data! \nGood luck for the next try!"
         stop(ErrorMsg)
       }
-      if ((any(length(fileNames) > 0)) & (n.latent != NULL)) {
+      if ((any(length(fileNames) > 0)) & (!is.null(n.latent))) {
         n.variables <- n.latent
+      }
+      if ((!is.null(n.latent)) & (!(any(length(fileNames) > 0))))  {
+        if (n.latent != n.variables)  {
+          ErrorMsg <- "The arguments \"n.latent\" does not seem to be correct because at least one empcov matrix in its coressponding delta_t object suggest a different number. \nGood luck for the next try!"
+        stop(ErrorMsg)
+        }
       }
 
       studyListCategories <- vector("list", length=length(names(primaryStudies2))); studyListCategories
