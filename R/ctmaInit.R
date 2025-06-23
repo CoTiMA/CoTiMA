@@ -948,13 +948,15 @@ ctmaInit <- function(
           }
         } # end  if ( (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") )
 
+        if (packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
+
         currentModel <- suppressMessages(
           ctsem::ctModel(n.latent=n.latent, n.manifest=n.var, Tpoints=currentTpoints, manifestNames=manifestNames,    # 2 waves in the template only
                          DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
                          DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
                          LAMBDA=lambdaParams,
                          T0VAR=T0VARParams,
-                         type='stanct',
+                         type=type,
                          CINT=matrix(CINTParams, nrow=n.latent, ncol=1),
                          T0MEANS = matrix(c(T0meansParams), nrow = n.latent, ncol = 1),
                          MANIFESTMEANS = matrix(manifestMeansParams, nrow = n.var, ncol = 1),
@@ -1018,6 +1020,9 @@ ctmaInit <- function(
           manifestNamesTmp <- manifestNames; manifestNamesTmp
           latentNamesTmp <- c(latentNames, paste0(latentNames, "_cint")); latentNamesTmp
           T0MEANStmp <- matrix(paste0("Mean", latentNamesTmp), n.latent*2, 1); T0MEANStmp
+
+          if (packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
+
           currentModel <- (
             ctsem::ctModel(n.latent=n.latent*2,
                            n.manifest=n.var,
@@ -1031,7 +1036,7 @@ ctmaInit <- function(
                            MANIFESTMEANS = matrix(manifestMeansParams, nrow=n.latent, ncol=1),
                            MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var),
                            T0VAR = T0VARtmp,
-                           type = 'stanct')
+                           type = type)
           )
           currentModel$pars$indvarying <- FALSE
 
@@ -1764,7 +1769,7 @@ ctmaInit <- function(
     }
 
     results <- list(activeDirectory=activeDirectory,
-                    plot.type="drift", model.type="stanct",
+                    plot.type="drift", model.type=type,
                     coresToUse=coresToUse, n.studies=n.studies,
                     n.latent=n.latent,
                     n.manifest=n.manifest,

@@ -104,7 +104,7 @@
 #' function is applied to the returned object. The summary list element comprises "estimates" (the aggregated effects), possible
 #' randomEffects (not yet fully working),  the minus2ll value and its n.parameters, the opt.lag sensu Dormann & Griffin (2015) and the
 #' max.effects that occur at the opt.lag, clus.effects and mod.effects, and possible warning messages (message). Plot type is
-#' plot.type=c("drift") and model.type="stanct" ("omx" was deprecated).
+#' plot.type=c("drift") and model.type="ct" ("omx" was deprecated, "stanct" was used until ctsem version 3.10.2).
 #'
 ctmaFit <- function(
     activateRPB=FALSE,
@@ -1017,6 +1017,7 @@ ctmaFit <- function(
     }
 
     #stanctModel <- suppressMessages(
+    if (packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
     stanctModel <- (
       ctsem::ctModel(n.latent=n.latent, n.manifest=n.var,
                      manifestNames=manifestNames,
@@ -1028,7 +1029,7 @@ ctmaFit <- function(
                      MANIFESTMEANS = matrix(manifestMeansParams, nrow=n.latent, ncol=1),
                      MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var),
                      T0VAR = T0VARParams,
-                     type = 'stanct',
+                     type = type,
                      n.TIpred = n.TIpred,
                      TIpredNames = paste0("TI", 1:n.TIpred))
     )
@@ -1168,6 +1169,9 @@ ctmaFit <- function(
       latentNamesTmp <- c(latentNames, paste0(latentNames, "_cint")); latentNamesTmp
       T0MEANStmp <- matrix(paste0("Mean", latentNamesTmp), n.latent*2, 1); T0MEANStmp
       TIpredNames <- paste0("TI", 1:n.TIpred); TIpredNames
+
+      if (packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
+
       stanctModel <- (
         ctsem::ctModel(n.latent=n.latent*2,
                        n.manifest=n.var,
@@ -1181,7 +1185,7 @@ ctmaFit <- function(
                        MANIFESTMEANS = matrix(manifestMeansParams, nrow=n.latent, ncol=1),
                        MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var),
                        T0VAR = T0VARtmp,
-                       type = 'stanct',
+                       type = type,
                        n.TIpred = n.TIpred,
                        TIpredNames = paste0("TI", 1:n.TIpred))
       )
@@ -1890,7 +1894,7 @@ ctmaFit <- function(
     }
 
     results <- list(
-      plot.type="drift",  model.type="stanct",
+      plot.type="drift",  model.type=type,
       n.studies=1,
       n.latent=n.latent,
       n.moderators=length(mod.number),
