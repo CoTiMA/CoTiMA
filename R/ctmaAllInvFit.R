@@ -29,6 +29,8 @@
 #' @param manifestVars define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.
 #' @param lambda R-type matrix with pattern of fixed (=1) or free (any string) loadings.
 #'
+#' @importFrom utils packageDescription
+#'
 #' @return returns a fitted CoTiMA object, in which all drift parameters, Time 0 variances and covariances, and diffusion parameters were set invariant across primary studies
 #'
 ctmaAllInvFit <- function(
@@ -60,6 +62,9 @@ ctmaAllInvFit <- function(
   indVaryingT0=NULL
 )
 {
+
+
+  if (utils::packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
 
   if (is.null(verbose) & (optimize == FALSE) )  {verbose <- 0} else {verbose <- CoTiMAStanctArgs$verbose}
 
@@ -350,6 +355,7 @@ ctmaAllInvFit <- function(
   } else {
     #allFixedModelFit <- suppressMessages(ctsem::ctStanFit(
     allFixedModelFit <- (ctsem::ctStanFit(
+      type=type,
       datalong = datalong_all,
       ctstanmodel = allFixedModel,
       savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
