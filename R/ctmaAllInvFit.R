@@ -321,7 +321,7 @@ ctmaAllInvFit <- function(
                            DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
                            DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
                            LAMBDA=lambdaParams,
-                           type='stanct',
+                           type=type,
                            CINT=matrix(0, nrow=n.latent, ncol=1),
                            T0MEANS=T0MEANS,
                            MANIFESTMEANS=MANIFESTMEANS,
@@ -516,7 +516,7 @@ ctmaAllInvFit <- function(
   DIFFUSION <- matrix(homAll_Diffusion_Coef, n.latent); DIFFUSION
   T0VAR <- matrix(homAll_T0VAR_Coef, n.latent); T0VAR
 
-  results <- list(plot.type="drift",  model.type="stanct",
+  results <- list(plot.type="drift",  model.type=type,
                   coresToUse=coresToUse, n.studies=1,
                   n.latent=n.latent,
                   ctModel=allFixedModel,
