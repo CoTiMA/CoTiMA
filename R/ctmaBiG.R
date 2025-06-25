@@ -165,7 +165,7 @@ ctmaBiG <- function(
       colnames(all_SE) <- colnames(all_Coeff) <- c(names1, names2, names3)
       allSampleSizes <- ctmaInitFit$statisticsList$allSampleSizes; allSampleSizes
     } # end extracting
-    all_Coeff; all_SE
+    #all_Coeff; all_SE
 
 
     # undo time scaling
@@ -217,8 +217,8 @@ ctmaBiG <- function(
           drift_SE_dt[i, ] <- apply(tmp, 2, sd)
         }
       }
+      colnames(drift_Coeff_dt) <- colnames(drift_SE_dt) <- names1
     }
-    colnames(drift_Coeff_dt) <- colnames(drift_SE_dt) <- names1
 
     #######################################################################################################################
     ##################################### Analyses of Publication Bias ####################################################
