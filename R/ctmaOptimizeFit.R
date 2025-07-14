@@ -220,6 +220,53 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
     ErrorMsg <- "argument activeDirectory is missing"
     if (is.null(activeDirectory)) stop(ErrorMsg)
 
+    # CHD 14.7.2025
+    if (is.null(ctmaInitFit$argumentList$indVarying)) ctmaInitFit$argumentList$indVarying <- FALSE
+    if (is.null(ctmaInitFit$argumentList$randomIntercepts)) ctmaInitFit$argumentList$randomIntercepts <- FALSE
+    indVarying <- ctmaInitFit$argumentList$indVarying
+    randomIntercepts <- ctmaInitFit$argumentList$randomIntercepts
+
+    # CHD 14.7.2025
+    if (!is.null(randomIV) & !is.null(randomRI)) {
+      if ((randomIV == FALSE) & (randomRI == FALSE)) {
+        #if (is.null(ctmaInitFit$argumentList$randomIntercepts)) ctmaInitFit$argumentList$randomIntercepts <- FALSE
+        #if (is.null(ctmaInitFit$argumentList$indVarying)) ctmaInitFit$argumentList$indVarying <- FALSE
+        Msg <- paste0("Both \"randomIV\" and \"randomRI\" are set FALSE (default). I use the same settings as used for ctmaInit(), which was
+      \"randomIntercepts = ", ctmaInitFit$argumentList$randomIntercepts, "\", and
+      \"indVarying = ", ctmaInitFit$argumentList$indVarying, ".\n")
+        indVarying <- ctmaInitFit$argumentList$indVarying
+        randomIntercepts <- ctmaInitFit$argumentList$randomIntercepts
+        message(Msg)
+      }
+    }
+
+
+    # CHD 14.7.2025
+    if (!is.null(randomIV) & !is.null(randomRI)) {
+      if ((randomIV == TRUE) & (randomRI == TRUE)) {
+        Msg <- "Both \"randomIV\" and \"randomRI\" are set TRUE. Both are statistically equivalent, but since the latter is more difficult to fit I set \"randomRI = FALSE\". DO \"randomIV = FALSE\" to prevent this.\n"
+        message(Msg)
+        randomRI <- FALSE
+      }
+    }
+
+    # CHD 14.7.2025
+    if (is.null(randomIV)) {
+      Msg <- "\"randomIV\" was set to NULL, which overrides all argument set previously in ctmaInit() and sets  \"indVarying = FALSE\". Take care.\n"
+      randomIV <- FALSE
+      indVarying <- FALSE
+      message(Msg)
+    }
+
+    # CHD 14.7.2025
+    if (is.null(randomRI)) {
+      Msg <- "\"randomRI\" was set to NULL, which overrides all argument set previously in ctmaInit() and sets  \"randomIntercepts = FALSE\". Take care.\n"
+      randomRI <- FALSE
+      randomIntercepts <- FALSE
+      message(Msg)
+    }
+
+
     # create new study list with a single problem study only
     listElements <- names(primaryStudies); listElements
     newStudyList <- as.list(listElements)
@@ -269,15 +316,35 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       }
       all_scaleTime <- c(all_scaleTime, scaleTime)
       all_customPar <- c(all_customPar, customPar)
+      all_randomIV <- c(all_randomIV)
 
+      if (randomRI == TRUE) {
+        tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
+        randomIntercepts <- c("MANIFEST", "CINT")[tmp1]
+        all_randomRI <- c(all_randomRI, randomIntercepts)
+      } else {
+        if (randomIntercepts != FALSE) randomIntercepts <- ctmaInitFit$argumentList$randomIntercepts
+        all_randomRI <- c(all_randomRI, randomIntercepts)
+      }
+
+      if (randomIV == TRUE) {
+        tmp1 <- round(stats::runif(1, min=1, max=2), 0); tmp1
+        indVarying <- c("MANIFEST", "CINT")[tmp1]
+        all_randomIV <- c(all_randomIV, indVarying)
+      } else {
+        if (indVarying != FALSE) indVarying <- ctmaInitFit$argumentList$indVarying
+        all_randomIV <- c(all_randomIV, indVarying)
+      }
+      #
 
       if (is.null(finishsamples)) finishsamples <- ctmaInitFit$argumentList$finishsamples
 
       # CHD 12.4.24
       #if (is.null(indVarying)) indVarying <- ctmaFitFit$argumentList$indVarying
-      if (is.null(ctmaInitFit$argumentList$randomInterceptsSettings)) ctmaInitFit$argumentList$randomInterceptsSettings <- FALSE
 
       problem <- FALSE
+      #print(randomIntercepts)
+      #print(indVarying)
       fit <- tryCatch(ctmaInit(primaryStudies=newStudyList,
                                coresToUse = coresToUse, # changed Aug 2023
                                scaleTime = scaleTime,
@@ -289,7 +356,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                                CoTiMAStanctArgs=CoTiMAStanctArgs,
                                n.latent=ctmaInitFit$argumentList$n.latent,
                                n.manifest=ctmaInitFit$argumentList$n.manifest,
-                               indVarying = ctmaInitFit$argumentList$indVarying,
+                               #indVarying = ctmaInitFit$argumentList$indVarying,
+                               indVarying = indVarying,
                                checkSingleStudyResults=FALSE,
                                T0means=ctmaInitFit$argumentList$T0means,
                                manifestMeans=ctmaInitFit$argumentList$manifestMeans,
@@ -314,7 +382,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                                T0var=ctmaInitFit$argumentList$T0var,
                                useSV=ctmaInitFit$argumentList$useSV,
                                verbose=verbose,
-                               randomIntercepts=ctmaInitFit$argumentList$randomInterceptsSettings),
+                               #randomIntercepts=ctmaInitFit$argumentList$randomInterceptsSettings,
+                               randomIntercepts=randomIntercepts),
                       error = function(e) problem <- TRUE
       )
 
@@ -347,6 +416,44 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       ErrorMsg <- "The ctmaFitFit object provided is not of class CoTiMAFit. Probably it was not created with ctmaFit."
       stop(ErrorMsg)
     }
+
+    # CHD 14.7.2025
+    if (!is.null(randomIV) & !is.null(randomRI)) {
+      if ((randomIV == FALSE) & (randomRI == FALSE)) {
+        Msg <- paste0("Both \"randomIV\" and \"randomRI\" are set FALSE (default). I use the same settings as used for ctmaFit(), which was
+      \"randomIntercepts = ", ctmaFitFit$argumentList$randomIntercepts, "\", and
+      \"indVarying = ", ctmaFitFit$argumentList$indVarying, ".\n")
+        indVarying <- ctmaFitFit$argumentList$indVarying
+        randomIntercepts <- ctmaFitFit$argumentList$randomIntercepts
+        message(Msg)
+      }
+    }
+
+    # CHD 14.7.2025
+    if (!is.null(randomIV) & !is.null(randomRI)) {
+      if ((randomIV == TRUE) & (randomRI == TRUE)) {
+        Msg <- "Both \"randomIV\" and \"randomRI\" are set TRUE. Both are statistically equivalent, but since the latter is more difficult to fit I set \"randomRI = FALSE\". DO \"randomIV = FALSE\" to prevent this.\n"
+        message(Msg)
+        randomRI <- FALSE
+      }
+    }
+
+    # CHD 14.7.2025
+    if (is.null(randomIV)) {
+      Msg <- "\"randomIV\" was set to NULL, which overrides all argument set previously in ctmaInit() and sets  \"indVarying = FALSE\". Take care.\n"
+      randomIV <- FALSE
+      indVarying <- FALSE
+      message(Msg)
+    }
+
+    # CHD 14.7.2025
+    if (is.null(randomRI)) {
+      Msg <- "\"randomRI\" was set to NULL, which overrides all argument set previously in ctmaInit() and sets  \"randomIntercepts = FALSE\". Take care.\n"
+      randomRI <- FALSE
+      randomIntercepts <- FALSE
+      message(Msg)
+    }
+
 
     currentLL <- 10^20; currentLL
     all_minus2ll <- c()
@@ -667,6 +774,8 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                   all_scaleTime = all_scaleTime,
                   all_customPar = all_customPar,
                   all_scaleTI = all_scaleTI,
+                  all_randomIV = all_randomIV,
+                  all_randomRI = all_randomRI,
                   all_usedStudyList = all_usedStudyList
 
   )
