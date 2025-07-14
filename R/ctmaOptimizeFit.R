@@ -245,6 +245,13 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
 
     currentLL <- 10^20; currentLL
     all_minus2ll <- c()
+    all_scaleTime <- all_customPar <- c()
+    all_scaleTI <- scaleTI
+    all_usedStudyList <- primaryStudies
+    all_randomIV <- all_randomRI <- c()
+    warns <- errs <- list()
+
+
     for (i in 1:reFits) {
       #i <- 1
       scaleTime <- round(stats::runif(1, min=randomScaleTime[1], max=randomScaleTime[2]), 2)
@@ -260,6 +267,9 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         Msg <- paste0("Argument customPar is set to: ", customPar, ".")
         message(Msg)
       }
+      all_scaleTime <- c(all_scaleTime, scaleTime)
+      all_customPar <- c(all_customPar, customPar)
+
 
       if (is.null(finishsamples)) finishsamples <- ctmaInitFit$argumentList$finishsamples
 
