@@ -45,7 +45,7 @@ ctmaOptimizeFit(
 
 \item{coresToUse}{if neg., the value is subtracted from available cores, else value = cores to use}
 
-\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
+\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link[ctsem]{ctStanFit}} Function}
 
 \item{ctmaFitFit}{a object fitted with \code{\link{ctmaFit}}}
 

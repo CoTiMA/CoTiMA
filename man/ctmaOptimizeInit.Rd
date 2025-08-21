@@ -56,7 +56,7 @@ Useful to check estimates before they are saved.}
 
 \item{manifestVars}{define the error variances of the manifests with a single time point using R-type lower triangular matrix with nrow=n.manifest & ncol=n.manifest.}
 
-\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
+\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link[ctsem]{ctStanFit}} Function}
 
 \item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
 }

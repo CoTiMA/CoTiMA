@@ -72,7 +72,7 @@ ctmaPlotCtsemMod(
 
 \item{plot.xMax}{default = NULL}
 
-\item{plot.yMin}{default = NULL. NULL sets the smallest y value to the smalles of all auto/cross effects plotted.}
+\item{plot.yMin}{default = NULL. NULL sets the smallest y value to the smallest of all auto/cross effects plotted.}
 
 \item{plot.yMax}{default = NULL. NULL sets the largest y value to the largest of all auto/cross effects plotted.}
 
@@ -102,7 +102,7 @@ ctmaPlotCtsemMod(
 writes png figures to disc using the path specified in the activeDirectory arguments.
 }
 \description{
-Plots moderator models using \code{\link{ctsem}} fit objects
+Plots moderator models using ctsem-fit objects
 }
 \examples{
 #Plot a categorical moderator

@@ -75,7 +75,7 @@ ctmaAllInvFit(
 
 \item{manifestMeans}{Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.}
 
-\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function}
+\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link[ctsem]{ctStanFit}} Function}
 
 \item{lambda}{R-type matrix with pattern of fixed (=1) or free (any string) loadings.}
 
