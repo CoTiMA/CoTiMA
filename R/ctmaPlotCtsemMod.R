@@ -1,6 +1,6 @@
 #' ctmaPlotCtsemMod
 #'
-#' @description Plots moderator models using \code{\link{ctsem}} fit objects
+#' @description Plots moderator models using ctsem-fit objects
 #'
 #' @param ctStanFitObject The fit object with moderator (TIpred) effects to be plotted
 #' @param digits number of digits used for rounding
@@ -19,7 +19,7 @@
 #' @param plot plots figures if TRUE (default) otherwise only return moderated drift matrices
 #' @param plot.xMin default = 0
 #' @param plot.xMax default = NULL
-#' @param plot.yMin default = NULL. NULL sets the smallest y value to the smalles of all auto/cross effects plotted.
+#' @param plot.yMin default = NULL. NULL sets the smallest y value to the smallest of all auto/cross effects plotted.
 #' @param plot.yMax default = NULL. NULL sets the largest y value to the largest of all auto/cross effects plotted.
 #' @param plot..type default = "l", # 2 dots .. are correct
 #' @param plot.lty default = 1

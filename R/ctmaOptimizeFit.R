@@ -3,7 +3,7 @@
 #' @description Replaces deprecated \code{\link{ctmaOptimizeInit}}, which was limited to initial fitting
 #' (i.e., applies \code{\link{ctmaInit}}) of a primary study reFits times to capitalize on chance for obtaining
 #' a hard-to-find optimal fit.
-#' Now, optimizing a CoTiMA model generated with \code{\link{ctmaFit}} can also be done.
+#' Now, optimizing a CoTiMA model generated with \code{\link[ctsem]{ctmaFit}} can also be done.
 #' Using \code{\link{ctmaOptimizeFit}} could be helpful if a model yields out-of-range estimates, which could happen if the fitting
 #' algorithm unfortunately used random start values that resulted in a locally but not globally optimal fit. Essentially, using
 #' \code{\link{ctmaOptimizeFit}} is like gambling, hoping that at least one set of starting values (the number it tries is specified in the reFits argument)
@@ -12,7 +12,7 @@
 #' @param activateRPB  set to TRUE to receive push messages with 'CoTiMA' notifications on your phone
 #' @param activeDirectory activeDirectory
 #' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
-#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link{ctStanFit}} Function
+#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link[ctsem]{ctStanFit}} Function
 #' @param ctmaFitFit a object fitted with \code{\link{ctmaFit}}
 #' @param ctmaInitFit the ctmaInitFit object that was used to create the ctmaFitFit object with \code{\link{ctmaFit}}
 #' @param ctStanFit a fit object created with ctStanFit (default=NULL)
