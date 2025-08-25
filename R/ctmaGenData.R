@@ -138,8 +138,15 @@ ctmaGenData <- function(
       }
     }
 
+    if (any(sapply(tpointTargets, function(v) any(v %% 1 != 0)))) {
+      Msg <- "some time points specified in tpointTargets are not interger values. I will round them to 0 digits.\n"
+      message(Msg)
+      tmp <- which(sapply(tpointTargets, function(v) any(v %% 1 != 0)))
+      for (i in tmp) tpointTargets[[i]] <- round(tpointTargets[[i]], 0)
+    }
+
     if (is.null(T0var)) {
-      ErrorMsg <- "\n No T0var matrix (drift) specified! \nGood luck for the next try!"
+      ErrorMsg <- "\n No T0var matrix specified! \nGood luck for the next try!"
       stop(ErrorMsg)
     }
 
@@ -377,6 +384,7 @@ ctmaGenData <- function(
     if (is.null(diff)) {
       diff <- list()
       for (i in 1:length(drift)) {
+        #i <- 1
         #T1cov_impl <- expm(drift[[i]]) %*% T0var[[i]] %*% t(expm(drift[[i]])); T1cov_impl
         T1cov_impl <- expm(drift[[i]]) %*% (T0var[[i]] + randomIntercepts[[i]]) %*% t(expm(drift[[i]])); T1cov_impl
         #resvar <- T0var[[i]] - T1cov_impl; resvar
@@ -398,6 +406,8 @@ ctmaGenData <- function(
         if (any(eigen(diff[[i]])$values < 0)) {
           ErrorMsg <- paste0("\nCannot generate data because of negative eigenvalues in the diffusion matrix of Study ", i, ",",
                              "\nwhich may be due too large cross or auto effects.",
+                             "\nDrift = ", unlist(drift[[i]]), ",",
+                             "\nDriff = ", unlist(diff[[i]]), ",",
                              "\nGood luck for the next try!")
           stop(ErrorMsg)
         }
@@ -489,68 +499,48 @@ ctmaGenData <- function(
     diff.var_tmp <- list(diff_dt[[i]]); diff.var_tmp
     diff.var <- rep(diff.var_tmp, tpoints); diff.var
     diff.var <- as.matrix(Matrix::bdiag(diff.var))
-    rows1 <- nrow(diff.var)
-    #round(diff.var, 2)
+    rows1 <- nrow(diff.var); rows1
     ### T0var #####
-    diffT0.var <- cbind(diff.var, matrix(0, ncol=n.manifest, nrow=rows1)); diffT0.var # diffvar & T0var
+    diffT0.var <- cbind(diff.var, matrix(0, ncol=n.manifest, nrow=rows1))# diffvar & T0var
     cols1 <- ncol(diffT0.var); cols1
     diffT0.var <- rbind(diffT0.var, matrix(0, ncol=cols1, nrow=n.manifest))
     diffT0.var[(cols1-n.manifest+1):cols1, (cols1-n.manifest+1):cols1] <- T0var[[i]]
     rows2 <- nrow(diffT0.var); rows2
-    #round(diffT0.var, 2)
     ### Traitvar ####
     diffT0Trait.var <- cbind(diffT0.var, matrix(0, ncol=n.manifest, nrow=rows2)) # diffvar & T0var & traitvar
     cols2 <- ncol(diffT0Trait.var); cols2
     diffT0Trait.var <- rbind(diffT0Trait.var, matrix(0, ncol=cols2, nrow=n.manifest))
     diffT0Trait.var[(cols2-n.manifest+1):cols2, (cols2-n.manifest+1):cols2] <- randomIntercepts[[i]]
     rows3 <- nrow(diffT0Trait.var); rows3
-    #round(diffT0Trait.var, 2)
     ### manifestVar (measurement error) ####
     err.var_tmp <- list(manifestVars[[i]]); err.var_tmp
     err.var <- rep(err.var_tmp, tpoints); err.var
     err.var <- as.matrix(Matrix::bdiag(err.var))
-    a_rows <- nrow(diffT0Trait.var)
-    a_cols <- ncol(diffT0Trait.var)
-    b_rows <- nrow(err.var)
-    b_cols <- ncol(err.var)
-    diffT0TraitERR.var <- matrix(0, nrow = a_rows + b_rows, ncol = a_cols + b_cols)
-    diffT0TraitERR.var[1:a_rows, 1:a_cols] <- diffT0Trait.var
-    diffT0TraitERR.var[(a_rows+1):(a_rows+b_rows), (a_cols+1):(a_cols+b_cols)] <- err.var
+    cols3 <- ncol(err.var); cols3
+    rows4 <- nrow(err.var); rows4
+    diffT0TraitERR.var <- matrix(0, nrow = rows3 + rows4, ncol = cols2 + cols3)
+    diffT0TraitERR.var[1:rows3, 1:cols2] <- diffT0Trait.var
+    diffT0TraitERR.var[(rows3+1):(rows3 + rows4), (cols2+1):(cols2 + cols3)] <- err.var
     cols3 <- ncol(diffT0TraitERR.var); cols3
-    #dim(diffT0TraitERR.var)
-    #round(diffT0TraitERR.var, 2)
     ## mvrnorm to create independent data for diffusions, T0 variables, random intercepts (traits), and measurement error
-    #allInit.dat <- MASS::mvrnorm(n=sampleSizes[[i]], mu=c(rep(manifestMeans[[i]], n.manifest*tpoints), T0means[[i]], TRAITMEANS), Sigma = diffT0TraitERR.var, empirical=empirical)
     tmp <- length(c(rep(0, n.latent*tpoints), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)))
     if ( tmp > sampleSizes[[i]]) {
       ErrorMsg <- paste0("\n Requested sample size too small. It should at least: sampleSizes=", tmp, ".")
       stop(ErrorMsg)
     }
-    allInit.dat <- MASS::mvrnorm(n=sampleSizes[[i]], mu=c(rep(0, n.latent*tpoints), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)), Sigma = diffT0TraitERR.var, empirical=empirical)
-    #round(cov(allInit.dat)[1:22, 1:22], 2)
-    #round(cov(allInit.dat)[23:44, 23:44], 2)
+    allInit.dat <- MASS::mvrnorm(n=sampleSizes[[i]],
+                                 #mu=c(rep(0, n.latent*(tpoints-1)), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)),
+                                 mu=c(rep(0, n.latent*(tpoints)), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)),
+                                 Sigma = diffT0TraitERR.var, empirical=empirical)
     diff.dat <- allInit.dat[, (1:(n.manifest*tpoints))]; dim(diff.dat)
-    #round(cov(diff.dat), 2)
     T0.dat <- allInit.dat[, (cols1 -n.manifest+1):(cols1)]; dim(T0.dat)
-    #round(cov(T0.dat), 2)
     trait.dat <- allInit.dat[, (cols2 -n.manifest+1):(cols2)]; dim(trait.dat)
-    #round(cov(trait.dat), 2)
-    #round(cov(cbind(T0.dat, trait.dat)), 2)
-    #apply(cbind(T0.dat, trait.dat), 2, mean)
-    err.dat <- allInit.dat[, (a_cols+1):(cols3)]; dim(err.dat)
-    #round(cov(err.dat), 2)
+    err.dat <- allInit.dat[, (cols2+1):(cols3)]; dim(err.dat)
     # data that do not vary among cases and tpoints
     cint.dat <- matrix(t(cint_dt[[i]]),  nrow=sampleSizes[[i]], ncol=n.latent, byrow = T)
-    #head(cint.dat)
     manifestMeans.dat <- matrix(t(manifestMeans[[i]]),  nrow=sampleSizes[[i]], ncol=n.latent, byrow = T)
-    #head(manifestMeans.dat)
     #
     data <- T0.dat
-    #data <- data + trait.dat
-    #head(data)
-    #data <- data + matrix(t(T0means[[i]]), ncol=n.latent, nrow=nrow(data), byrow=T)
-    #head(matrix(t(T0means[[i]]), ncol=n.latent, nrow=nrow(data), byrow=T))
-    #head(data)
 
     #### T1, T2, ... all subsequent Tpoints ####
     for (t in 1:(tpoints-1)) {
@@ -561,7 +551,6 @@ ctmaGenData <- function(
         tmp <- tmp + diff.dat[, (2*(t-1)+1):(2*(t-1)+n.manifest)]
       } else {
         tmp <- tmp + MASS::mvrnorm(n=sampleSizes[[i]], mu=rep(0, n.latent), Sigma = diff_dt[[i]], empirical=FALSE)
-        #print("Problem with empirical argument!!")
       }
       # add cint
       tmp <- tmp + cint.dat
@@ -573,14 +562,11 @@ ctmaGenData <- function(
     #head(data)
 
     #### Add constant trait.dat ####
-    #head(trait.dat)
     for (t in seq(1, ncol(data), n.latent)) data[, c(t, t+1)] <- data[, c(t, t+1)] + trait.dat
-    #for (t in seq(n.latent+1, ncol(data), n.latent)) data[, c(t, t+1)] <- data[, c(t, t+1)] + trait.dat
-    #head(data)
 
     #### Add constant manifestMeans.dat ####
     for (t in seq(1, ncol(data), n.latent)) data[, c(t, t+1)] <- data[, c(t, t+1)] + manifestMeans.dat
-    #head(data)
+
 
     # Make measurement model
     # to be done (and tbd further below not here)
@@ -590,7 +576,8 @@ ctmaGenData <- function(
     colnames(data) <- paste0(paste0(latentNames, "_T"), sort(rep(seq(0,(tpoints-1),1), 2)))
     data <- cbind(data, matrix(seq(0, tpoints-1, 1), nrow=nrow(data), ncol=tpoints, byrow=T))
     colnames(data)[(ncol(data)-tpoints+1):ncol(data)] <- paste0("T", sort(rep(seq(0,(tpoints-1),1))))
-    #head(data); dim(data)
+    head(data); dim(data)
+
 
     ### Make long data ####
     datawide <- invisible(
@@ -610,10 +597,10 @@ ctmaGenData <- function(
     datalong <- as.data.frame(ctsem::ctDeintervalise(datalong))
     datalong <- datalong[datalong$time >= burnin,]
     datalong$time <- datalong$time-(burnin)
-    #head(datalong, 10)
 
     # tpointTargets
     datalong <- datalong[datalong$time %in% tpointTargets[[i]], ]
+    head(datalong)
 
     studies[[i]] <- list()
     studies[[i]]$data <- datalong
@@ -632,20 +619,6 @@ ctmaGenData <- function(
     studies[[i]]$TIpreds <- TIpreds[[i]]
     #head(studies[[i]]$data)
   }
-
-  #dat1 <- studyData[[1]]
-  #cov(dat1[dat1$time == 0 ,])
-  #cov(dat1[dat1$time == 9 ,])
-  #apply(dat1[dat1$time == 0 ,], 2, mean)
-  #apply(dat1[dat1$time == 9 ,], 2, mean)
-
-  #dat2 <- studyData[[2]]
-  #cov(dat2[dat2$time == 0 ,])
-  #cov(dat2[dat2$time == 9 ,])
-  #apply(dat2[dat2$time == 0 ,], 2, mean)
-  #apply(dat2[dat2$time == 9 ,], 2, mean)
-
-  #saveRDS(datalong, file=paste0(activeDirectory, "Study_", i, "_data_all.rds))
 
   # generate missings
   if (missings != 0) {
