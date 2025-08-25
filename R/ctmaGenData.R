@@ -638,4 +638,3 @@ ctmaGenData <- function(
 
   return(studies)
 }
-
