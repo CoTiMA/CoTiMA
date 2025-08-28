@@ -8,9 +8,9 @@
 #' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use.
 #' @param diff list of diffusion matrices. By default (NULL), diffusion matrices will be used that create a steady-state (i.e., covariance at all time points = T0var)
 #' @param digits number of digits used for rounding (in outputs).
-#' @param doPar parallel generating of data. A value > 1 will generate data for doPar studies (default = 1) in parallel mode during which no output is generated (screen remains silent).
+#' @param doPar parallel generating of data. if TRUE, data are generated in coresToUse parallel loops during which no output is generated (screen remains silent).
 #' @param drift list of drift matrices. No default (all = NULL).
-#' @param empirical whether (default) or not generated data should allow for exact estimation of parameters (no random variance; not useful for MC simulations). This applies only if all Tpoints are used (see argument missings)
+#' @param empirical whether (default) or not generated data that should be independent as generally assumed (e.g., diffusions at different time points, T0var, etc)  are truly independent. Allow for exact estimation of parameters (no random variance; not useful for MC simulations). May require large sample sizes.
 #' @param sampleSizes vector of sample sizes. Default = 100.
 #' @param lambda list of matrices. By default all are diagonal matrices with 1 in the diagonal.
 #' @param latentNames names for latent variables (default = NULL using generic names)
@@ -25,13 +25,17 @@
 #' @param TIpreds list of time-independent predictors, e.g., the moderators that were used to create the drift matrices. No default (all = NULL).
 #' @param tpoints vector of number of tpoints to be generated (default = 10).
 #' @param tpointTargets list of vectors of tpoints to be selectd (default = burnin:tpoints).
-
+#' @param useRawData if TRUE (or FALSE) and ctmaExtract is also TRUE, creates rawData (or empcov) objects required for CoTiMA into global environment.
+#' @param ctmaExtract if TRUE (default = FALSE) uses ctmaExtract to extract objects required for CoTiMA into global environment. Requires the argument useRawData to be set to TRUE or FALSE.
+#'
 #' @importFrom parallel detectCores makeCluster
 #' @importFrom ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit ctExtract ctCollapse
 #' @importFrom doParallel registerDoParallel
-#' @importFrom foreach %dopar%
 #' @importFrom OpenMx expm
 #' @importFrom Matrix bdiag
+#' @importFrom foreach foreach %dopar%
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom doParallel registerDoParallel
 #'
 #' @export ctmaGenData
 #'
@@ -53,9 +57,10 @@ ctmaGenData <- function(
     burnin = 0,
     cint  = NULL,
     coresToUse = 2,
+    ctmaExtract=FALSE,
     diff = NULL,
     digits = 4,
-    doPar = 1,
+    doPar = FALSE,
     drift = NULL,
     empirical = TRUE,
     sampleSizes = 100,
@@ -71,7 +76,8 @@ ctmaGenData <- function(
     T0var = NULL,
     TIpreds = NULL,
     tpoints = 10,
-    tpointTargets = NULL
+    tpointTargets = NULL,
+    useRawData=NULL
 )
 {
 
@@ -98,10 +104,12 @@ ctmaGenData <- function(
       ErrorMsg <- "\n Argument lambda (i.e, measurement models) not yet possible"
       stop(ErrorMsg)
     }
-    #if (empirical == FALSE) {
-    #  ErrorMsg <- "\n Argument empirical = FALSE not yet possible"
-    #  stop(ErrorMsg)
-    #}
+    if (empirical == FALSE) {
+      if (burnin < 100) {
+        Msg <- "The argument empirical == FALSE was used and burnin < 100. Longer burnin phases are recommended to achieve a steady state..\n"
+        message(Msg)
+      }
+    }
   }
 
   # Check if arguments are properly used #####
@@ -171,7 +179,7 @@ ctmaGenData <- function(
       n.latent <- ncol(drift[[1]]); n.latent
     }
 
-    ## trait means ####
+    # trait means
     TRAITMEANS <- matrix(0, nrow=n.latent, ncol=1)
 
     if (n.manifest == 0) {
@@ -315,12 +323,14 @@ ctmaGenData <- function(
       message(Msg)
     }
 
-    if (doPar > 1) {
+    if (doPar == TRUE) {
       myCluster <- parallel::makeCluster(coresToUse)
-      on.exit(parallel::stopCluster(myCluster))
-      doParallel::registerDoParallel(myCluster)
-      '%dopar%' <- foreach::'%dopar%'
+    } else {
+      myCluster <- parallel::makeCluster(1)
     }
+    on.exit(parallel::stopCluster(myCluster))
+    doParallel::registerDoParallel(myCluster)
+    '%dopar%' <- foreach::'%dopar%'
 
     if (n.manifest > n.latent ) {
       if (is.null(lambda)) {
@@ -380,14 +390,24 @@ ctmaGenData <- function(
       }
     }
 
+    if (ctmaExtract == TRUE) {
+      if (is.null(useRawData)) {
+        ErrorMsg <- "\nSince ctmaExtract is set to true, the argument useRawData has to be set to TRUE or FALSE. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if ((useRawData != TRUE) & (useRawData != FALSE)) {
+        ErrorMsg <- "\nSince ctmaExtract is set to true, useRawData is possibly misspelled. It has to be set to TRUE or FALSE. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+    }
+
+
     ## Compute diffusions to achieve steady state  ####
     if (is.null(diff)) {
       diff <- list()
       for (i in 1:length(drift)) {
         #i <- 1
-        #T1cov_impl <- expm(drift[[i]]) %*% T0var[[i]] %*% t(expm(drift[[i]])); T1cov_impl
         T1cov_impl <- expm(drift[[i]]) %*% (T0var[[i]] + randomIntercepts[[i]]) %*% t(expm(drift[[i]])); T1cov_impl
-        #resvar <- T0var[[i]] - T1cov_impl; resvar
         resvar <- (T0var[[i]] + randomIntercepts[[i]]) - T1cov_impl; resvar
         if (length(unique(round(abs(c(resvar)), 5))) == 1) {
           ErrorMsg <- paste0("\nCannot generate data because of singularity issues with Study ", i, ",",
@@ -399,7 +419,6 @@ ctmaGenData <- function(
         DIAG <- diag(1, nrow(drift[[i]]), ncol(drift[[i]])); DIAG
         DRIFT_hatch <- drift[[i]] %x% DIAG + DIAG %x% drift[[i]]; DRIFT_hatch
         DIAG_hatch <- diag(1, nrow(DRIFT_hatch), ncol(DRIFT_hatch)); DIAG_hatch
-        #solve(expm(DRIFT_hatch * 1) - DIAG_hatch)
         Q <- solve((expm(DRIFT_hatch * 1) - DIAG_hatch)) %*% DRIFT_hatch %*% c(resvar); Q
         diff[[i]] <- matrix(Q, n.latent, n.latent); diff[[i]]
 
@@ -425,7 +444,7 @@ ctmaGenData <- function(
       }
     }
 
-    ## compute T0var if it was not provided as the asymDiffcov (does nto work because Q cannot be computed without T0var) ####
+    ## compute T0var if it was not provided as the asymDiffcov (does nto work because Q cannot be computed without T0var) #
     # Solve A S + S t(A) + Q = 0 for S
     #if (missT0var == 1) { # set to 1 in the beginning if missing
     #  T0var <- list()
@@ -446,7 +465,6 @@ ctmaGenData <- function(
     if (is.null(cint)) {
       cint <- list()
       for (i in 1:length(drift)) {
-        #asymCINT <- T0means[[i]]; asymCINT
         asymCINT <- (T0means[[i]] + TRAITMEANS); asymCINT
         cint[[i]] <- -drift[[i]] %*% asymCINT; cint[[i]]
       }
@@ -490,57 +508,63 @@ ctmaGenData <- function(
   } # end checks
 
   # Generate data ####
-  studies <- list()
-  for (i in 1:length(drift)) {
+  #studies <- list()
+  #for (i in 1:length(drift)) {
+  studies <- foreach::foreach(i = 1:length(drift), .packages = 'ctsem', .export = c("ctmaExtract")) %dopar% {
     #i <- 1
-
-    ## T0 data, diffusion, and traitvar all independent ####
-    ### diffusions #####
-    diff.var_tmp <- list(diff_dt[[i]]); diff.var_tmp
-    diff.var <- rep(diff.var_tmp, tpoints); diff.var
-    diff.var <- as.matrix(Matrix::bdiag(diff.var))
-    rows1 <- nrow(diff.var); rows1
-    ### T0var #####
-    diffT0.var <- cbind(diff.var, matrix(0, ncol=n.manifest, nrow=rows1))# diffvar & T0var
-    cols1 <- ncol(diffT0.var); cols1
-    diffT0.var <- rbind(diffT0.var, matrix(0, ncol=cols1, nrow=n.manifest))
-    diffT0.var[(cols1-n.manifest+1):cols1, (cols1-n.manifest+1):cols1] <- T0var[[i]]
-    rows2 <- nrow(diffT0.var); rows2
-    ### Traitvar ####
-    diffT0Trait.var <- cbind(diffT0.var, matrix(0, ncol=n.manifest, nrow=rows2)) # diffvar & T0var & traitvar
-    cols2 <- ncol(diffT0Trait.var); cols2
-    diffT0Trait.var <- rbind(diffT0Trait.var, matrix(0, ncol=cols2, nrow=n.manifest))
-    diffT0Trait.var[(cols2-n.manifest+1):cols2, (cols2-n.manifest+1):cols2] <- randomIntercepts[[i]]
-    rows3 <- nrow(diffT0Trait.var); rows3
-    ### manifestVar (measurement error) ####
-    err.var_tmp <- list(manifestVars[[i]]); err.var_tmp
-    err.var <- rep(err.var_tmp, tpoints); err.var
-    err.var <- as.matrix(Matrix::bdiag(err.var))
-    cols3 <- ncol(err.var); cols3
-    rows4 <- nrow(err.var); rows4
-    diffT0TraitERR.var <- matrix(0, nrow = rows3 + rows4, ncol = cols2 + cols3)
-    diffT0TraitERR.var[1:rows3, 1:cols2] <- diffT0Trait.var
-    diffT0TraitERR.var[(rows3+1):(rows3 + rows4), (cols2+1):(cols2 + cols3)] <- err.var
-    cols3 <- ncol(diffT0TraitERR.var); cols3
-    ## mvrnorm to create independent data for diffusions, T0 variables, random intercepts (traits), and measurement error
-    tmp <- length(c(rep(0, n.latent*tpoints), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)))
-    if ( tmp > sampleSizes[[i]]) {
-      ErrorMsg <- paste0("\n Requested sample size too small. It should at least: sampleSizes=", tmp, ".")
-      stop(ErrorMsg)
+    if (empirical == TRUE) {
+      ## T0 data, diffusion, and traitvar all independent ####
+      ### diffusions #####
+      diff.var_tmp <- list(diff_dt[[i]]); diff.var_tmp
+      diff.var <- rep(diff.var_tmp, tpoints); diff.var
+      diff.var <- as.matrix(Matrix::bdiag(diff.var))
+      rows1 <- nrow(diff.var); rows1
+      ### T0var #####
+      diffT0.var <- cbind(diff.var, matrix(0, ncol=n.manifest, nrow=rows1))# diffvar & T0var
+      cols1 <- ncol(diffT0.var); cols1
+      diffT0.var <- rbind(diffT0.var, matrix(0, ncol=cols1, nrow=n.manifest))
+      diffT0.var[(cols1-n.manifest+1):cols1, (cols1-n.manifest+1):cols1] <- T0var[[i]]
+      rows2 <- nrow(diffT0.var); rows2
+      ### Traitvar ####
+      diffT0Trait.var <- cbind(diffT0.var, matrix(0, ncol=n.manifest, nrow=rows2)) # diffvar & T0var & traitvar
+      cols2 <- ncol(diffT0Trait.var); cols2
+      diffT0Trait.var <- rbind(diffT0Trait.var, matrix(0, ncol=cols2, nrow=n.manifest))
+      diffT0Trait.var[(cols2-n.manifest+1):cols2, (cols2-n.manifest+1):cols2] <- randomIntercepts[[i]]
+      rows3 <- nrow(diffT0Trait.var); rows3
+      ### manifestVar (measurement error) ####
+      err.var_tmp <- list(manifestVars[[i]]); err.var_tmp
+      err.var <- rep(err.var_tmp, tpoints); err.var
+      err.var <- as.matrix(Matrix::bdiag(err.var))
+      cols3 <- ncol(err.var); cols3
+      rows4 <- nrow(err.var); rows4
+      diffT0TraitERR.var <- matrix(0, nrow = rows3 + rows4, ncol = cols2 + cols3)
+      diffT0TraitERR.var[1:rows3, 1:cols2] <- diffT0Trait.var
+      diffT0TraitERR.var[(rows3+1):(rows3 + rows4), (cols2+1):(cols2 + cols3)] <- err.var
+      cols3 <- ncol(diffT0TraitERR.var); cols3
+      ## mvrnorm to create independent data for diffusions, T0 variables, random intercepts (traits), and measurement error
+      tmp <- length(c(rep(0, n.latent*tpoints), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)))
+      if ( tmp > sampleSizes[[i]]) {
+        ErrorMsg <- paste0("\n Requested sample size too small. It should be at least: sampleSizes =", tmp, " (or try empirical = FALSE).")
+        stop(ErrorMsg)
+      }
+      allInit.dat <- MASS::mvrnorm(n=sampleSizes[[i]],
+                                   #mu=c(rep(0, n.latent*(tpoints-1)), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)),
+                                   mu=c(rep(0, n.latent*(tpoints)), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)),
+                                   Sigma = diffT0TraitERR.var, empirical=empirical)
+      diff.dat <- allInit.dat[, (1:(n.manifest*tpoints))]; dim(diff.dat)
+      T0.dat <- allInit.dat[, (cols1 -n.manifest+1):(cols1)]; dim(T0.dat)
+      trait.dat <- allInit.dat[, (cols2 -n.manifest+1):(cols2)]; dim(trait.dat)
+      err.dat <- allInit.dat[, (cols2+1):(cols3)]; dim(err.dat)
+      #
+      data <- T0.dat
+    } else {
+      data <- MASS::mvrnorm(n=sampleSizes[[i]], mu=T0means[[i]], Sigma = T0var[[i]], empirical=empirical)
+      trait.dat <- MASS::mvrnorm(n=sampleSizes[[i]], mu=TRAITMEANS, Sigma = randomIntercepts[[i]], empirical=empirical)
     }
-    allInit.dat <- MASS::mvrnorm(n=sampleSizes[[i]],
-                                 #mu=c(rep(0, n.latent*(tpoints-1)), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)),
-                                 mu=c(rep(0, n.latent*(tpoints)), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)),
-                                 Sigma = diffT0TraitERR.var, empirical=empirical)
-    diff.dat <- allInit.dat[, (1:(n.manifest*tpoints))]; dim(diff.dat)
-    T0.dat <- allInit.dat[, (cols1 -n.manifest+1):(cols1)]; dim(T0.dat)
-    trait.dat <- allInit.dat[, (cols2 -n.manifest+1):(cols2)]; dim(trait.dat)
-    err.dat <- allInit.dat[, (cols2+1):(cols3)]; dim(err.dat)
+
     # data that do not vary among cases and tpoints
     cint.dat <- matrix(t(cint_dt[[i]]),  nrow=sampleSizes[[i]], ncol=n.latent, byrow = T)
     manifestMeans.dat <- matrix(t(manifestMeans[[i]]),  nrow=sampleSizes[[i]], ncol=n.latent, byrow = T)
-    #
-    data <- T0.dat
 
     #### T1, T2, ... all subsequent Tpoints ####
     for (t in 1:(tpoints-1)) {
@@ -580,6 +604,10 @@ ctmaGenData <- function(
 
 
     ### Make long data ####
+
+    Msg <- "creating data. May take a while.\n"
+    message(Msg)
+
     datawide <- invisible(
       suppressMessages(
         suppressWarnings(
@@ -594,30 +622,50 @@ ctmaGenData <- function(
         )
       )
     )
-    datalong <- as.data.frame(ctsem::ctDeintervalise(datalong))
+    datalong <- invisible(
+      suppressMessages(
+        suppressWarnings(as.data.frame(ctsem::ctDeintervalise(datalong))
+        )
+      )
+    )
     datalong <- datalong[datalong$time >= burnin,]
     datalong$time <- datalong$time-(burnin)
 
     # tpointTargets
     datalong <- datalong[datalong$time %in% tpointTargets[[i]], ]
-    head(datalong)
+    #head(datalong)
 
-    studies[[i]] <- list()
-    studies[[i]]$data <- datalong
-    studies[[i]]$tpointTargets <- tpointTargets[[i]]
-    studies[[i]]$drift <- drift[[i]]
-    studies[[i]]$drift_dt <- drift_dt[[i]]
-    studies[[i]]$diff <- diff[[i]]
-    studies[[i]]$diff_dt <- diff_dt[[i]]
-    studies[[i]]$cint <- cint[[i]]
-    studies[[i]]$cint_dt <- cint_dt[[i]]
-    studies[[i]]$T0means <- T0means[[i]]
-    studies[[i]]$T0var <- T0var[[i]]
-    studies[[i]]$randomIntercepts <- randomIntercepts[[i]]
-    studies[[i]]$manifestVars <- manifestVars[[i]]
-    studies[[i]]$manifestMeans <- manifestMeans[[i]]
-    studies[[i]]$TIpreds <- TIpreds[[i]]
+    #studies[[i]] <- list() # required for normal loop (not dopar)
+    #studies[[i]]$data <- datalong
+    #studies[[i]]$tpointTargets <- tpointTargets[[i]]
+    #studies[[i]]$drift <- drift[[i]]
+    #studies[[i]]$drift_dt <- drift_dt[[i]]
+    #studies[[i]]$diff <- diff[[i]]
+    #studies[[i]]$diff_dt <- diff_dt[[i]]
+    #studies[[i]]$cint <- cint[[i]]
+    #studies[[i]]$cint_dt <- cint_dt[[i]]
+    #studies[[i]]$T0means <- T0means[[i]]
+    #studies[[i]]$T0var <- T0var[[i]]
+    #studies[[i]]$randomIntercepts <- randomIntercepts[[i]]
+    #studies[[i]]$manifestVars <- manifestVars[[i]]
+    #studies[[i]]$manifestMeans <- manifestMeans[[i]]
+    #studies[[i]]$TIpreds <- TIpreds[[i]]
     #head(studies[[i]]$data)
+
+    tmp <- (list(data = datalong, # this (last) computation is automatically returned by doPar
+                 tpointTargets = tpointTargets[[i]],
+                 drift = drift[[i]],
+                 drift_dt = drift_dt[[i]],
+                 diff = diff[[i]],
+                 diff_dt = diff_dt[[i]],
+                 cint = cint[[i]],
+                 cint_dt = cint_dt[[i]],
+                 T0means = T0means[[i]],
+                 T0var =- T0var[[i]],
+                 randomIntercepts = randomIntercepts[[i]],
+                 manifestVars = manifestVars[[i]],
+                 manifestMeans = manifestMeans[[i]],
+                 TIpreds = TIpreds[[i]]))
   }
 
   # generate missings
@@ -636,5 +684,17 @@ ctmaGenData <- function(
     }
   }
 
+  # ctmaExtract ####
+  if(ctmaExtract == TRUE) {
+    if (useRawData == TRUE) tmp <- "rawData objects (rawDat1, rawData2, etc)"
+    if (useRawData == FALSE) tmp <- "empcov objects (empcov1, empcov2, etc)"
+    Msg <- paste0("\n\nctmaExtract was set to TRUE. Creating required CoTiMA objects incl. ", tmp, " in the global environment.\n")
+    message(Msg)
+
+    ctmaExtract(activeDirectory = activeDirectory,
+                ctmaGenDataList = studies,
+                useRawData = useRawData)}
+  # Return ####
   return(studies)
 }
+
