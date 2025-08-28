@@ -410,14 +410,16 @@ ctmaGenData <- function(
     }
 
     if (length(modValues) == 1) {
-      if (!(is.list(modValues))) {
-        if (modValues == 0) {
-          modValues <- replicate(length(drift), 0, simplify = FALSE)
-        } else {
-          modValues <- as.list(rep(modValues, length(drift)))
-        }
-      }
-     } else {
+      #if (!(is.list(modValues))) {
+        #if (modValues == 0) {
+          modValues <- replicate(length(drift), modValues, simplify = FALSE)
+      #}
+      #if (is.list(modValues)) {
+        #if (modValues == 0) {
+      #  modValues <- replicate(length(drift), modValues, simplify = FALSE)
+      #}
+    }
+
       if (!(is.list(modValues))) {
         ErrorMsg <- "\nThe modValues argument has to be a list. \nGood luck for the next try!"
         stop(ErrorMsg)
@@ -426,7 +428,7 @@ ctmaGenData <- function(
         ErrorMsg <- "\nThe number of modValues provided does not match the number of drift matrices provided (drift). \nGood luck for the next try!"
         stop(ErrorMsg)
       }
-     }
+     #}
 
 
     ## Compute diffusions to achieve steady state  ####
@@ -694,7 +696,7 @@ ctmaGenData <- function(
                  manifestMeans = manifestMeans[[i]],
                  TIpreds = TIpreds[[i]],
                  latentNames = latentNames,
-                 modValues = modValues))
+                 modValues = modValues[[i]]))
   }
 
   # generate missings
@@ -717,7 +719,7 @@ ctmaGenData <- function(
   if(ctmaExtract == TRUE) {
     if (useRawData == TRUE) tmp <- "rawData objects (rawDat1, rawData2, etc)"
     if (useRawData == FALSE) tmp <- "empcov objects (empcov1, empcov2, etc)"
-    Msg <- paste0("\n\nctmaExtract was set to TRUE. Creating required CoTiMA objects incl. ", tmp, " in the environment ", envir, ".\n")
+    Msg <- paste0("\n\nctmaExtract was set to TRUE. Creating required CoTiMA objects incl. ", tmp, " in the environment specified in the argument envir.\n")
     message(Msg)
 
     ctmaExtract(activeDirectory = activeDirectory,

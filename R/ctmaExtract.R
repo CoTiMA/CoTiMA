@@ -70,7 +70,7 @@ ctmaExtract <- function(
     }
     assign(paste0("delta_t", i), diff(ctmaGenDataList[[i]]$tpointTargets), envir = envir)
     assign(paste0("sampleSize", i), nrow(datawide), envir = envir)
-    assign(paste0("moderator", i), diff(ctmaGenDataList[[i]]$modValues), envir = envir)
+    assign(paste0("moderator", i), ctmaGenDataList[[i]]$modValues, envir = envir)
   }
 
 
