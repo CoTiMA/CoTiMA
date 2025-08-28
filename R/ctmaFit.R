@@ -169,14 +169,6 @@ ctmaFit <- function(
 
     if (is.null(scaleTime)) scaleTime <- 1
 
-    # indVaryingT0 previously allowed the T0cov to vary across primaries, the cints to covary randomly for the entire sample, and
-    # the cints NOT to covary with the latents at T0. The next three line prevent this, but can be deleted to make it work again.
-    #if (!(is.null(indVaryingT0))) {
-    #Msg <- "The argument \"indVaryingT0\" was deprecated and set to NULL. Try \"indVarying = TRUE\" or \"randomIntercepts = TRUE\" instead.\n"
-    #Msg <- "The argument \"indVaryingT0\" was deprecated and set to NULL. Try \"indVarying = \"MANIFEST\"\" or \"randomIntercepts = \"MANIFEST\"\" instead.\n"
-    #message(Msg)
-    #}
-
     { # adaptations to account for new arguments introduces
       if (is.null(T0var)) T0var <- 'auto'
       if (is.null(cint)) cint <- 0
@@ -186,26 +178,20 @@ ctmaFit <- function(
     }
 
     {
-      #if ( (indVarying == "CINT") | (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
       if (  (indVarying == "Cint") | (indVarying == "cint")) indVarying <- "CINT"
-      #if ( (indVarying == "MANIFEST") | (indVarying == "Manifest") | (indVarying == "manifest")) indVarying <- TRUE
       if ( (indVarying == "Manifest") | (indVarying == "manifest")) indVarying <- "MANIFEST"
       if (indVarying == TRUE) indVarying <- "MANIFEST"
       #
       randomInterceptsSettings <- randomIntercepts
       #
-      #if (is.null(randomIntercepts)) randomIntercepts <- FALSE
-      #if ( (randomIntercepts == 'CINT') | (randomIntercepts == 'cint')  | (randomIntercepts == 'Cint')) randomIntercepts <- TRUE
       if ( (randomIntercepts == 'cint')  | (randomIntercepts == 'Cint')) randomIntercepts <- "CINT"
-      #if ( (randomIntercepts == "Manifest") | (randomIntercepts == "manifest") | (randomIntercepts == "MANIFEST")) randomIntercepts <- "MANIFEST"
       if ( (randomIntercepts == "Manifest") | (randomIntercepts == "manifest") ) randomIntercepts <- "MANIFEST"
       if (randomIntercepts == TRUE)  randomIntercepts <- "MANIFEST"
-      #if ( (randomIntercepts == "MANIFEST") | (randomIntercepts == TRUE) ) {
       if (randomIntercepts == "MANIFEST") {
         indVarying <- FALSE
         indVaryingT0 <- NULL
       }
-      #randomInterceptsSettings <- randomIntercepts
+
       err <- FALSE
       if ( (!(randomIntercepts %in% c("MANIFEST", "CINT", FALSE))) |
            (!(indVarying %in% c("MANIFEST", "CINT", FALSE))) ) {
@@ -321,7 +307,6 @@ ctmaFit <- function(
     ctmaTempFit$statisticsList$minTpoints <- min(ctmaTempFit$statisticsList$allTpoints, na.rm = TRUE)
     # CHD 25.1.2024
     ctmaTempFit$summary$model <- "not specified"
-    #ctmaTempFit$summary$model <- "Moderator Model (for details see model summary)"
     tmpStudyNumber <- as.numeric(gsub("Study No ", "", rownames(ctmaTempFit$summary$estimates))); tmpStudyNumber
     targetRows <- which(tmpStudyNumber %in% targetStudyNumbers); targetRows; #length(targetRows)
     ctmaTempFit$summary$estimates <- ctmaTempFit$summary$estimates[targetRows, ]
@@ -913,42 +898,7 @@ ctmaFit <- function(
       }
     }
 
-    # Make model
-    # CHD 14. Jun 2023
-    #if ((indVarying == TRUE) & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
-    # CHD 27.11.2024
-    #if ((indVarying == "MANIFEST") & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
-    #if ((indVarying == 'CINT') & (is.null(indVaryingT0))) indVaryingT0 <- TRUE
-    #if (is.null(indVaryingT0)) indVaryingT0 <- FALSE
-
-    #if ( (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
-    #( (randomIntercepts != "CINT") & (randomIntercepts != "MANIFEST") )
     if ( (randomIntercepts != "CINT") & (randomIntercepts != "MANIFEST") ) {
-      #( (indVarying == 'CINT') & (indVaryingT0 == TRUE) )
-      # CHD 27.11.2024
-      #if ( (indVarying == 'CINT') & (indVaryingT0 == TRUE) ) {
-      #  print(paste0("#################################################################################"))
-      #  print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
-      #  print(paste0("#################################################################################"))
-      #
-      #  print(paste0("#################################################################################"))
-      #  print(paste0("# T0means are set to \'auto\'. T0(co-)variances not modelled nested in primaries.##"))
-      #  print(paste0("#################################################################################"))
-      #  T0meansParams <- 'auto'
-      #
-      #  print(paste0("#################################################################################"))
-      #  print(paste0("####################### CT intercepts are set free.  ############################"))
-      #  print(paste0("#################################################################################"))
-      #
-      #  CINTParams <- c()
-      #  for (c in 1:n.latent) {
-      #    CINTParams <- c(CINTParams, paste0("cintV", c))
-      #  }
-      #}
-
-      #( (indVarying == 'CINT') & (indVaryingT0 == FALSE) )
-      # CHD 27.11.2024
-      #if ( (indVarying == 'CINT') & (indVaryingT0 == FALSE) ) {
       if (indVarying == 'CINT') {
         print(paste0("#################################################################################"))
         print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
@@ -969,33 +919,6 @@ ctmaFit <- function(
         }
       }
 
-      #if ( (indVarying == TRUE) & (indVaryingT0 == TRUE) ) {
-      #( (indVarying == "MANIFEST") & (indVaryingT0 == TRUE) )
-      # CHD 27.11.2024
-      #if ( (indVarying == "MANIFEST") & (indVaryingT0 == TRUE) ) {
-      #if (indVarying == "MANIFEST")  {
-      #print(paste0("#################################################################################"))
-      #print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
-      #print(paste0("#################################################################################"))
-      #
-      #  print(paste0("#################################################################################"))
-      #  print(paste0("### T0means set to \'auto\'. T0(co-)variances not modelled nested in primaries. ###"))
-      #  print(paste0("##### Consider setting \'indVaryingT0 = FALSE\' if estimation problems occur, #####"))
-      #  print(paste0("###### however, be aware that this is not the regular RI model anymore then. ####"))
-      #  print(paste0("#################################################################################"))
-      #  T0meansParams <- 'auto'
-      #
-      #  print(paste0("#################################################################################"))
-      #  print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
-      #  print(paste0("#################################################################################"))
-      #
-      #  manifestMeansParams <- 'auto'
-      #}
-
-      #if ( (indVarying == TRUE) & (indVaryingT0 == FALSE) ) {
-      #( (indVarying == "MANIFEST") & (indVaryingT0 == FALSE) )
-      # CHD 27.11.2024
-      #if ( (indVarying == "MANIFEST") & (indVaryingT0 == FALSE) ) {
       if (indVarying == "MANIFEST")  {
 
         print(paste0("#################################################################################"))
@@ -1019,7 +942,6 @@ ctmaFit <- function(
       # set TIpredeffects on cints to TRUE
     }
 
-    #stanctModel <- suppressMessages(
     stanctModel <- (
       ctsem::ctModel(n.latent=n.latent, n.manifest=n.var,
                      manifestNames=manifestNames,
@@ -1036,12 +958,6 @@ ctmaFit <- function(
                      TIpredNames = paste0("TI", 1:n.TIpred))
     )
 
-    #if (indVaryingT0 == TRUE) {
-    #  stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
-    #} else {
-    #stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
-    #}
-    # CHD 27.11.2024
     if ( (indVarying != "CINT") & (indVarying != "MANIFEST") ) {
       stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
     } else {
@@ -1106,10 +1022,7 @@ ctmaFit <- function(
       if (indVarying == "CINT") tmp2 <- which(stanctModel$pars$matrix == "CINT")
       if (indVarying == "MANIFEST") tmp2 <- which(stanctModel$pars$matrix == "MANIFEST")
       targetCols <- (n.studies):(n.studies-1+n.all.moderators); targetCols
-      #stanctModel$pars[ , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- FALSE
-      #stanctModel$pars[tmp1[tmp2] , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
       stanctModel$pars[c(tmp1,tmp2) ,paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
-      #stanctModel$pars
     }
 
     # the target effects
@@ -1268,12 +1181,9 @@ ctmaFit <- function(
 
       Msg <- paste0("################################################################################# \n", tmp6a, "\n", tmp6b, "\n#################################################################################")
       message(Msg)
-      #Msg <- "Bayesian sampling was selected, which does require appropriate scaling of time. See the end of the summary output\n"
-      #message(Msg)
     }
   } # end if (allInvModel == FALSE)
 
-  #stanctModel$pars[1:26, 1:10]
 
   #######################################################################################################################
   ################################################## CoTiMA Fit #########################################################
@@ -1328,7 +1238,6 @@ ctmaFit <- function(
 
   if (fit == TRUE) { # CHD 16. Oct 2023 (end ~line 1900)
     # CHD 22.1.2024
-    #if ( ( (indVarying == TRUE) | (indVarying == 'CINT') ) & ( (randomIntercepts != TRUE) | (randomIntercepts != "MANIFETS") ) ) { # !! TYPO!!
     if ( ( (indVarying == "MANIFEST") | (indVarying == 'CINT') ) & ( (randomIntercepts != "CINT") | (randomIntercepts != "MANIFEST") ) ) {
       e <- ctsem::ctExtract(fitStanctModel)
       # CHD 12.6.2023
@@ -1352,20 +1261,16 @@ ctmaFit <- function(
         model_popcor_025 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .025))
         model_popcor_50 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .50))
         model_popcor_975 <- ctsem::ctCollapse(e$popcor, 3, function(x) stats::quantile(x, .975))
-        #model_popcor <- stats::cov2cor(model_popcov_m)
       }
     }
 
-    #if ( (indVarying != TRUE) & (indVarying != 'CINT') & (randomIntercepts != TRUE) & (randomIntercepts != "MANIFEST") ) {
     if ( (indVarying != "MANIFEST") & (indVarying != 'CINT') & (randomIntercepts != "CINT") & (randomIntercepts != "MANIFEST") ) {
       model_popsd <- "no random Intercepts estimated"
       model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- "no random intercepts estimated"
       model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- "no random intercepts estimated"
     }
 
-    #if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST")  ) {
     if ( (randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST")  ) {
-      #parNames <- ctsem:::getparnames(fitStanctModel); parNames
       # since getparnames is not exported, I took part fo the function and replicated it here # CHD 26.1.2024
       ms <- fitStanctModel$setup$matsetup
       indices <- ms$when %in% c(0, -1) & ms$param > 0 & ms$copyrow < 1
@@ -1389,7 +1294,7 @@ ctmaFit <- function(
         tmp1 <- which(!(is.na(fitStanctModel$ctstanmodelbase$pars$param))); tmp1
         tmpPars <- fitStanctModel$ctstanmodelbase$pars[tmp1,]; tmpPars
         T0varPos <- which(tmpPars$matrix == "T0VAR"); T0varPos
-        # CHD 3.1.205 correction (in case some drift have identical names)
+        # CHD 3.1.2025 correction (in case some drift have identical names)
         tmp2 <- table(tmpPars$param[1:(T0varPos[1]-1)]); tmp2
         if (length(tmp2[tmp2 >1]) > 0) T0varPos <- T0varPos - length(tmp2[tmp2 >1])
         rawT0varTmp <- fitStanctModel$stanfit$rawposterior[ , T0varPos]
@@ -1440,6 +1345,7 @@ ctmaFit <- function(
         }
         # make matrices out of vector
         for (k in 1:(length(T0COVCoeff))) {
+          #k <- 1
           tmpMatMean <- tmpMatSD <- matrix(NA, n.latent^2, n.latent^2)
           counter <- 0
           for (l in 1:(n.latent^2)) {
@@ -1449,8 +1355,8 @@ ctmaFit <- function(
               tmpMatSD[l,m] <- sd(T0COVCoeff[[k]][, counter])
             }
           }
-          tmpMatMean[upper.tri(tmpMatMean, diag = T)] <- t(tmpMatMean)[upper.tri(tmpMatMean, diag=T)]
-          tmpMatSD[upper.tri(tmpMatSD, diag = T)] <- t(tmpMatSD)[upper.tri(tmpMatSD, diag=T)]
+          tmpMatMean[upper.tri(tmpMatMean, diag = TRUE)] <- t(tmpMatMean)[upper.tri(tmpMatMean, diag = TRUE)]
+          tmpMatSD[upper.tri(tmpMatSD, diag = TRUE)] <- t(tmpMatSD)[upper.tri(tmpMatSD, diag = TRUE)]
           T0COVCoeffMean[[k]] <- tmpMatMean
           T0COVCoeffSD[[k]] <- tmpMatSD
         }
@@ -1464,8 +1370,8 @@ ctmaFit <- function(
             tmpMatSD[l,m] <- mean(T0varMean[counter, ])
           }
         }
-        tmpMatMean[upper.tri(tmpMatMean, diag = T)] <- t(tmpMatMean)[upper.tri(tmpMatMean, diag=T)]
-        tmpMatSD[upper.tri(tmpMatSD, diag = T)] <- t(tmpMatSD)[upper.tri(tmpMatSD, diag=T)]
+        tmpMatMean[upper.tri(tmpMatMean, diag = TRUE)] <- t(tmpMatMean)[upper.tri(tmpMatMean, diag = TRUE)]
+        tmpMatSD[upper.tri(tmpMatSD, diag = TRUE)] <- t(tmpMatSD)[upper.tri(tmpMatSD, diag = TRUE)]
         T0varMeanMean <- tmpMatMean
         T0varMeanSD <- tmpMatSD
       }
@@ -1474,8 +1380,6 @@ ctmaFit <- function(
       model_popsd <- "Random intercepts were estimated per primary study. It is recommended to compare them with ctmaInit results to ensure the present results are accurate. Currently, thes should correspond to the rawpopcovbase-slot in the ctsem fit object"
       model_popcov_m <- T0COVCoeffMean
       model_popcov_sd <- T0COVCoeffSD
-      #model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- "random intercepts were estimated but output is not yet available"
-      #model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- "random intercepts were estimated but output is not yet available"
     } # end if (randomIntercepts == TRUE)...
 
     # account for changes in ctsem 3.4.1
@@ -1485,7 +1389,6 @@ ctmaFit <- function(
     Tvalues <- fitStanctModel_summary$parmatrices[,tmpMean]/fitStanctModel_summary$parmatrices[,tmpSd]; Tvalues
     invariantDrift_Coeff <- cbind(fitStanctModel_summary$parmatrices, Tvalues); invariantDrift_Coeff
     invariantDrift_Coeff[, tmpMean:(dim(invariantDrift_Coeff)[2])] <- round(invariantDrift_Coeff[, tmpMean:(dim(invariantDrift_Coeff)[2])], digits); invariantDrift_Coeff
-    #invariantDrift_Coeff
 
     # (create & ) re-label rownames
     {
@@ -1516,8 +1419,6 @@ ctmaFit <- function(
 
       tmp4 <- tmp1[which(!(tmp1 %in% tmp2))]; tmp4 # change to "DRIFT " for later extraction
       rownames(invariantDrift_Coeff)[tmp4] <- paste0("DRIFT ", driftFullNames[which(!(tmp1 %in% tmp2))]); invariantDrift_Coeff
-      #invariantDrift_Coeff
-      #fitStanctModel_summary
 
       if (allInvModel == TRUE) {
         tmp5 <- (grep("DIFFUSIONcov", rownames(invariantDrift_Coeff))); tmp5
@@ -1569,7 +1470,6 @@ ctmaFit <- function(
       } else {
         model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
       }
-      #if ( (randomIntercepts == TRUE) |  (randomIntercepts == "MANIFEST") ) model_T0var_Coef <- c(T0varMean[1:n.latent, 1:n.latent])
       if ( (randomIntercepts == "CINT") |  (randomIntercepts == "MANIFEST") ) model_T0var_Coef <- c(T0varMean[1:n.latent, 1:n.latent])
       names(model_T0var_Coef) <- driftFullNames; model_T0var_Coef
     }
@@ -1586,37 +1486,36 @@ ctmaFit <- function(
       # re-label
       # CHD 13.1.2025
       if(is.null(mod.names)) mod.names <- "unnamed moderator"
-      #if (!(is.null(mod.names))) {
-        if (mod.type == "cont") {
-          counter <- 0
-          for (i in modTIs) {
-            counter <- counter + 1
-            targetNamePart <- paste0("tip_", modTIs[counter]); targetNamePart
-            rownames(modTI_Coeff) <- sub(targetNamePart, paste0(mod.names[counter], "_on_"), rownames(modTI_Coeff))
-          }
+      if (mod.type == "cont") {
+        counter <- 0
+        for (i in modTIs) {
+          counter <- counter + 1
+          targetNamePart <- paste0("tip_", modTIs[counter]); targetNamePart
+          rownames(modTI_Coeff) <- sub(targetNamePart, paste0(mod.names[counter], "_on_"), rownames(modTI_Coeff))
         }
+      }
 
-        if (mod.type == "cat") {
-          counter <- 0
-          modNameCounter <- 1
-          for (j in modTIs) {
-            if (n.moderators == 1) unique.mod.tmp <- unique.mod else unique.mod.tmp <- unique.mod[[counter+1]]
-            if (!(is.null(catsToCompare))) {
-              origCats <- c(unique.mod.tmp[1:2] + moderatorGroupsOffset, unique.mod.tmp[-c(1:2)]); origCats
-            } else {
-              origCats <- unique.mod.tmp
-            }
-            for (i in 1:(length(unique.mod.tmp)-1)) {
-              counter <- counter + 1; counter
-              current.mod.names <- mod.names[modNameCounter]; current.mod.names
-              targetNamePart <- paste0("tip_", modTIs[i]); targetNamePart
-              tmp1 <- grep(targetNamePart, rownames(modTI_Coeff)); tmp1
-              rownames(modTI_Coeff) <- sub(targetNamePart, paste0(origCats[counter+1], "  (category value) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
-            }
-            counter <- 0
-            modNameCounter <- modNameCounter + 1
+      if (mod.type == "cat") {
+        counter <- 0
+        modNameCounter <- 1
+        for (j in modTIs) {
+          if (n.moderators == 1) unique.mod.tmp <- unique.mod else unique.mod.tmp <- unique.mod[[counter+1]]
+          if (!(is.null(catsToCompare))) {
+            origCats <- c(unique.mod.tmp[1:2] + moderatorGroupsOffset, unique.mod.tmp[-c(1:2)]); origCats
+          } else {
+            origCats <- unique.mod.tmp
           }
+          for (i in 1:(length(unique.mod.tmp)-1)) {
+            counter <- counter + 1; counter
+            current.mod.names <- mod.names[modNameCounter]; current.mod.names
+            targetNamePart <- paste0("tip_", modTIs[i]); targetNamePart
+            tmp1 <- grep(targetNamePart, rownames(modTI_Coeff)); tmp1
+            rownames(modTI_Coeff) <- sub(targetNamePart, paste0(origCats[counter+1], "  (category value) of ", mod.names[modNameCounter], "_on"), rownames(modTI_Coeff))
+          }
+          counter <- 0
+          modNameCounter <- modNameCounter + 1
         }
+      }
       #}
       # eliminate z
       modTI_Coeff[, "z"] <- NULL; modTI_Coeff
@@ -1645,7 +1544,6 @@ ctmaFit <- function(
             tmp1 <- grep(tmp0, rownames((clusTI_Coeff))); tmp1
             tmp2 <- grep(tmp0, names((model_Drift_Coef))); tmp2
             # CHD changed 7.6.2023
-            # cluster.specific.effect[i,j] <- round(model_Drift_Coef[tmp2] + clusTI_Coeff[tmp1, 1] * cluster.weights[i, 2], digits)
             cluster.specific.effect[i,j] <- round(model_Drift_Coef[tmp2] + clusTI_Coeff[tmp1[i], 1] * cluster.weights[i, 2], digits)
           }
         }
@@ -1680,7 +1578,6 @@ ctmaFit <- function(
             if (tmpDriftMatrix[j, h] != 0) { # an effect that is zero has no optimal lag
               targetParameters <- sapply(usedTimeRange, OTL); targetParameters
               maxCrossEffect[j,h] <- max(abs(targetParameters))[1]; maxCrossEffect[j,h]
-              #optimalCrossLag[j,h] <- which(abs(targetParameters)==maxCrossEffect[j,h])[1]*1 - tmp1 # first targetParam is calculated for lag=0
               tmp <- which(abs(targetParameters)==maxCrossEffect[j,h])[1]*1 - tmp1
               optimalCrossLag[j,h] <- usedTimeRange[tmp]
             } else {
@@ -1817,15 +1714,63 @@ ctmaFit <- function(
       tmpPars <- fitStanctModel$ctstanmodelbase$pars[tmp1,]; tmpPars
       driftPos <- which(tmpPars$matrix == "DRIFT"); driftPos
       rawDriftTmp <- fitStanctModel$stanfit$rawposterior[ , driftPos]
-      #str(rawDriftTmp)
       #
       tmpNames <- paste0("Drift for Study No ", unlist(lapply(ctmaInitFit$studyList, function(x) x$originalStudyNo)), "."); tmpNames
       #
       TIpredEffTmp <- fitStanctModel$stanfit$transformedparsfull$TIPREDEFFECT[,driftPos, modPos]; TIpredEffTmp
-      for (d in 1:nrow(effectCodingWeights)) {
-        tmp2 <- apply(TIpredEffTmp %*% effectCodingWeights[d, ], 1, sum); tmp2
-        tmp1 <- t(apply(rawDriftTmp , 1 , function(x) x + tmp2))
-        DRIFTCoeff[[tmpNames[d]]] <- tmp1
+
+      # CHD 28.8.2025 use raw TIpredEffects: determine which drift-related TI effects are TRUE
+      skip <- 1
+      if (skip == 1) {
+        #fitStanctModel$ctstanmodelbase$pars
+        tmp3 <- length(which(!(is.na(fitStanctModel$ctstanmodelbase$pars$param)) == TRUE)); tmp3 #
+        tmp3b <- length(which(fitStanctModel$ctstanmodelbase$pars$indvarying == TRUE)); tmp3b #
+        targetCols <- grep("_eff", colnames(fitStanctModel$ctstanmodelbase$pars)); targetCols
+        tmpMat1 <- fitStanctModel$ctstanmodelbase$pars[which(!(is.na(fitStanctModel$ctstanmodelbase$pars$param)) == TRUE),
+                                                       c(4, targetCols)]; tmpMat1
+        targetEffects <- c()
+        counter <- 0
+        for (r in 1:nrow(tmpMat1)) { # col 1 is param name and left out
+          for (c in 2:ncol(tmpMat1)) {
+            counter <- counter + 1
+            if ((tmpMat1[r,c] == TRUE) & # if TI effect is estimate
+                (length(grep("to", tmpMat1[r,1])) > 0) & # if it is for drift
+                (c <= n.studies)  # if it not for moderators - only for study dummies
+            ) targetEffects <- c(targetEffects, counter)
+            if (tmpMat1[r,c] == FALSE) counter <- counter - 1
+          }
+        }
+        #round(apply(fitStanctModel$stanfit$rawposterior, 2, mean), 3)
+        #targetEffects <- targetEffects + tmp3 + tmp3b; targetEffects # add ct effects
+        targetEffects <- targetEffects + tmp3 + (tmp3b*(tmp3b-1))/2 + 1; targetEffects
+        TIpredEffAllTmp <- fitStanctModel$stanfit$rawposterior[,targetEffects]
+        #apply(TIpredEffAllTmp, 2, mean)
+        #TIpredEffTmp
+
+        tmp <- array(NA, dim = c(nrow(TIpredEffAllTmp), n.latent^2, ncol(TIpredEffAllTmp)/(n.latent^2)))
+        for (i1 in 1:dim(tmp)[2]) {
+          startPoint <- (i1-1) * (n.studies-1) + 1; startPoint
+          endPoint <- startPoint + (n.studies-1) - 1; endPoint
+          tmp[ ,i1,] <- TIpredEffAllTmp[, startPoint:endPoint]
+        }
+        TIpredEffAllTmp <- tmp
+      }
+
+      if (skip == 0) {
+        for (d in 1:nrow(effectCodingWeights)) {
+          tmp2 <- apply(TIpredEffTmp %*% effectCodingWeights[d, ], 1, sum); tmp2
+          tmp1 <- t(apply(rawDriftTmp , 1 , function(x) x + tmp2))
+          DRIFTCoeff[[tmpNames[d]]] <- tmp1
+        }
+      }
+
+      if (skip == 1) {
+        for (d in 1:nrow(effectCodingWeights)) {
+          tmp2 <- apply(TIpredEffAllTmp, 1, function(x) x %*% effectCodingWeights[d, ])
+          tmp2 <- aperm(tmp2, c(2,1))
+          tmp1 <- tmp2 + rawDriftTmp
+          DRIFTCoeff[[tmpNames[d]]] <- tmp1
+        }
       }
 
       tmp1a <- fitStanctModel$ctstanmodelbase$pars[, "transform"]; tmp1a
@@ -1848,13 +1793,12 @@ ctmaFit <- function(
           }
         }
       }
+
       for (p in 1:length(DRIFTCoeff)) {
         DRIFTCoeffMean[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, mean), n.latent, n.latent, byrow=T)
         DRIFTCoeffSD[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, sd), n.latent, n.latent, byrow=T)
       }
     } # end if (WEC == TRUE)
-
-    #if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
     if ( (randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") ) {
       randomIntercepts <- list(popsd=model_popsd,
                                popcov_mean=model_popcov_m,
@@ -1877,7 +1821,6 @@ ctmaFit <- function(
       }
       estimates_original_time_scale <- estimates_original_time_scale[-toDelete, ]
     } else {
-      #  if ( (indVarying == 'CINT') | (indVarying == TRUE)  | (indVarying != FALSE)){
       if ( (indVarying == 'CINT') | (indVarying == "MANIFEST")  | (indVarying != FALSE)){
         randomIntercepts <- list(note1="Covariances are time-scaled, correlations are unaffected by time scale.",
                                  note2="Undo time-scaling by multiplying the LR parts by (1/scaleTime)^2, and the LL and UR part by (1/scaleTime).",
@@ -1964,7 +1907,6 @@ ctmaFit <- function(
                         DRIFTCoeffViaWECSD=DRIFTCoeffSD),
       ctModel = fitStanctModel$ctstanmodelbase,
       parameterNames=ctmaInitFit$parameterNames,
-      #CoTiMAStanctArgs=CoTiMAStanctArgs,
       invariantDrift=invariantDrift,
       summary=list(model="Model name not specified", # paste(invariantDrift, "unequal but invariant across samples", collapse=" "),
                    scaledTime=scaleTime2,
@@ -1973,7 +1915,6 @@ ctmaFit <- function(
                    randomIntercepts=randomIntercepts,
                    minus2ll= invariantDrift_Minus2LogLikelihood,
                    n.parameters = invariantDrift_estimatedParameters,
-                   #optimalLagInfo = "Optimal lag and effect was calculated for original time scale (i.e., ignoring possible scaleTime argument).",
                    opt.lag.orig.time = optimalCrossLag,
                    opt.lag.scaled.time = optimalCrossLag_scaledTime,
                    max.effects = maxCrossEffect,
