@@ -11,11 +11,13 @@
 #' @param doPar parallel generating of data. if TRUE, data are generated in coresToUse parallel loops during which no output is generated (screen remains silent).
 #' @param drift list of drift matrices. No default (all = NULL).
 #' @param empirical whether (default) or not generated data that should be independent as generally assumed (e.g., diffusions at different time points, T0var, etc)  are truly independent. Allow for exact estimation of parameters (no random variance; not useful for MC simulations). May require large sample sizes.
+#' @param envir environment where objects should be extracted too. NULL by default. Typically one would use the global environment (envir = globalenv()). Has to be specified if ctmaExtract is set to TRUE.
 #' @param sampleSizes vector of sample sizes. Default = 100.
 #' @param lambda list of matrices. By default all are diagonal matrices with 1 in the diagonal.
 #' @param latentNames names for latent variables (default = NULL using generic names)
 #' @param manifestMeans list of manifest mean matrices. By default all are = 0.
 #' @param manifestVars list of manifest error (co-)variances matrices. By default all are = 0.
+#' @param modValues list of moderator values (possible used to generate the list of drift matrices provided). By default all are = 0.
 #' @param missings proportion of missings (default = 0, which does not delete any value)
 #' @param n.latent number of latent variables of the model No default (all = NULL).
 #' @param n.manifest number of manifest variables of the model (if left empty it will assumed to be identical with n.latent).
@@ -25,8 +27,8 @@
 #' @param TIpreds list of time-independent predictors, e.g., the moderators that were used to create the drift matrices. No default (all = NULL).
 #' @param tpoints vector of number of tpoints to be generated (default = 10).
 #' @param tpointTargets list of vectors of tpoints to be selectd (default = burnin:tpoints).
-#' @param useRawData if TRUE (or FALSE) and ctmaExtract is also TRUE, creates rawData (or empcov) objects required for CoTiMA into global environment.
-#' @param ctmaExtract if TRUE (default = FALSE) uses ctmaExtract to extract objects required for CoTiMA into global environment. Requires the argument useRawData to be set to TRUE or FALSE.
+#' @param useRawData if TRUE (or FALSE) and ctmaExtract is also TRUE, creates rawData (or empcov) objects required for CoTiMA into the environment specified using the argument envir.
+#' @param ctmaExtract if TRUE (default = FALSE) uses ctmaExtract to extract objects required for CoTiMA into the environment specified using the argument envir. Requires the argument useRawData to be set to TRUE or FALSE.
 #'
 #' @importFrom parallel detectCores makeCluster
 #' @importFrom ctsem ctDeintervalise ctLongToWide ctIntervalise ctWideToLong ctModel ctStanFit ctExtract ctCollapse
@@ -63,12 +65,14 @@ ctmaGenData <- function(
     doPar = FALSE,
     drift = NULL,
     empirical = TRUE,
+    envir = NULL,
     sampleSizes = 100,
     lambda = NULL,
     latentNames = NULL,
     manifestMeans = 0,
     manifestVars = 0,
     missings = 0,
+    modValues = 0,
     n.latent = NULL,
     n.manifest = 0,
     randomIntercepts = 0,
@@ -399,7 +403,30 @@ ctmaGenData <- function(
         ErrorMsg <- "\nSince ctmaExtract is set to true, useRawData is possibly misspelled. It has to be set to TRUE or FALSE. \nGood luck for the next try!"
         stop(ErrorMsg)
       }
+      if (is.null(envir)) {
+        ErrorMsg <- "\nSince ctmaExtract is set to true, the argument envir has to be set to an environment (e.g., envir = globalenv()). \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
     }
+
+    if (length(modValues) == 1) {
+      if (!(is.list(modValues))) {
+        if (modValues == 0) {
+          modValues <- replicate(length(drift), 0, simplify = FALSE)
+        } else {
+          modValues <- as.list(rep(modValues, length(drift)))
+        }
+      }
+     } else {
+      if (!(is.list(modValues))) {
+        ErrorMsg <- "\nThe modValues argument has to be a list. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if ( length(modValues) != length(drift) ) {
+        ErrorMsg <- "\nThe number of modValues provided does not match the number of drift matrices provided (drift). \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+     }
 
 
     ## Compute diffusions to achieve steady state  ####
@@ -665,7 +692,9 @@ ctmaGenData <- function(
                  randomIntercepts = randomIntercepts[[i]],
                  manifestVars = manifestVars[[i]],
                  manifestMeans = manifestMeans[[i]],
-                 TIpreds = TIpreds[[i]]))
+                 TIpreds = TIpreds[[i]],
+                 latentNames = latentNames,
+                 modValues = modValues))
   }
 
   # generate missings
@@ -688,13 +717,15 @@ ctmaGenData <- function(
   if(ctmaExtract == TRUE) {
     if (useRawData == TRUE) tmp <- "rawData objects (rawDat1, rawData2, etc)"
     if (useRawData == FALSE) tmp <- "empcov objects (empcov1, empcov2, etc)"
-    Msg <- paste0("\n\nctmaExtract was set to TRUE. Creating required CoTiMA objects incl. ", tmp, " in the global environment.\n")
+    Msg <- paste0("\n\nctmaExtract was set to TRUE. Creating required CoTiMA objects incl. ", tmp, " in the environment ", envir, ".\n")
     message(Msg)
 
     ctmaExtract(activeDirectory = activeDirectory,
                 ctmaGenDataList = studies,
+                envir = envir,
                 useRawData = useRawData)}
-  # Return ####
+
+    # Return ####
   return(studies)
 }
 
