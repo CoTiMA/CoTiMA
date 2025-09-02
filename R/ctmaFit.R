@@ -622,11 +622,13 @@ ctmaFit <- function(
     # use weighted effect coding
     if (WEC == TRUE) {
       targetCols <- grep("TI", colnames(dataTmp)); targetCols
-      targetRows <- which(apply(dataTmp[, targetCols], 1, sum) == 0); targetRows
+      targetRows <- which(apply(dataTmp[, targetCols], 1, sum) == 0); targetRows # reference group
       targetN <- length(targetRows); targetN
       for (i in 1:length(targetCols)) {
-        tmp1 <- sum(dataTmp[, targetCols[i]])
-        dataTmp[targetRows, targetCols[i]] <- -tmp1/targetN
+        #i <- 1
+        targetRows2 <- which(dataTmp[, targetCols[i]] == 1); targetRows2
+        targetSum <- length(targetRows2); targetSum
+        dataTmp[targetRows, targetCols[i]] <- -targetSum/targetN
       }
     }
 
@@ -798,6 +800,7 @@ ctmaFit <- function(
     }
 
   }
+
 
   #######################################################################################################################
   ############################################### Define Parameter Names ################################################
@@ -1703,7 +1706,8 @@ ctmaFit <- function(
 
     # new 18.12.2023
     DRIFTCoeff <- list()
-    DRIFTCoeffMean <- DRIFTCoeffSD <- list()
+    DRIFTCoeffMean <- DRIFTCoeffSD <- DRIFTCoeff025 <- DRIFTCoeff500 <- DRIFTCoeff975 <- list()
+    WEC_estimates_original_time_scale <- list()
     if (WEC == TRUE) {
       n.mod.values.to.plot <- length(colnames(fitStanctModel$data$tipredsdata)[1:(n.studies-1)])+1; n.mod.values.to.plot
       modPos <- 1:(n.studies-1); modPos
@@ -1740,9 +1744,10 @@ ctmaFit <- function(
             if (tmpMat1[r,c] == FALSE) counter <- counter - 1
           }
         }
-        #round(apply(fitStanctModel$stanfit$rawposterior, 2, mean), 3)
-        #targetEffects <- targetEffects + tmp3 + tmp3b; targetEffects # add ct effects
-        targetEffects <- targetEffects + tmp3 + (tmp3b*(tmp3b-1))/2 + 1; targetEffects
+        targetEffects
+        targetEffects + tmp3 + (tmp3b*(tmp3b-1))/2
+        #targetEffects <- targetEffects + tmp3 + (tmp3b*(tmp3b-1))/2 + 1; targetEffects
+        targetEffects <- targetEffects + tmp3 + (tmp3b*(tmp3b-1))/2 + 0; targetEffects
         TIpredEffAllTmp <- fitStanctModel$stanfit$rawposterior[,targetEffects]
         #apply(TIpredEffAllTmp, 2, mean)
         #TIpredEffTmp
@@ -1795,10 +1800,29 @@ ctmaFit <- function(
       }
 
       for (p in 1:length(DRIFTCoeff)) {
+        WEC_estimates_original_time_scale[[p]] <- estimates_original_time_scale[1:(n.latent^2),]
+        WEC_estimates_original_time_scale[[p]][, 3:8] <- NA
+        #print(WEC_estimates_original_time_scale[[p]])
+
         DRIFTCoeffMean[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, mean), n.latent, n.latent, byrow=T)
         DRIFTCoeffSD[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, sd), n.latent, n.latent, byrow=T)
+        #model_popcov_025 <- ctsem::ctCollapse(e$popcov, 1, function(x) stats::quantile(x, .025))
+        DRIFTCoeff025[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, function(x) stats::quantile(x, .025)), n.latent, n.latent, byrow=T)
+        DRIFTCoeff500[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, function(x) stats::quantile(x, .500)), n.latent, n.latent, byrow=T)
+        DRIFTCoeff975[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, function(x) stats::quantile(x, .975)), n.latent, n.latent, byrow=T)
+
+        #print(round(c(DRIFTCoeffMean[[p]]), digits))
+
+        WEC_estimates_original_time_scale[[p]][, 3] <- round(c(t(DRIFTCoeffMean[[p]])), digits)
+        WEC_estimates_original_time_scale[[p]][, 4] <- round(c(t(DRIFTCoeffSD[[p]])), digits)
+        WEC_estimates_original_time_scale[[p]][, 5] <- round(c(t(DRIFTCoeff025[[p]])), digits)
+        WEC_estimates_original_time_scale[[p]][, 6] <- round(c(t(DRIFTCoeff500[[p]])), digits)
+        WEC_estimates_original_time_scale[[p]][, 7] <- round(c(t(DRIFTCoeff975[[p]])), digits)
+        WEC_estimates_original_time_scale[[p]][, 8] <- round(c(t(DRIFTCoeffMean[[p]])) / c(t(DRIFTCoeffSD[[p]])), digits)
+
       }
     } # end if (WEC == TRUE)
+
     if ( (randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") ) {
       randomIntercepts <- list(popsd=model_popsd,
                                popcov_mean=model_popcov_m,
@@ -1923,7 +1947,8 @@ ctmaFit <- function(
                    message=message,
                    estimates_original_time_scale =estimates_original_time_scale,
                    mod_effects_original_time_scale=mod_effects_original_time_scale,
-                   clus_effects_original_time_scale=clus_effects_original_time_scale)
+                   clus_effects_original_time_scale=clus_effects_original_time_scale,
+                   WEC_estimates_original_time_scale=WEC_estimates_original_time_scale)
       # excel workbook is added later
     )
 
