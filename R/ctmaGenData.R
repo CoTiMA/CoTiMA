@@ -437,7 +437,7 @@ ctmaGenData <- function(
       for (i in 1:length(drift)) {
         #i <- 1
         T1cov_impl <- expm(drift[[i]]) %*% (T0var[[i]] + randomIntercepts[[i]]) %*% t(expm(drift[[i]])); T1cov_impl
-        resvar <- (T0var[[i]] + randomIntercepts[[i]]) - T1cov_impl; resvar
+        resvar <- as.matrix((T0var[[i]] + randomIntercepts[[i]]) - T1cov_impl); resvar
         if (length(unique(round(abs(c(resvar)), 5))) == 1) {
           ErrorMsg <- paste0("\nCannot generate data because of singularity issues with Study ", i, ",",
                              "\nwhich may be due all drift elements having identical magnitudes (e.g., all -.1 or .1).",
@@ -592,13 +592,15 @@ ctmaGenData <- function(
     }
 
     # data that do not vary among cases and tpoints
-    cint.dat <- matrix(t(cint_dt[[i]]),  nrow=sampleSizes[[i]], ncol=n.latent, byrow = T)
-    manifestMeans.dat <- matrix(t(manifestMeans[[i]]),  nrow=sampleSizes[[i]], ncol=n.latent, byrow = T)
+    cint.dat <- matrix(t(as.matrix(cint_dt[[i]])),  nrow=sampleSizes[[i]], ncol=n.latent, byrow = T)
+
+    manifestMeans.dat <- matrix(t(as.matrix(manifestMeans[[i]])),  nrow=sampleSizes[[i]], ncol=n.latent, byrow = T)
 
     #### T1, T2, ... all subsequent Tpoints ####
     for (t in 1:(tpoints-1)) {
+      #t <- 1
       tmpData <- data[, ((t-1)*n.latent+1):((t-1)*n.latent+n.latent)]
-      tmp <- t(apply(tmpData, 1, function(x) drift_dt[[i]] %*% x))
+      tmp <- t(apply(tmpData, 1, function(x) as.matrix(drift_dt[[i]] %*% x)))
       # add diffusion
       if (empirical == TRUE) {
         tmp <- tmp + diff.dat[, (2*(t-1)+1):(2*(t-1)+n.manifest)]
@@ -612,13 +614,12 @@ ctmaGenData <- function(
       # combine
       data <- cbind(data, tmp)
     }
-    #head(data)
 
     #### Add constant trait.dat ####
-    for (t in seq(1, ncol(data), n.latent)) data[, c(t, t+1)] <- data[, c(t, t+1)] + trait.dat
+    for (t in seq(1, ncol(data), n.latent)) data[, c(t:(t+(n.latent-1)))] <- data[, (t:(t+(n.latent-1)))] + trait.dat
 
     #### Add constant manifestMeans.dat ####
-    for (t in seq(1, ncol(data), n.latent)) data[, c(t, t+1)] <- data[, c(t, t+1)] + manifestMeans.dat
+    for (t in seq(1, ncol(data), n.latent)) data[, c(t:(t+(n.latent-1)))] <- data[, c(t:(t+(n.latent-1)))] + manifestMeans.dat
 
 
     # Make measurement model
@@ -626,10 +627,10 @@ ctmaGenData <- function(
     # add manifestVar
     # to be done  (and tbd further below not here)
 
-    colnames(data) <- paste0(paste0(latentNames, "_T"), sort(rep(seq(0,(tpoints-1),1), 2)))
+    colnames(data) <- paste0(paste0(latentNames, "_T"), sort(rep(seq(0,(tpoints-1),1), n.latent)))
     data <- cbind(data, matrix(seq(0, tpoints-1, 1), nrow=nrow(data), ncol=tpoints, byrow=T))
     colnames(data)[(ncol(data)-tpoints+1):ncol(data)] <- paste0("T", sort(rep(seq(0,(tpoints-1),1))))
-    head(data); dim(data)
+    #head(data); dim(data)
 
 
     ### Make long data ####
@@ -684,11 +685,11 @@ ctmaGenData <- function(
     tmp <- (list(data = datalong, # this (last) computation is automatically returned by doPar
                  tpointTargets = tpointTargets[[i]],
                  drift = drift[[i]],
-                 drift_dt = drift_dt[[i]],
+                 drift_dt = as.matrix(drift_dt[[i]]),
                  diff = diff[[i]],
                  diff_dt = diff_dt[[i]],
                  cint = cint[[i]],
-                 cint_dt = cint_dt[[i]],
+                 cint_dt = as.matrix(cint_dt[[i]]),
                  T0means = T0means[[i]],
                  T0var =- T0var[[i]],
                  randomIntercepts = randomIntercepts[[i]],
@@ -722,6 +723,7 @@ ctmaGenData <- function(
     Msg <- paste0("\n\nctmaExtract was set to TRUE. Creating required CoTiMA objects incl. ", tmp, " in the environment specified in the argument envir.\n")
     message(Msg)
 
+    str(studies)
     ctmaExtract(activeDirectory = activeDirectory,
                 ctmaGenDataList = studies,
                 envir = envir,

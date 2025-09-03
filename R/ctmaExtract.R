@@ -37,7 +37,6 @@ ctmaExtract <- function(
     stop(ErrorMsg)
   }
 
-
   latentNames <- ctmaGenDataList[[1]]$latentNames
 
   for (i in 1:length(ctmaGenDataList)) {
@@ -51,7 +50,7 @@ ctmaExtract <- function(
     )
     invisible(
       suppressMessages(
-        suppressWarnings(datawide <- ctsem::ctIntervalise(datawide, Tpoints=length(ctmaGenDataList[[i]]$tpointTargets), n.manifest = 2, manifestNames = latentNames )
+        suppressWarnings(datawide <- ctsem::ctIntervalise(datawide, Tpoints=length(ctmaGenDataList[[i]]$tpointTargets), n.manifest = length(latentNames), manifestNames = latentNames )
         )
       )
     )
