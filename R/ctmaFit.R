@@ -265,6 +265,7 @@ ctmaFit <- function(
   }
 
 
+
   #######################################################################################################################
   ####### Copy/Change INIT File based on information delivered by different PREP files (e.g., moderator studies ) #######
   #######################################################################################################################
@@ -553,6 +554,8 @@ ctmaFit <- function(
     # make data matrix with moderators
     if (n.moderators > 0) {
       moderatorGroups <- tmp$moderatorGroups
+      # CHD bugfix with no ide why it became necsessary
+      if (is.data.frame(moderatorGroups)) moderatorGroups <- as.matrix(moderatorGroups)
       if (!(is.matrix(moderatorGroups))) moderatorGroups <- matrix(moderatorGroups, ncol=1)
       colnames(moderatorGroups) <- paste0("mod", 1:(dim(currentModerators)[2])); colnames(moderatorGroups)
 
