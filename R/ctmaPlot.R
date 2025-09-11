@@ -381,6 +381,7 @@ ctmaPlot <- function(
   #################################################### forest plots #####################################################
   #######################################################################################################################
   for (k in 1:n.fitted.obj) {
+    #k <- 1
     if ("forest" %in% plot.type[[k]]) {
       # extracting information
       {
@@ -397,12 +398,39 @@ ctmaPlot <- function(
         crossDRIFTCoeffUp <- DRIFTCoeff[[k]][, crossNames] + 1.96 * DRIFTSE[[k]][, crossNames]; crossDRIFTCoeffUp
         maxAutoDRIFTCoeffUp <-  max(autoDRIFTCoeffUp); maxAutoDRIFTCoeffUp
         maxCrossDRIFTCoeffUp <-  max(crossDRIFTCoeffUp); maxCrossDRIFTCoeffUp
+
+        # scale when xLables are provided and do again
+        #(!(is.null(xLabels)))
+        if (!(is.null(xLabels))) {
+          minAutoDRIFTCoeffLowTmp <- minAutoDRIFTCoeffLow
+          maxAutoDRIFTCoeffUpTmp <- maxAutoDRIFTCoeffUp
+          minCrossDRIFTCoeffLowTmp <- minCrossDRIFTCoeffLow
+          maxCrossDRIFTCoeffUpTmp <- maxCrossDRIFTCoeffUp
+          scaleFactorAuto <- function(x, from = c(minAutoDRIFTCoeffLowTmp, maxAutoDRIFTCoeffUpTmp), to = c(min(xLabels), max(xLabels))) {
+            (x - from[1]) / (from[2] - from[1]) * (to[2] - to[1]) + to[1]
+          }
+          scaleFactorCross <- function(x, from = c(minCrossDRIFTCoeffLowTmp, maxCrossDRIFTCoeffUpTmp), to = c(min(xLabels), max(xLabels))) {
+            (x - from[1]) / (from[2] - from[1]) * (to[2] - to[1]) + to[1]
+          }
+          # lower limits
+          autoDRIFTCoeffLow <- apply(autoDRIFTCoeffLow, c(1,2), scaleFactorAuto); autoDRIFTCoeffLow
+          crossDRIFTCoeffLow <- apply(crossDRIFTCoeffLow, c(1,2), scaleFactorCross); crossDRIFTCoeffLow
+          minAutoDRIFTCoeffLow <-  min(autoDRIFTCoeffLow); minAutoDRIFTCoeffLow
+          minCrossDRIFTCoeffLow <-  min(crossDRIFTCoeffLow); minCrossDRIFTCoeffLow
+          # upper limits
+          autoDRIFTCoeffUp <- apply(autoDRIFTCoeffUp, c(1,2), scaleFactorAuto); autoDRIFTCoeffUp
+          crossDRIFTCoeffUp <- apply(crossDRIFTCoeffUp, c(1,2), scaleFactorCross); crossDRIFTCoeffUp
+          maxAutoDRIFTCoeffUp <-  max(autoDRIFTCoeffUp); maxAutoDRIFTCoeffUp
+          maxCrossDRIFTCoeffUp <-  max(crossDRIFTCoeffUp); maxCrossDRIFTCoeffUp
+        }
+
         # average effects
         # sample sizes (used for size of squares)
         precision <- unlist(sampleSize[k]); precision
         precision <- matrix((rep(precision, n.latent^2)), ncol=n.latent^2); precision
         minPrecision <- min(precision)-.1*min(precision); minPrecision
         maxPrecision <- max(precision)+.1*max(precision); maxPrecision
+
       }
 
       # figure size
@@ -425,12 +453,21 @@ ctmaPlot <- function(
         squareSizeBase <- precision/maxPrecision * maxSquareSize; squareSizeBase # the size of the square to plot (based on 1/DRIFTSE^1)
         # some algebra to adapt raw coefficients to the scale (xMax, yMax) used for plotting
         betaAuto <-  -(xMax)/(minAutoDRIFTCoeffLow - maxAutoDRIFTCoeffUp); betaAuto
+        if (!(is.null(xLabels))) {betaAuto <- -(xMax)/(scaleFactorAuto(minAutoDRIFTCoeffLow) - scaleFactorAuto(maxAutoDRIFTCoeffUp)); betaAuto}
         betaCross <-  -(xMax)/(minCrossDRIFTCoeffLow - maxCrossDRIFTCoeffUp); betaCross
+        if (!(is.null(xLabels))) {betaCross <-  -(xMax)/(scaleFactorCross(minCrossDRIFTCoeffLow) - scaleFactorCross(maxCrossDRIFTCoeffUp)); betaCross}
         constAuto <- -minAutoDRIFTCoeffLow * betaAuto; constAuto
+        if (!(is.null(xLabels))) {constAuto <- -scaleFactorAuto(minAutoDRIFTCoeffLow) * betaAuto; constAuto}
         constCross <- -minCrossDRIFTCoeffLow * betaCross; constCross
+        if (!(is.null(xLabels))) {constCross <- -scaleFactorCross(minCrossDRIFTCoeffLow) * betaCross; constCross}
         # drifts of primary studies
-        autoDRIFTCoeffBase <- DRIFTCoeff[[k]][,autoNames] * betaAuto + constAuto; autoDRIFTCoeffBase
-        crossDRIFTCoeffBase <- DRIFTCoeff[[k]][,crossNames] * betaCross + constCross; crossDRIFTCoeffBase
+        if (!(is.null(xLabels))) {
+          autoDRIFTCoeffBase <- apply(DRIFTCoeff[[k]][,autoNames], c(1,2), scaleFactorAuto) * betaAuto + constAuto; autoDRIFTCoeffBase
+          crossDRIFTCoeffBase <- apply(DRIFTCoeff[[k]][,crossNames], c(1,2), scaleFactorCross) * betaCross + constCross; crossDRIFTCoeffBase
+        } else {
+          autoDRIFTCoeffBase <- DRIFTCoeff[[k]][,autoNames] * betaAuto + constAuto; autoDRIFTCoeffBase
+          crossDRIFTCoeffBase <- DRIFTCoeff[[k]][,crossNames] * betaCross + constCross; crossDRIFTCoeffBase
+        }
         # lower limits of primary studies
         autoDRIFTCoeffLowBase <- autoDRIFTCoeffLow * betaAuto + constAuto; autoDRIFTCoeffLowBase
         crossDRIFTCoeffLowBase <- crossDRIFTCoeffLow * betaCross + constCross; crossDRIFTCoeffLowBase
@@ -438,19 +475,31 @@ ctmaPlot <- function(
         autoDRIFTCoeffUpBase <- autoDRIFTCoeffUp * betaAuto + constAuto; autoDRIFTCoeffUpBase
         crossDRIFTCoeffUpBase <- crossDRIFTCoeffUp * betaCross + constCross; crossDRIFTCoeffUpBase
         # avg. drift
-        autoFixedEffect_DriftBase <- FixedEffect_Drift[[k]][autoNames]  * betaAuto + constAuto; autoFixedEffect_DriftBase
-        crossFixedEffect_DriftBase <- FixedEffect_Drift[[k]][crossNames]  * betaCross + constCross; crossFixedEffect_DriftBase
-        # avg. drift lower limit
-        autoFixedEffect_DriftLowBase <- FixedEffect_DriftLow[[k]][autoNames]  * betaAuto + constAuto; autoFixedEffect_DriftLowBase
-        crossFixedEffect_DriftLowBase <- FixedEffect_DriftLow[[k]][crossNames]  * betaCross + constCross; crossFixedEffect_DriftLowBase
-        # avg. drift upper limit
-        autoFixedEffect_DriftUpBase <- FixedEffect_DriftUp[[k]][autoNames] * betaAuto + constAuto; autoFixedEffect_DriftUpBase
-        crossFixedEffect_DriftUpBase <- FixedEffect_DriftUp[[k]][crossNames] * betaCross + constCross; crossFixedEffect_DriftUpBase
+        if (!(is.null(xLabels))) {
+          autoFixedEffect_DriftBase <- scaleFactorAuto(FixedEffect_Drift[[k]][autoNames])  * betaAuto + constAuto; autoFixedEffect_DriftBase
+          crossFixedEffect_DriftBase <- scaleFactorCross(FixedEffect_Drift[[k]][crossNames])  * betaCross + constCross; crossFixedEffect_DriftBase
+          # avg. drift lower limit
+          autoFixedEffect_DriftLowBase <- scaleFactorAuto(FixedEffect_DriftLow[[k]][autoNames])  * betaAuto + constAuto; autoFixedEffect_DriftLowBase
+          crossFixedEffect_DriftLowBase <- scaleFactorCross(FixedEffect_DriftLow[[k]][crossNames])  * betaCross + constCross; crossFixedEffect_DriftLowBase
+          # avg. drift upper limit
+          autoFixedEffect_DriftUpBase <- scaleFactorAuto(FixedEffect_DriftUp[[k]][autoNames]) * betaAuto + constAuto; autoFixedEffect_DriftUpBase
+          crossFixedEffect_DriftUpBase <- scaleFactorCross(FixedEffect_DriftUp[[k]][crossNames]) * betaCross + constCross; crossFixedEffect_DriftUpBase
+        } else {
+          autoFixedEffect_DriftBase <- FixedEffect_Drift[[k]][autoNames]  * betaAuto + constAuto; autoFixedEffect_DriftBase
+          crossFixedEffect_DriftBase <- FixedEffect_Drift[[k]][crossNames]  * betaCross + constCross; crossFixedEffect_DriftBase
+          # avg. drift lower limit
+          autoFixedEffect_DriftLowBase <- FixedEffect_DriftLow[[k]][autoNames]  * betaAuto + constAuto; autoFixedEffect_DriftLowBase
+          crossFixedEffect_DriftLowBase <- FixedEffect_DriftLow[[k]][crossNames]  * betaCross + constCross; crossFixedEffect_DriftLowBase
+          # avg. drift upper limit
+          autoFixedEffect_DriftUpBase <- FixedEffect_DriftUp[[k]][autoNames] * betaAuto + constAuto; autoFixedEffect_DriftUpBase
+          crossFixedEffect_DriftUpBase <- FixedEffect_DriftUp[[k]][crossNames] * betaCross + constCross; crossFixedEffect_DriftUpBase
+        }
       }
 
       # plot
       graphics::plot.new()
       for (i in 1:(n.latent^2)) {
+        #i <- 1
         # set frame by plotting invisible object
         plot(c(0,0), type="l", col="white", lwd=1.5, xlim = c(plot.xMin, plot.xMax), ylim = c(plot.yMin, plot.yMax),
              xaxt='n', yaxt='n', ann=FALSE)
@@ -496,8 +545,8 @@ ctmaPlot <- function(
         ybottom <- ymiddle - maxSquareSize/2; ybottom
         x <- c(xmiddle-maxSquareSize/2, xmiddle, xmiddle+maxSquareSize/2, xmiddle, xmiddle-maxSquareSize/2); x # if based on N
         y <- c(ymiddle, ytop, ymiddle, ybottom, ymiddle); y
-        graphics::polygon(x=x, y=y, col="black")
-        graphics::abline(v=xmiddle, lty=2)
+        graphics::polygon(x=x, y=y, col="black") # mean effect diamond
+        graphics::abline(v=xmiddle, lty=2) # mean effect v-line
 
         # y-axis (original study numbers)
         atSeq <- seq(((n.studies+1)*heigthPerStudy- heigthPerStudy/2), 0, by = -heigthPerStudy); atSeq
@@ -512,8 +561,16 @@ ctmaPlot <- function(
           currentMin <- min(crossDRIFTCoeffLow); currentMin
           currentMax <- max(crossDRIFTCoeffUp); currentMax
         }
+        if (!(is.null(xLabels))) {
+          currentMin <- min(xLabels)
+          currentMax <- max(xLabels)
+        }
         xRange <- currentMax - currentMin; xRange
         labelsSeq <- round(seq(currentMin, currentMax, by = (xRange/(length(atSeq)-1))), 2); labelsSeq
+        if (!(is.null(xLabels))) {
+          labelsSeq <- xLabels
+          atSeq <- seq(plot.xMin, plot.xMax, by = (plot.xMax - plot.xMin)/(length(xLabels) - 1)); atSeq
+        }
         graphics::axis(side=1, at = atSeq, labels=labelsSeq)
 
         # Add labels and title
