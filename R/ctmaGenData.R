@@ -17,6 +17,7 @@
 #' @param latentNames names for latent variables (default = NULL using generic names)
 #' @param manifestMeans list of manifest mean matrices. By default all are = 0.
 #' @param manifestVars list of manifest error (co-)variances matrices. By default all are = 0.
+#' @param manifestNames  names for manifest variables (default = NULL using generic names)
 #' @param modValues list of moderator values (possible used to generate the list of drift matrices provided). By default all are = 0.
 #' @param missings proportion of missings (default = 0, which does not delete any value)
 #' @param n.latent number of latent variables of the model No default (all = NULL).
@@ -57,7 +58,7 @@
 ctmaGenData <- function(
     activeDirectory = NULL,
     burnin = 0,
-    cint  = NULL,
+    cint = NULL,
     coresToUse = 2,
     ctmaExtract=FALSE,
     diff = NULL,
@@ -69,13 +70,14 @@ ctmaGenData <- function(
     sampleSizes = 100,
     lambda = NULL,
     latentNames = NULL,
-    manifestMeans = 0,
-    manifestVars = 0,
-    missings = 0,
+    manifestMeans = NULL,
+    manifestVars = NULL,
+    manifestNames = NULL,
+    missings = NULL,
     modValues = 0,
     n.latent = NULL,
-    n.manifest = 0,
-    randomIntercepts = 0,
+    n.manifest = NULL,
+    randomIntercepts = NULL,
     T0means = 0,
     T0var = NULL,
     TIpreds = NULL,
@@ -91,26 +93,15 @@ ctmaGenData <- function(
 
   # Check if not yet working arguments are set #####
   {
-    if (manifestVars != 0) {
-      ErrorMsg <- "\n Argument manifestVars not yet possible"
-      stop(ErrorMsg)
-    }
-
-    if (n.manifest != 0) {
-      ErrorMsg <- "\n Argument n.manifest not yet possible"
-      stop(ErrorMsg)
-    }
     if (!(is.null(TIpreds))) {
       ErrorMsg <- "\n Argument TIpreds not yet possible"
       stop(ErrorMsg)
     }
-    if (!(is.null(lambda))) {
-      ErrorMsg <- "\n Argument lambda (i.e, measurement models) not yet possible"
-      stop(ErrorMsg)
-    }
+
+
     if (empirical == FALSE) {
       if (burnin < 100) {
-        Msg <- "The argument empirical == FALSE was used and burnin < 100. Longer burnin phases are recommended to achieve a steady state..\n"
+        Msg <- "The argument empirical == FALSE was used and burnin < 100. Longer burnin phases are recommended to achieve a steady state.\n"
         message(Msg)
       }
     }
@@ -119,6 +110,12 @@ ctmaGenData <- function(
   # Check if arguments are properly used #####
   { # start checks
     if (utils::packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
+
+    if (is.null(n.latent)) {
+      Msg <- "\nn.latent not specified. I infer n.latent from the dimensions of the drift matrix."
+      message(Msg)
+      n.latent <- ncol(drift[[1]]); n.latent
+    }
 
     if (is.null(drift)) {
       ErrorMsg <- "\n No drift matrix (drift) specified! \nGood luck for the next try!"
@@ -133,6 +130,55 @@ ctmaGenData <- function(
     if (length(unique(unlist(lapply(drift, function(x) ncol(x))))) != 1) {
       ErrorMsg <- "\nThe drift matrices supplied have different dimensions. \nGood luck for the next try!"
       stop(ErrorMsg)
+    }
+
+    if (!(is.null(manifestVars))) {
+      if (!(is.list(manifestVars))) {
+        ErrorMsg <- "\nThe manifestVars argument has to be a list (of matrices). \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if (length(unique(unlist(lapply(manifestVars, function(x) ncol(x))))) != 1) {
+        ErrorMsg <- "\nThe manifestVars matrices supplied have different dimensions. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if ( ncol(manifestVars[[1]]) != nrow(lambda[[1]]) ) {
+        ErrorMsg <- "\nThe manifestVars matrices supplied have a different dimensions than the rows of the lambda matrices. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if (!all(unlist((lapply(manifestVars, function(x) isSymmetric(x, tol = 1e-8)))))) {
+        ErrorMsg <- "\nAt least one of the manifestVars matrices supplied is not symmetric. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+    }
+
+    if (!(is.null(n.manifest))) {
+      if (is.null(lambda)) {
+        ErrorMsg <- "\n You specified n.manifest. I also need a list of lambda matrices."
+        stop(ErrorMsg)
+      }
+    }
+
+    if (!(is.null(randomIntercepts))) {
+      if (!(is.list(randomIntercepts))) {
+        ErrorMsg <- "\nThe randomIntercepts argument has to be a list (of matrices). \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if (length(unique(unlist(lapply(randomIntercepts, function(x) ncol(x))))) != 1) {
+        ErrorMsg <- "\nThe randomIntercepts matrices supplied have different dimensions. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if ( ncol(randomIntercepts[[1]]) != nrow(drift[[1]]) ) {
+        ErrorMsg <- "\nThe randomIntercepts matrices supplied have a different dimensions than the drift matrices. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if (!all(unlist((lapply(randomIntercepts, function(x) isSymmetric(x, tol = 1e-8)))))) {
+        ErrorMsg <- "\nAt least one of the randomIntercept matrices supplied is not symmetric. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+    }
+
+    if (is.null(randomIntercepts)) {
+      randomIntercepts <- rep(list(matrix(0, n.latent, n.latent)), length(drift))
     }
 
     if (is.null(tpointTargets)) {
@@ -177,19 +223,68 @@ ctmaGenData <- function(
       stop(ErrorMsg)
     }
 
-    if (is.null(n.latent)) {
-      Msg <- "n.latent not specified. I infer n.latent from the dimensions of the drift matrix.\n"
-      message(Msg)
-      n.latent <- ncol(drift[[1]]); n.latent
+    if (!all(unlist((lapply(T0var, function(x) isSymmetric(x, tol = 1e-8)))))) {
+      ErrorMsg <- "\nAt least one of the T0var matrices supplied is not symmetric. \nGood luck for the next try!"
+      stop(ErrorMsg)
     }
 
     # trait means
     TRAITMEANS <- matrix(0, nrow=n.latent, ncol=1)
 
-    if (n.manifest == 0) {
-      Msg <- "n.manifest not specified. I assume n.manifest is equal to n.latent.\n"
-      message(Msg)
-      n.manifest <- n.latent
+    if (is.null(n.manifest)) {
+      if (is.null(lambda)) {
+        Msg <- "n.manifest not specified. I assume n.manifest is equal to n.latent.\n"
+        message(Msg)
+        n.manifest <- n.latent
+        Msg <- "\nlambda not specified. I assume all lambdas are diagonal matrices with 1 in the diagonals."
+        message(Msg)
+        lambda <- rep(list(diag(1, n.latent, n.latent)), length(drift))
+      }
+    }
+
+    if (is.null(n.manifest)) {
+      if (!(is.null(lambda))) {
+        Msg <- "\nn.manifest not specified but lambda. I infer n.manifest from the number of rows of lambda."
+        message(Msg)
+        n.manifest <- nrow(lambda[[1]])
+      }
+    }
+
+
+    if (!(is.null(lambda))) {
+      if (!(is.list(lambda))) {
+        ErrorMsg <- "\nThe lambda argument has to be a list. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if (length(unique(unlist(lapply(lambda, function(x) ncol(x))))) != 1) {
+        ErrorMsg <- "\nThe lambda matrices supplied have different dimensions. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if (length(unique(unlist(lapply(lambda, function(x) nrow(x))))) != 1) {
+        ErrorMsg <- "\nThe lambda matrices supplied have different dimensions. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if ( unique(unlist(lapply(lambda, function(x) ncol(x)))) != unique(unlist(lapply(drift, function(x) ncol(x))))) {
+        ErrorMsg <- "\nThe lambda matrices supplied assume more latents than included in the drift matrices. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if (any(diff(unique(unlist(lapply(lambda, function(x) nrow(x))))) != 0) ) {
+        ErrorMsg <- "\nThe lambda matrices supplied assume different numbers of manifest variables. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+      if (!(is.null(n.manifest))) {
+        n.manifest.tmp <- n.manifest
+        n.manifest <- unique(unlist(lapply(lambda, function(x) nrow(x))) )[1]
+        if (n.manifest.tmp != n.manifest) {
+          ErrorMsg <- "n.manifest specified differs from the number of rows of lambda. \nGood luck for the next try!"
+          stop(ErrorMsg)
+        }
+      }
+      if (is.null(manifestVars)) {
+        Msg <- "\nlambda matrices supplied but no manifestVars matrices. I assume all manifest error variances are 0."
+        message(Msg)
+        manifestVars <- rep(list(diag(0, n.manifest, n.manifest)), length(drift))
+      }
     }
 
     if (length(T0means[[1]]) != 1) {
@@ -213,51 +308,29 @@ ctmaGenData <- function(
       }
     }
 
-    if (length(manifestMeans[[1]]) != 1) {
+    if (!(is.null(manifestMeans))) {
       if (!(is.list(manifestMeans))) {
         ErrorMsg <- "\nThe manifestMeans argument has to be a list. \nGood luck for the next try!"
         stop(ErrorMsg)
       }
-      if (length(unique(unlist(lapply(manifestMeans, function(x) nrow(x))))) != 1) {
-        ErrorMsg <- "\nThe manifestMeans matrices supplied have different dimensions. \nGood luck for the next try!"
+      if (length(unique(unlist(lapply(manifestMeans, function(x) length(x))))) != 1) {
+        ErrorMsg <- "\nThe manifestMeans vectors supplied have different lengths \nGood luck for the next try!"
         stop(ErrorMsg)
       }
-      if ( unique(unlist(lapply(manifestMeans, function(x) nrow(x)))) != unique(unlist(lapply(drift, function(x) ncol(x))))) {
-        ErrorMsg <- "\nThe manifestMeans matrices supplied have different dimensions than the drift matrices. \nGood luck for the next try!"
-        stop(ErrorMsg)
-      }
-    } else {
-      if (manifestMeans[[1]] == 0) {
-        manifestMeans <- rep(list(rep(0, n.latent)), length(drift))
-      } else {
-        print("Problem with manifestMeans")
-      }
-    }
-
-    #if (manifestMeans == 0) {manifestMeans <- rep(list(matrix(rep(0, n.latent), nrow=n.latent, ncol=1)), length(drift))}
-
-    if (manifestVars != 0) {
-      if (!(is.list(manifestVars))) {
-        ErrorMsg <- "\nThe manifestVars argument has to be a list. \nGood luck for the next try!"
-        stop(ErrorMsg)
-      }
-      if (length(unique(unlist(lapply(manifestVars, function(x) ncol(x))))) != 1) {
-        ErrorMsg <- "\nThe manifestVars matrices supplied have different dimensions. \nGood luck for the next try!"
-        stop(ErrorMsg)
-      }
-      if ( unique(unlist(lapply(manifestVars, function(x) ncol(x)))) != unique(unlist(lapply(drift, function(x) ncol(x))))) {
-        ErrorMsg <- "\nThe manifestVars matrices supplied have different dimensions than the drift matrices. \nGood luck for the next try!"
+      if ( unique(unlist(lapply(manifestMeans, function(x) length(x)))) != n.manifest) {
+        ErrorMsg <- "\nThe lengths of the manifestMeans vectors supplied do not match n.manifest. \nGood luck for the next try!"
         stop(ErrorMsg)
       }
     }
 
-    if (manifestVars == 0) {manifestVars <- rep(list(matrix(0, n.latent, n.latent)), length(drift))}
-
-    if (is.null(lambda)) {
-      Msg <- "lambda not specified. I assume all lambdas are diagonal matrices with 1 in the diagonals.\n"
-      message(Msg)
-      lambda <- diag(1, n.latent, n.latent)
+    if (is.null(manifestMeans)) {
+      if (!(is.null(manifestVars))) {
+        Msg <- "\nmanifestVars specified but no manifestMeans. I assume all manifest means are 0."
+        message(Msg)
+        manifestMeans <- rep(list(rep(0, n.manifest)), length(drift))
+      }
     }
+
 
     if (!(is.null(diff))) {
       if (!(is.list(diff))) {
@@ -272,10 +345,15 @@ ctmaGenData <- function(
         ErrorMsg <- "\nThe diff matrices supplied have different dimensions than the drift matrices. \nGood luck for the next try!"
         stop(ErrorMsg)
       }
+      if (!all(unlist((lapply(diff, function(x) isSymmetric(x, tol = 1e-8)))))) {
+        ErrorMsg <- "\nAt least one of the diff matrices supplied is not symmetric. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+
     }
 
     if (is.null(diff)) {
-      Msg <- "diff not specified. I will set all diffusion matrices to values leading to a steady-state of the (co-)variances among latents.\n"
+      Msg <- "\ndiff not specified. I will set all diffusion matrices to values leading to a steady-state of the (co-)variances among latents.\n"
       message(Msg)
     }
 
@@ -327,21 +405,25 @@ ctmaGenData <- function(
       message(Msg)
     }
 
-    if (doPar == TRUE) {
-      myCluster <- parallel::makeCluster(coresToUse)
-    } else {
-      myCluster <- parallel::makeCluster(1)
+
+    skip <- FALSE
+    if (!skip) {
+      if (doPar == TRUE) {
+        myCluster <- parallel::makeCluster(coresToUse)
+      } else {
+        myCluster <- parallel::makeCluster(1)
+      }
+      on.exit(parallel::stopCluster(myCluster))
+      doParallel::registerDoParallel(myCluster)
+      '%dopar%' <- foreach::'%dopar%'
     }
-    on.exit(parallel::stopCluster(myCluster))
-    doParallel::registerDoParallel(myCluster)
-    '%dopar%' <- foreach::'%dopar%'
 
     if (n.manifest > n.latent ) {
       if (is.null(lambda)) {
         ErrorMsg <- "\nManifest variables specified, but not matrix of loadings (lambda) specified, which is required. \nGood luck for the next try!"
         stop(ErrorMsg)
       } else {
-        if ( (dim(lambda)[1] != n.manifest) | (dim(lambda)[2] != n.latent) ) {
+        if ( (dim(lambda[[1]])[1] != n.manifest) | (dim(lambda[[1]])[2] != n.latent) ) {
           ErrorMsg <- "\nDimensions of loadings matrix (lambda) do not match n.latent and n.manifest. \nGood luck for the next try!"
           stop(ErrorMsg)
         }
@@ -350,7 +432,6 @@ ctmaGenData <- function(
 
     if (length(sampleSizes) == 1) {
       if (length(sampleSizes[[1]]) == 1) {
-        #if (sampleSizes == 100) sampleSizes <- as.list(rep(sampleSizes, length(drift)))
         sampleSizes <- as.list(rep(sampleSizes[[1]], length(drift)))
       }
     } else {
@@ -410,25 +491,40 @@ ctmaGenData <- function(
     }
 
     if (length(modValues) == 1) {
-      #if (!(is.list(modValues))) {
-        #if (modValues == 0) {
-          modValues <- replicate(length(drift), modValues, simplify = FALSE)
-      #}
-      #if (is.list(modValues)) {
-        #if (modValues == 0) {
-      #  modValues <- replicate(length(drift), modValues, simplify = FALSE)
-      #}
+      modValues <- replicate(length(drift), modValues, simplify = FALSE)
     }
 
-      if (!(is.list(modValues))) {
-        ErrorMsg <- "\nThe modValues argument has to be a list. \nGood luck for the next try!"
+    if (!(is.list(modValues))) {
+      ErrorMsg <- "\nThe modValues argument has to be a list. \nGood luck for the next try!"
+      stop(ErrorMsg)
+    }
+    if ( length(modValues) != length(drift) ) {
+      ErrorMsg <- "\nThe number of modValues provided does not match the number of drift matrices provided (drift). \nGood luck for the next try!"
+      stop(ErrorMsg)
+    }
+
+    if (!(is.null(missings))) {
+      if (!(is.list(missings))) {
+        ErrorMsg <- "\nThe missings argument has to be a list (of vectors). \nGood luck for the next try!"
         stop(ErrorMsg)
       }
-      if ( length(modValues) != length(drift) ) {
-        ErrorMsg <- "\nThe number of modValues provided does not match the number of drift matrices provided (drift). \nGood luck for the next try!"
+      if ( length(missings) != length(drift) ) {
+        ErrorMsg <- "\nThere have to be as many missings in the list as drift matrices supplied. \nGood luck for the next try!"
         stop(ErrorMsg)
       }
-     #}
+      #Msg <- "Missingness proportions were specified. Note that this does not yet work with manifests, only for latents.\n"
+      #message(Msg)
+      if (any(unlist(missings) < 0) | any(unlist(missings) > 1)) {
+        ErrorMsg <- "\nAt least one of the missings proportions supplied is < 0 or > 1. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+    }
+
+    if (is.null(missings)) {
+      Msg <- "missings not specified. I will not generate missing data.\n"
+      message(Msg)
+      missings <- rep(list(0), length(drift))
+    }
 
 
     ## Compute diffusions to achieve steady state  ####
@@ -436,8 +532,18 @@ ctmaGenData <- function(
       diff <- list()
       for (i in 1:length(drift)) {
         #i <- 1
-        T1cov_impl <- expm(drift[[i]]) %*% (T0var[[i]] + randomIntercepts[[i]]) %*% t(expm(drift[[i]])); T1cov_impl
-        resvar <- as.matrix((T0var[[i]] + randomIntercepts[[i]]) - T1cov_impl); resvar
+        T1cov_impl <- expm(drift[[i]]) %*% ( T0var[[i]] ) %*% t(expm(drift[[i]])) + randomIntercepts[[i]] ; T1cov_impl
+        resvar <- as.matrix(T0var[[i]] + randomIntercepts[[i]] - T1cov_impl); resvar
+        if (any(diag(resvar) < 0)) {
+          ErrorMsg <- paste0("\nCannot generate difussions for achieving steady states because negative diffusion variances are implied for Study ", i, ",",
+                             "\nwhich may be due too large T0vars in combination with large randomIntercepts (variances).",
+                             "\nT0var = ", unlist(T0var[[i]]), ",",
+                             "\nrandomIntercepts = ", unlist(randomIntercepts[[i]]), ",",
+                             "\nT1cov_impl = ", unlist(T1cov_impl), ",",
+                             "\nresvar = ", unlist(resvar), ",",
+                             "\nGood luck for the next try!")
+          stop(ErrorMsg)
+        }
         if (length(unique(round(abs(c(resvar)), 5))) == 1) {
           ErrorMsg <- paste0("\nCannot generate data because of singularity issues with Study ", i, ",",
                              "\nwhich may be due all drift elements having identical magnitudes (e.g., all -.1 or .1).",
@@ -450,9 +556,10 @@ ctmaGenData <- function(
         DIAG_hatch <- diag(1, nrow(DRIFT_hatch), ncol(DRIFT_hatch)); DIAG_hatch
         Q <- solve((expm(DRIFT_hatch * 1) - DIAG_hatch)) %*% DRIFT_hatch %*% c(resvar); Q
         diff[[i]] <- matrix(Q, n.latent, n.latent); diff[[i]]
+        #diff_dt[[i]] <- matrix(resvar, n.latent, n.latent); diff_dt[[i]] # done later
 
         if (any(eigen(diff[[i]])$values < 0)) {
-          ErrorMsg <- paste0("\nCannot generate data because of negative eigenvalues in the diffusion matrix of Study ", i, ",",
+          ErrorMsg <- paste0("\nCannot generate data because of negative eigenvalues in the dt diffusion matrix of Study ", i, ",",
                              "\nwhich may be due too large cross or auto effects.",
                              "\nDrift = ", unlist(drift[[i]]), ",",
                              "\nDriff = ", unlist(diff[[i]]), ",",
@@ -473,23 +580,6 @@ ctmaGenData <- function(
       }
     }
 
-    ## compute T0var if it was not provided as the asymDiffcov (does nto work because Q cannot be computed without T0var) #
-    # Solve A S + S t(A) + Q = 0 for S
-    #if (missT0var == 1) { # set to 1 in the beginning if missing
-    #  T0var <- list()
-    #  for (i in 1:length(drift)) {
-    #
-    #    solve_lyapunov <- function(A, Q) {
-    #      n <- nrow(A)
-    #      K <- kronecker(diag(n), A) + kronecker(A, diag(n))  # I⊗A + A⊗I
-    #      s <- solve(K, -as.vector(Q))
-    #      matrix(s, n, n)
-    #    }
-    #    T0var[[i]] <- solve_lyapunov(A, Q)
-    #    S
-    #  }
-    #}
-
     ## Compute cints to achieve steady state #####
     if (is.null(cint)) {
       cint <- list()
@@ -499,9 +589,49 @@ ctmaGenData <- function(
       }
     }
 
+    ## check if all provided arguments assume the same number of studies ###ä
+    # Objects to check
+    objs <- list(
+      diff            = diff,
+      drift           = drift,
+      sampleSizes     = sampleSizes,
+      lambda          = lambda,
+      manifestMeans   = manifestMeans,
+      manifestVars    = manifestVars,
+      missings        = missings,
+      modValues       = modValues,
+      #n.latent        = n.latent,
+      #n.manifest      = n.manifest,
+      randomIntercepts= randomIntercepts,
+      T0means         = T0means,
+      T0var           = T0var,
+      #TIpreds         = TIpreds,
+      #tpoints         = tpoints,
+      tpointTargets   = tpointTargets
+    )
+
+    # 1. Check that all objects are lists
+    are_lists <- sapply(objs, is.list)
+    if (!all(are_lists)) {
+      bad <- names(are_lists)[!are_lists]
+      stop(sprintf("The following objects are not lists: %s", paste(bad, collapse = ", ")))
+    }
+
+    # 2. Check that all lists have identical lengths
+    lens <- sapply(objs, length)
+    if (length(unique(lens)) != 1) {
+      stop(sprintf(
+        "Lists do not all have the same length. Lengths are: %s",
+        paste(names(lens), lens, sep = "=", collapse = ", ")
+      ))
+    }
+
+    #message("All objects are lists and all have identical length = ", unique(lens))
+
     ## Define DT matrices and check for standardization #####
     drift_dt <- diff_dt <- cint_dt <- list()
     for (i in 1:length(drift))  {
+      #i <- 1
       drift_dt[[i]] <- expm(drift[[i]]); drift_dt[[i]]
 
       DIAG <- diag(1, nrow(drift[[i]]), ncol(drift[[i]])); DIAG
@@ -510,18 +640,17 @@ ctmaGenData <- function(
 
       cint_dt[[i]] <- solve(drift[[i]]) %*% (expm(drift[[i]]) - diag(1, n.latent, n.latent)) %*% cint[[i]]; cint_dt[[i]]
 
-      T1cov_impl <- expm(drift[[i]]) %*% T0var[[i]] %*% t(expm(drift[[i]])); T1cov_impl
-      resvar <- T0var[[i]] - T1cov_impl; resvar
+      T1cov_impl <- expm(drift[[i]]) %*% ( T0var[[i]] ) %*% t(expm(drift[[i]])) + randomIntercepts[[i]] ; T1cov_impl
+
       if (!(all(round(diag(T1cov_impl + resvar), 2) == 1))) {
         Msg <- paste0("\nThe steady state-variances rounded to 2 digits of Study ", i, " are not 1.0,",
-                      "\nwhich implies that the data are unstandardized and not useful for CoTiMA.",
+                      "\nwhich implies so that the data are unstandardized and not useful for CoTiMA.",
                       "\nThey are = ",
                       paste0(diag(T1cov_impl + resvar), collapse = " "),
                       "\nGood luck for the next try!")
         message(Msg)
       }
     }
-
 
     if (!(is.null(latentNames))) {
       if (length(latentNames) != ncol(drift[[1]]) ) {
@@ -533,6 +662,18 @@ ctmaGenData <- function(
     if (is.null(latentNames)) {
       latentNames <- LETTERS[1:n.latent]; latentNames
     }
+
+    if (is.null(manifestNames)) {
+      manifestNames <- LETTERS[1:n.manifest]; manifestNames
+    }
+
+    if (!(is.null(manifestNames))) {
+      if (length(manifestNames) != nrow(lambda[[1]]) ) {
+        ErrorMsg <- "\nThe number of manifestNames provided does not match the dimensions (rows) of the lambda matrix. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+    }
+
 
   } # end checks
 
@@ -549,16 +690,16 @@ ctmaGenData <- function(
       diff.var <- as.matrix(Matrix::bdiag(diff.var))
       rows1 <- nrow(diff.var); rows1
       ### T0var #####
-      diffT0.var <- cbind(diff.var, matrix(0, ncol=n.manifest, nrow=rows1))# diffvar & T0var
+      diffT0.var <- cbind(diff.var, matrix(0, ncol=n.latent, nrow=rows1))# diffvar & T0var
       cols1 <- ncol(diffT0.var); cols1
-      diffT0.var <- rbind(diffT0.var, matrix(0, ncol=cols1, nrow=n.manifest))
-      diffT0.var[(cols1-n.manifest+1):cols1, (cols1-n.manifest+1):cols1] <- T0var[[i]]
+      diffT0.var <- rbind(diffT0.var, matrix(0, ncol=cols1, nrow=n.latent))
+      diffT0.var[(cols1-n.latent+1):cols1, (cols1-n.latent+1):cols1] <- T0var[[i]]
       rows2 <- nrow(diffT0.var); rows2
       ### Traitvar ####
-      diffT0Trait.var <- cbind(diffT0.var, matrix(0, ncol=n.manifest, nrow=rows2)) # diffvar & T0var & traitvar
+      diffT0Trait.var <- cbind(diffT0.var, matrix(0, ncol=n.latent, nrow=rows2)) # diffvar & T0var & traitvar
       cols2 <- ncol(diffT0Trait.var); cols2
-      diffT0Trait.var <- rbind(diffT0Trait.var, matrix(0, ncol=cols2, nrow=n.manifest))
-      diffT0Trait.var[(cols2-n.manifest+1):cols2, (cols2-n.manifest+1):cols2] <- randomIntercepts[[i]]
+      diffT0Trait.var <- rbind(diffT0Trait.var, matrix(0, ncol=cols2, nrow=n.latent))
+      diffT0Trait.var[(cols2-n.latent+1):cols2, (cols2-n.latent+1):cols2] <- randomIntercepts[[i]]
       rows3 <- nrow(diffT0Trait.var); rows3
       ### manifestVar (measurement error) ####
       err.var_tmp <- list(manifestVars[[i]]); err.var_tmp
@@ -571,66 +712,94 @@ ctmaGenData <- function(
       diffT0TraitERR.var[(rows3+1):(rows3 + rows4), (cols2+1):(cols2 + cols3)] <- err.var
       cols3 <- ncol(diffT0TraitERR.var); cols3
       ## mvrnorm to create independent data for diffusions, T0 variables, random intercepts (traits), and measurement error
-      tmp <- length(c(rep(0, n.latent*tpoints), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)))
+      #tmp <- length(c(rep(0, n.latent*tpoints), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)))
+      tmp <- length(c(rep(0, n.latent*tpoints), T0means[[i]], TRAITMEANS, rep(0, n.manifest*tpoints)))
       if ( tmp > sampleSizes[[i]]) {
         ErrorMsg <- paste0("\n Requested sample size too small. It should be at least: sampleSizes =", tmp, " (or try empirical = FALSE).")
         stop(ErrorMsg)
       }
       allInit.dat <- MASS::mvrnorm(n=sampleSizes[[i]],
-                                   #mu=c(rep(0, n.latent*(tpoints-1)), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)),
-                                   mu=c(rep(0, n.latent*(tpoints)), T0means[[i]], TRAITMEANS, rep(0, n.latent*tpoints)),
+                                   mu=c(rep(0, n.latent*(tpoints)), T0means[[i]], TRAITMEANS, rep(0, n.manifest*tpoints)),
                                    Sigma = diffT0TraitERR.var, empirical=empirical)
-      diff.dat <- allInit.dat[, (1:(n.manifest*tpoints))]; dim(diff.dat)
-      T0.dat <- allInit.dat[, (cols1 -n.manifest+1):(cols1)]; dim(T0.dat)
-      trait.dat <- allInit.dat[, (cols2 -n.manifest+1):(cols2)]; dim(trait.dat)
+      diff.dat <- allInit.dat[, (1:(n.latent*tpoints))]; dim(diff.dat)
+      T0.dat <- allInit.dat[, (cols1 -n.latent+1):(cols1)]; dim(T0.dat)
+      trait.dat <- allInit.dat[, (cols2 -n.latent+1):(cols2)]; dim(trait.dat)
       err.dat <- allInit.dat[, (cols2+1):(cols3)]; dim(err.dat)
       #
       data <- T0.dat
     } else {
-      data <- MASS::mvrnorm(n=sampleSizes[[i]], mu=T0means[[i]], Sigma = T0var[[i]], empirical=empirical)
+      data  <- MASS::mvrnorm(n=sampleSizes[[i]], mu=T0means[[i]], Sigma = T0var[[i]], empirical=empirical)
       trait.dat <- MASS::mvrnorm(n=sampleSizes[[i]], mu=TRAITMEANS, Sigma = randomIntercepts[[i]], empirical=empirical)
+      err.dat <- MASS::mvrnorm(n=sampleSizes[[i]], mu=rep(0, n.manifest*tpoints), Sigma = as.matrix(Matrix::bdiag( rep(list(manifestVars[[i]]), tpoints) )), empirical=empirical)
     }
 
     # data that do not vary among cases and tpoints
     cint.dat <- matrix(t(as.matrix(cint_dt[[i]])),  nrow=sampleSizes[[i]], ncol=n.latent, byrow = T)
+    manifestMeans.dat <- matrix(t(as.matrix(manifestMeans[[i]])),  nrow=sampleSizes[[i]], ncol=n.manifest, byrow = T)
 
-    manifestMeans.dat <- matrix(t(as.matrix(manifestMeans[[i]])),  nrow=sampleSizes[[i]], ncol=n.latent, byrow = T)
+    ## manifests at T0
+    dataMM <- data + trait.dat
+    dataMM <- dataMM %*% t(lambda[[i]])
+    if (empirical == TRUE) {
+      dataMM <- dataMM + err.dat[, (1:n.manifest)]
+    } else {
+      dataMM <- dataMM + MASS::mvrnorm(n=sampleSizes[[i]], mu=rep(0, n.manifest), Sigma = manifestVars[[i]], empirical=FALSE)
+    }
+    #round(cov(dataMM), 3)
 
     #### T1, T2, ... all subsequent Tpoints ####
     for (t in 1:(tpoints-1)) {
       #t <- 1
       tmpData <- data[, ((t-1)*n.latent+1):((t-1)*n.latent+n.latent)]
+      tmpDataMM <- dataMM[, ((t-1)*n.manifest+1):((t-1)*n.manifest+n.manifest)]
+      # apply drift
       tmp <- t(apply(tmpData, 1, function(x) as.matrix(drift_dt[[i]] %*% x)))
+      # add cint
+      tmp <- tmp + cint.dat
       # add diffusion
       if (empirical == TRUE) {
-        tmp <- tmp + diff.dat[, (2*(t-1)+1):(2*(t-1)+n.manifest)]
+        tmp <- tmp + diff.dat[, (2*(t-1)+1):(2*(t-1)+n.latent)]
       } else {
         tmp <- tmp + MASS::mvrnorm(n=sampleSizes[[i]], mu=rep(0, n.latent), Sigma = diff_dt[[i]], empirical=FALSE)
       }
-      # add cint
-      tmp <- tmp + cint.dat
-      # add trait (done later)
+      # add trait to latents (done later)
       # tmp <- tmp + trait.dat
-      # combine
+
+      # combine latents
       data <- cbind(data, tmp)
+
+      # make manifests
+      tmpMM <- tmp + trait.dat
+      tmpMM <- tmpMM %*% t(lambda[[i]]) # manifest
+      # add measurement error to manifests
+      if (empirical == TRUE) {
+        tmpMM <- tmpMM + err.dat[, (((t-1)*n.manifest+1):((t-1)*n.manifest+n.manifest))]
+      } else {
+        tmpMM <- tmpMM + MASS::mvrnorm(n=sampleSizes[[i]], mu=rep(0, n.manifest), Sigma = manifestVars[[i]], empirical=FALSE)
+      }
+      # add constant manifest means
+      tmpMM <- tmpMM + manifestMeans.dat
+      # combine manifests
+      dataMM <- cbind(dataMM, tmpMM)
     }
 
-    #### Add constant trait.dat ####
+    #### Add trait.dat to latents ####
     for (t in seq(1, ncol(data), n.latent)) data[, c(t:(t+(n.latent-1)))] <- data[, (t:(t+(n.latent-1)))] + trait.dat
 
-    #### Add constant manifestMeans.dat ####
-    for (t in seq(1, ncol(data), n.latent)) data[, c(t:(t+(n.latent-1)))] <- data[, c(t:(t+(n.latent-1)))] + manifestMeans.dat
+    #### Add manifestMeans.dat to latents (in data without manifests) ####
+    #for (t in seq(1, ncol(data), n.latent)) data[, c(t:(t+(n.latent-1)))] <- data[, c(t:(t+(n.latent-1)))] + manifestMeans.dat
 
-
-    # Make measurement model
-    # to be done (and tbd further below not here)
-    # add manifestVar
-    # to be done  (and tbd further below not here)
-
+    # label latents
     colnames(data) <- paste0(paste0(latentNames, "_T"), sort(rep(seq(0,(tpoints-1),1), n.latent)))
     data <- cbind(data, matrix(seq(0, tpoints-1, 1), nrow=nrow(data), ncol=tpoints, byrow=T))
     colnames(data)[(ncol(data)-tpoints+1):ncol(data)] <- paste0("T", sort(rep(seq(0,(tpoints-1),1))))
     #head(data); dim(data)
+
+    # label manifests
+    colnames(dataMM) <- paste0(paste0(manifestNames, "_T"), sort(rep(seq(0,(tpoints-1),1), n.manifest)))
+    dataMM <- cbind(dataMM, matrix(seq(0, tpoints-1, 1), nrow=nrow(dataMM), ncol=tpoints, byrow=T))
+    colnames(dataMM)[(ncol(dataMM)-tpoints+1):ncol(dataMM)] <- paste0("T", sort(rep(seq(0,(tpoints-1),1))))
+    #head(dataMM); dim(dataMM)
 
 
     ### Make long data ####
@@ -638,17 +807,18 @@ ctmaGenData <- function(
     Msg <- "creating data. May take a while.\n"
     message(Msg)
 
+    #### latent data
     datawide <- invisible(
       suppressMessages(
         suppressWarnings(
-          ctIntervalise(data, Tpoints=tpoints, manifestNames=latentNames, n.manifest=n.manifest)
+          ctIntervalise(data, Tpoints=tpoints, manifestNames=latentNames, n.manifest=n.latent)
         )
       )
     )
     datalong <- invisible(
       suppressMessages(
         suppressWarnings(
-          ctWideToLong(datawide, n.manifest=n.manifest, Tpoints=tpoints, manifestNames=latentNames )
+          ctWideToLong(datawide, n.manifest=n.latent, Tpoints=tpoints, manifestNames=latentNames )
         )
       )
     )
@@ -664,6 +834,36 @@ ctmaGenData <- function(
     # tpointTargets
     datalong <- datalong[datalong$time %in% tpointTargets[[i]], ]
     #head(datalong)
+
+    #### manifest data
+    datawideMM <- invisible(
+      suppressMessages(
+        suppressWarnings(
+          ctIntervalise(dataMM, Tpoints=tpoints, manifestNames=manifestNames, n.manifest=n.manifest)
+        )
+      )
+    )
+    datalongMM <- invisible(
+      suppressMessages(
+        suppressWarnings(
+          ctWideToLong(datawideMM, n.manifest=n.manifest, Tpoints=tpoints, manifestNames=manifestNames)
+        )
+      )
+    )
+    datalongMM <- invisible(
+      suppressMessages(
+        suppressWarnings(as.data.frame(ctsem::ctDeintervalise(datalongMM))
+        )
+      )
+    )
+    datalongMM <- datalongMM[datalongMM$time >= burnin,]
+    datalongMM$time <- datalongMM$time-(burnin)
+
+    # tpointTargets
+    datalong <- datalong[datalong$time %in% tpointTargets[[i]], ]
+    datalongMM <- datalongMM[datalongMM$time %in% tpointTargets[[i]], ]
+    #head(datalong)
+
 
     #studies[[i]] <- list() # required for normal loop (not dopar)
     #studies[[i]]$data <- datalong
@@ -683,6 +883,7 @@ ctmaGenData <- function(
     #head(studies[[i]]$data)
 
     tmp <- (list(data = datalong, # this (last) computation is automatically returned by doPar
+                 dataMM = datalongMM,
                  tpointTargets = tpointTargets[[i]],
                  drift = drift[[i]],
                  drift_dt = as.matrix(drift_dt[[i]]),
@@ -691,7 +892,7 @@ ctmaGenData <- function(
                  cint = cint[[i]],
                  cint_dt = as.matrix(cint_dt[[i]]),
                  T0means = T0means[[i]],
-                 T0var =- T0var[[i]],
+                 T0var = T0var[[i]],
                  randomIntercepts = randomIntercepts[[i]],
                  manifestVars = manifestVars[[i]],
                  manifestMeans = manifestMeans[[i]],
@@ -701,18 +902,24 @@ ctmaGenData <- function(
   }
 
   # generate missings
-  if (missings != 0) {
+  if (any(unlist(missings) != 0)) {
     for (i in 1:length(drift)) {
+      # latents
       missingData <- studies[[i]]$data
-      k <- round(missings * nrow(missingData)); k
+      k <- round(missings[[i]] * nrow(missingData)); k
       for (c in latentNames) {
-        random_values <- sort(sample(1:(sampleSizes[[i]] * (tpoints-burnin)), k))
+        random_values <- sort(sample(1:(sampleSizes[[i]] * length(tpointTargets[[i]])), k))
         missingData[random_values, c] <- NA
       }
-      missingData$miss <- apply(missingData[,latentNames], 1, sum, na.rm=T)
-      missingData <- missingData[missingData$miss !=0,]
-      missingData$miss <- NULL
       studies[[i]]$data <- missingData
+      # manifests
+      missingDataMM <- studies[[i]]$dataMM
+      k <- round(missings[[i]] * nrow(missingDataMM)); k
+      for (c in manifestNames) {
+        random_values <- sort(sample(1:(sampleSizes[[i]] * length(tpointTargets[[i]])), k))
+        missingDataMM[random_values, c] <- NA
+      }
+      studies[[i]]$dataMM <- missingDataMM
     }
   }
 
@@ -729,7 +936,8 @@ ctmaGenData <- function(
                 envir = envir,
                 useRawData = useRawData)}
 
-    # Return ####
+  # Return ####
   return(studies)
 }
+
 
