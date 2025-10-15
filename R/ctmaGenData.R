@@ -751,18 +751,18 @@ ctmaGenData <- function(
     for (t in 1:(tpoints-1)) {
       #t <- 1
       tmpData <- data[, ((t-1)*n.latent+1):((t-1)*n.latent+n.latent)]
-      tmpDataMM <- dataMM[, ((t-1)*n.manifest+1):((t-1)*n.manifest+n.manifest)]
+      #tmpDataMM <- dataMM[, ((t-1)*n.manifest+1):((t-1)*n.manifest+n.manifest)] # not needed
       # apply drift
       tmp <- t(apply(tmpData, 1, function(x) as.matrix(drift_dt[[i]] %*% x)))
       # add cint
       tmp <- tmp + cint.dat
       # add diffusion
       if (empirical == TRUE) {
-        tmp <- tmp + diff.dat[, (2*(t-1)+1):(2*(t-1)+n.latent)]
+        tmp <- tmp + diff.dat[, (n.latent*(t-1)+1):(n.latent*(t-1)+n.latent)]
       } else {
         tmp <- tmp + MASS::mvrnorm(n=sampleSizes[[i]], mu=rep(0, n.latent), Sigma = diff_dt[[i]], empirical=FALSE)
       }
-      # add trait to latents (done later)
+      # add trait to latents (done later, otherwise it would be a cint rather than a trait)
       # tmp <- tmp + trait.dat
 
       # combine latents
