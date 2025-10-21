@@ -9,7 +9,8 @@
 #' @param activeDirectory defines the active directory (where to save plots)
 #' @param saveFilePrefix Prefix used for saving plots
 #' @param fitSummary Mainl ofr debugging purpose. Saves computation time if provided in addition to the fit object
-#' @param mod.sd.to.plot The standard deviation vlaues (default -1, 0, +1) for which the drift effects are plotted
+#' @param mod.sd.to.plot The standard deviation values (default -1, 0, +1) for which the drift effects are plotted
+#' @param mod.raw.to.plot The raw values (default NULL) for which the drift effects are plotted. Overrides any mod.sd.to.plot values provided.
 #' @param timeUnit Label for the x-axis
 #' @param timeRange time range across which drift effects are plotted
 #' @param mod.type Could be either "cont" or "cat"
@@ -62,6 +63,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
                              saveFilePrefix="Moderator Plot ",
                              scaleTime=1,
                              mod.sd.to.plot = -1:1,
+                             mod.raw.to.plot = NULL,
                              digits=4,
                              timeUnit = "not specified",
                              timeRange = NULL,
@@ -170,7 +172,12 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
         effectCodingWeights <- unique(TIpred.values); effectCodingWeights
       }
     } else{
-      for (k in mod.sd.to.plot) mod.values.to.plot <- c(mod.values.to.plot, (m.TIpred + (k * sd.TIpred)))
+      # CHD 21.10.2025
+      if (!(is.null(mod.raw.to.plot))) {
+        mod.values.to.plot <- mod.raw.to.plot
+      } else {
+        for (k in mod.sd.to.plot) mod.values.to.plot <- c(mod.values.to.plot, (m.TIpred + (k * sd.TIpred)))
+      }
       weigthedEffectCoding <- FALSE
     }
     n.mod.values.to.plot <- toPlot <- length(mod.values.to.plot); n.mod.values.to.plot
@@ -184,8 +191,14 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
       tmp5 <- length(tmp4)/length(TIpred.values); tmp5
       tmp6 <- max(mod.sd.to.plot); tmp6
 
-      print(paste0("Note: In your sample ", length(tmp1), " ( = ", round(tmp2*100, 4), "%) people have smaller moderator values than ", tmp3, "SD below the sample mean"))
-      print(paste0("Note: In your sample ", length(tmp4), " ( = ", round(tmp5*100, 4), "%) people have larger moderator values than ", tmp6, "SD above the sample mean"))
+      # CHD 21.10.2025
+      if (!(is.null(mod.raw.to.plot))) {
+        print(paste0("Note: In your sample ", length(tmp1), " ( = ", round(tmp2*100, 4), "%) people have smaller moderator values than ", min(mod.raw.to.plot)))
+        print(paste0("Note: In your sample ", length(tmp4), " ( = ", round(tmp5*100, 4), "%) people have larger moderator values than ", max(mod.raw.to.plot)))
+      } else {
+        print(paste0("Note: In your sample ", length(tmp1), " ( = ", round(tmp2*100, 4), "%) people have smaller moderator values than ", tmp3, "SD below the sample mean"))
+        print(paste0("Note: In your sample ", length(tmp4), " ( = ", round(tmp5*100, 4), "%) people have larger moderator values than ", tmp6, "SD above the sample mean"))
+      }
     }
 
     if ((mod.type == "cat") & (!(is.null(no.mod.cats))) ) {
@@ -258,7 +271,12 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
             tmp4 <- tmp2
           }
           rawMod <- matrix(tmp4, n.latent, byrow=TRUE); rawMod # raw moderator effect to be added to raw main effect (followed by tform) (correct order in matrix)
-          tmpNames <- paste0("Raw Drift for Moderator Value = ", mod.sd.to.plot[counter], " SD from mean of moderator"); tmpNames
+          # CHD 21.10.2025
+          if (!(is.null(mod.raw.to.plot))) {
+            tmpNames <- paste0("Raw Drift for Moderator Value = ", mod.raw.to.plot[counter]); tmpNames
+          } else {
+            tmpNames <- paste0("Raw Drift for Moderator Value = ", mod.sd.to.plot[counter], " SD from mean of moderator"); tmpNames
+          }
           DRIFTCoeff[[tmpNames]] <- rawDrift + mod.values.to.plot[counter] * rawMod; DRIFTCoeff[[counter]]
         }
         #
@@ -398,6 +416,8 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
                xaxt='n', yaxt='n', ann=FALSE)
           #
           currentLabel <- ""
+          # CHD 21.10.2025
+          if (!(is.null(mod.raw.to.plot))) mod.sd.to.plot <- mod.raw.to.plot
           if (mod.type == "cont") currentLabel <- mod.sd.to.plot[h]; currentLabel
           if (mod.type == "cat") currentLabel <- h-1; currentLabel
           if (nchar(currentLabel) == 1) graphics::text(currentPlotPair, labels=currentLabel, cex=1.2, col="white")
@@ -434,3 +454,4 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
   graphics::par(new=F)
   return(DRIFTCoeff)
 }
+
