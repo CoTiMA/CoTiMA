@@ -623,21 +623,23 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
         ),
         warning = function(w) {warns[[i]] <<- w}),
         error = function(e) {errs[[i]] <<- e}
-        )
+      )
 
-      all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
+      if (is.list(fit)) { # do not do in case fit was not successfull CHD 14. Jan 2026
+        all_minus2ll <- c(all_minus2ll, fit$summary$minus2ll)
 
-      if (saveModelFits != FALSE) {
-        saveRDS(fit, paste0(activeDirectory, saveModelFits, " ", i, " .rds"))
-      }
+        if (saveModelFits != FALSE) {
+          saveRDS(fit, paste0(activeDirectory, saveModelFits, " ", i, " .rds"))
+        }
 
-      if (fit$summary$minus2ll < currentLL) {
-        currentLL <- fit$summary$minus2ll
-        bestFit <- fit
-        usedStudyList <- ctmaInitFit$primaryStudyList
-        usedTimeScale <- scaleTime
-        usedScaleTI <- scaleTI
-      }
+        if (fit$summary$minus2ll < currentLL) {
+          currentLL <- fit$summary$minus2ll
+          bestFit <- fit
+          usedStudyList <- ctmaInitFit$primaryStudyList
+          usedTimeScale <- scaleTime
+          usedScaleTI <- scaleTI
+        }
+      } # end if(is.list(fit))
     }
   }
 
