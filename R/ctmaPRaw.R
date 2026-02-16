@@ -50,7 +50,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
 
   if (empN != round(empN)) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    Msg <- paste0("Sample size should be provided as integer values. I rounded", empN, "to ", round(empN), "to synthesize data. \n")
+    Msg <- paste0("Sample size should be provided as integer values. I rounded ", empN, " to ", round(empN), " to synthesize data. \n")
     empN <- round(empN)
     message(Msg)
   }
