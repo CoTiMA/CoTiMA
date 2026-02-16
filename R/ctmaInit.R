@@ -402,7 +402,7 @@ ctmaInit <- function(
 
         # Synthesise Pseudo Raw Data
         if (!(studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit)) {
-          tmp1 <- paste0(" Synthesise Pseudo Raw Data for Study No. ", i, ".    Could take long for large samples!!! ")
+          tmp1 <- paste0(" Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ")
           tmp2 <- nchar(tmp1); tmp2
           tmp3 <- (81 - tmp2)/2; tmp3
           tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
