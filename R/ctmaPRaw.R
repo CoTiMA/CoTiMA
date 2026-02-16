@@ -1,6 +1,6 @@
 #' ctmaPRaw
 #'
-#' @description Converts empirical correlation matrices to pseudo raw data (i.e. random data, that perfectly reproduce the correlations)
+#' @description Uses empirical correlation matrices to synthesise pseudo raw data (i.e. random data, that perfectly reproduce the correlations)
 #'
 #' @param empCovMat empirical primary study covariance matrix
 #' @param empNMat matrix of (possibly pairwise) N
@@ -24,7 +24,7 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
 
   if (is.null(empCovMat)) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    ErrorMsg <- "\nNo empirical covariance matrix provided for pseudo raw data generation! \nGood luck for the next try!"
+    ErrorMsg <- "\nNo empirical covariance matrix provided for synthesising data! \nGood luck for the next try!"
     stop(ErrorMsg)
   }
 
@@ -44,8 +44,15 @@ ctmaPRaw <- function(empCovMat=NULL, empNMat=matrix(0,0,0), empN=NULL, studyNumb
 
   if ( (is.null(empNMat) & is.null(empN)) ) {
     if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-    ErrorMsg <- "\nEITHER a matrix with pairwise N OR an overall N has to be provided pseudo raw data generation! \nGood luck for the next try!"
+    ErrorMsg <- "\nEITHER a matrix with pairwise N OR an overall N has to be provided for synthesising data! \nGood luck for the next try!"
     stop(ErrorMsg)
+  }
+
+  if (empN != round(empN)) {
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    Msg <- paste0("Sample size should be provided as integer values. I rounded", empN, "to ", round(empN), "to synthesize data. \n")
+    empN <- round(empN)
+    message(Msg)
   }
 
   if ( (!(is.null(empMeanVector))) & (length(empMeanVector) != (dim(empCovMat)[1]) )  ){

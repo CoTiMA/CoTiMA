@@ -98,7 +98,7 @@
 #' coresToUse, moderator names (mod.names), and moderator type (mod.type). Further arguments, which are just copied from the init-fit object
 #' supplied, are, n.latent, studyList, parameterNames, and statisticsList. The fitted model is found in studyFitList, which is a large list
 #' with many elements (e.g., the ctsem model specified by CoTiMA, the rstan model created by ctsem, the fitted rstan model etc.). Further
-#' results returned are n.studies = 1 (required for proper plotting), data (created pseudo raw data), and a list with modelResults (i.e.,
+#' results returned are n.studies = 1 (required for proper plotting), data (synthesised pseudo raw data), and a list with modelResults (i.e.,
 #' DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef, MOD=modTI_Coeff,  and
 #' CLUS=clusTI_Coeff). Possible invariance constraints are included in invariantDrift. The number of moderators simultaneously analyzed are
 #' included in ' n.moderators. The most important new results are returned as the list element "summary", which is printed if the summary
@@ -518,7 +518,7 @@ ctmaFit <- function(
       latentNames <- paste0("V", 1:n.latent); latentNames
     }
 
-    # combine pseudo raw data
+    # combine synthesised pseudo raw data
     {
       if (n.moderators > 0) {
         if (n.ind.moderators != 0) {
@@ -602,7 +602,7 @@ ctmaFit <- function(
     names(groups) <- c("Study_No_"); groups
     groupsNamed <- (paste0("Study_No_", groups)); groupsNamed
 
-    # augment pseudo raw data by group ID and moderators
+    # augment synthesised pseudo raw data by group ID and moderators
     if (is.null(dim(groups))) groups <- matrix(groups,  ncol=1)
     if (n.moderators > 0) {
       dataTmp <- cbind(datawide_all, groups, moderatorGroups)

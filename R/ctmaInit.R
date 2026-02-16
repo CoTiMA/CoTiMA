@@ -32,7 +32,7 @@
 #' @param priors if FALSE, any priors are disabled – sometimes desirable for optimization
 #' @param randomIntercepts (default = FALSE) Experimental. Overrides ctsem's default mode for modelling indVarying cints.
 #' @param sameInitialTimes Only important for raw data. If TRUE (default=FALSE), T0MEANS occurs for every subject at the same time, rather than just at the earliest observation.
-#' @param saveRawData save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
+#' @param saveRawData save (synthesised pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec
 #' @param saveSingleStudyModelFit save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)
 #' @param scaleTI scale TI predictors
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
@@ -74,7 +74,7 @@
 #' manifest on latent factors is returned as lambda, and a re-organized list of primary studies with some information ommited is returned as
 #' studyList. The fitted models for each primary study are found in studyFitList, which is a large list with many elements (e.g., the ctsem
 #' model specified by CoTiMA, the rstan model created by ctsem, the fitted rstan model etc.). Further results returned are emprawList
-#' (containing the pseudo raw data created), statisticsList (comprising baisc stats such as average sample size, no. of measurement points,
+#' (containing the synthesised raw data created), statisticsList (comprising baisc stats such as average sample size, no. of measurement points,
 #' etc.), a list with modelResults (i.e., DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef,
 #' CINT=model_Cint_Coef), and the paramter names internally used. The summary list,  which is printed if the summary function is applied to the
 #' returned object, comprises "estimates" (the aggregated effects), possible randomIntercepts,confidenceIntervals, the
@@ -357,7 +357,7 @@ ctmaInit <- function(
       }
     }
 
-    ### create pseudo raw data for all studies or load raw data if available & specified
+    ### synthesise pseudo raw data for all studies or load raw data if available & specified
     empraw <- lags <- moderators <- emprawMod <- allSampleSizes <- lostN <- overallNDiff <- relativeNDiff <- list()
     emprawLong <- list()
     empraw.ind.mod <- list() # CHD 19.6.2023
@@ -400,9 +400,9 @@ ctmaInit <- function(
           }
         }
 
-        # Create Pseudo Raw Data
+        # Synthesise Pseudo Raw Data
         if (!(studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit)) {
-          tmp1 <- paste0(" Create Pseudo Raw Data for Study No. ", i, ".    Could take long !!! ")
+          tmp1 <- paste0(" Synthesise Pseudo Raw Data for Study No. ", i, ".    Could take long for large samples!!! ")
           tmp2 <- nchar(tmp1); tmp2
           tmp3 <- (81 - tmp2)/2; tmp3
           tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
@@ -413,7 +413,7 @@ ctmaInit <- function(
         }
 
 
-        # reduce computation time by creating Pseudo Raw Data with small sample size because the data are loaded anyway
+        # reduce computation time by synthesising pseudo Raw Data with small sample size because the data are loaded anyway
         currentSampleSizeTmp <- currentSampleSize
         currentPairwiseNTmp <- currentPairwiseN
         currentEmpcovTmp <- currentEmpcov
@@ -636,7 +636,7 @@ ctmaInit <- function(
         }
       }
 
-      # augment pseudo raw data for stanct model
+      # augment synthesised pseudo raw data for stanct model
       {
         dataTmp <- empraw[[i]]
         dataTmp2 <- ctsem::ctWideToLong(dataTmp, Tpoints=currentTpoints, n.manifest=n.var, #n.TIpred = (n.studies-1),

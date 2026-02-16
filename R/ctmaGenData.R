@@ -544,12 +544,15 @@ ctmaGenData <- function(
                              "\nGood luck for the next try!")
           stop(ErrorMsg)
         }
-        if (length(unique(round(abs(c(resvar)), 5))) == 1) {
-          ErrorMsg <- paste0("\nCannot generate data because of singularity issues with Study ", i, ",",
-                             "\nwhich may be due all drift elements having identical magnitudes (e.g., all -.1 or .1).",
-                             "\nYour provided drift = ", paste0(c(drift[[i]]), collapse = " "),
-                             "\nGood luck for the next try!")
-          stop(ErrorMsg)
+        length(unique(round(abs(c(resvar)), 5)))
+        if (n.latent > 1) {
+          if (length(unique(round(abs(c(resvar)), 5))) == 1) {
+            ErrorMsg <- paste0("\nCannot generate data because of singularity issues with Study ", i, ",",
+                               "\nwhich may be due all drift elements having identical magnitudes (e.g., all -.1 or .1).",
+                               "\nYour provided drift = ", paste0(c(drift[[i]]), collapse = " "),
+                               "\nGood luck for the next try!")
+            stop(ErrorMsg)
+          }
         }
         DIAG <- diag(1, nrow(drift[[i]]), ncol(drift[[i]])); DIAG
         DRIFT_hatch <- drift[[i]] %x% DIAG + DIAG %x% drift[[i]]; DRIFT_hatch
@@ -732,6 +735,8 @@ ctmaGenData <- function(
       trait.dat <- MASS::mvrnorm(n=sampleSizes[[i]], mu=TRAITMEANS, Sigma = randomIntercepts[[i]], empirical=empirical)
       err.dat <- MASS::mvrnorm(n=sampleSizes[[i]], mu=rep(0, n.manifest*tpoints), Sigma = as.matrix(Matrix::bdiag( rep(list(manifestVars[[i]]), tpoints) )), empirical=empirical)
     }
+    if (n.latent == 1) data <- as.matrix(data)
+
 
     # data that do not vary among cases and tpoints
     cint.dat <- matrix(t(as.matrix(cint_dt[[i]])),  nrow=sampleSizes[[i]], ncol=n.latent, byrow = T)
@@ -747,13 +752,15 @@ ctmaGenData <- function(
     }
     #round(cov(dataMM), 3)
 
+
     #### T1, T2, ... all subsequent Tpoints ####
     for (t in 1:(tpoints-1)) {
       #t <- 1
       tmpData <- data[, ((t-1)*n.latent+1):((t-1)*n.latent+n.latent)]
-      #tmpDataMM <- dataMM[, ((t-1)*n.manifest+1):((t-1)*n.manifest+n.manifest)] # not needed
+      if (n.latent == 1) tmpData <- as.matrix(tmpData)
       # apply drift
       tmp <- t(apply(tmpData, 1, function(x) as.matrix(drift_dt[[i]] %*% x)))
+      if (n.latent == 1) tmp <- t(tmp)
       # add cint
       tmp <- tmp + cint.dat
       # add diffusion
@@ -939,5 +946,3 @@ ctmaGenData <- function(
   # Return ####
   return(studies)
 }
-
-
