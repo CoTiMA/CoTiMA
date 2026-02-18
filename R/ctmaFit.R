@@ -162,6 +162,62 @@ ctmaFit <- function(
 )
 {  # begin function definition (until end of file)
 
+  { # function definition to handle possible errors and warnings during fitting
+    run_ctStanFit_logged <- function(expr) {
+      flag_warn_hessinv <- FALSE
+      warn_msgs <- character(0)
+
+      out <- tryCatch(
+        withCallingHandlers(
+          expr,
+          warning = function(w) {
+            msg <- conditionMessage(w)
+            warn_msgs <<- c(warn_msgs, msg)
+
+            if (grepl("Hessian inversion failed", msg, fixed = TRUE)) {
+              flag_warn_hessinv <<- TRUE
+            }
+
+            #invokeRestart("muffleWarning")  # optional: Konsole sauber halten
+          }
+        ),
+        error = function(e) {
+          # Error sauber zurückgeben statt Abbruch
+          err_msg <- conditionMessage(e)
+
+          # optional: "inits = c(...)" aus dem Text ziehen (wenn ctsem das ausgibt)
+          inits_txt <- NA_character_
+          m <- regexpr("inits\\s*=\\s*c\\([^\\)]*\\)", err_msg)
+          if (m[1] != -1) inits_txt <- regmatches(err_msg, m)
+
+          return(list(
+            ok = FALSE,
+            fit = NULL,
+            warn_hessinv = flag_warn_hessinv,
+            warnings = warn_msgs,
+            error = err_msg,
+            inits_suggestion = inits_txt
+          ))
+        }
+      )
+
+      # Wenn kein Error: out ist der Fit
+      if (!is.list(out) || isTRUE(inherits(out, "ctStanFit"))) {
+        return(list(
+          ok = TRUE,
+          fit = out,
+          warn_hessinv = flag_warn_hessinv,
+          warnings = warn_msgs,
+          error = NA_character_,
+          inits_suggestion = NA_character_
+        ))
+      }
+
+      # Wenn error-handler schon list() geliefert hat:
+      out
+    }
+  }
+
   {
     ctmaInitFitName <- deparse(substitute(ctmaInitFit)); ctmaInitFitName
 
@@ -1197,8 +1253,16 @@ ctmaFit <- function(
 
   if (allInvModel == FALSE) {
     #fitStanctModel <- suppressMessages(ctsem::ctStanFit(
+
+    if (fit == FALSE) {
+      print(paste0("#################################################################################"))
+      print(paste0("#############  No model is fitted, only data and code are generated. ############"))
+      print(paste0("#################################################################################"))
+    }
+
+    hessianWarning <- FALSE
     if (fit == TRUE) {
-      fitStanctModel <- (ctsem::ctStanFit(
+      fitStanctModel <- run_ctStanFit_logged(ctsem::ctStanFit(
         fit=fit,
         datalong = datalong_all,
         ctstanmodel = stanctModel,
@@ -1226,15 +1290,30 @@ ctmaFit <- function(
         cores=coresToUse,
         inits=inits))
 
-      if (is.null(fitStanctModel$standata$priors)) fitStanctModel$standata$priors <- FALSE # CHD added Sep 2023
-      fitStanctModel_summary <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
-    }
+      #print(names((fitStanctModel)))
+      print(fitStanctModel$warn_hessinv)
+      print(fitStanctModel$warnings)
+      print(fitStanctModel$error)
+      hessianWarning <- list(warn_hessinv = fitStanctModel$warn_hessinv,
+                             warnings = fitStanctModel$warnings,
+                             error= fitStanctModel$error)
 
-    if (fit == FALSE) {
-      print(paste0("#################################################################################"))
-      print(paste0("#############  No model is fitted, only data and code are generated. ############"))
-      print(paste0("#################################################################################"))
+      if (is.null(fitStanctModel$standata$priors)) fitStanctModel$standata$priors <- FALSE # CHD added Sep 2023
+
+      if (is.na(fitStanctModel$error)) {
+        fitStanctModel <- fitStanctModel$fit # to match former fitting results w/o error handling
+        fitStanctModel_summary <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
+      } else {
+        fit <- FALSE
+        print(paste0("#################################################################################"))
+        print(paste0("###########  Model could not be fitted, only data and code are returned #########"))
+        print(paste0("#################################################################################"))
+      }
+
     }
+    #print(fitStanctModel_summary)
+    #}
+
 
   } # end if (allInvModel == FALSE)
 
@@ -1951,7 +2030,8 @@ ctmaFit <- function(
                    estimates_original_time_scale =estimates_original_time_scale,
                    mod_effects_original_time_scale=mod_effects_original_time_scale,
                    clus_effects_original_time_scale=clus_effects_original_time_scale,
-                   WEC_estimates_original_time_scale=WEC_estimates_original_time_scale)
+                   WEC_estimates_original_time_scale=WEC_estimates_original_time_scale,
+                   ProblemWithHessianEstimation=hessianWarning)
       # excel workbook is added later
     )
 
