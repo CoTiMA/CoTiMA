@@ -1308,6 +1308,9 @@ ctmaFit <- function(
         print(paste0("#################################################################################"))
         print(paste0("###########  Model could not be fitted, only data and code are returned #########"))
         print(paste0("#################################################################################"))
+        hessianWarning <- list(warn_hessinv = "There was fatal fitting error - no hessian computed.",
+                               warnings = "There was fatal fitting error - no hessian computed.",
+                               error= fitStanctModel$error)
       }
 
     }
