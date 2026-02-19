@@ -1291,9 +1291,9 @@ ctmaFit <- function(
         inits=inits))
 
       #print(names((fitStanctModel)))
-      print(fitStanctModel$warn_hessinv)
-      print(fitStanctModel$warnings)
-      print(fitStanctModel$error)
+      #print(fitStanctModel$warn_hessinv)
+      #print(fitStanctModel$warnings)
+      #print(fitStanctModel$error)
       hessianWarning <- list(warn_hessinv = fitStanctModel$warn_hessinv,
                              warnings = fitStanctModel$warnings,
                              error= fitStanctModel$error)
