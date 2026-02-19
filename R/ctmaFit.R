@@ -2042,9 +2042,17 @@ ctmaFit <- function(
 
 
   if (fit == FALSE) {
+    if (hessianWarning == FALSE) {
     results <- list(summary=c("No model was fitted, only data and code were generated. See $data & $ctModel section."),
                     data = datalong_all,
                     ctModel = stanctModel)
+    } else {
+      results <- list(summary = list(message=c("No model was fitted, only data and code were generated. See $data & $ctModel section."),
+                                     error=hessianWarning),
+                      data = datalong_all,
+                      ctModel = stanctModel)
+
+    }
   }
 
   class(results) <- "CoTiMAFit"
