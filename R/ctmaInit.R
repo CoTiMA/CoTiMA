@@ -133,6 +133,62 @@ ctmaInit <- function(
   options(scipen = 999); options("scipen") # turn scientific notation off.
   on.exit(options(scipen = original.options))  # scientific notation as user's original
 
+  { # function definition to handle possible errors and warnings during fitting
+    run_ctStanFit_logged <- function(expr) {
+      flag_warn_hessinv <- FALSE
+      warn_msgs <- character(0)
+
+      out <- tryCatch(
+        withCallingHandlers(
+          expr,
+          warning = function(w) {
+            msg <- conditionMessage(w)
+            warn_msgs <<- c(warn_msgs, msg)
+
+            if (grepl("Hessian inversion failed", msg, fixed = TRUE)) {
+              flag_warn_hessinv <<- TRUE
+            }
+
+            #invokeRestart("muffleWarning")  # optional: Konsole sauber halten
+          }
+        ),
+        error = function(e) {
+          # Error sauber zurückgeben statt Abbruch
+          err_msg <- conditionMessage(e)
+
+          # optional: "inits = c(...)" aus dem Text ziehen (wenn ctsem das ausgibt)
+          inits_txt <- NA_character_
+          m <- regexpr("inits\\s*=\\s*c\\([^\\)]*\\)", err_msg)
+          if (m[1] != -1) inits_txt <- regmatches(err_msg, m)
+
+          return(list(
+            ok = FALSE,
+            fit = NULL,
+            warn_hessinv = flag_warn_hessinv,
+            warnings = warn_msgs,
+            error = err_msg,
+            inits_suggestion = inits_txt
+          ))
+        }
+      )
+
+      # Wenn kein Error: out ist der Fit
+      if (!is.list(out) || isTRUE(inherits(out, "ctStanFit"))) {
+        return(list(
+          ok = TRUE,
+          fit = out,
+          warn_hessinv = flag_warn_hessinv,
+          warnings = warn_msgs,
+          error = NA_character_,
+          inits_suggestion = NA_character_
+        ))
+      }
+
+      # Wenn error-handler schon list() geliefert hat:
+      out
+    }
+  }
+
 
   #######################################################################################################################
   ########################################### Check Model Specification #################################################
@@ -832,6 +888,8 @@ ctmaInit <- function(
     model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- list()
     estProb <- list()
 
+    hessianWarning <- list()
+
     for (i in 1:n.studies) {
       #i <- 1
       notLoadable <- TRUE
@@ -1078,8 +1136,11 @@ ctmaInit <- function(
           if (doPar < 2) {
             # CHD changed 7 Oct 2022
             if (any(is.na(studyList[[i]]$startValues))) inits <- NULL else inits <- studyList[[i]]$startValues
+
+            hessianWarning[[i]] <- FALSE
+
             #results <- suppressMessages(ctsem::ctStanFit(
-            results <- (ctsem::ctStanFit(
+            results <- run_ctStanFit_logged(ctsem::ctStanFit(
               datalong = emprawLong[[i]],
               ctstanmodel = currentModel,
               fit=fit,
@@ -1109,7 +1170,26 @@ ctmaInit <- function(
               #warmup=CoTiMAStanctArgs$warmup,
               verbose=verbose,
               cores=coresToUse) )
-          }
+
+            hessianWarning[[i]] <- list(warn_hessinv = results$warn_hessinv,
+                                        warnings = results$warnings,
+                                        error= results$error)
+
+            if (is.na(results$error)) {
+              results <- results$fit # to match former fitting results w/o error handling
+              #results_summary <- summary(results, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
+            } else {
+              #fit <- FALSE
+              print(paste0("#################################################################################"))
+              print(paste0("###########  Model could not be fitted, only data and code are returned #########"))
+              print(paste0("#################################################################################"))
+              hessianWarning[[i]] <- list(warn_hessinv = "There was fatal fitting error - no hessian computed.",
+                                          warnings = "There was fatal fitting error - no hessian computed.",
+                                          error= results$error)
+            }
+          } # end if foPar
+
+
           if (doPar > 1) {
             # parallel re-fitting of problem study
 
@@ -1127,10 +1207,13 @@ ctmaInit <- function(
             #message(Msg)
 
             allfits <- foreach::foreach(p=1:doPar) %dopar% {
+
+              hessianWarning[[i]] <- FALSE
+
               # CHD changed 7 Oct 2022
               if (any(is.na(studyList[[i]]$startValues))) inits <- NULL else inits <- studyList[[i]]$startValues
 
-              fits <- suppressMessages(ctsem::ctStanFit(
+              fits <- suppressMessages(run_ctStanFit_logged(ctsem::ctStanFit(
                 datalong = emprawLong[[i]],
                 ctstanmodel = currentModel,
                 sameInitialTimes=sameInitialTimes,
@@ -1156,7 +1239,25 @@ ctmaInit <- function(
                 control=CoTiMAStanctArgs$control,
                 verbose=verbose,
                 warmup=CoTiMAStanctArgs$warmup,
-                cores=1) )
+                cores=1) ))
+
+              hessianWarning[[i]] <- list(warn_hessinv = fits$warn_hessinv,
+                                          warnings = fits$warnings,
+                                          error= fits$error)
+
+              if (is.na(fits$error)) {
+                fits <- fits$fit # to match former fitting results w/o error handling
+                #results_summary <- summary(results, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
+              } else {
+                #fit <- FALSE
+                print(paste0("#################################################################################"))
+                print(paste0("###########  Model could not be fitted, only data and code are returned #########"))
+                print(paste0("#################################################################################"))
+                hessianWarning[[i]] <- list(warn_hessinv = "There was fatal fitting error - no hessian computed.",
+                                            warnings = "There was fatal fitting error - no hessian computed.",
+                                            error= results$error)
+              }
+
               return(fits)
             }
             all_loglik <- unlist(lapply(allfits, function(x) x$stanfit$optimfit$value)); all_loglik
@@ -1824,6 +1925,7 @@ ctmaInit <- function(
                                       DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
                                       DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale),
                     ctModel = currentModel,
+                    ProblemWithHessianEstimation = hessianWarning,
                     parameterNames=list(DRIFT=names(model_Drift_Coef[[1]]), DIFFUSION=names(model_Diffusion_Coef[[1]]), T0VAR=names(model_T0var_Coef[[1]])),
                     summary=(list(model="all drift free (het. model)",
                                   estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument
@@ -1845,9 +1947,16 @@ ctmaInit <- function(
   } # end if (fit == TRUE)
 
   if (fit == FALSE) {
+    #if (hessianWarning == FALSE) {
     results <- list(summary=c("No model was fitted, only data and code were generated. See $data & $ctModel section."),
                     data = empraw,
                     ctModel = currentModel)
+    #} else {
+    #  results <- list(summary = list(message=c("No model was fitted, only data and code were generated. See $data & $ctModel section."),
+    #                                 error=hessianWarning),
+    #                  data = empraw,
+    #                  ctModel = currentModel)
+    #}
   }
   class(results) <- "CoTiMAFit"
 
