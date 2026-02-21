@@ -363,11 +363,12 @@ ctmaGenData <- function(
         ErrorMsg <- "\nThe cint argument has to be a list. \nGood luck for the next try!"
         stop(ErrorMsg)
       }
+      (length(unique(unlist(lapply(cint, function(x) ncol(x))))) != 1)
       if (length(unique(unlist(lapply(cint, function(x) ncol(x))))) != 1) {
         ErrorMsg <- "\nThe cint matrices supplied have different dimensions. \nGood luck for the next try!"
         stop(ErrorMsg)
       }
-      if ( unique(unlist(lapply(cint, function(x) ncol(x)))) != unique(unlist(lapply(drift, function(x) ncol(x))))) {
+      if ( unique(unlist(lapply(cint, function(x) nrow(x)))) != unique(unlist(lapply(drift, function(x) ncol(x))))) {
         ErrorMsg <- "\nThe cint matrices supplied have different dimensions than the drift matrices. \nGood luck for the next try!"
         stop(ErrorMsg)
       }
@@ -526,6 +527,13 @@ ctmaGenData <- function(
       missings <- rep(list(0), length(drift))
     }
 
+    # compute diffusion covariance
+    resvar <- list()
+    for (i in 1:length(drift)) {
+      T1cov_impl <- expm(drift[[i]]) %*% ( T0var[[i]] ) %*% t(expm(drift[[i]])) + randomIntercepts[[i]] ; T1cov_impl
+      resvar[[i]] <- as.matrix(T0var[[i]] + randomIntercepts[[i]] - T1cov_impl); resvar[[i]]
+    }
+
 
     ## Compute diffusions to achieve steady state  ####
     if (is.null(diff)) {
@@ -533,20 +541,20 @@ ctmaGenData <- function(
       for (i in 1:length(drift)) {
         #i <- 1
         T1cov_impl <- expm(drift[[i]]) %*% ( T0var[[i]] ) %*% t(expm(drift[[i]])) + randomIntercepts[[i]] ; T1cov_impl
-        resvar <- as.matrix(T0var[[i]] + randomIntercepts[[i]] - T1cov_impl); resvar
-        if (any(diag(resvar) < 0)) {
+        #resvar <- as.matrix(T0var[[i]] + randomIntercepts[[i]] - T1cov_impl); resvar
+        if (any(diag(resvar[[i]]) < 0)) {
           ErrorMsg <- paste0("\nCannot generate difussions for achieving steady states because negative diffusion variances are implied for Study ", i, ",",
                              "\nwhich may be due too large T0vars in combination with large randomIntercepts (variances).",
                              "\nT0var = ", unlist(T0var[[i]]), ",",
                              "\nrandomIntercepts = ", unlist(randomIntercepts[[i]]), ",",
                              "\nT1cov_impl = ", unlist(T1cov_impl), ",",
-                             "\nresvar = ", unlist(resvar), ",",
+                             "\nresvar = ", unlist(resvar[[i]]), ",",
                              "\nGood luck for the next try!")
           stop(ErrorMsg)
         }
-        length(unique(round(abs(c(resvar)), 5)))
+        #length(unique(round(abs(c(resvar)), 5)))
         if (n.latent > 1) {
-          if (length(unique(round(abs(c(resvar)), 5))) == 1) {
+          if (length(unique(round(abs(c(resvar[[i]])), 5))) == 1) {
             ErrorMsg <- paste0("\nCannot generate data because of singularity issues with Study ", i, ",",
                                "\nwhich may be due all drift elements having identical magnitudes (e.g., all -.1 or .1).",
                                "\nYour provided drift = ", paste0(c(drift[[i]]), collapse = " "),
@@ -557,7 +565,7 @@ ctmaGenData <- function(
         DIAG <- diag(1, nrow(drift[[i]]), ncol(drift[[i]])); DIAG
         DRIFT_hatch <- drift[[i]] %x% DIAG + DIAG %x% drift[[i]]; DRIFT_hatch
         DIAG_hatch <- diag(1, nrow(DRIFT_hatch), ncol(DRIFT_hatch)); DIAG_hatch
-        Q <- solve((expm(DRIFT_hatch * 1) - DIAG_hatch)) %*% DRIFT_hatch %*% c(resvar); Q
+        Q <- solve((expm(DRIFT_hatch * 1) - DIAG_hatch)) %*% DRIFT_hatch %*% c(resvar[[i]]); Q
         diff[[i]] <- matrix(Q, n.latent, n.latent); diff[[i]]
         #diff_dt[[i]] <- matrix(resvar, n.latent, n.latent); diff_dt[[i]] # done later
 
@@ -645,11 +653,11 @@ ctmaGenData <- function(
 
       T1cov_impl <- expm(drift[[i]]) %*% ( T0var[[i]] ) %*% t(expm(drift[[i]])) + randomIntercepts[[i]] ; T1cov_impl
 
-      if (!(all(round(diag(T1cov_impl + resvar), 2) == 1))) {
+      if (!(all(round(diag(T1cov_impl + resvar[[i]]), 2) == 1))) {
         Msg <- paste0("\nThe steady state-variances rounded to 2 digits of Study ", i, " are not 1.0,",
                       "\nwhich implies so that the data are unstandardized and not useful for CoTiMA.",
                       "\nThey are = ",
-                      paste0(diag(T1cov_impl + resvar), collapse = " "),
+                      paste0(diag(T1cov_impl + resvar[[i]]), collapse = " "),
                       "\nGood luck for the next try!")
         message(Msg)
       }
