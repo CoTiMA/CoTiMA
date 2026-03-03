@@ -434,7 +434,7 @@ ctmaInit <- function(
     }
 
     for (i in 1:n.studies) {
-      #i <- 1
+      #i <- 2
       if (!(studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers)) {
         currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
@@ -887,11 +887,10 @@ ctmaInit <- function(
     model_popcov_m <- model_popcov_sd <- model_popcov_T <- model_popcov_025 <- model_popcov_50 <- model_popcov_975 <- list()
     model_popcor_m <- model_popcor_sd <- model_popcor_T <- model_popcor_025 <- model_popcor_50 <- model_popcor_975 <- list()
     estProb <- list()
-
     hessianWarning <- list()
 
     for (i in 1:n.studies) {
-      #i <- 1
+      #i <- 12
       notLoadable <- TRUE
       if ( (length(loadSingleStudyModelFit) > 1) & (studyList[[i]]$originalStudyNo %in% loadSingleStudyModelFit[-1]) ) {
         tmp1 <- paste0(" LOADING SingleStudyFit ", i, " of ", n.studies, " (Study: ", studyList[[i]]$originalStudyNo, ") ")
@@ -1362,9 +1361,11 @@ ctmaInit <- function(
           tmp1 <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "2.5%"], n.latent, byrow=FALSE)); tmp1
           tmp2 <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "97.5%"], n.latent, byrow=FALSE)); tmp2
           tmp8 <- which(!(is.na(currentModel$pars[currentModel$pars$matrix == "DRIFT",]$param))); tmp8
-          tmp1 <- tmp1[tmp8]
-          tmp2 <- tmp2[tmp8]
+          tmp1 <- tmp1[tmp8]; tmp1
+          tmp2 <- tmp2[tmp8]; tmp2
         }
+
+        #tmp1; tmp2
         # CHD 19. Nov. 2023 Check if LL == UL or LL == 0  or UL == 0, indicating estimation problems (estProb)
         tmp3a <- which(tmp1 - tmp2 == 0); tmp3a
         tmp3b <- which(tmp1 == 0); tmp3b
@@ -1374,31 +1375,52 @@ ctmaInit <- function(
         tmp6 <- rownames(resultsSummary$popmeans)[tmp]; tmp6
         if (any(tmp4 != 0)) estProb[[length(estProb)+1]] <- paste0("Possible problems for Study ", i, " in estimating: ", paste0(tmp6[tmp4], collapse=" "))
 
+        #estProb
         model_Drift_CI[[i]] <- c(rbind(tmp1, tmp2)); model_Drift_CI[[i]]
         tmp3 <- c(rbind(paste0(driftFullNames, "LL"),
                         paste0(driftFullNames, "UL"))); tmp3
         names(model_Drift_CI[[i]]) <- tmp3; model_Drift_CI[[i]]
 
         tmp <- grep("diff", rownames(resultsSummary$popmeans)); tmp
+        #(!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Mean"]) == 0))
         if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Mean"]) == 0)) {
           model_Diffusion_Coef[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Mean"])
           names(model_Diffusion_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]
         } else {
-          model_Diffusion_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "Mean"])
-          tmp8 <- which(!(is.na(currentModel$pars[currentModel$pars$matrix == "DRIFT",]$param))); tmp8
-          model_Diffusion_Coef[[i]] <- model_Diffusion_Coef[[i]][tmp8]
-          names(model_Diffusion_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+          model_Diffusion_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "Mean"]); model_Diffusion_Coef[[i]]
+          # CHD 3.3.2026
+          #(randomInterceptsSettings != FALSE)
+          if (randomInterceptsSettings != FALSE) {
+            tmp9 <- matrix(model_Diffusion_Coef[[i]], length(model_Diffusion_Coef[[i]])^.5, length(model_Diffusion_Coef[[i]])^.5)
+            model_Diffusion_Coef[[i]] <- c(tmp9[1:n.latent, 1:n.latent]); model_Diffusion_Coef[[i]]
+            names(model_Diffusion_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[grep("diff_", rownames(resultsSummary$popmeans))]))
+          } else {
+            model_Diffusion_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "Mean"])
+            tmp8 <- which(!(is.na(currentModel$pars[currentModel$pars$matrix == "DRIFT",]$param))); tmp8
+            model_Diffusion_Coef[[i]] <- model_Diffusion_Coef[[i]][tmp8]
+            names(model_Diffusion_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+          }
         }
+        #model_Diffusion_Coef[[i]]
 
+        #(!(is.null(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Sd"])))
         if (!(is.null(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Sd"]))) {
-          model_Diffusion_SE[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "Sd"]) #; model_Diffusion_SE[[i]]
+          model_Diffusion_SE[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "sd"]) #; model_Diffusion_SE[[i]]
           names(model_Diffusion_SE[[i]]) <- rownames(resultsSummary$popmeans)[tmp]
         } else {
-          model_Diffusion_SE[[i]] <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "sd"] #; model_Diffusion_SE[[i]]
-          tmp8 <- which(!(is.na(currentModel$pars[currentModel$pars$matrix == "DRIFT",]$param))); tmp8
-          model_Diffusion_SE[[i]] <- model_Diffusion_SE[[i]][tmp8]
-          names(model_Diffusion_SE[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+          model_Diffusion_SE[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "sd"]); model_Diffusion_SE[[i]]
+          if (randomInterceptsSettings != FALSE) {
+            tmp9 <- matrix(model_Diffusion_SE[[i]], length(model_Diffusion_SE[[i]])^.5, length(model_Diffusion_SE[[i]])^.5)
+            model_Diffusion_SE[[i]] <- c(tmp9[1:n.latent, 1:n.latent]); model_Diffusion_SE[[i]]
+            names(model_Diffusion_SE[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[grep("diff_", rownames(resultsSummary$popmeans))]))
+          } else {
+            model_Diffusion_SE[[i]] <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "sd"] #; model_Diffusion_SE[[i]]
+            tmp8 <- which(!(is.na(currentModel$pars[currentModel$pars$matrix == "DRIFT",]$param))); tmp8
+            model_Diffusion_SE[[i]] <- model_Diffusion_SE[[i]][tmp8]
+            names(model_Diffusion_SE[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+          }
         }
+        #model_Diffusion_SE[[i]]
 
         if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "2.5%"])) == 0) {
           tmp1 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DIFFUSIONcov", "2.5%"]; tmp1
@@ -1418,6 +1440,8 @@ ctmaInit <- function(
                           paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
           names(model_Diffusion_CI[[i]]) <- tmp3; model_Diffusion_CI[[i]]
         }
+        #model_Diffusion_CI[[i]]
+
         # CHD 19. Nov. 2023 Check if LL == UL or LL == 0  or UL == 0, indicating estimation problems (estProb)
         tmp3a <- which(tmp1 - tmp2 == 0); tmp3a
         tmp3b <- which(tmp1 == 0); tmp3b
@@ -1427,7 +1451,9 @@ ctmaInit <- function(
         tmp6 <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp5])); tmp6
         if (any(tmp4 != 0)) estProb[[length(estProb)+0]] <- paste0(estProb[[length(estProb)+0]], " ", paste0(tmp6[tmp4], collapse=" "))
 
-        if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") )  target <- "T0cov_" else target <- "0var"
+        #estProb
+        #if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") )  target <- "T0cov_" else target <- "0var"
+        if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") | (randomIntercepts == "CINT") )  target <- "T0cov_" else target <- "0var"
         tmp <- grep(target, rownames(resultsSummary$popmeans)); tmp
         if (length(tmp) == 0) {
           tmp <- grep("0cov", resultsSummary$parmatrices$matrix)
@@ -1442,19 +1468,25 @@ ctmaInit <- function(
           model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Mean"])
           names(model_T0var_Coef[[i]]) <- rownames(resultsSummary$popmeans)[tmp]; model_T0var_Coef[[i]]
         }  else {
-          model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "Mean"])
-          if (length(model_T0var_Coef[[i]]) != n.latent^2) {
-            names(model_T0var_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+          model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "Mean"]); model_T0var_Coef[[i]]
+          if (randomInterceptsSettings != FALSE) {
+            model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "Mean"]);  model_T0var_Coef[[i]]
+            model_T0var_Coef[[i]] <- c(matrix(model_T0var_Coef[[i]], n.latent^2, n.latent^2)[1:n.latent, 1:n.latent]); model_T0var_Coef[[i]]
+            names(model_T0var_Coef[[i]]) <- T0covNames
           } else {
-            names(model_T0var_Coef[[i]]) <- T0covNames
+            if (length(model_T0var_Coef[[i]]) != n.latent^2) {
+              names(model_T0var_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
+            } else {
+              names(model_T0var_Coef[[i]]) <- T0covNames
+            }
           }
-          if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") )  {
-            model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "Mean"])
-            model_T0var_Coef[[i]] <- c(matrix(model_T0var_Coef[[i]], n.latent^2, n.latent^2)[1:n.latent, 1:n.latent])
-            names(model_T0var_Coef[[i]]) <- T0covNames
-          }
+          #if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") )  {
+          #  model_T0var_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "Mean"]);  model_T0var_Coef[[i]]
+          #  model_T0var_Coef[[i]] <- c(matrix(model_T0var_Coef[[i]], n.latent^2, n.latent^2)[1:n.latent, 1:n.latent]); model_T0var_Coef[[i]]
+          #  names(model_T0var_Coef[[i]]) <- T0covNames
+          #}
         }
-
+        #model_T0var_Coef[[i]]
 
         if (!(is.null(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Sd"]))) {
           model_T0var_SE[[i]] <- (resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "Sd"]); model_T0var_SE[[i]]
@@ -1466,13 +1498,16 @@ ctmaInit <- function(
           } else {
             names(model_T0var_SE[[i]]) <- T0covNames
           }
-          if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
+          #if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
+          if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") | (randomIntercepts == "CINT") ) {
             model_T0var_SE[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "sd"])
             model_T0var_SE[[i]] <- c(matrix(model_T0var_SE[[i]], n.latent^2, n.latent^2)[1:n.latent, 1:n.latent])
             names(model_T0var_SE[[i]]) <- T0covNames
           }
         }
+        #model_T0var_SE[[i]]
 
+        #(!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "2.5%"]) == 0))
         if (!(length(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "2.5%"]) == 0)) {
           tmp1 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "2.5%"]; tmp1
           tmp2 <- resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "T0VAR", "97.5%"]; tmp2
@@ -1493,7 +1528,9 @@ ctmaInit <- function(
                             paste0(T0covNames, "UL"))); tmp3
             names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
           }
-          if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") )  {
+
+          #if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") )  {
+          if ( (randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") | (randomIntercepts == "CINT") )  {
             tmp1 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "2.5%"]; tmp1
             tmp1 <- c(matrix(tmp1, n.latent^2, n.latent^2)[1:n.latent, 1:n.latent])
             tmp2 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "T0cov", "97.5%"]; tmp2
@@ -1504,6 +1541,8 @@ ctmaInit <- function(
             names(model_T0var_CI[[i]]) <- tmp3; model_T0var_CI[[i]]
           }
         }
+        #model_T0var_CI[[i]]
+
 
         # CHD 19. Nov. 2023 Check if LL == UL or LL == 0  or UL == 0, indicating estimation problems (estProb)
         tmp3a <- which(tmp1 - tmp2 == 0); tmp3a
@@ -1511,10 +1550,12 @@ ctmaInit <- function(
         tmp3c <- which(tmp2 == 0); tmp3c
         tmp4 <- unique(c(tmp3a, tmp3b, tmp3c)); tmp4
         tmp5 <- grep("0var", rownames(resultsSummary$popmeans)); tmp5
+        if (length(tmp5) == 0) tmp5 <- grep("0cov", rownames(resultsSummary$popmeans))
+        tmp5
         tmp6 <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp5])); tmp6
         if (any(tmp4 != 0)) estProb[[length(estProb)+0]] <- paste0(estProb[[length(estProb)+0]], " ", paste0(tmp6[tmp4], collapse=" "))
 
-
+        #estProb
         if ( ( (indVarying == "MANIFEST") | (indVarying == 'CINT') ) & ( (randomIntercepts != "CINT") | (randomIntercepts != "MANIFEST") ) ) {
           e <- ctsem::ctExtract(studyFit[[i]])
           model_popsd_tmp <- resultsSummary$popsd
