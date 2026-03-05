@@ -65,32 +65,32 @@
 
 #'
 ctmaPower <- function(
-  ctmaInitFit=NULL,
-  activeDirectory=NULL,
-  statisticalPower=c(),
-  failSafeN =NULL,
-  failSafeP=NULL,
-  timeRange=NULL,
-  useMBESS=FALSE,
-  coresToUse=1,
-  digits=4,
-  indVarying=FALSE,
-  activateRPB=FALSE,
-  silentOverwrite=FALSE,
-  loadAllInvFit=c(),
-  saveAllInvFit=c(),
-  loadAllInvWOSingFit=c(),
-  saveAllInvWOSingFit=c(),
-  skipScaling=TRUE,
-  useSampleFraction=NULL,
-  optimize=TRUE,
-  priors=FALSE,
-  finishsamples=NULL,
-  iter=NULL,
-  chains=NULL,
-  verbose=NULL,
-  customPar=FALSE,
-  scaleTime=NULL
+    ctmaInitFit=NULL,
+    activeDirectory=NULL,
+    statisticalPower=c(),
+    failSafeN =NULL,
+    failSafeP=NULL,
+    timeRange=NULL,
+    useMBESS=FALSE,
+    coresToUse=1,
+    digits=4,
+    indVarying=FALSE,
+    activateRPB=FALSE,
+    silentOverwrite=FALSE,
+    loadAllInvFit=c(),
+    saveAllInvFit=c(),
+    loadAllInvWOSingFit=c(),
+    saveAllInvWOSingFit=c(),
+    skipScaling=TRUE,
+    useSampleFraction=NULL,
+    optimize=TRUE,
+    priors=FALSE,
+    finishsamples=NULL,
+    iter=NULL,
+    chains=NULL,
+    verbose=NULL,
+    customPar=FALSE,
+    scaleTime=NULL
 )
 
 {  # begin function definition (until end of file)
@@ -756,9 +756,16 @@ ctmaPower <- function(
             effectSizes[k, (n.latent^2-n.latent+1-counter)] <- beta[j2, j1]; effectSizes[k, (n.latent^2-n.latent+1-counter)]
 
             # R2 without j (cross effect) in terms of Kelley & Maxwell 2008
-            model.wo.fit <- lavaan::sem(unlist(model.wo[[counter]]),
-                                        sample.cov = implCov[[k+1]],
-                                        sample.nobs = sample.nobs)
+            if (length(loadAllInvWOSingFit) > 0) {
+              model.wo.fit <- readRDS(paste0(activeDirectory, loadAllInvWOSingFit, "_", counter, "_", k,  ".rds"))
+            } else {
+              model.wo.fit <- lavaan::sem(unlist(model.wo[[counter]]),
+                                          sample.cov = implCov[[k+1]],
+                                          sample.nobs = sample.nobs)
+            }
+            # CHD 5.3.2025
+            if (length(saveAllInvWOSingFit) > 0) saveRDS(model.wo.fit, paste0(activeDirectory, saveAllInvWOSingFit, "_", counter, "_", k,".rds"))
+
             tmp <- lavaan::inspect(model.wo.fit, "est"); tmp
             R2.j <- 1 - tmp$psi[j1,j1]; R2.j
 
@@ -822,13 +829,13 @@ ctmaPower <- function(
   # deactivated on 2.6.2023
   skip <- 1
   if (skip != 1) {
-  for (l in length(listPowerAlpha05):1) {
-    tmp1 <- apply(listPowerAlpha05[[l]], 2, mean, na.rm=TRUE); tmp1
-    (round(tmp1[2], 4) == .0250)
-    if (round(tmp1[2], 4) == .0250) listPowerAlpha05[[l]] <- NULL
-    tmp1 <- apply(listPowerAlpha01[[l]], 2, mean, na.rm=TRUE); tmp1
-    if (round(tmp1[2], 4) == .0050) listPowerAlpha01[[l]] <- NULL
-  }
+    for (l in length(listPowerAlpha05):1) {
+      tmp1 <- apply(listPowerAlpha05[[l]], 2, mean, na.rm=TRUE); tmp1
+      (round(tmp1[2], 4) == .0250)
+      if (round(tmp1[2], 4) == .0250) listPowerAlpha05[[l]] <- NULL
+      tmp1 <- apply(listPowerAlpha01[[l]], 2, mean, na.rm=TRUE); tmp1
+      if (round(tmp1[2], 4) == .0050) listPowerAlpha01[[l]] <- NULL
+    }
   }
 
   # Table of required sample sizes for range of different time lags (a priori power)
