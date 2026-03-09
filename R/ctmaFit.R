@@ -1651,11 +1651,13 @@ ctmaFit <- function(
 
     if (length(invariantDriftNames) == length(driftNames)) {
       OTL <- function(timeRange) {
-        OpenMx::expm(tmpDriftMatrix * timeRange)[targetRow, targetCol]}
+        OpenMx::expm(tmpDriftMatrix * timeRange)[targetRow, targetCol]
+        }
       tmpDriftMatrix <- driftMatrix * scaleTime
       # loop through all cross effects
       tmp1 <- 0
-      if (0 %in% usedTimeRange) tmp1 <- 1
+      # CHD 9.3.2026
+      #if (0 %in% usedTimeRange) tmp1 <- 1
       optimalCrossLag <- matrix(NA, n.latent, n.latent)
       maxCrossEffect <- matrix(NA, n.latent, n.latent)
       for (j in 1:n.latent) {
@@ -1667,7 +1669,18 @@ ctmaFit <- function(
               targetParameters <- sapply(usedTimeRange, OTL); targetParameters
               maxCrossEffect[j,h] <- max(abs(targetParameters))[1]; maxCrossEffect[j,h]
               tmp <- which(abs(targetParameters)==maxCrossEffect[j,h])[1]*1 - tmp1
-              optimalCrossLag[j,h] <- usedTimeRange[tmp]
+              # CHD 9.3.2026 # if to close to 0 (= if not sufficently fine-graded)
+              tmpOTL <- usedTimeRange[tmp]; tmpOTL
+              if (tmp < 5) { # arbitrary; 1 should be enough
+                usedTimeRange[tmp]
+                newTimeRange <- seq(0, usedTimeRange[tmp+1], (usedTimeRange[2]-usedTimeRange[1]) / 10); newTimeRange
+                targetParameters <- sapply(newTimeRange, OTL); targetParameters
+                maxCrossEffect[j,h] <- max(abs(targetParameters))[1]; maxCrossEffect[j,h]
+                tmp <- which(abs(targetParameters)==maxCrossEffect[j,h])[1]*1 - tmp1; tmp
+                tmpOTL <- newTimeRange[tmp]
+              }
+              #optimalCrossLag[j,h] <- usedTimeRange[tmp]; optimalCrossLag[j,h]
+              optimalCrossLag[j,h] <- tmpOTL; optimalCrossLag[j,h]
             } else {
               optimalCrossLag[j,h] <- NA
             }
