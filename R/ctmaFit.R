@@ -916,131 +916,264 @@ ctmaFit <- function(
   ######################### All-invariant Model (used for calculation of statistical power) #############################
   #######################################################################################################################
 
-  if (allInvModel == TRUE) {
-    allInvModelFit <- ctmaAllInvFit(ctmaInitFit=ctmaInitFit,
-                                    activeDirectory=activeDirectory,
-                                    activateRPB=activateRPB,
-                                    digits=digits,
-                                    drift=drift,
-                                    coresToUse=coresToUse,
-                                    scaleTime=scaleTime,
-                                    optimize=optimize,
-                                    priors=priors,
-                                    finishsamples=finishsamples,
-                                    iter=iter,
-                                    chains=chains,
-                                    verbose=verbose,
-                                    indVarying = indVarying,
-                                    indVaryingT0 = indVaryingT0,
-                                    customPar = customPar)
-    stanctModel <- allInvModelFit$ctModel
-    fitStanctModel <- allInvModelFit$studyFitList[[1]]
-    fitStanctModel_summary <- summary(fitStanctModel)
-  }
+  #if (allInvModel == TRUE) {
+  #  allInvModelFit <- ctmaAllInvFit(ctmaInitFit=ctmaInitFit,
+  #                                  activeDirectory=activeDirectory,
+  #                                  activateRPB=activateRPB,
+  #                                  digits=digits,
+  #                                  drift=drift,
+  #                                  coresToUse=coresToUse,
+  #                                  scaleTime=scaleTime,
+  #                                  optimize=optimize,
+  #                                  priors=priors,
+  #                                  finishsamples=finishsamples,
+  #                                  iter=iter,
+  #                                  chains=chains,
+  #                                  verbose=verbose,
+  #                                  indVarying = indVarying,
+  #                                  indVaryingT0 = indVaryingT0,
+  #                                  customPar = customPar)
+  #  stanctModel <- allInvModelFit$ctModel
+  #  fitStanctModel <- allInvModelFit$studyFitList[[1]]
+  #  fitStanctModel_summary <- summary(fitStanctModel)
+  #}
 
   #######################################################################################################################
   ################################################ CoTiMA Setup #########################################################
   #######################################################################################################################
 
-  if (allInvModel == FALSE) {
-    n.TIpred <- (n.studies-1+n.all.moderators+clusCounter); n.TIpred
-    driftParamsTmp <- driftParams; driftParamsTmp
-    diffParamsTmp  <- diffParams
-    meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
-    if (customPar == TRUE) {
-      counter <- 0
-      for (h in 1:(n.latent)) {
-        for (j in 1:(n.latent)) {
-          counter <- counter + 1
-          if (h == j) {
-            driftParamsTmp[counter] <- paste0(driftParamsTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
-            diffParamsTmp[counter] <- paste0(diffParamsTmp[counter], paste0("|log1p_exp(param *.1 +2)"))
+  #if (allInvModel == FALSE) {
+  n.TIpred <- (n.studies-1+n.all.moderators+clusCounter); n.TIpred
+  driftParamsTmp <- driftParams; driftParamsTmp
+  diffParamsTmp  <- diffParams
+  meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
+  if (customPar == TRUE) {
+    counter <- 0
+    for (h in 1:(n.latent)) {
+      for (j in 1:(n.latent)) {
+        counter <- counter + 1
+        if (h == j) {
+          driftParamsTmp[counter] <- paste0(driftParamsTmp[counter], paste0("|-log1p_exp(-param *.1 -2)"))
+          diffParamsTmp[counter] <- paste0(diffParamsTmp[counter], paste0("|log1p_exp(param *.1 +2)"))
+        }
+      }
+    }
+  }
+
+  if ( (randomIntercepts != "CINT") & (randomIntercepts != "MANIFEST") ) {
+    if (indVarying == 'CINT') {
+      print(paste0("#################################################################################"))
+      print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
+      print(paste0("#################################################################################"))
+
+      print(paste0("#################################################################################"))
+      print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
+      print(paste0("#################################################################################"))
+      T0meansParams <- 'auto'#0
+
+      print(paste0("#################################################################################"))
+      print(paste0("####################### CT intercepts are set free.  ########################"))
+      print(paste0("#################################################################################"))
+
+      CINTParams <- c()
+      for (c in 1:n.latent) {
+        CINTParams <- c(CINTParams, paste0("cintV", c))
+      }
+    }
+
+    if (indVarying == "MANIFEST")  {
+
+      print(paste0("#################################################################################"))
+      print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
+      print(paste0("#################################################################################"))
+
+      print(paste0("#################################################################################"))
+      print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
+      print(paste0("#################################################################################"))
+      T0meansParams <- 'auto' #0
+
+      print(paste0("#################################################################################"))
+      print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
+      print(paste0("#################################################################################"))
+
+      manifestMeansParams <- 'auto'
+    }
+  }
+  if (!(is.null(binaries.orig))) {
+    # check if really cints rather than manifest means are modelled
+    # set TIpredeffects on cints to TRUE
+  }
+
+  stanctModel <- (
+    ctsem::ctModel(n.latent=n.latent, n.manifest=n.var,
+                   manifestNames=manifestNames,
+                   DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
+                   DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
+                   LAMBDA=lambdaParams,
+                   CINT=matrix(CINTParams, nrow=n.latent, ncol=1),
+                   T0MEANS = matrix(T0meansParams, nrow=n.latent, ncol=1),
+                   MANIFESTMEANS = matrix(manifestMeansParams, nrow=n.latent, ncol=1),
+                   MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var),
+                   T0VAR = T0VARParams,
+                   type = type,
+                   n.TIpred = n.TIpred,
+                   TIpredNames = paste0("TI", 1:n.TIpred))
+  )
+
+  if ( (indVarying != "CINT") & (indVarying != "MANIFEST") ) {
+    stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
+  } else {
+    stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
+  }
+
+  if (indVarying == 'CINT') {
+    stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
+  } else {
+    stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- FALSE
+  }
+
+  if (indVarying == "MANIFEST") {
+    stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- TRUE
+  } else {
+    stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- FALSE
+  }
+  #stanctModel$pars[1:26, 1:8]
+
+  # general setting for params
+  stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+  stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
+  stanctModel$pars[stanctModel$pars$matrix %in% 'LAMBDA',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+  stanctModel$pars[stanctModel$pars$matrix %in% 'CINT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+  stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+  stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTVAR',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+
+  if (!(is.null(cluster))) {
+    stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[(n.studies++n.all.moderators):(n.studies+n.all.moderators+clusCounter-1)],'_effect')] <- TRUE
+  }
+
+  if (n.moderators > 0) {
+    tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
+    tmp2 <- which((stanctModel$pars[tmp1, "param"] %in% moderatedDriftNames)); tmp2
+    targetCols <- (n.studies):(n.studies-1+n.all.moderators); targetCols
+    stanctModel$pars[ , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- FALSE
+    stanctModel$pars[tmp1[tmp2] , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
+    # change model to allow for comparison of categories (-2ll is the only important result)
+    if (!(is.null(catsToCompare))) {
+      currentStartNumber <- modTIstartNum; currentStartNumber
+      for (c1 in 1:modsToCompare) {
+        if (n.moderators > 1) {
+          targetCols2 <- c()
+          for (c3 in 1:length(unique.mod)) {
+            targetCols2 <- c(targetCols2, currentStartNumber:(currentStartNumber+length(catsToCompare)-2))
+            currentStartNumber <- currentStartNumber + length(unique.mod[[c3]]) - 1
           }
+        } else {
+          targetCols2 <- currentStartNumber:(currentStartNumber+length(catsToCompare)-2); targetCols2
         }
       }
+      if (is.null(driftsToCompare)) driftsToCompare <- driftFullNames
+      targetRows2 <- which(stanctModel$pars[, "param"] %in% driftsToCompare); targetRows2
+      targetCols3 <- c()
+      for (c4 in targetCols2) targetCols3 <- c(targetCols3, grep(c4, colnames(stanctModel$pars)))
+      stanctModel$pars[targetRows2, targetCols3] <- FALSE
     }
+  }
 
-    if ( (randomIntercepts != "CINT") & (randomIntercepts != "MANIFEST") ) {
-      if (indVarying == 'CINT') {
-        print(paste0("#################################################################################"))
-        print(paste0("######## Just a note: Individually varying intercepts model requested.  #########"))
-        print(paste0("#################################################################################"))
+  # CHD 23.3.2026
+  if (allInvModel == TRUE) {
+    targetCols <- paste0(stanctModel$TIpredNames,'_effect'); targetCols
+    stanctModel$pars[ , targetCols] <- FALSE
+  }
+  #stanctModel$pars
 
-        print(paste0("#################################################################################"))
-        print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
-        print(paste0("#################################################################################"))
-        T0meansParams <- 'auto'#0
+  if (experimental == TRUE) {
+    tmp1 <- which(stanctModel$pars$matrix == "T0MEANS"); tmp1
+    if (indVarying == "CINT") tmp2 <- which(stanctModel$pars$matrix == "CINT")
+    if (indVarying == "MANIFEST") tmp2 <- which(stanctModel$pars$matrix == "MANIFEST")
+    targetCols <- (n.studies):(n.studies-1+n.all.moderators); targetCols
+    stanctModel$pars[c(tmp1,tmp2) ,paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
+  }
 
-        print(paste0("#################################################################################"))
-        print(paste0("####################### CT intercepts are set free.  ########################"))
-        print(paste0("#################################################################################"))
+  # the target effects
+  tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
+  tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftParams); tmp2
+  tmp3 <- which(is.na(stanctModel$pars[tmp1, "param"])); tmp3
+  tmp4 <- sort(unique(c(tmp2, tmp3))); tmp4
+  varyingDrifts <- tmp1[!(tmp1 %in% tmp1[tmp4])]; varyingDrifts
 
-        CINTParams <- c()
-        for (c in 1:n.latent) {
-          CINTParams <- c(CINTParams, paste0("cintV", c))
-        }
+  if (length(varyingDrifts) > 0) stanctModel$pars[varyingDrifts, paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- TRUE
+
+  # CHD 31. AUG 2023 (not really necessary)
+  tmp1 <- which(is.na(stanctModel$pars$param)); tmp1
+  tmp2 <- grep("_effect", colnames(stanctModel$pars)); tmp2
+  stanctModel$pars[tmp1, tmp2] <- FALSE
+
+  stanctModel$manifesttype <- binaries
+
+  if ( (indVarying == 'CINT') & (!(is.null(binaries.orig))) ) {
+    tmp1 <- grep("_effect", colnames(stanctModel$pars)); tmp1
+    tmp2 <- which(binaries.orig == 1); tmp2
+    stanctModel$pars[(stanctModel$pars$matrix %in% 'CINT'), ][tmp2, tmp1] <- TRUE
+  }
+
+  #if ((randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
+  if ((randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") ) {
+    print(paste0("#################################################################################"))
+    print(paste0("#### Note: Correct random intercept model instead of rstan default requested ####"))
+    print(paste0("#################################################################################"))
+
+    nullMat <- matrix(0, n.latent, n.latent); nullMat
+    DIFFUSIONtmp <- matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent); DIFFUSIONtmp
+    DIFFUSIONtmp <- rbind(cbind(DIFFUSIONtmp, nullMat),
+                          cbind(nullMat, nullMat)); DIFFUSIONtmp
+    DRIFTtmp <- matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent); DRIFTtmp
+    DRIFTtmp <- rbind(cbind(DRIFTtmp, diag(n.latent)),
+                      cbind(nullMat, nullMat)); DRIFTtmp
+    if (randomIntercepts == "MANIFEST") {
+      DRIFTtmp <- matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent); DRIFTtmp
+      DRIFTtmp <- rbind(cbind(DRIFTtmp, nullMat),
+                        cbind(nullMat, nullMat)); DRIFTtmp
+    }
+    T0VARtmp = gsub("diff", "T0cov", matrix(diffParamsTmp, n.latent, n.latent)); T0VARtmp
+    cint_cint_cov <- gsub("eta", "cint", T0VARtmp); cint_cint_cov
+    cint_cint_cov <- gsub("T0c", "C", cint_cint_cov); cint_cint_cov
+    T0eta_cint_cov <- matrix(NA, n.latent, n.latent); T0eta_cint_cov
+    for (ii in 1:n.latent) {
+      for (ll in 1:n.latent) {
+        T0eta_cint_cov[ii, ll] <- paste0("Cov_T0eta", ll, "_cint", ii)
       }
-
-      if (indVarying == "MANIFEST")  {
-
-        print(paste0("#################################################################################"))
-        print(paste0("###### Just a note: Individually varying manifest means model requested.  #######"))
-        print(paste0("#################################################################################"))
-
-        print(paste0("#################################################################################"))
-        print(paste0("### T0means are set to 0. T0(co-)variances are modelled nested in primaries. ####"))
-        print(paste0("#################################################################################"))
-        T0meansParams <- 'auto' #0
-
-        print(paste0("#################################################################################"))
-        print(paste0("######### Manifest means (as replacement for intercepts) are set free.  #########"))
-        print(paste0("#################################################################################"))
-
-        manifestMeansParams <- 'auto'
-      }
     }
-    if (!(is.null(binaries.orig))) {
-      # check if really cints rather than manifest means are modelled
-      # set TIpredeffects on cints to TRUE
+    T0VARtmp <- rbind(cbind(T0VARtmp, nullMat),
+                      cbind(T0eta_cint_cov, cint_cint_cov)); T0VARtmp
+    LAMBDAtmp <- cbind(lambdaParams, nullMat); LAMBDAtmp
+    if (randomIntercepts == "MANIFEST") {
+      LAMBDAtmp <- cbind(lambdaParams, lambdaParams); LAMBDAtmp
     }
+    manifestNamesTmp <- manifestNames; manifestNamesTmp
+    latentNamesTmp <- c(latentNames, paste0(latentNames, "_cint")); latentNamesTmp
+    T0MEANStmp <- matrix(paste0("Mean", latentNamesTmp), n.latent*2, 1); T0MEANStmp
+    TIpredNames <- paste0("TI", 1:n.TIpred); TIpredNames
 
     stanctModel <- (
-      ctsem::ctModel(n.latent=n.latent, n.manifest=n.var,
-                     manifestNames=manifestNames,
-                     DIFFUSION=matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent), #, byrow=TRUE),
-                     DRIFT=matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent),
-                     LAMBDA=lambdaParams,
-                     CINT=matrix(CINTParams, nrow=n.latent, ncol=1),
-                     T0MEANS = matrix(T0meansParams, nrow=n.latent, ncol=1),
+      ctsem::ctModel(n.latent=n.latent*2,
+                     n.manifest=n.var,
+                     manifestNames=manifestNamesTmp,
+                     latentNames = latentNamesTmp,
+                     DIFFUSION=DIFFUSIONtmp,
+                     DRIFT=DRIFTtmp,
+                     LAMBDA=LAMBDAtmp,
+                     CINT=matrix(0, nrow=n.latent*2, ncol=1),
+                     T0MEANS = T0MEANStmp,
                      MANIFESTMEANS = matrix(manifestMeansParams, nrow=n.latent, ncol=1),
                      MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var),
-                     T0VAR = T0VARParams,
+                     T0VAR = T0VARtmp,
                      type = type,
                      n.TIpred = n.TIpred,
                      TIpredNames = paste0("TI", 1:n.TIpred))
     )
-
-    if ( (indVarying != "CINT") & (indVarying != "MANIFEST") ) {
-      stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- FALSE
-    } else {
-      stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS','indvarying'] <- TRUE
-    }
-
-    if (indVarying == 'CINT') {
-      stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- TRUE
-    } else {
-      stanctModel$pars[stanctModel$pars$matrix %in% 'CINT','indvarying'] <- FALSE
-    }
-
-    if (indVarying == "MANIFEST") {
-      stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- TRUE
-    } else {
-      stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS','indvarying'] <- FALSE
-    }
-    #stanctModel$pars[1:26, 1:8]
-
+    stanctModel$pars$indvarying <- FALSE
     # general setting for params
-    stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
+    # not in this model stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'LAMBDA',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
     stanctModel$pars[stanctModel$pars$matrix %in% 'CINT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
@@ -1050,13 +1183,13 @@ ctmaFit <- function(
     if (!(is.null(cluster))) {
       stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[(n.studies++n.all.moderators):(n.studies+n.all.moderators+clusCounter-1)],'_effect')] <- TRUE
     }
-
     if (n.moderators > 0) {
       tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
       tmp2 <- which((stanctModel$pars[tmp1, "param"] %in% moderatedDriftNames)); tmp2
       targetCols <- (n.studies):(n.studies-1+n.all.moderators); targetCols
       stanctModel$pars[ , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- FALSE
       stanctModel$pars[tmp1[tmp2] , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
+
       # change model to allow for comparison of categories (-2ll is the only important result)
       if (!(is.null(catsToCompare))) {
         currentStartNumber <- modTIstartNum; currentStartNumber
@@ -1078,247 +1211,121 @@ ctmaFit <- function(
         stanctModel$pars[targetRows2, targetCols3] <- FALSE
       }
     }
-
-    if (experimental == TRUE) {
-      tmp1 <- which(stanctModel$pars$matrix == "T0MEANS"); tmp1
-      if (indVarying == "CINT") tmp2 <- which(stanctModel$pars$matrix == "CINT")
-      if (indVarying == "MANIFEST") tmp2 <- which(stanctModel$pars$matrix == "MANIFEST")
-      targetCols <- (n.studies):(n.studies-1+n.all.moderators); targetCols
-      stanctModel$pars[c(tmp1,tmp2) ,paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
-    }
-
     # the target effects
     tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
     tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftParams); tmp2
     tmp3 <- which(is.na(stanctModel$pars[tmp1, "param"])); tmp3
     tmp4 <- sort(unique(c(tmp2, tmp3))); tmp4
     varyingDrifts <- tmp1[!(tmp1 %in% tmp1[tmp4])]; varyingDrifts
-
     if (length(varyingDrifts) > 0) stanctModel$pars[varyingDrifts, paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- TRUE
 
-    # CHD 31. AUG 2023 (not really necessary)
+    # not really necessary
     tmp1 <- which(is.na(stanctModel$pars$param)); tmp1
     tmp2 <- grep("_effect", colnames(stanctModel$pars)); tmp2
     stanctModel$pars[tmp1, tmp2] <- FALSE
-
     stanctModel$manifesttype <- binaries
-
     if ( (indVarying == 'CINT') & (!(is.null(binaries.orig))) ) {
       tmp1 <- grep("_effect", colnames(stanctModel$pars)); tmp1
       tmp2 <- which(binaries.orig == 1); tmp2
       stanctModel$pars[(stanctModel$pars$matrix %in% 'CINT'), ][tmp2, tmp1] <- TRUE
     }
+  } # end if ((randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") )
 
-    #if ((randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
-    if ((randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") ) {
-      print(paste0("#################################################################################"))
-      print(paste0("#### Note: Correct random intercept model instead of rstan default requested ####"))
-      print(paste0("#################################################################################"))
+  if (!(optimize)) {
+    customPar <- FALSE
+    if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
+    tmp1a <- paste0(" Bayesian sampling was selected, which does require appropriate scaling of time. ")
+    tmp2 <- nchar(tmp1a); tmp2
+    tmp3 <- (81 - tmp2)/2; tmp3
+    tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+    tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+    tmp6a <- paste0(tmp4, tmp1a, tmp5); tmp6a
 
-      nullMat <- matrix(0, n.latent, n.latent); nullMat
-      DIFFUSIONtmp <- matrix(diffParamsTmp, nrow=n.latent, ncol=n.latent); DIFFUSIONtmp
-      DIFFUSIONtmp <- rbind(cbind(DIFFUSIONtmp, nullMat),
-                            cbind(nullMat, nullMat)); DIFFUSIONtmp
-      DRIFTtmp <- matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent); DRIFTtmp
-      DRIFTtmp <- rbind(cbind(DRIFTtmp, diag(n.latent)),
-                        cbind(nullMat, nullMat)); DRIFTtmp
-      if (randomIntercepts == "MANIFEST") {
-        DRIFTtmp <- matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent); DRIFTtmp
-        DRIFTtmp <- rbind(cbind(DRIFTtmp, nullMat),
-                          cbind(nullMat, nullMat)); DRIFTtmp
-      }
-      T0VARtmp = gsub("diff", "T0cov", matrix(diffParamsTmp, n.latent, n.latent)); T0VARtmp
-      cint_cint_cov <- gsub("eta", "cint", T0VARtmp); cint_cint_cov
-      cint_cint_cov <- gsub("T0c", "C", cint_cint_cov); cint_cint_cov
-      T0eta_cint_cov <- matrix(NA, n.latent, n.latent); T0eta_cint_cov
-      for (ii in 1:n.latent) {
-        for (ll in 1:n.latent) {
-          T0eta_cint_cov[ii, ll] <- paste0("Cov_T0eta", ll, "_cint", ii)
-        }
-      }
-      T0VARtmp <- rbind(cbind(T0VARtmp, nullMat),
-                        cbind(T0eta_cint_cov, cint_cint_cov)); T0VARtmp
-      LAMBDAtmp <- cbind(lambdaParams, nullMat); LAMBDAtmp
-      if (randomIntercepts == "MANIFEST") {
-        LAMBDAtmp <- cbind(lambdaParams, lambdaParams); LAMBDAtmp
-      }
-      manifestNamesTmp <- manifestNames; manifestNamesTmp
-      latentNamesTmp <- c(latentNames, paste0(latentNames, "_cint")); latentNamesTmp
-      T0MEANStmp <- matrix(paste0("Mean", latentNamesTmp), n.latent*2, 1); T0MEANStmp
-      TIpredNames <- paste0("TI", 1:n.TIpred); TIpredNames
+    tmp1b <- paste0(" See the end of the summary output ")
+    tmp2 <- nchar(tmp1b); tmp2
+    tmp3 <- (81 - tmp2)/2; tmp3
+    tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
+    tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
+    tmp6b <- paste0(tmp4, tmp1b, tmp5); tmp6b
 
-      stanctModel <- (
-        ctsem::ctModel(n.latent=n.latent*2,
-                       n.manifest=n.var,
-                       manifestNames=manifestNamesTmp,
-                       latentNames = latentNamesTmp,
-                       DIFFUSION=DIFFUSIONtmp,
-                       DRIFT=DRIFTtmp,
-                       LAMBDA=LAMBDAtmp,
-                       CINT=matrix(0, nrow=n.latent*2, ncol=1),
-                       T0MEANS = T0MEANStmp,
-                       MANIFESTMEANS = matrix(manifestMeansParams, nrow=n.latent, ncol=1),
-                       MANIFESTVAR=matrix(manifestVarsParams, nrow=n.var, ncol=n.var),
-                       T0VAR = T0VARtmp,
-                       type = type,
-                       n.TIpred = n.TIpred,
-                       TIpredNames = paste0("TI", 1:n.TIpred))
-      )
-      stanctModel$pars$indvarying <- FALSE
-      # general setting for params
-      # not in this model stanctModel$pars[stanctModel$pars$matrix %in% 'T0MEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-      stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- FALSE
-      stanctModel$pars[stanctModel$pars$matrix %in% 'LAMBDA',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-      stanctModel$pars[stanctModel$pars$matrix %in% 'CINT',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-      stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTMEANS',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-      stanctModel$pars[stanctModel$pars$matrix %in% 'MANIFESTVAR',paste0(stanctModel$TIpredNames,'_effect')] <- FALSE
-
-      if (!(is.null(cluster))) {
-        stanctModel$pars[stanctModel$pars$matrix %in% 'DRIFT',paste0(stanctModel$TIpredNames[(n.studies++n.all.moderators):(n.studies+n.all.moderators+clusCounter-1)],'_effect')] <- TRUE
-      }
-      if (n.moderators > 0) {
-        tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
-        tmp2 <- which((stanctModel$pars[tmp1, "param"] %in% moderatedDriftNames)); tmp2
-        targetCols <- (n.studies):(n.studies-1+n.all.moderators); targetCols
-        stanctModel$pars[ , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- FALSE
-        stanctModel$pars[tmp1[tmp2] , paste0(stanctModel$TIpredNames[targetCols],'_effect')] <- TRUE
-
-        # change model to allow for comparison of categories (-2ll is the only important result)
-        if (!(is.null(catsToCompare))) {
-          currentStartNumber <- modTIstartNum; currentStartNumber
-          for (c1 in 1:modsToCompare) {
-            if (n.moderators > 1) {
-              targetCols2 <- c()
-              for (c3 in 1:length(unique.mod)) {
-                targetCols2 <- c(targetCols2, currentStartNumber:(currentStartNumber+length(catsToCompare)-2))
-                currentStartNumber <- currentStartNumber + length(unique.mod[[c3]]) - 1
-              }
-            } else {
-              targetCols2 <- currentStartNumber:(currentStartNumber+length(catsToCompare)-2); targetCols2
-            }
-          }
-          if (is.null(driftsToCompare)) driftsToCompare <- driftFullNames
-          targetRows2 <- which(stanctModel$pars[, "param"] %in% driftsToCompare); targetRows2
-          targetCols3 <- c()
-          for (c4 in targetCols2) targetCols3 <- c(targetCols3, grep(c4, colnames(stanctModel$pars)))
-          stanctModel$pars[targetRows2, targetCols3] <- FALSE
-        }
-      }
-      # the target effects
-      tmp1 <- which(stanctModel$pars$matrix == "DRIFT"); tmp1
-      tmp2 <- which(stanctModel$pars[tmp1, "param"] %in% invariantDriftParams); tmp2
-      tmp3 <- which(is.na(stanctModel$pars[tmp1, "param"])); tmp3
-      tmp4 <- sort(unique(c(tmp2, tmp3))); tmp4
-      varyingDrifts <- tmp1[!(tmp1 %in% tmp1[tmp4])]; varyingDrifts
-      if (length(varyingDrifts) > 0) stanctModel$pars[varyingDrifts, paste0(stanctModel$TIpredNames[1:(n.studies-1)],'_effect')] <- TRUE
-
-      # not really necessary
-      tmp1 <- which(is.na(stanctModel$pars$param)); tmp1
-      tmp2 <- grep("_effect", colnames(stanctModel$pars)); tmp2
-      stanctModel$pars[tmp1, tmp2] <- FALSE
-      stanctModel$manifesttype <- binaries
-      if ( (indVarying == 'CINT') & (!(is.null(binaries.orig))) ) {
-        tmp1 <- grep("_effect", colnames(stanctModel$pars)); tmp1
-        tmp2 <- which(binaries.orig == 1); tmp2
-        stanctModel$pars[(stanctModel$pars$matrix %in% 'CINT'), ][tmp2, tmp1] <- TRUE
-      }
-    } # end if ((randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") )
-
-    if (!(optimize)) {
-      customPar <- FALSE
-      if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-      tmp1a <- paste0(" Bayesian sampling was selected, which does require appropriate scaling of time. ")
-      tmp2 <- nchar(tmp1a); tmp2
-      tmp3 <- (81 - tmp2)/2; tmp3
-      tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
-      tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
-      tmp6a <- paste0(tmp4, tmp1a, tmp5); tmp6a
-
-      tmp1b <- paste0(" See the end of the summary output ")
-      tmp2 <- nchar(tmp1b); tmp2
-      tmp3 <- (81 - tmp2)/2; tmp3
-      tmp4 <- strrep("#", round(tmp3 + 0.45, 0)); tmp4
-      tmp5 <- strrep("#", round(tmp3 - 0.45, 0)); tmp5
-      tmp6b <- paste0(tmp4, tmp1b, tmp5); tmp6b
-
-      Msg <- paste0("################################################################################# \n", tmp6a, "\n", tmp6b, "\n#################################################################################")
-      message(Msg)
-    }
-  } # end if (allInvModel == FALSE)
+    Msg <- paste0("################################################################################# \n", tmp6a, "\n", tmp6b, "\n#################################################################################")
+    message(Msg)
+  }
+  #} # end if (allInvModel == FALSE)
 
 
   #######################################################################################################################
   ################################################## CoTiMA Fit #########################################################
   #######################################################################################################################
 
-  if (allInvModel == FALSE) {
-    #fitStanctModel <- suppressMessages(ctsem::ctStanFit(
+  #if (allInvModel == FALSE) {
+  #fitStanctModel <- suppressMessages(ctsem::ctStanFit(
 
-    if (fit == FALSE) {
+  if (fit == FALSE) {
+    print(paste0("#################################################################################"))
+    print(paste0("#############  No model is fitted, only data and code are generated. ############"))
+    print(paste0("#################################################################################"))
+  }
+
+  hessianWarning <- FALSE
+  if (fit == TRUE) {
+    fitStanctModel <- run_ctStanFit_logged(ctsem::ctStanFit(
+      fit=fit,
+      datalong = datalong_all,
+      ctstanmodel = stanctModel,
+      sameInitialTimes=sameInitialTimes,
+      savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
+      stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
+      iter=CoTiMAStanctArgs$iter,
+      intoverstates=CoTiMAStanctArgs$intoverstates,
+      binomial=CoTiMAStanctArgs$binomial,
+      intoverpop=CoTiMAStanctArgs$intoverpop,
+      stationary=CoTiMAStanctArgs$stationary,
+      plot=CoTiMAStanctArgs$plot,
+      optimize=CoTiMAStanctArgs$optimize,
+      optimcontrol=CoTiMAStanctArgs$optimcontrol,
+      nlcontrol=CoTiMAStanctArgs$nlcontrol,
+      priors=CoTiMAStanctArgs$priors, # added Aug 2023
+      chains=CoTiMAStanctArgs$chains,
+      forcerecompile=CoTiMAStanctArgs$forcerecompile,
+      savescores=CoTiMAStanctArgs$savescores,
+      gendata=CoTiMAStanctArgs$gendata,
+      control=CoTiMAStanctArgs$control,
+      #verbose=CoTiMAStanctArgs$verbose,
+      verbose=verbose,
+      warmup=CoTiMAStanctArgs$warmup,
+      cores=coresToUse,
+      inits=inits))
+
+    #print(names((fitStanctModel)))
+    #print(fitStanctModel$warn_hessinv)
+    #print(fitStanctModel$warnings)
+    #print(fitStanctModel$error)
+    hessianWarning <- list(warn_hessinv = fitStanctModel$warn_hessinv,
+                           warnings = fitStanctModel$warnings,
+                           error= fitStanctModel$error)
+
+    if (is.null(fitStanctModel$standata$priors)) fitStanctModel$standata$priors <- FALSE # CHD added Sep 2023
+
+    if (is.na(fitStanctModel$error)) {
+      fitStanctModel <- fitStanctModel$fit # to match former fitting results w/o error handling
+      fitStanctModel_summary <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
+    } else {
+      fit <- FALSE
       print(paste0("#################################################################################"))
-      print(paste0("#############  No model is fitted, only data and code are generated. ############"))
+      print(paste0("###########  Model could not be fitted, only data and code are returned #########"))
       print(paste0("#################################################################################"))
-    }
-
-    hessianWarning <- FALSE
-    if (fit == TRUE) {
-      fitStanctModel <- run_ctStanFit_logged(ctsem::ctStanFit(
-        fit=fit,
-        datalong = datalong_all,
-        ctstanmodel = stanctModel,
-        sameInitialTimes=sameInitialTimes,
-        savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
-        stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
-        iter=CoTiMAStanctArgs$iter,
-        intoverstates=CoTiMAStanctArgs$intoverstates,
-        binomial=CoTiMAStanctArgs$binomial,
-        intoverpop=CoTiMAStanctArgs$intoverpop,
-        stationary=CoTiMAStanctArgs$stationary,
-        plot=CoTiMAStanctArgs$plot,
-        optimize=CoTiMAStanctArgs$optimize,
-        optimcontrol=CoTiMAStanctArgs$optimcontrol,
-        nlcontrol=CoTiMAStanctArgs$nlcontrol,
-        priors=CoTiMAStanctArgs$priors, # added Aug 2023
-        chains=CoTiMAStanctArgs$chains,
-        forcerecompile=CoTiMAStanctArgs$forcerecompile,
-        savescores=CoTiMAStanctArgs$savescores,
-        gendata=CoTiMAStanctArgs$gendata,
-        control=CoTiMAStanctArgs$control,
-        #verbose=CoTiMAStanctArgs$verbose,
-        verbose=verbose,
-        warmup=CoTiMAStanctArgs$warmup,
-        cores=coresToUse,
-        inits=inits))
-
-      #print(names((fitStanctModel)))
-      #print(fitStanctModel$warn_hessinv)
-      #print(fitStanctModel$warnings)
-      #print(fitStanctModel$error)
-      hessianWarning <- list(warn_hessinv = fitStanctModel$warn_hessinv,
-                             warnings = fitStanctModel$warnings,
+      hessianWarning <- list(warn_hessinv = "There was fatal fitting error - no hessian computed.",
+                             warnings = "There was fatal fitting error - no hessian computed.",
                              error= fitStanctModel$error)
-
-      if (is.null(fitStanctModel$standata$priors)) fitStanctModel$standata$priors <- FALSE # CHD added Sep 2023
-
-      if (is.na(fitStanctModel$error)) {
-        fitStanctModel <- fitStanctModel$fit # to match former fitting results w/o error handling
-        fitStanctModel_summary <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
-      } else {
-        fit <- FALSE
-        print(paste0("#################################################################################"))
-        print(paste0("###########  Model could not be fitted, only data and code are returned #########"))
-        print(paste0("#################################################################################"))
-        hessianWarning <- list(warn_hessinv = "There was fatal fitting error - no hessian computed.",
-                               warnings = "There was fatal fitting error - no hessian computed.",
-                               error= fitStanctModel$error)
-      }
-
     }
-    #print(fitStanctModel_summary)
-    #}
+
+  }
+  #print(fitStanctModel_summary)
+  #}
 
 
-  } # end if (allInvModel == FALSE)
+  #} # end if (allInvModel == FALSE)
 
   #######################################################################################################################
   ####################################### Extract estimates & statistics ################################################
@@ -1652,7 +1659,7 @@ ctmaFit <- function(
     if (length(invariantDriftNames) == length(driftNames)) {
       OTL <- function(timeRange) {
         OpenMx::expm(tmpDriftMatrix * timeRange)[targetRow, targetCol]
-        }
+      }
       tmpDriftMatrix <- driftMatrix * scaleTime
       # loop through all cross effects
       tmp1 <- 0
