@@ -105,7 +105,13 @@ ctmaPower <- function(
       if (!(is.null(CoTiMAStanctArgs))) tmp2[tmp1] <- CoTiMAStanctArgs
       CoTiMAStanctArgs <- tmp2
 
-      if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
+      if (!(is.null(scaleTime))) {
+        CoTiMAStanctArgs$scaleTime <- scaleTime
+        if (scaleTime != fit$argumentList$scaleTime) {
+          Msg <- "The scaleTime argument provided is different from the scaleTime argument used when ctmaInitFit was fitted. I use the one you provided here. \n"
+          message(Msg)
+        }
+      }
       if (is.null(scaleTime)) scaleTime <- 1
 
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
