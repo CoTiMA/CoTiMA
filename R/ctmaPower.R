@@ -60,7 +60,7 @@
 #' which is printed if the summary function is applied to the returned object, contains "estimates", which is itself a list comprising
 #' "Estimates of Model with all Effects Invariant", "Requested Statistical Power" (which just returns the argument statisticalPower),
 #' "Power (post hoc) for Drift Effects",  "Required Sample Sizes" "Effect Sizes (based on discrete-time calcs; used for power calcs.)", and
-#' "Range of significant effects" (across which intervals effects were significant). Plot type is plot.type=c("power") and model.type="stanct"
+#' "Range of significant effects" (across which intervals effects were significant). Plot type is plot.type=c("power") and model.type="ct"
 #' ("omx" was deprecated).
 
 #'
@@ -106,6 +106,8 @@ ctmaPower <- function(
       CoTiMAStanctArgs <- tmp2
 
       if (!(is.null(scaleTime))) CoTiMAStanctArgs$scaleTime <- scaleTime
+      if (is.null(scaleTime)) scaleTime <- 1
+
       if (!(is.null(optimize))) CoTiMAStanctArgs$optimize <- optimize
       if (!(is.null(priors))) CoTiMAStanctArgs$priors <- priors
       if (!(is.null(finishsamples))) CoTiMAStanctArgs$optimcontrol$finishsamples <- finishsamples
@@ -330,7 +332,8 @@ ctmaPower <- function(
       dataTmp2 <- suppressMessages(ctWideToLong(dataTmp, Tpoints=maxTpoints, n.manifest=n.latent, n.TIpred = (n.studies-1),
                                                 manifestNames=manifestNames))
       dataTmp3 <- suppressMessages(ctDeintervalise(dataTmp2))
-      dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
+      #dataTmp3[, "time"] <- dataTmp3[, "time"] * CoTiMAStanctArgs$scaleTime
+      dataTmp3[, "time"] <- dataTmp3[, "time"] * scaleTime
       # eliminate rows where ALL latents are NA
       dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
       datalong_all <- dataTmp3
@@ -367,7 +370,8 @@ ctmaPower <- function(
                                     digits=digits,
                                     coresToUse=coresToUse,
                                     indVarying=indVarying,
-                                    scaleTime=CoTiMAStanctArgs$scaleTime,
+                                    scaleTime=scaleTime,
+                                    #scaleTime=CoTiMAStanctArgs$scaleTime,
                                     optimize=optimize,
                                     priors=priors,
                                     finishsamples=finishsamples,
@@ -981,7 +985,7 @@ ctmaPower <- function(
   allInvModelFit$resultsSummary <- allInvModelFitSummary
 
   results <- list(activeDirectory=activeDirectory,
-                  plot.type=c("power"), model.type="stanct", #model.type="mx",
+                  plot.type=c("power"), model.type="ct", #model.type="mx",
                   coresToUse=coresToUse, n.studies=1,
                   n.latent=n.latent,
                   studyList=ctmaInitFit$studyList, studyFitList=allInvModelFit,
@@ -989,6 +993,7 @@ ctmaPower <- function(
                   statisticsList=ctmaInitFit$statisticsList,
                   modelResults=list(DRIFT=DRIFT, DIFFUSION=DIFFUSION, T0VAR=T0VAR, CINT=NULL),
                   parameterNames=ctmaInitFit$parameterNames,
+                  scaleTime=scaleTime,
                   summary=list(model="Analysis of Statistical Power and Required Sample Sizes",
                                estimates=list("Estimates of Model with all Effects Invariant"=round(homAll_effects, digits),
                                               "Requested Statistical Power"=statisticalPower,
