@@ -107,7 +107,7 @@ ctmaPower <- function(
 
       if (!(is.null(scaleTime))) {
         CoTiMAStanctArgs$scaleTime <- scaleTime
-        if (scaleTime != fit$argumentList$scaleTime) {
+        if (scaleTime != ctmaInitFit$argumentList$scaleTime) {
           Msg <- "The scaleTime argument provided is different from the scaleTime argument used when ctmaInitFit was fitted. I use the one you provided here. \n"
           message(Msg)
         }
