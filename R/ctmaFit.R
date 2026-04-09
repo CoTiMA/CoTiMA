@@ -52,7 +52,8 @@
 #' @param transfMod more general option to change moderator values. A vector as long as number of moderators analyzed (e.g., c("mean(x)", "x - median(x)"))
 #' @param useSampleFraction to speed up debugging. Provided as fraction (e.g., 1/10).
 #' @param verbose integer from 0 to 2. Higher values print more information during model fit – for debugging
-#' @param WEC (default = FALSE) Experimental. Uses weighted effect coding of TIpred representing the dummies of the primary studies. Returns drift matrices for all primary studies.
+#' @param WEC (default = FALSE) Experimental. Uses sample-size weighted effect coding of TIpred representing the dummies of the primary studies. Returns drift matrices for all primary studies.
+#' @param WECnt (default = TRUE) Experimental. Applies only if WEC = TRUE. Uses sample-size x time points weighted effect coding of TIpred representing the dummies of the primary studies. Returns drift matrices for all primary studies.
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  parallel detectCores
@@ -158,7 +159,8 @@ ctmaFit <- function(
     transfMod=NULL,
     useSampleFraction=NULL,
     verbose=0,
-    WEC=FALSE
+    WEC=FALSE,
+    WECnt=TRUE,
 )
 {  # begin function definition (until end of file)
 
@@ -851,7 +853,18 @@ ctmaFit <- function(
 
     # TI-identifiers for groups, moderators, and clusters
     {
-      groupTIs <- paste0("TI", 1:(length(unique(groups))-1)); groupTIs
+      #groupTIs <- paste0("TI", 1:(length(unique(groups))-1)); groupTIs
+      n.TIpred <- (length(unique(groups))-1); n.TIpred
+      groupTIs <- paste0("TI", 1:n.TIpred); groupTIs
+      if ((WEC == TRUE) & (WECnt == TRUE)) {
+        for (g in groupTIs) {
+          posTI <- which(datalong_all[, g] > 0)
+          negTI <- which(datalong_all[, g] < 0)
+          newWeight <- -sum(a[posTI])/length(a[negTI])
+          datalong_all[negTI, g] <- newWeight
+          sum(datalong_all[negTI, g])
+        }
+      }
       tmp1 <- (length(unique(groups))); tmp1
       if (n.moderators > 0) modTIs <- paste0("TI", tmp1:(tmp1+n.all.moderators-1))
       tmp1 <- (tmp1+n.all.moderators); tmp1
