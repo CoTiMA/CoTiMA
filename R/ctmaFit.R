@@ -860,9 +860,9 @@ ctmaFit <- function(
         for (g in groupTIs) {
           posTI <- which(datalong_all[, g] > 0)
           negTI <- which(datalong_all[, g] < 0)
-          newWeight <- -sum(a[posTI])/length(a[negTI])
+          newWeight <- -sum(datalong_all[posTI, g])/length(datalong_all[negTI, g])
           datalong_all[negTI, g] <- newWeight
-          sum(datalong_all[negTI, g])
+          #sum(datalong_all[negTI, g])
         }
       }
       tmp1 <- (length(unique(groups))); tmp1
