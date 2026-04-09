@@ -160,7 +160,7 @@ ctmaFit <- function(
     useSampleFraction=NULL,
     verbose=0,
     WEC=FALSE,
-    WECnt=TRUE,
+    WECnt=TRUE
 )
 {  # begin function definition (until end of file)
 
