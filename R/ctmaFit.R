@@ -863,6 +863,8 @@ ctmaFit <- function(
           newWeight <- -sum(datalong_all[posTI, g])/length(datalong_all[negTI, g])
           datalong_all[negTI, g] <- newWeight
           #sum(datalong_all[negTI, g])
+          # added: Make max value per column = 1
+          datalong_all[, g] <- datalong_all[, g]/max(abs(datalong_all[, g]))
         }
       }
       tmp1 <- (length(unique(groups))); tmp1
