@@ -134,8 +134,10 @@ ctmaBiG <- function(
           diffM <- (ctsem::ctCollapse(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DIFFUSIONcov[, 1:n.latent, 1:n.latent], 1, mean)); diffM
           diffSE <- (ctsem::ctCollapse(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_DIFFUSIONcov[, 1:n.latent, 1:n.latent], 1, sd)); diffSE
 
-          T0covM <- (ctsem::ctCollapse(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0cov[, 1:n.latent, 1:n.latent], 1, mean)); T0covM
-          T0covSE <- (ctsem::ctCollapse(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0cov[, 1:n.latent, 1:n.latent], 1, mean)); T0covSE
+          #T0covM <- (ctsem::ctCollapse(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0cov[, 1:n.latent, 1:n.latent], 1, mean)); T0covM
+          #T0covSE <- (ctsem::ctCollapse(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0cov[, 1:n.latent, 1:n.latent], 1, mean)); T0covSE
+          T0covM <- (ctsem::ctCollapse(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0VAR[, 1:n.latent, 1:n.latent], 1, mean)); T0covM
+          T0covSE <- (ctsem::ctCollapse(ctmaInitFit$studyFitList[[i]]$stanfit$transformedpars$pop_T0VAR[, 1:n.latent, 1:n.latent], 1, mean)); T0covSE
 
           all_Coeff[i,] <- cbind(t(c(t(driftM))), t(c(diffM)), t(c(T0covM))); all_Coeff[i,]
           all_SE[i,] <- cbind(t(c(t(driftSE))), t(c(diffSE)), t(c(T0covSE))); all_SE[i,]
