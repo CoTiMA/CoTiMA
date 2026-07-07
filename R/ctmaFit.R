@@ -1284,6 +1284,7 @@ ctmaFit <- function(
 
   hessianWarning <- FALSE
   if (fit == TRUE) {
+    CoTiMAStanctArgs$optimcontrol$bootstrapUncertainty <- NULL
     fitStanctModel <- run_ctStanFit_logged(ctsem::ctStanFit(
       fit=fit,
       datalong = datalong_all,

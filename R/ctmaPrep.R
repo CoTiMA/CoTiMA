@@ -353,7 +353,8 @@ ctmaPrep <- function(selectedStudies=NULL,
       existExmpcov <- which(lapply(primaryStudies$empcov, function(x) length(c(x))) > 0)
       if (length(existExmpcov) > 0) {
         maxWaves <- max(unlist(lapply(primaryStudies$deltas, length)))+1; maxWaves
-        maxEmpcov <- max(unlist(lapply(primaryStudies$empcovs, length)))^.5; maxEmpcov
+        #maxEmpcov <- max(unlist(lapply(primaryStudies$empcovs, length)))^.5; maxEmpcov
+        maxEmpcov <- max(unlist(lapply(primaryStudies$empcovs, length)))/n.latent; maxEmpcov
         n.variables <- maxEmpcov/maxWaves; n.variables
       }
       #maxPairwiseNs <- max(unlist(lapply(primaryStudies$pairwiseNs, length)))^.5; maxPairwiseNs

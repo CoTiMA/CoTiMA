@@ -151,6 +151,8 @@ ctmaEqual <- function(
   priors <- FALSE
   if (!(is.null(CoTiMAStanctArgs$priors))) priors <- CoTiMAStanctArgs$priors else priors <- FALSE
 
+  CoTiMAStanctArgs$optimcontrol$bootstrapUncertainty <- NULL
+
   fitStanctModel <- ctsem::ctStanFit(
     inits=prevEst,
     datalong = prevData,

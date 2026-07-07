@@ -353,6 +353,8 @@ ctmaAllInvFit <- function(
     x1 <- paste0(activeDirectory, loadAllInvFit[1], ".rds"); x1
     results <- readRDS(file=x1)
   } else {
+    CoTiMAStanctArgs$optimcontrol$bootstrapUncertainty <- NULL
+
     #allFixedModelFit <- suppressMessages(ctsem::ctStanFit(
     allFixedModelFit <- (ctsem::ctStanFit(
       type=type,

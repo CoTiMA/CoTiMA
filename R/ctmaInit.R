@@ -1132,6 +1132,7 @@ ctmaInit <- function(
 
         # FIT STANCT MODEL
         if (fit == TRUE) {
+          CoTiMAStanctArgs$optimcontrol$bootstrapUncertainty <- NULL
           if (doPar < 2) {
             # CHD changed 7 Oct 2022
             if (any(is.na(studyList[[i]]$startValues))) inits <- NULL else inits <- studyList[[i]]$startValues
