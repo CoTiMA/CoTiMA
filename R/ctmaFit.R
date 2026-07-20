@@ -12,7 +12,7 @@
 #' @param cint default 'auto' (= 0). Are set free if random intercepts model with varying cints is requested (by indVarying='cint')
 #' @param cluster  vector with cluster variables (e.g., countries). Has to be set up carfully. Will be included in \code{\link{ctmaPrep}} in later 'CoTiMA' versions.
 #' @param coresToUse if negative, the value is subtracted from available cores, else value = cores to use
-#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link[ctsem]{ctStanFit}} Function
+#' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link[ctsem]{ctFit}} Function
 #' @param ctmaInitFit object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by \code{\link{ctmaInit}})
 #' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
 #' @param digits Number of digits used for rounding (in outputs)
@@ -57,7 +57,7 @@
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  parallel detectCores
-#' @importFrom  ctsem ctWideToLong ctDeintervalise ctModel ctStanFit ctCollapse
+#' @importFrom  ctsem ctWideToLong ctDeintervalise ctModel ctFit ctCollapse
 #' @importFrom  OpenMx vech2full expm
 #' @importFrom  utils packageDescription
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
@@ -204,7 +204,7 @@ ctmaFit <- function(
       )
 
       # Wenn kein Error: out ist der Fit
-      if (!is.list(out) || isTRUE(inherits(out, "ctStanFit"))) {
+      if (!is.list(out) || isTRUE(inherits(out, "ctFit"))) {
         return(list(
           ok = TRUE,
           fit = out,
@@ -1285,10 +1285,12 @@ ctmaFit <- function(
   hessianWarning <- FALSE
   if (fit == TRUE) {
     CoTiMAStanctArgs$optimcontrol$bootstrapUncertainty <- NULL
-    fitStanctModel <- run_ctStanFit_logged(ctsem::ctStanFit(
+    #fitStanctModel <- run_ctStanFit_logged(ctsem::ctStanFit( # CHD 15.7.2026
+    fitStanctModel <- run_ctStanFit_logged(ctsem::ctFit(
       fit=fit,
       datalong = datalong_all,
-      ctstanmodel = stanctModel,
+      #ctstanmodel = stanctModel, # CHD 15.7.2026
+      model = stanctModel,
       sameInitialTimes=sameInitialTimes,
       savesubjectmatrices=CoTiMAStanctArgs$savesubjectmatrices,
       stanmodeltext=CoTiMAStanctArgs$stanmodeltext,
