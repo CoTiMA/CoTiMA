@@ -47,14 +47,15 @@ ctmaFit(
   sameInitialTimes = FALSE,
   scaleClus = TRUE,
   scaleMod = TRUE,
-  scaleTI = TRUE,
+  scaleTI = FALSE,
   scaleTime = NULL,
   T0means = 0,
   T0var = "auto",
   transfMod = NULL,
   useSampleFraction = NULL,
   verbose = 0,
-  WEC = FALSE
+  WEC = FALSE,
+  WECnt = TRUE
 )
 }
 \arguments{
@@ -76,7 +77,7 @@ ctmaFit(
 
 \item{coresToUse}{if negative, the value is subtracted from available cores, else value = cores to use}
 
-\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link[ctsem]{ctStanFit}} Function}
+\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link[ctsem]{ctFit}} Function}
 
 \item{ctmaInitFit}{object to which all single ctsem fits of primary studies has been assigned to (i.e., what has been returned by \code{\link{ctmaInit}})}
 
@@ -142,7 +143,7 @@ ctmaFit(
 
 \item{scaleMod}{scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts}
 
-\item{scaleTI}{scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dummies representing primary studies.}
+\item{scaleTI}{scale TI predictors (default = FALSE). Does not change aggregated results anyway, just interpretation of effects for dummies representing primary studies.}
 
 \item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
 
@@ -156,7 +157,9 @@ ctmaFit(
 
 \item{verbose}{integer from 0 to 2. Higher values print more information during model fit – for debugging}
 
-\item{WEC}{(default = FALSE) Experimental. Uses weighted effect coding of TIpred representing the dummies of the primary studies. Returns drift matrices for all primary studies.}
+\item{WEC}{(default = FALSE) Experimental. Uses sample-size weighted effect coding of TIpred representing the dummies of the primary studies. Returns drift matrices for all primary studies.}
+
+\item{WECnt}{(default = TRUE) Experimental. Applies only if WEC = TRUE. Uses sample-size x time points weighted effect coding of TIpred representing the dummies of the primary studies. Returns drift matrices for all primary studies.}
 }
 \value{
 ctmaFit returns a list containing somearguments supplied, the fitted model, different elements summarizing the main results,
@@ -164,7 +167,7 @@ model type, and the type of plot that could be performed with the returned objec
 coresToUse, moderator names (mod.names), and moderator type (mod.type). Further arguments, which are just copied from the init-fit object
 supplied, are, n.latent, studyList, parameterNames, and statisticsList. The fitted model is found in studyFitList, which is a large list
 with many elements (e.g., the ctsem model specified by CoTiMA, the rstan model created by ctsem, the fitted rstan model etc.). Further
-results returned are n.studies = 1 (required for proper plotting), data (created pseudo raw data), and a list with modelResults (i.e.,
+results returned are n.studies = 1 (required for proper plotting), data (synthesised pseudo raw data), and a list with modelResults (i.e.,
 DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef, CINT=model_Cint_Coef, MOD=modTI_Coeff,  and
 CLUS=clusTI_Coeff). Possible invariance constraints are included in invariantDrift. The number of moderators simultaneously analyzed are
 included in ' n.moderators. The most important new results are returned as the list element "summary", which is printed if the summary

@@ -304,6 +304,63 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
     transforms <- tmp1a[tmp1c]; transforms
     #
     # compute tformed drift effects
+    # functions imported from ctsem CHD 20.7.2026
+    ctsem_tformshapes <- function (singletext = FALSE, transform = NA, jacobian = FALSE,
+                                   driftdiag = FALSE, parname = "param", stan = FALSE)
+    {
+      out = c("param", "(log1p_exp(param))", "(exp(param))", "(1/(1+exp(-param)))",
+              "((param)^3)", "log1p(param)", "meanscale", "1/(1+exp(-param))",
+              "exp(param)", "1/(1+exp(-param))-(exp(param)^2)/(1+exp(param))^2",
+              "3*param^2", "1/(1+param)")
+      tfvec = c(0:5, 50:55)
+      if (stan) {
+        tfvec = tfvec[-1]
+        out = out[-1]
+      }
+      out = gsub("param", parname, out, fixed = TRUE)
+      if (!is.na(transform) && transform != 0)
+        out = out[tfvec == transform]
+      if (!singletext) {
+        out = paste0("if(transform==", tfvec, ") param = ", out,
+                     ";\n", collapse = "")
+        if (!stan)
+          out <- paste0("param = parin * meanscale + inneroffset; \n ",
+                        out, "\n  param=param*multiplier;\n    if(transform < 49) param = param+offset;")
+        if (stan)
+          out <- paste0("if(meanscale!=1.0) param *= meanscale; \n  if(inneroffset != 0.0) param += inneroffset; \n",
+                        out, "\n  if(multiplier != 1.0) param *=multiplier;\n  if(transform < 49 && offset != 0.0) param+=offset;")
+      }
+      if (singletext)
+        out <- paste0("offset + multiplier*", gsub("param", "(param*meanscale+inneroffset)",
+                                                   out))
+      out = gsub("  ", "", out, fixed = TRUE)
+      return(out)
+    }
+    #
+    ctsem_tform <- function (parin, transform, multiplier, meanscale, offset, inneroffset,
+                             extratforms = "", singletext = FALSE, jacobian = FALSE, driftdiag = FALSE)
+    {
+      param = parin
+      if (!is.na(suppressWarnings(as.integer(transform)))) {
+        out <- ctsem_tformshapes(singletext = singletext, transform = as.integer(transform))
+        if (!singletext)
+          paste0(out, extratforms)
+        if (singletext) {
+          for (i in c("param", "multiplier", "meanscale", "inneroffset",
+                      "offset")) {
+            irep = get(i)
+            out <- gsub(pattern = i, replacement = irep,
+                        out)
+          }
+        }
+      }
+      if (is.na(suppressWarnings(as.integer(transform))))
+        out <- transform
+      if (!singletext)
+        out <- eval(parse(text = out))
+      return(out)
+    }
+
     for (k in 1:(length(DRIFTCoeff))) {
       counter <- 0
       for (l in 1:(n.latent)) {
@@ -312,7 +369,7 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
           param <- DRIFTCoeff[[k]][l,m]; param
           #DRIFTCoeff[[k]][l,m] <- eval(parse(text=transforms[counter])); DRIFTCoeff[[k]][l,m]
           # CHD changed 12. 5. 2026
-          DRIFTCoeff[[k]][l,m] <- ctsem:::tform(param,
+          DRIFTCoeff[[k]][l,m] <- ctsem_tform(param,
                                                 ctStanFitObject$setup$popsetup$transform[driftPos[1]-1+counter], # driftPos[1]-1+counter??
                                                 ctStanFitObject$setup$popvalues$multiplier[driftPos[1]-1+counter],
                                                 ctStanFitObject$setup$popvalues$meanscale[driftPos[1]-1+counter],

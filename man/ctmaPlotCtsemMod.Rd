@@ -12,6 +12,7 @@ ctmaPlotCtsemMod(
   saveFilePrefix = "Moderator Plot ",
   scaleTime = 1,
   mod.sd.to.plot = -1:1,
+  mod.raw.to.plot = NULL,
   digits = 4,
   timeUnit = "not specified",
   timeRange = NULL,
@@ -50,7 +51,9 @@ ctmaPlotCtsemMod(
 
 \item{scaleTime}{Factor to increase or decrease the time scale (e.g., 1/12 if estimates were based on yearly intervals and figure should show monthly intervals)}
 
-\item{mod.sd.to.plot}{The standard deviation vlaues (default -1, 0, +1) for which the drift effects are plotted}
+\item{mod.sd.to.plot}{The standard deviation values (default -1, 0, +1) for which the drift effects are plotted}
+
+\item{mod.raw.to.plot}{The raw values (default NULL) for which the drift effects are plotted. Overrides any mod.sd.to.plot values provided.}
 
 \item{digits}{number of digits used for rounding}
 

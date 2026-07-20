@@ -61,7 +61,7 @@ ctmaInit(
 
 \item{coresToUse}{if neg., the value is subtracted from available cores, else value = cores to use}
 
-\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link[ctsem]{ctStanFit}} Function}
+\item{CoTiMAStanctArgs}{parameters that can be set to improve model fitting of the \code{\link[ctsem]{ctFit}} Function}
 
 \item{customPar}{logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
 
@@ -77,7 +77,7 @@ ctmaInit(
 
 \item{finishsamples}{number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).}
 
-\item{fit}{TRUE (default) fits the requested model. FALSE returns the ctsem-code CoTiMA uses to set up the model, the ctsemmodelbase which can be modified to match users requirements, and the data set (in long format created). The model can then be fitted using \code{\link[ctsem]{ctStanFit}})}
+\item{fit}{TRUE (default) fits the requested model. FALSE returns the ctsem-code CoTiMA uses to set up the model, the ctsemmodelbase which can be modified to match users requirements, and the data set (in long format created). The model can then be fitted using \code{\link[ctsem]{ctFit}})}
 
 \item{indVarying}{control for unobserved heterogeneity by having randomly (inter-individually) varying manifest means}
 
@@ -107,7 +107,7 @@ ctmaInit(
 
 \item{sameInitialTimes}{Only important for raw data. If TRUE (default=FALSE), T0MEANS occurs for every subject at the same time, rather than just at the earliest observation.}
 
-\item{saveRawData}{save (created pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec}
+\item{saveRawData}{save (synthesised pseudo) raw date. List: saveRawData$studyNumbers, $fileName, $row.names, col.names, $sep, $dec}
 
 \item{saveSingleStudyModelFit}{save the fit of single study ctsem models (could save a lot of time afterwards if the fit is loaded)}
 
@@ -132,7 +132,7 @@ coresToUse, n.latent, n.manifest, and primaryStudyList. The study count is retur
 manifest on latent factors is returned as lambda, and a re-organized list of primary studies with some information ommited is returned as
 studyList. The fitted models for each primary study are found in studyFitList, which is a large list with many elements (e.g., the ctsem
 model specified by CoTiMA, the rstan model created by ctsem, the fitted rstan model etc.). Further results returned are emprawList
-(containing the pseudo raw data created), statisticsList (comprising baisc stats such as average sample size, no. of measurement points,
+(containing the synthesised raw data created), statisticsList (comprising baisc stats such as average sample size, no. of measurement points,
 etc.), a list with modelResults (i.e., DRIFT=model_Drift_Coef, DIFFUSION=model_Diffusion_Coef, T0VAR=model_T0var_Coef,
 CINT=model_Cint_Coef), and the paramter names internally used. The summary list,  which is printed if the summary function is applied to the
 returned object, comprises "estimates" (the aggregated effects), possible randomIntercepts,confidenceIntervals, the

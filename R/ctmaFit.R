@@ -45,7 +45,7 @@
 #' @param sameInitialTimes Only important for raw data. If TRUE (default=FALSE), T0MEANS occurs for every subject at the same time, rather than just at the earliest observation.
 #' @param scaleClus scale vector of cluster indicators - TRUE (default) yields avg. drift estimates, FALSE yields drift estimates of last cluster
 #' @param scaleMod scale moderator variables - TRUE (default) recommended for continuous and categorical moderators, to separate withing and betwen efeccts
-#' @param scaleTI scale TI predictors - not recommended until version 0.5.3.1. Does not change aggregated results anyways, just interpretation of effects for dummies representing primary studies.
+#' @param scaleTI scale TI predictors (default = FALSE). Does not change aggregated results anyway, just interpretation of effects for dummies representing primary studies.
 #' @param scaleTime scale time (interval) - sometimes desirable to improve fitting
 #' @param T0means Default 0 (assuming standardized variables). Can be assigned labels to estimate them freely.
 #' @param T0var (default = 'auto')
@@ -152,7 +152,7 @@ ctmaFit <- function(
     sameInitialTimes=FALSE,
     scaleClus=TRUE,
     scaleMod=TRUE,
-    scaleTI=TRUE,
+    scaleTI=FALSE,
     scaleTime=NULL,
     T0means=0,
     T0var='auto',
@@ -164,7 +164,8 @@ ctmaFit <- function(
 )
 {  # begin function definition (until end of file)
 
-  { # function definition to handle possible errors and warnings during fitting
+  catchWarnings <- FALSE
+  if (catchWarnings) { # function definition to handle possible errors and warnings during fitting
     run_ctStanFit_logged <- function(expr) {
       flag_warn_hessinv <- FALSE
       warn_msgs <- character(0)
@@ -1134,7 +1135,7 @@ ctmaFit <- function(
   #if ((randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
   if ((randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") ) {
     print(paste0("#################################################################################"))
-    print(paste0("#### Note: Correct random intercept model instead of rstan default requested ####"))
+    print(paste0("# Note: Full RI model fitted (RI cov per study) instead of single RI cov matrix #"))
     print(paste0("#################################################################################"))
 
     nullMat <- matrix(0, n.latent, n.latent); nullMat
@@ -1284,9 +1285,9 @@ ctmaFit <- function(
 
   hessianWarning <- FALSE
   if (fit == TRUE) {
-    CoTiMAStanctArgs$optimcontrol$bootstrapUncertainty <- NULL
+    #CoTiMAStanctArgs$optimcontrol$bootstrapUncertainty <- NULL
     #fitStanctModel <- run_ctStanFit_logged(ctsem::ctStanFit( # CHD 15.7.2026
-    fitStanctModel <- run_ctStanFit_logged(ctsem::ctFit(
+    fitStanctModel <- ctsem::ctFit(
       fit=fit,
       datalong = datalong_all,
       #ctstanmodel = stanctModel, # CHD 15.7.2026
@@ -1313,37 +1314,28 @@ ctmaFit <- function(
       verbose=verbose,
       warmup=CoTiMAStanctArgs$warmup,
       cores=coresToUse,
-      inits=inits))
+      inits=inits)
 
-    #print(names((fitStanctModel)))
-    #print(fitStanctModel$warn_hessinv)
-    #print(fitStanctModel$warnings)
-    #print(fitStanctModel$error)
-    hessianWarning <- list(warn_hessinv = fitStanctModel$warn_hessinv,
-                           warnings = fitStanctModel$warnings,
-                           error= fitStanctModel$error)
+    #hessianWarning <- list(warn_hessinv = fitStanctModel$warn_hessinv,
+    #                       warnings = fitStanctModel$warnings,
+    #                       error= fitStanctModel$error)
 
     if (is.null(fitStanctModel$standata$priors)) fitStanctModel$standata$priors <- FALSE # CHD added Sep 2023
 
-    if (is.na(fitStanctModel$error)) {
-      fitStanctModel <- fitStanctModel$fit # to match former fitting results w/o error handling
-      fitStanctModel_summary <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
-    } else {
-      fit <- FALSE
-      print(paste0("#################################################################################"))
-      print(paste0("###########  Model could not be fitted, only data and code are returned #########"))
-      print(paste0("#################################################################################"))
-      hessianWarning <- list(warn_hessinv = "There was fatal fitting error - no hessian computed.",
-                             warnings = "There was fatal fitting error - no hessian computed.",
-                             error= fitStanctModel$error)
-    }
+    #if (is.na(fitStanctModel$error)) {
+    #  fitStanctModel <- fitStanctModel$fit # to match former fitting results w/o error handling
+    fitStanctModel_summary <- summary(fitStanctModel, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
+    #if (!is.null(fitStanctModel$error)) { # CHD 20.7.2026
+    #  fit <- FALSE
+    #  print(paste0("#################################################################################"))
+    #  print(paste0("###########  Model could not be fitted, only data and code are returned #########"))
+    #  print(paste0("#################################################################################"))
+    #  hessianWarning <- list(warn_hessinv = "There was fatal fitting error - no hessian computed.",
+    #                         warnings = "There was fatal fitting error - no hessian computed.",
+    #                         error= fitStanctModel$error)
+    #}
 
   }
-  #print(fitStanctModel_summary)
-  #}
-
-
-  #} # end if (allInvModel == FALSE)
 
   #######################################################################################################################
   ####################################### Extract estimates & statistics ################################################
@@ -2071,8 +2063,8 @@ ctmaFit <- function(
                    estimates_original_time_scale =estimates_original_time_scale,
                    mod_effects_original_time_scale=mod_effects_original_time_scale,
                    clus_effects_original_time_scale=clus_effects_original_time_scale,
-                   WEC_estimates_original_time_scale=WEC_estimates_original_time_scale,
-                   ProblemWithHessianEstimation=hessianWarning)
+                   WEC_estimates_original_time_scale=WEC_estimates_original_time_scale)#,
+                   #ProblemWithHessianEstimation=hessianWarning)
       # excel workbook is added later
     )
 
@@ -2080,17 +2072,17 @@ ctmaFit <- function(
 
 
   if (fit == FALSE) {
-    if (hessianWarning[[1]] == FALSE) {
+    #if (hessianWarning[[1]] == FALSE) {
       results <- list(summary=c("No model was fitted, only data and code were generated. See $data & $ctModel section."),
                       data = datalong_all,
                       ctModel = stanctModel)
-    } else {
-      results <- list(summary = list(message=c("No model was fitted, only data and code were generated. See $data & $ctModel section."),
-                                     error=hessianWarning),
-                      data = datalong_all,
-                      ctModel = stanctModel)
+    #} else {
+    #  results <- list(summary = list(message=c("No model was fitted, only data and code were generated. See $data & $ctModel section."),
+    #                                 error=hessianWarning),
+    #                  data = datalong_all,
+    #                  ctModel = stanctModel)
 
-    }
+    #}
   }
 
   class(results) <- "CoTiMAFit"

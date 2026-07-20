@@ -133,7 +133,8 @@ ctmaInit <- function(
   options(scipen = 999); options("scipen") # turn scientific notation off.
   on.exit(options(scipen = original.options))  # scientific notation as user's original
 
-  { # function definition to handle possible errors and warnings during fitting
+  catchWarnings <- FALSE
+  if (catchWarnings) { # function definition to handle possible errors and warnings during fitting
     run_ctStanFit_logged <- function(expr) {
       flag_warn_hessinv <- FALSE
       warn_msgs <- character(0)
@@ -1140,7 +1141,7 @@ ctmaInit <- function(
             hessianWarning[[i]] <- FALSE
 
             #results <- suppressMessages(ctsem::ctStanFit(
-            results <- run_ctStanFit_logged(ctsem::ctFit(
+            results <- ctsem::ctFit(
               datalong = emprawLong[[i]],
               model = currentModel,
               fit=fit,
@@ -1169,25 +1170,26 @@ ctmaInit <- function(
               vb = CoTiMAStanctArgs$vb,
               #warmup=CoTiMAStanctArgs$warmup,
               verbose=verbose,
-              cores=coresToUse) )
+              cores=coresToUse)
 
-            hessianWarning[[i]] <- list(warn_hessinv = results$warn_hessinv,
-                                        warnings = results$warnings,
-                                        error= results$error)
+            #hessianWarning[[i]] <- list(warn_hessinv = results$warn_hessinv,
+            #                            warnings = results$warnings,
+            #                            error= results$error)
 
-            if (is.na(results$error)) {
-              results <- results$fit # to match former fitting results w/o error handling
-              #results_summary <- summary(results, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
-            } else {
+            #if (is.na(results$error)) { # CHD 20.7.2026
+            #if (is.null(results$error)) {
+              #results <- results$fit # to match former fitting results w/o error handling # CHD 20.7.2026
+              results_summary <- summary(results, digits=2*digits, parmatrices=TRUE, residualcov=FALSE)
+            #if (!is.null(results$error)) { # CHD 20.7.2026
               #fit <- FALSE
-              print(paste0("#################################################################################"))
-              print(paste0("###########  Model could not be fitted, only data and code are returned #########"))
-              print(paste0("#################################################################################"))
-              hessianWarning[[i]] <- list(warn_hessinv = "There was fatal fitting error - no hessian computed.",
-                                          warnings = "There was fatal fitting error - no hessian computed.",
-                                          error= results$error)
-            }
-          } # end if foPar
+            #  print(paste0("#################################################################################"))
+            #  print(paste0("###########  Model could not be fitted, only data and code are returned #########"))
+            #  print(paste0("#################################################################################"))
+            #  hessianWarning[[i]] <- list(warn_hessinv = "There was fatal fitting error - no hessian computed.",
+            #                              warnings = "There was fatal fitting error - no hessian computed.",
+            #                              error= results$error)
+            #}
+          } # end if forPar
 
 
           if (doPar > 1) {
@@ -1967,7 +1969,7 @@ ctmaInit <- function(
                                       DRIFToriginal_time_scale=model_Drift_Coef_original_time_scale,
                                       DIFFUSIONoriginal_time_scale=model_Diffusion_Coef_original_time_scale),
                     ctModel = currentModel,
-                    ProblemWithHessianEstimation = hessianWarning,
+                    #ProblemWithHessianEstimation = hessianWarning,
                     parameterNames=list(DRIFT=names(model_Drift_Coef[[1]]), DIFFUSION=names(model_Diffusion_Coef[[1]]), T0VAR=names(model_T0var_Coef[[1]])),
                     summary=(list(model="all drift free (het. model)",
                                   estimates=allStudiesDRIFT_effects_ext, #allStudiesDRIFT_effects_ext, = estimates that would be obtained without the scaleTime argument

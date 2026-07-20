@@ -33,5 +33,5 @@ ctmaPRaw(
 \item{experimental}{set TRUE to try new pairwise N function}
 }
 \description{
-Converts empirical correlation matrices to pseudo raw data (i.e. random data, that perfectly reproduce the correlations)
+Uses empirical correlation matrices to synthesise pseudo raw data (i.e. random data, that perfectly reproduce the correlations)
 }

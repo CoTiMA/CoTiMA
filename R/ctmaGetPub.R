@@ -15,7 +15,7 @@
 #' @note Set flush=TRUE only if retrieving is necessary (e.g., first retrieval on a day)
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' pubList_8 <- ctmaGetPub(authorList = list( c("J; de Jonge",
 #'               "https://scholar.google.de/citations?hl=de&user=0q27IckAAAAJ"),
 #'               c("Arnold B.; Bakker", "user=FTl3bwUAAAAJ"),

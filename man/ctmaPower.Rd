@@ -97,7 +97,7 @@ modelResults (i.e., DRIFT=DRIFT, DIFFUSION=DIFFUSION, T0VAR=T0VAR, CINT=NULL) an
 which is printed if the summary function is applied to the returned object, contains "estimates", which is itself a list comprising
 "Estimates of Model with all Effects Invariant", "Requested Statistical Power" (which just returns the argument statisticalPower),
 "Power (post hoc) for Drift Effects",  "Required Sample Sizes" "Effect Sizes (based on discrete-time calcs; used for power calcs.)", and
-"Range of significant effects" (across which intervals effects were significant). Plot type is plot.type=c("power") and model.type="stanct"
+"Range of significant effects" (across which intervals effects were significant). Plot type is plot.type=c("power") and model.type="ct"
 ("omx" was deprecated).
 }
 \description{

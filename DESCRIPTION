@@ -30,7 +30,7 @@ Depends:
     ctsem (>= 3.11.1),
     lavaan (>= 0.6),
     foreach (>= 1.5.1),
-    R (>= 4.5.3)
+    R (>= 4.5.0)
 Imports: 
     Matrix (>= 1.7.3),
     MBESS (>= 5.0.1),
@@ -48,4 +48,4 @@ Imports:
     methods
 #Suggests: R.rsp
 #VignetteBuilder: R.rsp
-RoxygenNote: 7.3.2
+Config/roxygen2/version: 8.0.0

@@ -19,13 +19,14 @@ ctmaGenData(
   sampleSizes = 100,
   lambda = NULL,
   latentNames = NULL,
-  manifestMeans = 0,
-  manifestVars = 0,
-  missings = 0,
+  manifestMeans = NULL,
+  manifestVars = NULL,
+  manifestNames = NULL,
+  missings = NULL,
   modValues = 0,
   n.latent = NULL,
-  n.manifest = 0,
-  randomIntercepts = 0,
+  n.manifest = NULL,
+  randomIntercepts = NULL,
   T0means = 0,
   T0var = NULL,
   TIpreds = NULL,
@@ -37,7 +38,7 @@ ctmaGenData(
 \arguments{
 \item{activeDirectory}{defines active directory where files are saved. No default.}
 
-\item{burnin}{vector of inititial time points to be deleted (default = 0)}
+\item{burnin}{vector of initial time points to be deleted (default = 0)}
 
 \item{cint}{list of cint matrices. By default (NULL), cint matrices will be used that create a steady-state (i.e., means at all time points = T0means)}
 
@@ -66,6 +67,8 @@ ctmaGenData(
 \item{manifestMeans}{list of manifest mean matrices. By default all are = 0.}
 
 \item{manifestVars}{list of manifest error (co-)variances matrices. By default all are = 0.}
+
+\item{manifestNames}{names for manifest variables (default = NULL using generic names)}
 
 \item{missings}{proportion of missings (default = 0, which does not delete any value)}
 

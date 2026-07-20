@@ -14,7 +14,7 @@
 #'
 #' @importFrom  RPushbullet pbPost
 #' @importFrom  parallel detectCores
-#' @importFrom  ctsem ctStanFit
+#' @importFrom  ctsem ctFit
 #' @importFrom  OpenMx vech2full
 #'
 #' @export ctmaEqual
@@ -153,7 +153,7 @@ ctmaEqual <- function(
 
   CoTiMAStanctArgs$optimcontrol$bootstrapUncertainty <- NULL
 
-  fitStanctModel <- ctsem::ctStanFit(
+  fitStanctModel <- ctsem::ctFit(
     inits=prevEst,
     datalong = prevData,
     ctstanmodel = stanctModel,

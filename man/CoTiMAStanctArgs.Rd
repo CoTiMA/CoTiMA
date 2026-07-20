@@ -6,8 +6,6 @@
 \title{This are preset arguments}
 \format{
 An object of class \code{list} of length 37.
-
-An object of class \code{list} of length 37.
 }
 \usage{
 CoTiMAStanctArgs
@@ -23,4 +21,3 @@ object created to store standard parameters passed forward to ctStanFit
 C. Dormann & M. Homburg \email{CoTiMA@uni-mainz.org}
 }
 \keyword{data}
-\keyword{datasets}
