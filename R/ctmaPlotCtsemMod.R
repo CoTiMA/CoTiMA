@@ -310,7 +310,15 @@ ctmaPlotCtsemMod <- function(ctStanFitObject = NULL,
         for (m in 1:(n.latent)) {
           counter <- counter + 1
           param <- DRIFTCoeff[[k]][l,m]; param
-          DRIFTCoeff[[k]][l,m] <- eval(parse(text=transforms[counter])); DRIFTCoeff[[k]][l,m]
+          #DRIFTCoeff[[k]][l,m] <- eval(parse(text=transforms[counter])); DRIFTCoeff[[k]][l,m]
+          # CHD changed 12. 5. 2026
+          DRIFTCoeff[[k]][l,m] <- ctsem:::tform(param,
+                                                ctStanFitObject$setup$popsetup$transform[driftPos[1]-1+counter], # driftPos[1]-1+counter??
+                                                ctStanFitObject$setup$popvalues$multiplier[driftPos[1]-1+counter],
+                                                ctStanFitObject$setup$popvalues$meanscale[driftPos[1]-1+counter],
+                                                ctStanFitObject$setup$popvalues$offset[driftPos[1]-1+counter],
+                                                ctStanFitObject$setup$popvalues$inneroffset[driftPos[1]-1+counter],
+                                                ctStanFitObject$setup$extratforms)
           DRIFTCoeff[[k]][l,m] <- DRIFTCoeff[[k]][l,m] * scaleTime
         }
       }
