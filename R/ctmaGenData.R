@@ -3,7 +3,7 @@
 #' @description Generates data from lists of parameters (drift, diffusion etc). Experimental!!
 #'
 #' @param activeDirectory defines active directory where files are saved. No default.
-#' @param burnin vector of inititial time points to be deleted (default = 0)
+#' @param burnin vector of initial time points to be deleted (default = 0)
 #' @param cint list of cint matrices. By default (NULL), cint matrices will be used that create a steady-state (i.e., means at all time points = T0means)
 #' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use.
 #' @param diff list of diffusion matrices. By default (NULL), diffusion matrices will be used that create a steady-state (i.e., covariance at all time points = T0var)
@@ -112,7 +112,7 @@ ctmaGenData <- function(
     if (utils::packageDescription("ctsem")$Version > "3.10.2") type <- "ct" else type <- "stanct"
 
     if (is.null(n.latent)) {
-      Msg <- "\nn.latent not specified. I infer n.latent from the dimensions of the drift matrix."
+      Msg <- "n.latent not specified. I infer n.latent from the dimensions of the drift matrix.\n"
       message(Msg)
       n.latent <- ncol(drift[[1]]); n.latent
     }
@@ -182,7 +182,7 @@ ctmaGenData <- function(
     }
 
     if (is.null(tpointTargets)) {
-      tpointTargets <- rep(list(burnin:tpoints), length(drift))
+      tpointTargets <- rep(list(burnin:(tpoints-1)), length(drift))
     }
 
     if (!(is.null(tpointTargets))) {
@@ -204,8 +204,9 @@ ctmaGenData <- function(
     }
 
     if (is.null(T0var)) {
-      ErrorMsg <- "\n No T0var matrix specified! \nGood luck for the next try!"
-      stop(ErrorMsg)
+      Msg <- "No T0var matrix specified. I set all T0var to Identity matrices! \n"
+      T0var <- rep(list(diag(1, n.latent, n.latent)), length(drift))
+      message(Msg)
     }
 
     if (!(is.list(T0var))) {
@@ -236,7 +237,7 @@ ctmaGenData <- function(
         Msg <- "n.manifest not specified. I assume n.manifest is equal to n.latent.\n"
         message(Msg)
         n.manifest <- n.latent
-        Msg <- "\nlambda not specified. I assume all lambdas are diagonal matrices with 1 in the diagonals."
+        Msg <- "lambda not specified. I assume all lambdas are diagonal matrices with 1 in the diagonals.\n"
         message(Msg)
         lambda <- rep(list(diag(1, n.latent, n.latent)), length(drift))
       }
@@ -244,7 +245,7 @@ ctmaGenData <- function(
 
     if (is.null(n.manifest)) {
       if (!(is.null(lambda))) {
-        Msg <- "\nn.manifest not specified but lambda. I infer n.manifest from the number of rows of lambda."
+        Msg <- "n.manifest not specified but lambda. I infer n.manifest from the number of rows of lambda.\n"
         message(Msg)
         n.manifest <- nrow(lambda[[1]])
       }
@@ -281,7 +282,7 @@ ctmaGenData <- function(
         }
       }
       if (is.null(manifestVars)) {
-        Msg <- "\nlambda matrices supplied but no manifestVars matrices. I assume all manifest error variances are 0."
+        Msg <- "lambda matrices supplied but no manifestVars matrices. I assume all manifest error variances are 0.\n"
         message(Msg)
         manifestVars <- rep(list(diag(0, n.manifest, n.manifest)), length(drift))
       }
@@ -325,7 +326,7 @@ ctmaGenData <- function(
 
     if (is.null(manifestMeans)) {
       if (!(is.null(manifestVars))) {
-        Msg <- "\nmanifestVars specified but no manifestMeans. I assume all manifest means are 0."
+        Msg <- "manifestVars specified but no manifestMeans. I assume all manifest means are 0.\n"
         message(Msg)
         manifestMeans <- rep(list(rep(0, n.manifest)), length(drift))
       }
@@ -353,7 +354,7 @@ ctmaGenData <- function(
     }
 
     if (is.null(diff)) {
-      Msg <- "\ndiff not specified. I will set all diffusion matrices to values leading to a steady-state of the (co-)variances among latents.\n"
+      Msg <- "diff not specified. I will set all diffusion matrices to values leading to a steady-state of the (co-)variances among latents.\n"
       message(Msg)
     }
 
@@ -527,7 +528,7 @@ ctmaGenData <- function(
       missings <- rep(list(0), length(drift))
     }
 
-    # compute diffusion covariance
+    # compute diffusion covariance (used later)
     resvar <- list()
     for (i in 1:length(drift)) {
       T1cov_impl <- expm(drift[[i]]) %*% ( T0var[[i]] ) %*% t(expm(drift[[i]])) + randomIntercepts[[i]] ; T1cov_impl
@@ -745,7 +746,6 @@ ctmaGenData <- function(
     }
     if (n.latent == 1) data <- as.matrix(data)
 
-
     # data that do not vary among cases and tpoints
     cint.dat <- matrix(t(as.matrix(cint_dt[[i]])),  nrow=sampleSizes[[i]], ncol=n.latent, byrow = T)
     manifestMeans.dat <- matrix(t(as.matrix(manifestMeans[[i]])),  nrow=sampleSizes[[i]], ncol=n.manifest, byrow = T)
@@ -759,7 +759,6 @@ ctmaGenData <- function(
       dataMM <- dataMM + MASS::mvrnorm(n=sampleSizes[[i]], mu=rep(0, n.manifest), Sigma = manifestVars[[i]], empirical=FALSE)
     }
     #round(cov(dataMM), 3)
-
 
     #### T1, T2, ... all subsequent Tpoints ####
     for (t in 1:(tpoints-1)) {
@@ -814,7 +813,6 @@ ctmaGenData <- function(
     colnames(dataMM) <- paste0(paste0(manifestNames, "_T"), sort(rep(seq(0,(tpoints-1),1), n.manifest)))
     dataMM <- cbind(dataMM, matrix(seq(0, tpoints-1, 1), nrow=nrow(dataMM), ncol=tpoints, byrow=T))
     colnames(dataMM)[(ncol(dataMM)-tpoints+1):ncol(dataMM)] <- paste0("T", sort(rep(seq(0,(tpoints-1),1))))
-    #head(dataMM); dim(dataMM)
 
 
     ### Make long data ####
@@ -846,9 +844,7 @@ ctmaGenData <- function(
     datalong <- datalong[datalong$time >= burnin,]
     datalong$time <- datalong$time-(burnin)
 
-    # tpointTargets
     datalong <- datalong[datalong$time %in% tpointTargets[[i]], ]
-    #head(datalong)
 
     #### manifest data
     datawideMM <- invisible(
@@ -945,7 +941,7 @@ ctmaGenData <- function(
     Msg <- paste0("\n\nctmaExtract was set to TRUE. Creating required CoTiMA objects incl. ", tmp, " in the environment specified in the argument envir.\n")
     message(Msg)
 
-    str(studies)
+    #str(studies)
     ctmaExtract(activeDirectory = activeDirectory,
                 ctmaGenDataList = studies,
                 envir = envir,
