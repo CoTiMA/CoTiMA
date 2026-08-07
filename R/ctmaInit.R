@@ -365,7 +365,6 @@ ctmaInit <- function(
     if (!(exists("moderatorNumber"))) moderatorNumber <- 1; moderatorNumber
     # determine number of studies (if list is created by ctmaInit.R it is 1 element too long)
     # Option 1: Applies for older versions of ctmaPrep
-    #tmp <- length(unlist(primaryStudies$studyNumbers)); tmp
     tmp <- unlist(primaryStudies$studyNumbers); tmp
     tmp2 <- which(is.na(tmp)); tmp2
     for (i in tmp2) primaryStudies$studyNumbers[[i]] <- NULL
@@ -435,7 +434,7 @@ ctmaInit <- function(
     }
 
     for (i in 1:n.studies) {
-      #i <- 2
+      #i <- 1
       if (!(studyList[[i]]$originalStudyNo %in% loadRawDataStudyNumbers)) {
         currentSampleSize <- (lapply(studyList, function(extract) extract$sampleSize))[[i]]; currentSampleSize
         currentTpoints <- (lapply(studyList, function(extract) extract$timePoints))[[i]]; currentTpoints
@@ -505,7 +504,7 @@ ctmaInit <- function(
         emprawLongTmp <- suppressMessages(ctsem::ctDeintervalise(datalong = emprawLongTmp, id='id', dT='dT'))
         ## eliminate rows where ALL latents are NA
         if (n.manifest > n.latent) targetCols <- paste0("y", 1:n.manifest) else targetCols <- paste0("V", 1:n.latent)
-        emprawLongTmp <- emprawLongTmp[, ][ apply(emprawLongTmp[, targetCols], 1, function(x) sum(is.na(x)) != n.var ), ]
+        emprawLongTmp <- emprawLongTmp[, ][ apply(emprawLongTmp[, targetCols, drop=FALSE], 1, function(x) sum(is.na(x)) != n.var ), ]
         # eliminate rows where time is NA
         emprawLongTmp <- emprawLongTmp[which(!(is.na(emprawLongTmp[, "time"]))), ]
         # make wide format
@@ -703,9 +702,9 @@ ctmaInit <- function(
 
         # eliminate rows where ALL latents are NA
         if (n.manifest > n.latent) {
-          dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("y", 1:n.manifest)], 1, function(x) sum(is.na(x)) != n.manifest ), ]
+          dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("y", 1:n.manifest), drop=FALSE], 1, function(x) sum(is.na(x)) != n.manifest ), ]
         } else {
-          dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent)], 1, function(x) sum(is.na(x)) != n.latent ), ]
+          dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0("V", 1:n.latent), drop=FALSE], 1, function(x) sum(is.na(x)) != n.latent ), ]
         }
         emprawLong[[i]] <- dataTmp3
 
@@ -1642,7 +1641,8 @@ ctmaInit <- function(
       }
     }
     targetNames2  <- paste0("diff", targetNames2); targetNames2
-    targetNames2  <- c(rbind(targetNames2, rep("SE", 4))); targetNames2
+    #targetNames2  <- c(rbind(targetNames2, rep("SE", 4))); targetNames2
+    targetNames2  <- c(rbind(targetNames2, rep("SE", n.latent^2))); targetNames2
     #
     targetNames3 <- targetNames2
     targetNames3 <- gsub("eta", "V", targetNames3)
@@ -1776,7 +1776,7 @@ ctmaInit <- function(
 
     allStudiesDRIFT_effects_ext_dt <- allStudiesDRIFT_effects_ext
     tmp1 <- grep("toV", colnames(allStudiesDRIFT_effects_ext_dt))
-    tmp2 <- (allStudiesDRIFT_effects_ext[, tmp1])
+    tmp2 <- (allStudiesDRIFT_effects_ext[, tmp1, drop=FALSE]); tmp2
     if (!(is.null(dim(tmp2)))) {
       for (l in 1:dim(tmp2)[1]) {
         tmp3 <- matrix(as.numeric(tmp2[l, ]), n.latent, n.latent, byrow=TRUE)
@@ -1784,7 +1784,7 @@ ctmaInit <- function(
         allStudiesDRIFT_effects_ext_dt[l, tmp1] <- round(tmp4, digits)
       }
     } else {
-      tmp3 <- matrix(as.numeric(tmp2), n.latent, n.latent, byrow=TRUE)
+      tmp3 <- matrix(as.numeric(tmp2), n.latent, n.latent, byrow=TRUE); tmp3
       if (is.null(scaleTime)) tmp4 <- c(t(OpenMx::expm(tmp3))) else tmp4 <- c(t(OpenMx::expm(tmp3 * scaleTime)))
       allStudiesDRIFT_effects_ext_dt[tmp1]
       allStudiesDRIFT_effects_ext_dt[tmp1] <- round(tmp4, digits)

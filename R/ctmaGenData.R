@@ -807,7 +807,7 @@ ctmaGenData <- function(
     colnames(data) <- paste0(paste0(latentNames, "_T"), sort(rep(seq(0,(tpoints-1),1), n.latent)))
     data <- cbind(data, matrix(seq(0, tpoints-1, 1), nrow=nrow(data), ncol=tpoints, byrow=T))
     colnames(data)[(ncol(data)-tpoints+1):ncol(data)] <- paste0("T", sort(rep(seq(0,(tpoints-1),1))))
-    #head(data); dim(data)
+    head(data); dim(data)
 
     # label manifests
     colnames(dataMM) <- paste0(paste0(manifestNames, "_T"), sort(rep(seq(0,(tpoints-1),1), n.manifest)))
@@ -828,6 +828,7 @@ ctmaGenData <- function(
         )
       )
     )
+    #head(datawide)
     datalong <- invisible(
       suppressMessages(
         suppressWarnings(
@@ -835,14 +836,22 @@ ctmaGenData <- function(
         )
       )
     )
+    #head(datalong, 33)
     datalong <- invisible(
       suppressMessages(
         suppressWarnings(as.data.frame(ctsem::ctDeintervalise(datalong))
         )
       )
     )
-    datalong <- datalong[datalong$time >= burnin,]
-    datalong$time <- datalong$time-(burnin)
+    #head(datalong, 33)
+
+    # CHD 6.8.26
+    #datalong <- datalong[datalong$time >= burnin,]
+    #datalong$time <- datalong$time-(burnin)
+    if (any(tpointTargets[[i]] < burnin)) {
+      ErrorMsg <- paste0("\n For Study ", i, "the argument timePointTargets contains numbers smaller than burnin! \nGood luck for the next try!")
+      stop(ErrorMsg)
+    }
 
     datalong <- datalong[datalong$time %in% tpointTargets[[i]], ]
 
@@ -867,13 +876,14 @@ ctmaGenData <- function(
         )
       )
     )
+    #head(datalongMM, 33)
     datalongMM <- datalongMM[datalongMM$time >= burnin,]
     datalongMM$time <- datalongMM$time-(burnin)
 
     # tpointTargets
     datalong <- datalong[datalong$time %in% tpointTargets[[i]], ]
     datalongMM <- datalongMM[datalongMM$time %in% tpointTargets[[i]], ]
-    #head(datalong)
+    #head(datalong, 23)
 
 
     #studies[[i]] <- list() # required for normal loop (not dopar)
@@ -941,11 +951,12 @@ ctmaGenData <- function(
     Msg <- paste0("\n\nctmaExtract was set to TRUE. Creating required CoTiMA objects incl. ", tmp, " in the environment specified in the argument envir.\n")
     message(Msg)
 
-    #str(studies)
+    #head(studies[[1]]$data, 30)
     ctmaExtract(activeDirectory = activeDirectory,
                 ctmaGenDataList = studies,
                 envir = envir,
-                useRawData = useRawData)}
+                useRawData = useRawData)
+  }
 
   # Return ####
   return(studies)

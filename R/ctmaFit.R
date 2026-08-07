@@ -846,7 +846,7 @@ ctmaFit <- function(
     # eliminate rows where ALL latents are NA
     {
       if (n.manifest > n.latent) namePart <- "y" else namePart <- "V"
-      dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0(namePart, 1:n.var)], 1, function(x) sum(is.na(x)) != n.var ), ]
+      dataTmp3 <- dataTmp3[, ][ apply(dataTmp3[, paste0(namePart, 1:n.var), drop=FALSE], 1, function(x) sum(is.na(x)) != n.var ), ]
       datalong_all <- dataTmp3
     }
 
