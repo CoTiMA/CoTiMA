@@ -421,6 +421,7 @@ ctmaFit <- function(
       } else {
         n.latent <- ctmaInitFit$n.latent
       }
+      n.latent
       if (!(is.null(ctmaInitFit$n.manifest))) n.manifest <- ctmaInitFit$n.manifest else n.manifest <- n.latent
       if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
 
@@ -1336,6 +1337,7 @@ ctmaFit <- function(
     #}
 
   }
+  #saveRDS(fitStanctModel, paste0(activeDirectory, "fitStanctModel.rds"))
 
   #######################################################################################################################
   ####################################### Extract estimates & statistics ################################################
@@ -1550,16 +1552,21 @@ ctmaFit <- function(
 
     # extract params
     {
-      model_Drift_Coef <- invariantDrift_Coeff[(grep("DRIFT ", rownames(invariantDrift_Coeff))), tmpMean]; model_Drift_Coef
+      #model_Drift_Coef <- invariantDrift_Coeff[(grep("DRIFT ", rownames(invariantDrift_Coeff))), tmpMean]; model_Drift_Coef
+      model_Drift_Coef <- invariantDrift_Coeff[(grep("DRIFT ", rownames(invariantDrift_Coeff))), tmpMean, drop=FALSE]; model_Drift_Coef
+      if (!is.null(dim(model_Drift_Coef))) model_Drift_Coef <- model_Drift_Coef[,1]
       tmp <- grep("DRIFT ", rownames(invariantDrift_Coeff)); tmp
       names(model_Drift_Coef) <- rownames(invariantDrift_Coeff)[tmp]; model_Drift_Coef
 
       model_Diffusion_Coef <- invariantDrift_Coeff[(rownames(invariantDrift_Coeff) == "DIFFUSIONcov"), tmpMean]; model_Diffusion_Coef
       if (length(model_Diffusion_Coef) < 1) {
-        model_Diffusion_Coef <- invariantDrift_Coeff[invariantDrift_Coeff[, "matrix"] == "DIFFUSIONcov",  tmpMean]; model_Diffusion_Coef
+        model_Diffusion_Coef <- invariantDrift_Coeff[invariantDrift_Coeff[, "matrix"] == "DIFFUSIONcov",  tmpMean, drop=FALSE]; model_Diffusion_Coef
       } else {
         model_Diffusion_Coef <- c(OpenMx::vech2full(model_Diffusion_Coef)); model_Diffusion_Coef
       }
+      if (!is.null(dim(model_Diffusion_Coef))) model_Diffusion_Coef <- model_Diffusion_Coef[,1]
+      #model_Diffusion_Coef
+
       #if ( (randomIntercepts == TRUE) |  (randomIntercepts == "MANIFEST") ) {
       if ( (randomIntercepts == "CINT") |  (randomIntercepts == "MANIFEST") ) {
         tmp <- which(model_Diffusion_Coef != 0)
@@ -1571,10 +1578,12 @@ ctmaFit <- function(
 
       model_T0var_Coef <- invariantDrift_Coeff[(rownames(invariantDrift_Coeff) == "T0VAR"), 3]; model_T0var_Coef
       if (length(model_T0var_Coef) < 1) {
-        model_T0var_Coef <- invariantDrift_Coeff[invariantDrift_Coeff[, "matrix"] == "T0cov",  tmpMean]; model_T0var_Coef
+        model_T0var_Coef <- invariantDrift_Coeff[invariantDrift_Coeff[, "matrix"] == "T0cov",  tmpMean, drop=FALSE]; model_T0var_Coef
       } else {
         model_T0var_Coef <- c(OpenMx::vech2full(model_T0var_Coef)); model_T0var_Coef
       }
+      if (!is.null(dim(model_T0var_Coef))) model_T0var_Coef <- model_T0var_Coef[,1]
+
       if ( (randomIntercepts == "CINT") |  (randomIntercepts == "MANIFEST") ) model_T0var_Coef <- c(T0varMean[1:n.latent, 1:n.latent])
       names(model_T0var_Coef) <- driftFullNames; model_T0var_Coef
     }
@@ -1670,7 +1679,8 @@ ctmaFit <- function(
       OTL <- function(timeRange) {
         OpenMx::expm(tmpDriftMatrix * timeRange)[targetRow, targetCol]
       }
-      tmpDriftMatrix <- driftMatrix * scaleTime
+      if (is.list(driftMatrix)) tmpDriftMatrix <- matrix(unlist(driftMatrix) * scaleTime, n.latent, n.latent)
+      if (!is.list(driftMatrix)) tmpDriftMatrix <- driftMatrix * scaleTime
       # loop through all cross effects
       tmp1 <- 0
       # CHD 9.3.2026
@@ -1859,16 +1869,13 @@ ctmaFit <- function(
             if (tmpMat1[r,c] == FALSE) counter <- counter - 1
           }
         }
-        targetEffects
         targetEffects + tmp3 + (tmp3b*(tmp3b-1))/2
-        #targetEffects <- targetEffects + tmp3 + (tmp3b*(tmp3b-1))/2 + 1; targetEffects
         targetEffects <- targetEffects + tmp3 + (tmp3b*(tmp3b-1))/2 + 0; targetEffects
         TIpredEffAllTmp <- fitStanctModel$stanfit$rawposterior[,targetEffects]
-        #apply(TIpredEffAllTmp, 2, mean)
-        #TIpredEffTmp
 
         tmp <- array(NA, dim = c(nrow(TIpredEffAllTmp), n.latent^2, ncol(TIpredEffAllTmp)/(n.latent^2)))
         for (i1 in 1:dim(tmp)[2]) {
+          #i1 <- 1
           startPoint <- (i1-1) * (n.studies-1) + 1; startPoint
           endPoint <- startPoint + (n.studies-1) - 1; endPoint
           tmp[ ,i1,] <- TIpredEffAllTmp[, startPoint:endPoint]
@@ -1887,37 +1894,64 @@ ctmaFit <- function(
       if (skip == 1) {
         for (d in 1:nrow(effectCodingWeights)) {
           tmp2 <- apply(TIpredEffAllTmp, 1, function(x) x %*% effectCodingWeights[d, ])
-          tmp2 <- aperm(tmp2, c(2,1))
-          tmp1 <- tmp2 + rawDriftTmp
-          DRIFTCoeff[[tmpNames[d]]] <- tmp1
+          if (!is.null(dim(tmp2))) {
+            tmp2 <- aperm(tmp2, c(2,1))
+            tmp1 <- tmp2 + rawDriftTmp
+            DRIFTCoeff[[tmpNames[d]]] <- tmp1
+          } else {
+            tmp1 <- tmp2 + rawDriftTmp
+            # CHD changes 10.8.26
+            tmp1 <- matrix(tmp1, ncol=1); str(tmp1)
+            DRIFTCoeff[[tmpNames[d]]] <- tmp1
+          }
         }
       }
 
+      #
       tmp1a <- fitStanctModel$ctstanmodelbase$pars[, "transform"]; tmp1a
       tmp1b <- fitStanctModel$ctstanmodelbase$pars[, "param"]; tmp1b
       tmp1c <- tmp1b %in% driftNames; tmp1c
       transforms <- tmp1a[tmp1c]; transforms
       #
       # compute tformed drift effects
+      # DRIFTCoeffBackup <- DRIFTCoeff
       for (k in 1:(length(DRIFTCoeff))) {
+        #k < 1
         counter <- 0
         for (l in 1:(n.latent)) {
+          #l <- 1
           for (m in 1:(n.latent)) {
+            #m <- 1
             counter <- counter + 1
-            paramTmp <- DRIFTCoeff[[k]][, counter]; paramTmp
-            for (p in 1:length(paramTmp)) {
-              param <- paramTmp[p]
-              DRIFTCoeff[[k]][p , counter] <- eval(parse(text=transforms[counter]))
+            #paramTmp <- DRIFTCoeff[[k]][, counter]; paramTmp
+            #(!is.null(dim(DRIFTCoeff[[k]])))
+            if (!is.null(dim(DRIFTCoeff[[k]]))) {
+              #str(DRIFTCoeff[[k]])
+              paramTmp <- DRIFTCoeff[[k]][, counter]; paramTmp
+              for (p in 1:length(paramTmp)) {
+                param <- paramTmp[p]; param
+                eval(parse(text=transforms[counter]))
+                DRIFTCoeff[[k]][p , counter] <- eval(parse(text=transforms[counter]))
+              }
+              DRIFTCoeff[[k]][, counter] <- DRIFTCoeff[[k]][ ,counter] * scaleTime2
+            } else {
+              paramTmp <- DRIFTCoeff[[k]][counter]; paramTmp
+              param <- paramTmp
+              DRIFTCoeff[[k]][counter] <- eval(parse(text=transforms[counter]))
             }
-            DRIFTCoeff[[k]][, counter] <- DRIFTCoeff[[k]][ ,counter] * scaleTime2
           }
         }
       }
+      #mean(DRIFTCoeff[[1]])
 
       for (p in 1:length(DRIFTCoeff)) {
+        #p <- 1
         WEC_estimates_original_time_scale[[p]] <- estimates_original_time_scale[1:(n.latent^2),]
         WEC_estimates_original_time_scale[[p]][, 3:8] <- NA
-        #print(WEC_estimates_original_time_scale[[p]])
+
+        #str(DRIFTCoeff[[p]])
+        if (!is.matrix(DRIFTCoeff[[p]])) DRIFTCoeff[[p]] <- matrix(DRIFTCoeff[[p]], nrow=length(DRIFTCoeff[[p]]), ncol=1)
+        #apply(DRIFTCoeff[[p]], 2, mean)
 
         DRIFTCoeffMean[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, mean), n.latent, n.latent, byrow=T)
         DRIFTCoeffSD[[p]] <- matrix(apply(DRIFTCoeff[[p]], 2, sd), n.latent, n.latent, byrow=T)
