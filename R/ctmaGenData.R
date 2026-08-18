@@ -532,7 +532,8 @@ ctmaGenData <- function(
     resvar <- list()
     for (i in 1:length(drift)) {
       T1cov_impl <- expm(drift[[i]]) %*% ( T0var[[i]] ) %*% t(expm(drift[[i]])) + randomIntercepts[[i]] ; T1cov_impl
-      resvar[[i]] <- as.matrix(T0var[[i]] + randomIntercepts[[i]] - T1cov_impl); resvar[[i]]
+      #resvar[[i]] <- as.matrix(T0var[[i]] + randomIntercepts[[i]] - T1cov_impl); resvar[[i]]
+      resvar[[i]] <- as.matrix(T0var[[i]] - T1cov_impl); resvar[[i]]
     }
 
 
@@ -701,6 +702,7 @@ ctmaGenData <- function(
       diff.var <- rep(diff.var_tmp, tpoints); diff.var
       diff.var <- as.matrix(Matrix::bdiag(diff.var))
       rows1 <- nrow(diff.var); rows1
+      #expm(drift[[i]])^2 + randomIntercepts[[i]] + unlist((diff.var_tmp))
       ### T0var #####
       diffT0.var <- cbind(diff.var, matrix(0, ncol=n.latent, nrow=rows1))# diffvar & T0var
       cols1 <- ncol(diffT0.var); cols1
@@ -758,7 +760,6 @@ ctmaGenData <- function(
     } else {
       dataMM <- dataMM + MASS::mvrnorm(n=sampleSizes[[i]], mu=rep(0, n.manifest), Sigma = manifestVars[[i]], empirical=FALSE)
     }
-    #round(cov(dataMM), 3)
 
     #### T1, T2, ... all subsequent Tpoints ####
     for (t in 1:(tpoints-1)) {

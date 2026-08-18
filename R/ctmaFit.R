@@ -59,7 +59,7 @@
 #' @importFrom  parallel detectCores
 #' @importFrom  ctsem ctWideToLong ctDeintervalise ctModel ctFit ctCollapse
 #' @importFrom  OpenMx vech2full expm
-#' @importFrom  utils packageDescription
+#' @importFrom  utils packageDescription str
 #' @importFrom openxlsx addWorksheet writeData createWorkbook openXL saveWorkbook
 #' @importFrom  stats cov2cor quantile sd
 #'
@@ -2109,7 +2109,12 @@ ctmaFit <- function(
     #if (hessianWarning[[1]] == FALSE) {
       results <- list(summary=c("No model was fitted, only data and code were generated. See $data & $ctModel section."),
                       data = datalong_all,
-                      ctModel = stanctModel)
+                      ctModel = stanctModel,
+                      argumentList = list(
+                        fit = FALSE,
+                        sameInitialTimes = sameInitialTimes,
+                        CoTiMAStanctArgs = CoTiMAStanctArgs
+                      ))
     #} else {
     #  results <- list(summary = list(message=c("No model was fitted, only data and code were generated. See $data & $ctModel section."),
     #                                 error=hessianWarning),

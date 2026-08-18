@@ -1,8 +1,8 @@
 Package: CoTiMA
 Type: Package
 Title: Continuous Time Meta-Analysis ('CoTiMA')
-Version: 1.0.3
-Date: 2026-07-20
+Version: 1.0.4
+Date: 2026-08-11
 Authors@R: c(person("Christian", "Dormann", role = c("aut","cph")),
             person("Markus", "Homberg", email = "cotima@uni-mainz.de", role = c("aut", "com", "cre")),
             person("Olga", "Diener", role = c("ctb")),
@@ -46,6 +46,9 @@ Imports:
     stringi (>= 1.0.7),
     MASS,
     methods
-#Suggests: R.rsp
-#VignetteBuilder: R.rsp
+Suggests:
+    testthat (>= 3.0.0),
+    rstan (>= 2.32.0)
+Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
+RoxygenNote: 7.3.3

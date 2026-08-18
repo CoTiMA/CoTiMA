@@ -2,9 +2,8 @@
 #'
 #' @description
 #' Provides the standard summary for conventional CoTiMA fit objects and
-#' redirects hierarchical study-level random-effects fits created by
-#' \code{ctmaReFit()} or \code{ctmaReMLFit()} to the corresponding
-#' random-effects summary method.
+#' redirects moment-based and hierarchical study-level random-effects fits to
+#' their corresponding summary methods.
 #'
 #' @param object A fitted object inheriting from class \code{"CoTiMAFit"}.
 #' @param probs Numeric vector containing the lower, median, and upper
@@ -14,8 +13,8 @@
 #' @return
 #' For a conventional CoTiMA fit, the stored \code{object$summary} is printed
 #' and returned. For a hierarchical study-level random-effects fit, a list
-#' containing population, study-specific, heterogeneity, correlation, and
-#' Time-0 parameter summaries is returned.
+#' containing population, study-specific, raw-scale and transformed-scale
+#' heterogeneity, correlation, and Time-0 parameter summaries is returned.
 #'
 #' @method summary CoTiMAFit
 #' @export
@@ -27,6 +26,15 @@ summary.CoTiMAFit <- function(
 
   if (!inherits(object, "CoTiMAFit")) {
     stop("Not a CoTiMAFit object!", call. = FALSE)
+  }
+
+  # Post-hoc empirical moment estimates returned by ctmaReMoments().
+  if (inherits(object, "CoTiMAReMoments")) {
+    return(.ctmaReMomentsSummary(
+      object,
+      probs = object$probs,
+      print_note = TRUE
+    ))
   }
 
   # Hierarchical study-level random-effects fits returned by ctmaReFit()
