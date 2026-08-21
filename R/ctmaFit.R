@@ -443,10 +443,25 @@ ctmaFit <- function(
         stop(ErrorMsg)
       }
 
-      if ( (!(is.null(binaries.orig))) & (indVarying != 'CINT') & (!(is.null(binaries.orig))) & (!all(binaries == 0)) ) {
-        if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
-        ErrorMsg <- "\nYou specified binary variables. You also need to specify \"indVarying=\'CINT\'\". \nGood luck for the next try!"
-        stop(ErrorMsg)
+      # CHD 21.8.2026
+      #if ( (!(is.null(binaries.orig))) & (indVarying != 'CINT') & (!(is.null(binaries.orig))) & (!all(binaries == 0)) ) {
+      #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+      #  ErrorMsg <- "\nYou specified binary variables. You also need to specify \"indVarying=\'CINT\'\". \nGood luck for the next try!"
+      #  stop(ErrorMsg)
+      #}
+      binaryManifest <- which(binaries == 1L)
+      cintFree <- !is.na(stanctModel$pars$param[stanctModel$pars$matrix == "CINT"])
+      manifestMeanFree <- !is.na(stanctModel$pars$param[stanctModel$pars$matrix == "MANIFESTMEANS"])
+      missingIntercept <- binaryManifest[!cintFree[binaryManifest] & !manifestMeanFree[binaryManifest]]
+      if (length(missingIntercept)) {
+        stop(
+          "Binary variable(s) ",
+          paste(missingIntercept, collapse = ", "),
+          " have neither a freely estimated CINT nor a freely estimated ",
+          "MANIFESTMEANS parameter. Prefer free CINTs with MANIFESTMEANS ",
+          "fixed to zero.",
+          call. = FALSE
+        )
       }
 
       if ( (!(is.null(binaries.orig))) & !all(binaries == 0) ) message("Effects of binaries on cints not implemented yet.")
