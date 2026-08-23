@@ -396,13 +396,17 @@ ctmaFit <- function(
   #######################################################################################################################
 
   {
-    if  (length(coresToUse) > 0) {
-      if (coresToUse < 1)  coresToUse <- parallel::detectCores() + coresToUse
+    if (length(coresToUse) != 1L || !is.finite(coresToUse)) {
+      stop("coresToUse must be one finite number.", call. = FALSE)
     }
+    availableCores <- parallel::detectCores()
+    if (is.na(availableCores)) availableCores <- 1L
+    if (coresToUse < 1) coresToUse <- availableCores + coresToUse
+    coresToUse <- max(1L, as.integer(coresToUse))
 
-    if (coresToUse >= parallel::detectCores()) {
+    if (coresToUse >= availableCores && availableCores > 1L) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-      coresToUse <- parallel::detectCores() - 1
+      coresToUse <- availableCores - 1L
       Msg <- "No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash."
       message(Msg)
     }
@@ -449,21 +453,6 @@ ctmaFit <- function(
       #  ErrorMsg <- "\nYou specified binary variables. You also need to specify \"indVarying=\'CINT\'\". \nGood luck for the next try!"
       #  stop(ErrorMsg)
       #}
-      binaryManifest <- which(binaries == 1L)
-      cintFree <- !is.na(stanctModel$pars$param[stanctModel$pars$matrix == "CINT"])
-      manifestMeanFree <- !is.na(stanctModel$pars$param[stanctModel$pars$matrix == "MANIFESTMEANS"])
-      missingIntercept <- binaryManifest[!cintFree[binaryManifest] & !manifestMeanFree[binaryManifest]]
-      if (length(missingIntercept)) {
-        stop(
-          "Binary variable(s) ",
-          paste(missingIntercept, collapse = ", "),
-          " have neither a freely estimated CINT nor a freely estimated ",
-          "MANIFESTMEANS parameter. Prefer free CINTs with MANIFESTMEANS ",
-          "fixed to zero.",
-          call. = FALSE
-        )
-      }
-
       if ( (!(is.null(binaries.orig))) & !all(binaries == 0) ) message("Effects of binaries on cints not implemented yet.")
 
       n.studies <- unlist(ctmaInitFit$n.studies); n.studies
@@ -1262,6 +1251,12 @@ ctmaFit <- function(
       stanctModel$pars[(stanctModel$pars$matrix %in% 'CINT'), ][tmp2, tmp1] <- TRUE
     }
   } # end if ((randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") )
+
+  .ctma_check_binary_intercepts(
+    model = stanctModel,
+    binaries = binaries.orig,
+    process_intercepts = randomIntercepts %in% c("CINT", "MANIFEST")
+  )
 
   if (!(optimize)) {
     customPar <- FALSE
