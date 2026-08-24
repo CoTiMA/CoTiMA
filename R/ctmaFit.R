@@ -932,7 +932,7 @@ ctmaFit <- function(
 
   #### additional checks ################################################################################################
   # CHD 24.8.2026
-  if ((indvarying == FALSE) and (randomIntercepts == FALSE)) {
+  if ((indvarying == FALSE) & (randomIntercepts == FALSE)) {
     if (is.null(cint)) {
       cint <- rep(0, n.latent)
       CINTParams <- cint
