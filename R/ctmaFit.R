@@ -230,6 +230,7 @@ ctmaFit <- function(
 
     { # adaptations to account for new arguments introduces
       if (is.null(T0var)) T0var <- 'auto'
+      # CHED 24.8.26
       if (is.null(cint)) cint <- 0
       if (is.null(fit)) fit <- TRUE
       if (is.null(WEC)) WEC <- FALSE
@@ -396,17 +397,13 @@ ctmaFit <- function(
   #######################################################################################################################
 
   {
-    if (length(coresToUse) != 1L || !is.finite(coresToUse)) {
-      stop("coresToUse must be one finite number.", call. = FALSE)
+    if  (length(coresToUse) > 0) {
+      if (coresToUse < 1)  coresToUse <- parallel::detectCores() + coresToUse
     }
-    availableCores <- parallel::detectCores()
-    if (is.na(availableCores)) availableCores <- 1L
-    if (coresToUse < 1) coresToUse <- availableCores + coresToUse
-    coresToUse <- max(1L, as.integer(coresToUse))
 
-    if (coresToUse >= availableCores && availableCores > 1L) {
+    if (coresToUse >= parallel::detectCores()) {
       if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Attention!"))}
-      coresToUse <- availableCores - 1L
+      coresToUse <- parallel::detectCores() - 1
       Msg <- "No of coresToUsed was set to >= all cores available. Reduced to max. no. of cores - 1 to prevent crash."
       message(Msg)
     }
@@ -425,9 +422,9 @@ ctmaFit <- function(
       } else {
         n.latent <- ctmaInitFit$n.latent
       }
-      n.latent
+      #n.latent
       if (!(is.null(ctmaInitFit$n.manifest))) n.manifest <- ctmaInitFit$n.manifest else n.manifest <- n.latent
-      if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory; activeDirectory
+      if (is.null(activeDirectory)) activeDirectory <- ctmaInitFit$activeDirectory
 
       if (!(is.null(drift))) {
         if (!(is.matrix(drift))) {
@@ -447,13 +444,13 @@ ctmaFit <- function(
         stop(ErrorMsg)
       }
 
-      # CHD 21.8.2026
+      # CHD 21.8.2026 Moved down after cintParams etc are defined
       #if ( (!(is.null(binaries.orig))) & (indVarying != 'CINT') & (!(is.null(binaries.orig))) & (!all(binaries == 0)) ) {
       #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
       #  ErrorMsg <- "\nYou specified binary variables. You also need to specify \"indVarying=\'CINT\'\". \nGood luck for the next try!"
       #  stop(ErrorMsg)
       #}
-      if ( (!(is.null(binaries.orig))) & !all(binaries == 0) ) message("Effects of binaries on cints not implemented yet.")
+      #if ( (!(is.null(binaries.orig))) & !all(binaries == 0) ) message("Effects of binaries on cints not implemented yet.")
 
       n.studies <- unlist(ctmaInitFit$n.studies); n.studies
       allTpoints <- ctmaInitFit$statisticsList$allTpoints; allTpoints
@@ -933,6 +930,82 @@ ctmaFit <- function(
     if (is.null(invariantDriftNames)) invariantDriftNames <- driftNames
   }
 
+  #### additional checks ################################################################################################
+  # CHD 24.8.2026
+  if ((indvarying == FALSE) and (randomIntercepts == FALSE)) {
+    if (is.null(cint)) {
+      cint <- rep(0, n.latent)
+      CINTParams <- cint
+    }
+    if (is.null(manifestMeans)) {
+      manifestMeans <- rep(0, n.var)
+      manifestMeansParams <- manifestMeans
+    }
+    #
+    if (length(cint) == 1) {
+      if (cint == 'auto') {
+        CINTParams <- c()
+        for (c in 1:n.latent) {
+          CINTParams <- c(CINTParams, paste0("cintV", c))
+        }
+      }
+    }
+    if (length(cint) == 1) {
+      if (cint == 0) {
+        cint <- rep(0, n.latent)
+        CINTParams <- cint
+      }
+    }
+    #
+    if (length(manifestMeans) == 1) {
+      if (manifestMeans == 'auto') {
+        manifestMeansParams <- c()
+        for (c in 1:n.var) {
+          manifestMeansParams <- c(manifestMeansParams, paste0("mmV", c))
+        }
+      }
+    }
+    if (length(manifestMeans) == 1) {
+      if (manifestMeans == 0) {
+        manifestMeans <- rep(0, n.var)
+        manifestMeansParams <- manifestMeans
+      }
+    }
+    #
+    if (length(cint) > 1) {
+      if (length(cint) != n.latent) {
+        ErrorMsg <- "\nYou specified CINTS, but the length does not correspond to the number of latents. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+    }
+    if (length(manifestMeans) > 1) {
+      if (length(manifestMeans) != n.var) {
+        ErrorMsg <- "\nYou specified manifestMeans, but the length does not correspond to the number of manifests. \nGood luck for the next try!"
+        stop(ErrorMsg)
+      }
+    }
+    #
+    #
+    if (!(is.null(binaries.orig)))  {
+      if (!all(binaries == 0)) {
+        for (b in 1:length(binaries)) {
+          if ((binaries[b] == 1) & ( (CINTParams[b] == 0) & (manifestMeansParams[b] == 0) ) ) {
+            ErrorMsg <- "\nYou specified binary variables. Those binaries that are set to 1 require free corresponding CINT or manifestMeans (or \'auto\'). \nGood luck for the next try!"
+            stop(ErrorMsg)
+          }
+        }
+      }
+    }
+    # CHD 21.8.2026 Moved down after cintParams etc are defined
+    #if ( (!(is.null(binaries.orig))) & (indVarying != 'CINT') & (!(is.null(binaries.orig))) & (!all(binaries == 0)) ) {
+    #  if (activateRPB==TRUE) {RPushbullet::pbPost("note", paste0("CoTiMA (",Sys.time(),")" ), paste0(Sys.info()[[4]], "\n","Data processing stopped.\nYour attention is required."))}
+    #  ErrorMsg <- "\nYou specified binary variables. You also need to specify \"indVarying=\'CINT\'\". \nGood luck for the next try!"
+    #  stop(ErrorMsg)
+    #}
+    #if ( (!(is.null(binaries.orig))) & !all(binaries == 0) ) message("Effects of binaries on cints not implemented yet.")
+  }
+
+
   #######################################################################################################################
   ######################### All-invariant Model (used for calculation of statistical power) #############################
   #######################################################################################################################
@@ -964,7 +1037,7 @@ ctmaFit <- function(
   #######################################################################################################################
 
   #if (allInvModel == FALSE) {
-  n.TIpred <- (n.studies-1+n.all.moderators+clusCounter); n.TIpred
+  n.TIpred <- (n.studies-1+n.all.moderators+clusCounter)
   driftParamsTmp <- driftParams; driftParamsTmp
   diffParamsTmp  <- diffParams
   meanLag <- mean(allDeltas, na.rm=TRUE); meanLag
@@ -1020,10 +1093,10 @@ ctmaFit <- function(
       manifestMeansParams <- 'auto'
     }
   }
-  if (!(is.null(binaries.orig))) {
+  #if (!(is.null(binaries.orig))) {
     # check if really cints rather than manifest means are modelled
     # set TIpredeffects on cints to TRUE
-  }
+  #}
 
   stanctModel <- (
     ctsem::ctModel(n.latent=n.latent, n.manifest=n.var,
@@ -1105,7 +1178,6 @@ ctmaFit <- function(
     targetCols <- paste0(stanctModel$TIpredNames,'_effect'); targetCols
     stanctModel$pars[ , targetCols] <- FALSE
   }
-  #stanctModel$pars
 
   if (experimental == TRUE) {
     tmp1 <- which(stanctModel$pars$matrix == "T0MEANS"); tmp1
@@ -1129,7 +1201,8 @@ ctmaFit <- function(
   tmp2 <- grep("_effect", colnames(stanctModel$pars)); tmp2
   stanctModel$pars[tmp1, tmp2] <- FALSE
 
-  stanctModel$manifesttype <- binaries
+  # CHD 23.8.2026
+  #stanctModel$manifesttype <- binaries
 
   if ( (indVarying == 'CINT') & (!(is.null(binaries.orig))) ) {
     tmp1 <- grep("_effect", colnames(stanctModel$pars)); tmp1
@@ -1137,7 +1210,6 @@ ctmaFit <- function(
     stanctModel$pars[(stanctModel$pars$matrix %in% 'CINT'), ][tmp2, tmp1] <- TRUE
   }
 
-  #if ((randomIntercepts == TRUE) | (randomIntercepts == "MANIFEST") ) {
   if ((randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") ) {
     print(paste0("#################################################################################"))
     print(paste0("# Note: Full RI model fitted (RI cov per study) instead of single RI cov matrix #"))
@@ -1252,11 +1324,11 @@ ctmaFit <- function(
     }
   } # end if ((randomIntercepts == "CINT") | (randomIntercepts == "MANIFEST") )
 
-  .ctma_check_binary_intercepts(
-    model = stanctModel,
-    binaries = binaries.orig,
-    process_intercepts = randomIntercepts %in% c("CINT", "MANIFEST")
-  )
+  #.ctma_check_binary_intercepts(
+  #  model = stanctModel,
+  #  binaries = binaries.orig,
+  #  process_intercepts = randomIntercepts %in% c("CINT", "MANIFEST")
+  #)
 
   if (!(optimize)) {
     customPar <- FALSE
@@ -1284,6 +1356,9 @@ ctmaFit <- function(
   #######################################################################################################################
   ################################################## CoTiMA Fit #########################################################
   #######################################################################################################################
+
+  # CHD 23.8.2026
+  stanctModel$manifesttype <- binaries
 
   #if (allInvModel == FALSE) {
   #fitStanctModel <- suppressMessages(ctsem::ctStanFit(
@@ -1348,6 +1423,7 @@ ctmaFit <- function(
 
   }
   #saveRDS(fitStanctModel, paste0(activeDirectory, "fitStanctModel.rds"))
+  # hier weiter xxxx
 
   #######################################################################################################################
   ####################################### Extract estimates & statistics ################################################
