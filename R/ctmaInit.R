@@ -1053,7 +1053,9 @@ ctmaInit <- function(
           DIFFUSIONtmp <- rbind(cbind(DIFFUSIONtmp, nullMat),
                                 cbind(nullMat, nullMat)); DIFFUSIONtmp
           DRIFTtmp <- matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent); DRIFTtmp
-          DRIFTtmp <- rbind(cbind(DRIFTtmp, diag(2)),
+          #DRIFTtmp <- rbind(cbind(DRIFTtmp, diag(2)),
+          #                  cbind(nullMat, nullMat)); DRIFTtmp
+          DRIFTtmp <- rbind(cbind(DRIFTtmp, diag(n.latent)),
                             cbind(nullMat, nullMat)); DRIFTtmp
           if (randomIntercepts == "MANIFEST") {
             DRIFTtmp <- matrix(driftParamsTmp, nrow=n.latent, ncol=n.latent); DRIFTtmp
