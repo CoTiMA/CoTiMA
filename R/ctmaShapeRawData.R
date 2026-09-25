@@ -1,3 +1,11 @@
+.ctmaRowsAllMissing <- function(data, columns) {
+  rowSums(!is.na(data[, columns, drop = FALSE])) == 0L
+}
+
+.ctmaRowsAnyMissing <- function(data, columns) {
+  !stats::complete.cases(data[, columns, drop = FALSE])
+}
+
 #' ctmaShapeRawData
 #'
 #' @description Raw data objects are re-shaped (dealing with missing time points, wrong time intervals etc)
@@ -435,14 +443,12 @@ ctmaShapeRawData <- function(
 
   # Step 6c - Delete all cases where all time stamps are missing
   if (inputTimeFormat == "time") { # if it is "delta" there should be at lease one time point
-    tmp1 <- apply(tmpData[, allOutputTimeVariablesNames], 1, sum, na.rm=TRUE)
-    tmp2 <- which(tmp1 == 0)
+    tmp2 <- which(.ctmaRowsAllMissing(tmpData, allOutputTimeVariablesNames))
     if (length(tmp2) > 0) tmpData <- tmpData[-tmp2, ]
   }
 
   # Step 6d - Delete all cases where all process variables are missing
-  tmp1 <- apply(tmpData[, allOutputVariablesNames], 1, sum, na.rm=TRUE)
-  tmp2 <- which(tmp1 == 0)
+  tmp2 <- which(.ctmaRowsAllMissing(tmpData, allOutputVariablesNames))
   if (length(tmp2) > 0) tmpData <- tmpData[-tmp2, ]
 
   # Intermediate Step: delete cases for which conditions min.val.n.Vars and  min.val.Tpoints are not met
@@ -469,8 +475,7 @@ ctmaShapeRawData <- function(
     Msg <- "Variables are standardized within time points. This implies that all cases will be deleted that have missing target variables at T0.\n"
     message(Msg)
     tmp1 <- grep("_T0", colnames(tmpData)); tmp1
-    tmp2 <- apply(tmpData[, tmp1], 1, sum, na.rm=T)
-    tmp3 <- which(tmp2 == 0); head(tmp3)
+    tmp3 <- which(.ctmaRowsAnyMissing(tmpData, tmp1)); head(tmp3)
     if (length(tmp3) > 0) tmpData <- tmpData[-tmp3, ]
     for (c in allOutputVariablesNames) {
       tmpData[, c] <- scale(tmpData[, c])
