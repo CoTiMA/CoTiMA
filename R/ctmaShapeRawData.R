@@ -6,6 +6,10 @@
   !stats::complete.cases(data[, columns, drop = FALSE])
 }
 
+.ctmaColumnsAtTime <- function(columns, time_point) {
+  columns[grepl(paste0("_T", time_point, "$"), columns)]
+}
+
 #' ctmaShapeRawData
 #'
 #' @description Raw data objects are re-shaped (dealing with missing time points, wrong time intervals etc)
@@ -298,10 +302,10 @@ ctmaShapeRawData <- function(
                                                    TDpredNames=targetInputTDpredNames,
                                                    TIpredNames=targetInputTIpredNames))
       # determine Tpoints created
-      tmp <- grep("_T", colnames(tmpData))
+      tmp <- grep("_T[0-9]+$", colnames(tmpData), value = TRUE)
       # CHD changed 13.11.2003
       #Tpoints <- length(tmp) / (n.manifest + length(targetInputTDpredNames) + length(targetInputTIpredNames)); Tpoints
-      Tpoints <- length(tmp) / n.manifest; Tpoints
+      Tpoints <- length(unique(sub("^.*_T([0-9]+)$", "\\1", tmp))); Tpoints
       # make new timeVariable names
       targetTimeVariablesNames <- paste0("T", 0:(Tpoints-1)); targetTimeVariablesNames
       # make new inputVariable names
@@ -433,8 +437,8 @@ ctmaShapeRawData <- function(
   for (i in allOutputTimeVariablesNames) {
     counter <- counter + 1
     tmp1 <- which(is.na(tmpData[, i])); tmp1
-    tmp2 <- grep(paste0("T", counter), allOutputVariablesNames); tmp2
-    tmpData[tmp1, allOutputVariablesNames[tmp2]] <- NA
+    tmp2 <- .ctmaColumnsAtTime(allOutputVariablesNames, counter); tmp2
+    tmpData[tmp1, tmp2] <- NA
   }
 
   # Step 6b -  Scale time intervals
@@ -458,8 +462,8 @@ ctmaShapeRawData <- function(
   # min.val.Tpoints
   validTpoints <- matrix(1, nrow=nrow(tmpData), ncol=Tpoints)
   for (i in 0:(Tpoints-1)) {
-    tmp1 <- grep(paste0("T", i), colnames(tmpData))
-    tmp2 <- apply(tmpData[, tmp1], 1, function(x) sum(!(is.na(x))))
+    tmp1 <- .ctmaColumnsAtTime(allOutputVariablesNames, i)
+    tmp2 <- rowSums(!is.na(tmpData[, tmp1, drop = FALSE]))
     tmp3 <- which(tmp2 == 0)
     validTpoints[tmp3, i+1] <- 0
   }
@@ -474,7 +478,7 @@ ctmaShapeRawData <- function(
   if (standardization == "withintimea") {
     Msg <- "Variables are standardized within time points. This implies that all cases will be deleted that have missing target variables at T0.\n"
     message(Msg)
-    tmp1 <- grep("_T0", colnames(tmpData)); tmp1
+    tmp1 <- .ctmaColumnsAtTime(allOutputVariablesNames, 0); tmp1
     tmp3 <- which(.ctmaRowsAnyMissing(tmpData, tmp1)); head(tmp3)
     if (length(tmp3) > 0) tmpData <- tmpData[-tmp3, ]
     for (c in allOutputVariablesNames) {
@@ -572,9 +576,8 @@ ctmaShapeRawData <- function(
       currentLags <- timeMat[,(i+lagWidth)]- timeMat[,i]; currentLags
       targetTimePoint <- i+lagWidth-1; targetTimePoint # 0, 1,
       timeVariableToDelete <- allOutputTimeVariablesNames[targetTimePoint+1]; timeVariableToDelete
-      timePointsToDelete <- paste0("T", targetTimePoint); timePointsToDelete # just fro grepping the correct variable names
-      variablesToDelete <- allOutputVariablesNames[c(grep(timePointsToDelete, allOutputVariablesNames))];variablesToDelete
-      TDpredsToDelete <- outputTDpredNames[grep(timePointsToDelete, outputTDpredNames)]; TDpredsToDelete
+      variablesToDelete <- .ctmaColumnsAtTime(allOutputVariablesNames, targetTimePoint); variablesToDelete
+      TDpredsToDelete <- .ctmaColumnsAtTime(outputTDpredNames, targetTimePoint); TDpredsToDelete
       # delete variables involved in too short intervals
       targetCases <- which(currentLags < minTolDelta); targetCases
       #tmpData[targetCases, c(variablesToDelete, TDpredsToDelete, timeVariableToDelete)]
