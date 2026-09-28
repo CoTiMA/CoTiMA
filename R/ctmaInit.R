@@ -1126,6 +1126,8 @@ ctmaInit <- function(
 
         }
 
+        currentModel <- .ctma_restore_manifesttype(currentModel, binaries)
+
         if (fit == FALSE) {
           print(paste0("#################################################################################"))
           print(paste0("#############  No model is fitted, only data and code are generated. ############"))
