@@ -59,4 +59,12 @@ summary.CoTiMAFit <- function(
 
   # Established behaviour for all conventional CoTiMAFit objects.
   print(object$summary)
+  if (!is.null(object$summary$opt.lag.orig.time)) {
+    message(
+      "Note: The reported optimal time lag (OTL) is based on the mean ",
+      "estimated drift matrix only. For draw-based median OTLs and ",
+      "uncertainty intervals, use ctmaOTL(fit, CI = TRUE)."
+    )
+  }
+  invisible(object$summary)
 }

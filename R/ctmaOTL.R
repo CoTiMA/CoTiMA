@@ -1,130 +1,185 @@
-#' ctmaOTL
+#' Numerically determine optimal time lags
 #'
-#' @description Numerically determines the optimal time lag (largest effect magnitude)
+#' @description Numerically searches a grid of time lags for the largest
+#' absolute cross-effect implied by a continuous-time drift matrix. The OTL in
+#' a standard CoTiMA summary uses the mean estimated drift matrix only. With
+#' \code{CI = TRUE}, the search is repeated for transformed drift draws.
 #'
-#' @param ctmaFitFit fit object created with ctmaFit
-#' @param timeRange time range across which to search for the optimal lag
-#' @param driftMat drift matrix. Either a ctmaFit object or a drift matrix has to be supplied
-#' @param undoTimeScaling undos time scaling in case the the scaleTime argument was used with ctmaFit
-#' @param digits digits used for rounding
+#' @param ctmaFitFit A fit object created with \code{ctmaFit()}.
+#' @param timeRange Numeric vector of candidate time lags. For a fit, the
+#' default comprises 101 points from zero to three times the largest observed
+#' lag.
+#' @param driftMat A square drift matrix, list of such matrices, or a
+#' three-dimensional array in draw-by-row-by-column order. Supply this or
+#' \code{ctmaFitFit}, not both.
+#' @param undoTimeScaling Use original-time units for a fit (default TRUE).
+#' @param digits Number of digits used for rounding.
+#' @param CI If TRUE, calculate draw-wise median OTLs and intervals.
+#' @param confidence Confidence level; defaults to 0.95.
+#'
+#' @details For ML/MAP fits, intervals use the approximate transformed draws
+#' stored by ctsem (normally Hessian-based); for Bayesian fits they are
+#' posterior credible intervals. Precision is limited by \code{timeRange}.
+#' An optimum on its boundary suggests using a wider grid.
 #'
 #' @examples
 #' \dontrun{
-#' OTL <- ctmaOTL(ctmaFitFit=CoTiMA::CoTiMAFullFit_6_new)
-#' print(OTL)
+#' OTL <- ctmaOTL(ctmaFitFit = CoTiMA::CoTiMAFullFit_6_new)
+#' OTL_CI <- ctmaOTL(ctmaFitFit = CoTiMA::CoTiMAFullFit_6_new,
+#'                   CI = TRUE, confidence = .95)
 #' }
 #'
-#' @importFrom  OpenMx expm
-#'
+#' @importFrom OpenMx expm
 #' @export ctmaOTL
 #'
-#' @return A corrected correlation matrix (corEmpcov). Corrections leading to r > 1.0 are set to 1.0.
-#'
-ctmaOTL <- function(ctmaFitFit=NULL, timeRange=NULL, driftMat=NULL, undoTimeScaling=NULL, digits=4) {
-
-  #################################################################################################
-
-  if ((is.null(ctmaFitFit)) & (is.null(driftMat))) {
-    ErrorMsg <- "\nEither a fit object created with ctmaFit or a drift matrix has to be supplied!"
-    stop(ErrorMsg)
+#' @return A list with the grid, mean drift matrix, maximum absolute
+#' cross-effects, and OTLs. With \code{CI = TRUE}, it also contains
+#' \code{optimalCrossLagCI}, \code{maxCrossEffectCI}, \code{confidence},
+#' \code{nDriftDraws}, and \code{uncertaintySource}.
+ctmaOTL <- function(ctmaFitFit = NULL, timeRange = NULL, driftMat = NULL,
+                    undoTimeScaling = NULL, digits = 4, CI = FALSE,
+                    confidence = .95) {
+  if (is.null(ctmaFitFit) == is.null(driftMat)) {
+    stop("Supply exactly one of 'ctmaFitFit' or 'driftMat'.", call. = FALSE)
+  }
+  if (!is.logical(CI) || length(CI) != 1L || is.na(CI)) {
+    stop("'CI' must be TRUE or FALSE.", call. = FALSE)
+  }
+  if (!is.numeric(confidence) || length(confidence) != 1L ||
+      is.na(confidence) || confidence <= 0 || confidence >= 1) {
+    stop("'confidence' must be strictly between zero and one.", call. = FALSE)
   }
 
-  if (!(is.null(ctmaFitFit)) & !(is.null(driftMat))) {
-    ErrorMsg <- "\nEither a fit object created with ctmaFit OR a drift matrix has to be supplied. You supplied both. Delete one of them!"
-    stop(ErrorMsg)
-  }
-
-  if (!(is.null(driftMat)) & (is.null(timeRange))) {
-    ErrorMsg <- "\nA drift matrix was to  supplied. I also need the argument timeRange=c(start, end, stepWidth)!"
-    stop(ErrorMsg)
-  }
-
-  if (!(is.null(driftMat)) ) {
-    if (!(is.matrix(driftMat))) {
-      ErrorMsg <- "\nThe argument driftMat was to used, but the object supplied is not a matrix!"
-      stop(ErrorMsg)
+  as_drift_array <- function(x) {
+    if (is.list(x) && !is.data.frame(x)) {
+      if (!length(x) || !all(vapply(x, is.matrix, logical(1)))) {
+        stop("Every element of 'driftMat' must be a matrix.", call. = FALSE)
+      }
+      dims <- vapply(x, function(z) paste(dim(z), collapse = "x"), character(1))
+      if (length(unique(dims)) != 1L) {
+        stop("All drift matrices must have identical dimensions.", call. = FALSE)
+      }
+      nr <- nrow(x[[1L]]); nc <- ncol(x[[1L]])
+      out <- array(NA_real_, c(length(x), nr, nc))
+      for (i in seq_along(x)) out[i, , ] <- x[[i]]
+      return(out)
     }
+    if (is.array(x) && length(dim(x)) == 3L) return(x)
+    NULL
   }
 
-  if (!(is.null(ctmaFitFit)) ) {
-    if (is(ctmaFitFit) != "CoTiMAFit") {
-      ErrorMsg <- "\nThe argument ctmaFitFit was to used, but the object supplied was not created with ctmaFit!"
-      stop(ErrorMsg)
+  drift_draws <- NULL
+  uncertainty_source <- NULL
+  if (!is.null(ctmaFitFit)) {
+    if (!inherits(ctmaFitFit, "CoTiMAFit")) {
+      stop("'ctmaFitFit' must have been created with ctmaFit().", call. = FALSE)
     }
-  }
-
-  if (!(is.null(driftMat)) ) {
-    n.latent <- ncol(driftMat); n.latent
-  } else {
-    n.latent <- ctmaFitFit$n.latent; n.latent
-  }
-
-  #driftMat <- matrix(c(-1.21669, 0.05623, 0.04629, -0.33088), 2, 2, byrow=T) ; driftMat
-  #is.matrix(driftMat)
-
-  if (!(is.null(ctmaFitFit)) & (is.null(undoTimeScaling))) {
-    undoTimeScaling <- TRUE
-    scaleTime <- 1
-    Msg <- "\nThe argument undoTimeScaling ist set to TRUE. Set undoTimeScaling=FALSE to prevent this!"
-    message(Msg)
-  }
-
-  if ( !(is.null(ctmaFitFit)) & (undoTimeScaling != TRUE)) {
-    scaleTime <- ctmaFitFit$argumentList$scaleTime; scaleTime
-  }
-
-  if (!(is.null(ctmaFitFit))) {
+    n.latent <- ctmaFitFit$n.latent
+    if (is.null(undoTimeScaling)) {
+      undoTimeScaling <- TRUE
+      message("'undoTimeScaling' was omitted; original-time units are used.")
+    }
+    scaleTime <- ctmaFitFit$argumentList$scaleTime
+    if (is.null(scaleTime) || !is.finite(scaleTime)) scaleTime <- 1
     if (is.null(timeRange)) {
-      allDeltas <- ctmaFitFit$statisticsList$allDeltas; allDeltas
-      maxDelta <- max(allDeltas, na.rm=TRUE); maxDelta
+      maxDelta <- max(ctmaFitFit$statisticsList$allDeltas, na.rm = TRUE)
       if (maxDelta > 1) maxDelta <- round(maxDelta)
-      timeRange <- seq(0, 3*maxDelta, (3*maxDelta)/100); timeRange
-      Msg <- paste0("\nThe argument timeRange was not supplied. I take the default, which is from 0 to ", round(3*maxDelta, digits), " in 100 Steps.")
-      message(Msg)
+      timeRange <- seq(0, 3 * maxDelta, length.out = 101L)
+      message("'timeRange' was omitted; using 0 to ",
+              round(3 * maxDelta, digits), " in 101 grid points.")
+    }
+    driftMat <- if (isTRUE(undoTimeScaling)) {
+      matrix(ctmaFitFit$modelResults$DRIFToriginal_time_scale,
+             n.latent, n.latent, byrow = TRUE)
+    } else {
+      matrix(ctmaFitFit$modelResults$DRIFT,
+             n.latent, n.latent, byrow = TRUE)
+    }
+    if (isTRUE(CI)) {
+      drift_draws <- ctmaFitFit$studyFitList$stanfit$transformedpars$pop_DRIFT
+      if (is.null(drift_draws) || length(dim(drift_draws)) != 3L) {
+        stop("CI = TRUE requires transformed pop_DRIFT draws. Refit with uncertainty/transformed draws enabled, or supply multiple drift matrices.",
+             call. = FALSE)
+      }
+      if (isTRUE(undoTimeScaling)) drift_draws <- drift_draws * scaleTime
+      uncertainty_source <- if (isTRUE(ctmaFitFit$argumentList$optimize)) {
+        "approximate transformed parameter draws"
+      } else "posterior transformed parameter draws"
+    }
+  } else {
+    drift_draws <- as_drift_array(driftMat)
+    if (!is.null(drift_draws)) {
+      if (dim(drift_draws)[2L] != dim(drift_draws)[3L]) {
+        stop("Every drift matrix must be square.", call. = FALSE)
+      }
+      driftMat <- apply(drift_draws, c(2, 3), mean)
+      uncertainty_source <- "supplied drift-matrix draws"
+    }
+    if (!is.matrix(driftMat) || nrow(driftMat) != ncol(driftMat)) {
+      stop("'driftMat' must contain one or more square matrices.", call. = FALSE)
+    }
+    n.latent <- ncol(driftMat); scaleTime <- 1
+    if (is.null(timeRange)) stop("Supply 'timeRange' with 'driftMat'.", call. = FALSE)
+    if (isTRUE(CI) && is.null(drift_draws)) {
+      stop("CI = TRUE needs multiple drift matrices.", call. = FALSE)
     }
   }
-
-  if (!(is.null(ctmaFitFit)) & (undoTimeScaling == TRUE) ) {
-    driftMat <- matrix(ctmaFitFit$modelResults$DRIFToriginal_time_scale, n.latent, n.latent, byrow=T); driftMat
+  if (!is.numeric(timeRange) || length(timeRange) < 2L ||
+      any(!is.finite(timeRange)) || any(timeRange < 0)) {
+    stop("'timeRange' needs at least two finite, non-negative lags.", call. = FALSE)
   }
-  if (!(is.null(ctmaFitFit)) & (undoTimeScaling == FALSE) ) {
-    driftMat <- matrix(ctmaFitFit$modelResults$DRIFT, n.latent, n.latent, byrow=T); driftMat
-  }
-  Msg <- paste0("\nThe following drift matrix is used for computing the optimal time lag!")
-  message(Msg)
-  print(driftMat)
+  timeRange <- sort(unique(timeRange))
 
-  #################################################################################################
-
-  optimalCrossLag <- matrix(NA, n.latent, n.latent)
-  maxCrossEffect <- matrix(NA, n.latent, n.latent)
-  targetParameters <- list()
-  OTL <- function(timeRange) { OpenMx::expm(driftMat * timeRange)[targetRow, targetCol] }
-  tmp1 <- 0
-  if (0 %in% timeRange) tmp1 <- 1
-  counter <- 0
-  for (j in 1:n.latent) {
-    for (h in 1:n.latent) {
-      if (j != h) {
-        targetRow <- j
-        targetCol <- h
-        if (driftMat[j, h] != 0) { # an effect that is zero has no optimal lag
-          counter <- counter + 1
-          targetParameters[[counter]] <- sapply(timeRange, OTL); targetParameters[[counter]]
-          max(abs(targetParameters[[counter]]))[1]
-          maxCrossEffect[j,h] <- max(abs(targetParameters[[counter]]))[1]; maxCrossEffect[j,h]
-          tmp <- which(abs(targetParameters[[counter]])==maxCrossEffect[j,h])[1] - tmp1
-          targetParameters
-          optimalCrossLag[j,h] <- timeRange[tmp]
-        } else {
-          optimalCrossLag[j,h] <- NA
-        }
+  calculate_otl <- function(drift) {
+    lag <- effect <- matrix(NA_real_, n.latent, n.latent)
+    for (row in seq_len(n.latent)) for (column in seq_len(n.latent)) {
+      if (row != column && drift[row, column] != 0) {
+        values <- vapply(timeRange, function(time) {
+          OpenMx::expm(drift * time)[row, column]
+        }, numeric(1))
+        index <- which.max(abs(values))
+        lag[row, column] <- timeRange[index]
+        effect[row, column] <- abs(values[index])
       }
     }
+    list(lag = lag, effect = effect)
   }
-  maxCrossEffect <- round(maxCrossEffect, digits); maxCrossEffect
-  optimalCrossLag <- round(optimalCrossLag, digits)
 
-return(list(timeRangeUsed=timeRange, driftMatrixUsed=driftMat, timeScaleUsed=scaleTime,
-            maxCrossEffect=maxCrossEffect, optimalCrossLag=optimalCrossLag))
+  point <- calculate_otl(driftMat)
+  result <- list(
+    timeRangeUsed = timeRange, driftMatrixUsed = driftMat,
+    timeScaleUsed = scaleTime,
+    maxCrossEffect = round(point$effect, digits),
+    optimalCrossLag = round(point$lag, digits),
+    pointEstimateNote = paste(
+      "The point OTL is based on the mean estimated drift matrix.",
+      "Use CI = TRUE to incorporate parameter uncertainty."
+    )
+  )
+  if (isTRUE(CI)) {
+    n_draws <- dim(drift_draws)[1L]
+    lag_draws <- effect_draws <- array(NA_real_, c(n_draws, n.latent, n.latent))
+    for (draw in seq_len(n_draws)) {
+      one <- calculate_otl(drift_draws[draw, , ])
+      lag_draws[draw, , ] <- one$lag
+      effect_draws[draw, , ] <- one$effect
+    }
+    probs <- c((1 - confidence) / 2, .5, 1 - (1 - confidence) / 2)
+    interval <- function(x) {
+      out <- apply(x, c(2, 3), stats::quantile, probs = probs,
+                   na.rm = TRUE, names = FALSE)
+      aperm(out, c(2, 3, 1))
+    }
+    lag_ci <- interval(lag_draws); effect_ci <- interval(effect_draws)
+    dimnames(lag_ci)[[3L]] <- dimnames(effect_ci)[[3L]] <-
+      c("lower", "median", "upper")
+    result$optimalCrossLagCI <- round(lag_ci, digits)
+    result$maxCrossEffectCI <- round(effect_ci, digits)
+    result$confidence <- confidence
+    result$nDriftDraws <- n_draws
+    result$uncertaintySource <- uncertainty_source
+  }
+  message("Drift matrix used for the point OTL (mean estimate):")
+  print(driftMat)
+  result
 }

@@ -52,22 +52,36 @@ ctmaLabels <- function(
   diffFullNames <- c(t(matrix(diffFullNames, n.latent))); diffFullNames
 
   if (!(is.null(drift))) {
-    #tmp1 <- which(!(driftParams %in% drift)); tmp1
-    #tmp2 <- which(driftParams %in% drift); tmp2
-    #driftParams[tmp1] <- drift[tmp1]; driftParams
-    drift <- c(drift); drift
-    tmp1 <- which(drift == 0); tmp1
-    if (length(tmp1) > 0) driftParams[tmp1] <- 0
-    tmp1 <- suppressWarnings(which(!(is.na(as.numeric(drift))))); tmp1
-    if (length(tmp1) > 0) driftNames <- driftNames[-tmp1]
+    drift <- c(drift)
+    if (length(drift) != n.latent^2) {
+      stop(
+        "'drift' must contain exactly ", n.latent^2,
+        " entries for a ", n.latent, " x ", n.latent, " matrix.",
+        call. = FALSE
+      )
+    }
+    # Character entries are free/equality-constrained parameter labels;
+    # numeric entries are fixed values. Coercion of a mixed specification to
+    # character is intentional because ctsem accepts both forms in its model
+    # matrices and parses numeric strings as fixed values.
+    driftParams <- as.character(drift)
+    numeric_drift <- suppressWarnings(!is.na(as.numeric(driftParams)))
+    driftNames <- driftParams[!numeric_drift]
   }
 
   # added 11. Aug. 2022
   if (!(is.null(diff))) {
-    tmp1 <- which(!(diffParams %in% drift)); tmp1
-    diffParamsParams[tmp1] <- diff; driftParams
-    tmp1 <- which(diff == 0); tmp1
-    if (length(tmp1) > 0) diffNames <- diffNames[-tmp1]
+    diff <- c(diff)
+    if (length(diff) != n.latent^2) {
+      stop(
+        "'diff' must contain exactly ", n.latent^2,
+        " entries for a ", n.latent, " x ", n.latent, " matrix.",
+        call. = FALSE
+      )
+    }
+    diffParams <- as.character(diff)
+    numeric_diff <- suppressWarnings(!is.na(as.numeric(diffParams)))
+    diffNames <- diffParams[!numeric_diff]
   }
 
   # backup full names for labeling output later

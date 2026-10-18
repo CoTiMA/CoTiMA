@@ -704,7 +704,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
       ctStanFitArgs$optimcontrol$finishsamples <- finishsamples
 
       fit <- tryCatch(withCallingHandlers(
-        expr = ctsem::ctStanFit(datalong=datalong,
+        expr = .ctmaCtStanFitCompat(datalong=datalong,
                                 ctstanmodel=ctStanModel,
                                 coresToUse=coresToUse,
                                 finishsamples=finishsamples,

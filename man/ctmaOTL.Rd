@@ -2,37 +2,60 @@
 % Please edit documentation in R/ctmaOTL.R
 \name{ctmaOTL}
 \alias{ctmaOTL}
-\title{ctmaOTL}
+\title{Numerically determine optimal time lags}
 \usage{
 ctmaOTL(
   ctmaFitFit = NULL,
   timeRange = NULL,
   driftMat = NULL,
   undoTimeScaling = NULL,
-  digits = 4
+  digits = 4,
+  CI = FALSE,
+  confidence = 0.95
 )
 }
 \arguments{
-\item{ctmaFitFit}{fit object created with ctmaFit}
+\item{ctmaFitFit}{A fit object created with \code{ctmaFit()}.}
 
-\item{timeRange}{time range across which to search for the optimal lag}
+\item{timeRange}{Numeric vector of candidate time lags. For a fit, the
+default comprises 101 points from zero to three times the largest observed
+lag.}
 
-\item{driftMat}{drift matrix. Either a ctmaFit object or a drift matrix has to be supplied}
+\item{driftMat}{A square drift matrix, list of such matrices, or a
+three-dimensional array in draw-by-row-by-column order. Supply this or
+\code{ctmaFitFit}, not both.}
 
-\item{undoTimeScaling}{undos time scaling in case the the scaleTime argument was used with ctmaFit}
+\item{undoTimeScaling}{Use original-time units for a fit (default TRUE).}
 
-\item{digits}{digits used for rounding}
+\item{digits}{Number of digits used for rounding.}
+
+\item{CI}{If TRUE, calculate draw-wise median OTLs and intervals.}
+
+\item{confidence}{Confidence level; defaults to 0.95.}
 }
 \value{
-A corrected correlation matrix (corEmpcov). Corrections leading to r > 1.0 are set to 1.0.
+A list with the grid, mean drift matrix, maximum absolute
+cross-effects, and OTLs. With \code{CI = TRUE}, it also contains
+\code{optimalCrossLagCI}, \code{maxCrossEffectCI}, \code{confidence},
+\code{nDriftDraws}, and \code{uncertaintySource}.
 }
 \description{
-Numerically determines the optimal time lag (largest effect magnitude)
+Numerically searches a grid of time lags for the largest
+absolute cross-effect implied by a continuous-time drift matrix. The OTL in
+a standard CoTiMA summary uses the mean estimated drift matrix only. With
+\code{CI = TRUE}, the search is repeated for transformed drift draws.
+}
+\details{
+For ML/MAP fits, intervals use the approximate transformed draws
+stored by ctsem (normally Hessian-based); for Bayesian fits they are
+posterior credible intervals. Precision is limited by \code{timeRange}.
+An optimum on its boundary suggests using a wider grid.
 }
 \examples{
 \dontrun{
-OTL <- ctmaOTL(ctmaFitFit=CoTiMA::CoTiMAFullFit_6_new)
-print(OTL)
+OTL <- ctmaOTL(ctmaFitFit = CoTiMA::CoTiMAFullFit_6_new)
+OTL_CI <- ctmaOTL(ctmaFitFit = CoTiMA::CoTiMAFullFit_6_new,
+                  CI = TRUE, confidence = .95)
 }
 
 }

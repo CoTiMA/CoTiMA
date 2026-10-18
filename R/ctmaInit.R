@@ -11,10 +11,18 @@
 #' @param coresToUse if neg., the value is subtracted from available cores, else value = cores to use
 #' @param CoTiMAStanctArgs parameters that can be set to improve model fitting of the \code{\link[ctsem]{ctFit}} Function
 #' @param customPar logical. If set TRUE leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)
-#' @param diff labels for diffusion effects. Have to be either of the character strings of the type "diff_eta1" or "diff_eta2_eta1" (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
+#' @param diff Diffusion-matrix specification with exactly
+#'   \code{n.latent^2} entries. Character entries are freely estimated labels
+#'   (identical labels impose equality constraints); numeric entries are fixed
+#'   values, for example zero to omit a covariance. Entries follow R's
+#'   column-major matrix order; the diffusion matrix is symmetric and only its
+#'   lower triangle is parameterized.
 #' @param digits number of digits used for rounding (in outputs)
 #' @param doPar parallel and multiple fitting if single studies. A value > 1 will fit each study doPar times in parallel mode during which no output is generated (screen remains silent). Useful to obtain best fit.
-#' @param drift labels for drift effects. Have to be either of the character strings of the type V1toV2 (= freely estimated) or values (e.g., 0 for effects to be excluded, which is usually not recommended)
+#' @param drift Drift-matrix specification with exactly
+#'   \code{n.latent^2} entries. Character entries are freely estimated labels
+#'   (identical labels impose equality constraints); numeric entries are fixed
+#'   values, such as zero to exclude an effect.
 #' @param experimental used for debugging puposes (default = FALSE)
 #' @param finishsamples number of samples to draw (either from hessian based covariance or posterior distribution) for final results computation (default = 1000).
 #' @param fit TRUE (default) fits the requested model. FALSE returns the ctsem-code CoTiMA uses to set up the model, the ctsemmodelbase which can be modified to match users requirements, and the data set (in long format created). The model can then be fitted using \code{\link[ctsem]{ctFit}})
@@ -1144,7 +1152,7 @@ ctmaInit <- function(
             hessianWarning[[i]] <- FALSE
 
             #results <- suppressMessages(ctsem::ctStanFit(
-            results <- ctsem::ctFit(
+            results <- .ctmaCtFitCompat(
               datalong = emprawLong[[i]],
               model = currentModel,
               fit=fit,
@@ -1218,7 +1226,7 @@ ctmaInit <- function(
               # CHD changed 7 Oct 2022
               if (any(is.na(studyList[[i]]$startValues))) inits <- NULL else inits <- studyList[[i]]$startValues
 
-              fits <- suppressMessages(run_ctStanFit_logged(ctsem::ctFit(
+              fits <- suppressMessages(run_ctStanFit_logged(.ctmaCtFitCompat(
                 datalong = emprawLong[[i]],
                 model = currentModel,
                 sameInitialTimes=sameInitialTimes,
@@ -1346,8 +1354,6 @@ ctmaInit <- function(
           model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Mean"], n.latent)); model_Drift_Coef[[i]]
         } else { # new version of ctsem
           model_Drift_Coef[[i]] <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "Mean"], n.latent)); model_Drift_Coef[[i]]
-          tmp8 <- which(!(is.na(currentModel$pars[currentModel$pars$matrix == "DRIFT",]$param))); tmp8
-          model_Drift_Coef[[i]] <- model_Drift_Coef[[i]][tmp8]; model_Drift_Coef[[i]]
         }
         names(model_Drift_Coef[[i]]) <- driftFullNames; model_Drift_Coef[[i]]
 
@@ -1355,8 +1361,6 @@ ctmaInit <- function(
           model_Drift_SE[[i]] <- c(matrix(resultsSummary$parmatrices[rownames(resultsSummary$parmatrices) == "DRIFT", "Sd"], n.latent, byrow=FALSE)); model_Drift_SE[[i]]
         } else { # new version of ctsem
           model_Drift_SE[[i]] <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "sd"], n.latent, byrow=FALSE)); model_Drift_SE[[i]]
-          tmp8 <- which(!(is.na(currentModel$pars[currentModel$pars$matrix == "DRIFT",]$param))); tmp8
-          model_Drift_SE[[i]] <- model_Drift_SE[[i]][tmp8]
         }
         names(model_Drift_SE[[i]]) <- c(driftFullNames); model_Drift_SE[[i]]
 
@@ -1366,9 +1370,6 @@ ctmaInit <- function(
         } else {
           tmp1 <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "2.5%"], n.latent, byrow=FALSE)); tmp1
           tmp2 <- c(matrix(resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DRIFT", "97.5%"], n.latent, byrow=FALSE)); tmp2
-          tmp8 <- which(!(is.na(currentModel$pars[currentModel$pars$matrix == "DRIFT",]$param))); tmp8
-          tmp1 <- tmp1[tmp8]; tmp1
-          tmp2 <- tmp2[tmp8]; tmp2
         }
 
         #tmp1; tmp2
@@ -1402,8 +1403,6 @@ ctmaInit <- function(
             names(model_Diffusion_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[grep("diff_", rownames(resultsSummary$popmeans))]))
           } else {
             model_Diffusion_Coef[[i]] <- (resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "Mean"])
-            tmp8 <- which(!(is.na(currentModel$pars[currentModel$pars$matrix == "DRIFT",]$param))); tmp8
-            model_Diffusion_Coef[[i]] <- model_Diffusion_Coef[[i]][tmp8]
             names(model_Diffusion_Coef[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
           }
         }
@@ -1421,8 +1420,6 @@ ctmaInit <- function(
             names(model_Diffusion_SE[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[grep("diff_", rownames(resultsSummary$popmeans))]))
           } else {
             model_Diffusion_SE[[i]] <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "sd"] #; model_Diffusion_SE[[i]]
-            tmp8 <- which(!(is.na(currentModel$pars[currentModel$pars$matrix == "DRIFT",]$param))); tmp8
-            model_Diffusion_SE[[i]] <- model_Diffusion_SE[[i]][tmp8]
             names(model_Diffusion_SE[[i]]) <- c(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]))
           }
         }
@@ -1438,9 +1435,6 @@ ctmaInit <- function(
         } else {
           tmp1 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "2.5%"]; tmp1
           tmp2 <- resultsSummary$parmatrices[resultsSummary$parmatrices[, "matrix"] == "DIFFUSIONcov", "97.5%"]; tmp2
-          tmp8 <- which(!(is.na(currentModel$pars[currentModel$pars$matrix == "DRIFT",]$param))); tmp8
-          tmp1 <- tmp1[tmp8]
-          tmp2 <- tmp2[tmp8]
           model_Diffusion_CI[[i]] <- c(rbind(tmp1, tmp2)); model_Diffusion_CI[[i]]
           tmp3 <- c(rbind(paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "LL"),
                           paste0(OpenMx::vech2full(rownames(resultsSummary$popmeans)[tmp]), "UL"))); tmp3
