@@ -2196,6 +2196,7 @@ ctmaFit <- function(
       results <- list(summary=c("No model was fitted, only data and code were generated. See $data & $ctModel section."),
                       data = datalong_all,
                       ctModel = stanctModel,
+                      ctModelText = .ctmaModelText(stanctModel),
                       argumentList = list(
                         fit = FALSE,
                         sameInitialTimes = sameInitialTimes,
@@ -2314,6 +2315,9 @@ ctmaFit <- function(
     results$excelSheets <- wb
   } #end if (fit == TRUE) {
 
+  if (!is.null(results$ctModel)) {
+    results$ctModelText <- .ctmaModelText(results$ctModel)
+  }
   invisible(results)
 
 } ### END function definition

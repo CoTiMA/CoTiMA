@@ -1992,7 +1992,8 @@ ctmaInit <- function(
     #if (hessianWarning == FALSE) {
     results <- list(summary=c("No model was fitted, only data and code were generated. See $data & $ctModel section."),
                     data = empraw,
-                    ctModel = currentModel)
+                    ctModel = currentModel,
+                    ctModelText = .ctmaModelText(currentModel))
     #} else {
     #  results <- list(summary = list(message=c("No model was fitted, only data and code were generated. See $data & $ctModel section."),
     #                                 error=hessianWarning),
@@ -2083,6 +2084,9 @@ ctmaInit <- function(
     results$excelSheets <- wb
   }
 
+  if (!is.null(results$ctModel)) {
+    results$ctModelText <- .ctmaModelText(results$ctModel)
+  }
   invisible(results)
 
 }   # end function definition
