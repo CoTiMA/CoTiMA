@@ -90,7 +90,7 @@ ctmaBiG <- function(
     #stop("Please check results carefully")
   }
 
-  if (!is.null(ctmaInitFit$summary$estimationProblems)) {
+  if (length(ctmaInitFit$summary$estimationProblems) > 0L) {
     Msg <- "There were estimation problems while fitting with ctmaInit(), which probably prevent BiG analysis! \n"
     message(Msg)
     message(paste(ctmaInitFit$summary$estimationProblems, "\n"))
@@ -181,14 +181,7 @@ ctmaBiG <- function(
     }
 
     # CHD 24.2.2023
-    if (any(all_SE == 0, na.rm=TRUE)) {
-      tmp <- which(all_SE == 0, arr.ind = TRUE); tmp
-      colnames(tmp) <- c("Study", "Drift Effect"); tmp
-      ErrorMsg <- paste0("\nAt least one SE was zero. Analysis of heterogeneity and bias cannot be performed.
-                         Possible problem in fitting the single studies listed above. \nGood luck for the next try!")
-      print(tmp)
-      stop(ErrorMsg)
-    }
+    .ctmaBiGCheckDriftSE(all_SE, n.latent, excludeStudies)
 
     # CHD 24.2.2023
     if (!(is.null(dt))) {
