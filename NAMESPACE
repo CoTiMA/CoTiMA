@@ -137,3 +137,5 @@ importFrom(utils,
   write.table
 )
 importFrom(zcurve,zcurve)
+
+export(ctmaTables)

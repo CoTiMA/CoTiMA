@@ -1,0 +1,37 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.7cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\title{CoTiMA 1.0.4: Plotting updates}
+\date{28 October 2026}
+\begin{document}
+\maketitle
+
+\section{Plotting corrections and interpretation}
+The forest-plot diamond spans the reported confidence interval of the pooled
+fixed-effect estimate. Its width is not a sample-size marker. Study squares
+continue to reflect relative sample sizes. Funnel confidence limits use
+$1.96\,SE$ on the same horizontal scale as the estimates.
+
+For discrete-time effects, each curve uses the full drift matrix of its study
+or moderator condition. Time ranges are numeric start/end/positive-step
+triples, for example \texttt{c(10,12,1)} or \texttt{c(0,2,0.5)}.
+Axis labels are placed at the actual time values. Power plots display all
+available computed lags within the requested bounds, including fractional
+lags; requesting a different step does not recompute power.
+
+Multiple forest or funnel plots receive distinct filenames. Files are written
+inside \texttt{activeDirectory}, which must already exist. PNG exports also
+work from noninteractive graphics devices. Categorical moderator labels retain
+signed, multi-digit values. Continuous moderator curves use the selected
+moderator and its retained drift-parameter ordering; incomplete mappings are
+reported rather than recycled.
+
+Some older example objects contain only a summary drift table. When that table
+can be mapped unambiguously to matrix cells, plotting reconstructs population
+or reference point estimates and explicitly reports this limitation. Such
+curves are not reconstructed study-specific heterogeneity. Missing or
+ambiguous interval mappings must be supplied before plotting study curves.
+
+\end{document}

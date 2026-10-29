@@ -46,7 +46,8 @@ Imports:
     stringi (>= 1.0.7),
     MASS,
     methods
-Suggests:
+Suggests: officer, flextable, expm, xml2,
+    withr,
     testthat (>= 3.0.0),
     rstan (>= 2.32.0)
 Config/testthat/edition: 3

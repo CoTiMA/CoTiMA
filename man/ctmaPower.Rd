@@ -30,7 +30,9 @@ ctmaPower(
   chains = NULL,
   verbose = NULL,
   customPar = FALSE,
-  scaleTime = NULL
+  scaleTime = NULL,
+  powerMethod = c("auto", "covariance", "lavaan"),
+  regressionModel = NULL
 )
 }
 \arguments{
@@ -38,15 +40,15 @@ ctmaPower(
 
 \item{activeDirectory}{defines another active directory than the one used in \code{\link{ctmaInit}}}
 
-\item{statisticalPower}{vector of requested statistical power values}
+\item{statisticalPower}{Distinct requested power probabilities strictly between zero and one; if empty, uses c(.9, .8).}
 
 \item{failSafeN}{sample size used to determine across which time intervals effects become non-significant}
 
 \item{failSafeP}{p-value used to determine across which time intervals effects become non-significant}
 
-\item{timeRange}{vector describing the time range for x-axis as sequence from/to/stepSize (e.g., c(1, 144, 1))}
+\item{timeRange}{Nonnegative start/end/positive-step triple. Only positive lags within the bounds are analysed; observed study lags inside those bounds are included.}
 
-\item{useMBESS}{use 'MBESS' package to calculate statistical power (slower)}
+\item{useMBESS}{Use MBESS's legacy upper-tail probability with a two-sided critical value. The default uses the complete two-sided probability.}
 
 \item{coresToUse}{if negative, the value is subtracted from available cores, else value = cores to use}
 
@@ -62,15 +64,15 @@ ctmaPower(
 
 \item{saveAllInvFit}{save the fit of fully constrained 'CoTiMA' model}
 
-\item{loadAllInvWOSingFit}{load series of fits of fully constrained 'CoTiMA' model with single cross effects excluded, respectively}
+\item{loadAllInvWOSingFit}{Load reduced lavaan fits with a filename prefix. Forces the lavaan route; cache covariance/model metadata must match. Legacy bare-fit caches must be regenerated.}
 
-\item{saveAllInvWOSingFit}{save series of fits of fully constrained 'CoTiMA' model with single cross effects excluded, respectively}
+\item{saveAllInvWOSingFit}{Save reduced lavaan fits with a filename prefix. Forces the lavaan route; cache covariance/model metadata must match. Legacy bare-fit caches must be regenerated.}
 
-\item{skipScaling}{does not (re-)scale raw data (re-scaling of imported pseudo raw data achieves correlations = 1)}
+\item{skipScaling}{Must be TRUE; rescaling must be performed explicitly before invariant fitting.}
 
-\item{useSampleFraction}{to speed up debugging. Provided as fraction (e.g., 1/10)}
+\item{useSampleFraction}{Must be NULL; subset the input studies explicitly instead.}
 
-\item{optimize}{if set to FALSE, Stan’s Hamiltonian Monte Carlo sampler is used (default = TRUE = maximum a posteriori / importance sampling) .}
+\item{optimize}{TRUE requests optimization of the invariant CT model; FALSE requests posterior sampling with the selected backend. Power calculations use plug-in matrices in either case.}
 
 \item{priors}{if FALSE, any priors are disabled – sometimes desirable for optimization}
 
@@ -85,23 +87,41 @@ ctmaPower(
 \item{customPar}{logical. If set TRUE (default) leverages the first pass using priors and ensure that the drift diagonal cannot easily go too negative (helps since ctsem > 3.4)}
 
 \item{scaleTime}{scale time (interval) - sometimes desirable to improve fitting}
+
+\item{powerMethod}{Regression calculation route. \code{"auto"} uses direct
+covariance calculations only for a verified unrestricted Gaussian regression;
+otherwise supported Gaussian restrictions use lavaan. \code{"covariance"}
+requires eligibility; \code{"lavaan"} explicitly requests regression fits.}
+
+\item{regressionModel}{Optional lavaan syntax for the discrete-time Gaussian
+regression on variables \code{V1T0,...,VpT0,V1T1,...,VpT1}. NULL constructs
+a complete unrestricted regression. Fixed/omitted target slopes have NA power.
+Shared labels, equality constraints, latent measurement models and non-Gaussian
+indicators are outside the one-coefficient power approximation.}
 }
 \value{
-ctmaPower returns a list containing some arguments supplied, a fitted model with all (!) parameters invariant across primary
-studies, different elements summarizing the main results, model type, and the type of plot that could be performed with the returned object.
-The arguments in the returned object are activeDirectory, coresToUse, n.latent, n.manifest, and primaryStudyList. A further result
-returned is n.studies = 1 (required for proper plotting). Further arguments, which are just copied from the init-fit object supplied, are,
-n.latent, studyList, and the statisticsList. The fitted model is found in studyFitList, which is a large list with many elements (e.g., the
-ctsem model specified by CoTiMA, the rstan model created by ctsem, the fitted rstan model etc.). Further results returned are  a list with
-modelResults (i.e., DRIFT=DRIFT, DIFFUSION=DIFFUSION, T0VAR=T0VAR, CINT=NULL) and the paramter names internally used. The summary list,
-which is printed if the summary function is applied to the returned object, contains "estimates", which is itself a list comprising
-"Estimates of Model with all Effects Invariant", "Requested Statistical Power" (which just returns the argument statisticalPower),
-"Power (post hoc) for Drift Effects",  "Required Sample Sizes" "Effect Sizes (based on discrete-time calcs; used for power calcs.)", and
-"Range of significant effects" (across which intervals effects were significant). Plot type is plot.type=c("power") and model.type="ct"
-("omx" was deprecated).
+A \code{"CoTiMAFit"} object containing the invariant model, matrix
+  estimates, regression eligibility/details, calculation/interpretation notes,
+  required sample sizes and post-hoc power tables. \code{power_method} records
+  the route. The legacy \code{Opt. Lag} row selects the first tied minimum;
+  \code{summary$estimates[["All optimal lags"]]} retains every tied lag.
+  Infinite N denotes an unattainable target or a requirement beyond the
+  exact-integer search range; unavailable powers remain NA.
 }
 \description{
-Fits a full invariant model to a list of primary studies and performs analyses of expected (post hoc) power and required sample sizes.
+Fits or loads an invariant continuous-time model, then computes plug-in Gaussian discrete-time regression power and required sample sizes across positive time lags. Verified unrestricted regressions use covariance calculations; supported restrictions use lavaan regression fits.
+}
+\details{
+The fast default includes both tails of the noncentral-t test and
+  finds the minimum integer N by bisection. \code{useMBESS=TRUE} retains MBESS's
+  legacy upper-tail probability. Calculations concern plug-in discrete-time
+  regression effects, not the power of the pooled CT drift test. Missing post-hoc
+  powers remain NA. The legacy Opt. Lag row selects the first actual minimizing
+  lag; all ties are returned separately. Console and summary notes identify
+  whether covariance calculations or lavaan fits were used.
+  The state projection requires directly observed variables, identity loadings
+  and zero measurement error; recorded latent measurement/augmented-state
+  models require simulation-based power analysis.
 }
 \examples{
 \dontrun{
