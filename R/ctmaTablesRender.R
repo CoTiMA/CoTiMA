@@ -30,7 +30,7 @@
       .ctmaTablesTex(.ctmaTablesPanelTitle(title,i,length(panels))),'}\\par'),
       paste0('\\begin{longtable}{',paste0(spec,collapse=''),'}'),'\\toprule')
     if(!is.null(mapping)) {
-      groups<-mapping$group;starts<-c(1L,which(head(groups,-1L)!=tail(groups,-1L))+1L)
+      groups<-mapping$group;starts<-c(1L,which(head(groups,-1L)!=utils::tail(groups,-1L))+1L)
       ends<-c(starts[-1L]-1L,length(groups))
       cells<-vapply(seq_along(starts),function(j) {
         span<-ends[j]-starts[j]+1L
@@ -67,7 +67,7 @@
       '<w:tbl><w:tblPr><w:tblBorders><w:top w:val="single" w:sz="6"/><w:bottom w:val="single" w:sz="6"/><w:left w:val="nil"/><w:right w:val="nil"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders></w:tblPr>',
       paste0('<w:tblGrid>',paste0('<w:gridCol w:w="',round(w$widths*1440),'"/>',collapse=''),'</w:tblGrid>'))
     if(!is.null(mapping)) {
-      groups<-mapping$group;starts<-c(1L,which(head(groups,-1L)!=tail(groups,-1L))+1L);ends<-c(starts[-1L]-1L,length(groups))
+      groups<-mapping$group;starts<-c(1L,which(head(groups,-1L)!=utils::tail(groups,-1L))+1L);ends<-c(starts[-1L]-1L,length(groups))
       cells<-vapply(seq_along(starts),function(j)cell(groups[starts[j]],sum(w$widths[starts[j]:ends[j]]),ends[j]-starts[j]+1L),character(1))
       text<-c(text,paste0('<w:tr><w:trPr><w:tblHeader/></w:trPr>',paste0(cells,collapse=''),'</w:tr>'))
       header<-mapping$statistic;header[w$text]<-''

@@ -89,7 +89,7 @@
   mapping<-attr(display,'ctmaTables_columns')
   units<-if(is.null(mapping))as.list(numeric) else {
     group<-mapping$group[match(names(display)[numeric],mapping$key)]
-    split(numeric,cumsum(c(TRUE,head(group,-1L)!=tail(group,-1L))))
+    split(numeric,cumsum(c(TRUE,head(group,-1L)!=utils::tail(group,-1L))))
   }
   chunks<-list();current<-integer()
   cost<-function(cols)sum(required[as.character(cols)])
