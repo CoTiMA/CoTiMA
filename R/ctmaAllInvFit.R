@@ -87,6 +87,8 @@ ctmaAllInvFit <- function(
 
   { # fitting params
     # Added 10. Oct 2022 (17. Aug 2022 in Init fit similar)
+    if (!is.null(CoTiMAStanctArgs))
+      CoTiMAStanctArgs <- .ctmaSanitizeCtFitArgs(CoTiMAStanctArgs)
     tmp1 <- names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs); tmp1
     tmp2 <- CoTiMA::CoTiMAStanctArgs
     if (!(is.null(CoTiMAStanctArgs))) tmp2[tmp1] <- CoTiMAStanctArgs
@@ -356,7 +358,7 @@ ctmaAllInvFit <- function(
     CoTiMAStanctArgs$optimcontrol$bootstrapUncertainty <- NULL
 
     #allFixedModelFit <- suppressMessages(ctsem::ctStanFit(
-    allFixedModelFit <- (ctsem::ctStanFit(
+    allFixedModelFit <- (.ctmaCtStanFitCompat(
       type=type,
       datalong = datalong_all,
       ctstanmodel = allFixedModel,

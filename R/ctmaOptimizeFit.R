@@ -106,9 +106,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                                                savesubjectmatrices = FALSE,
                                                saveComplexPars = FALSE,
                                                gendata = FALSE,
-                                               control = list(),
-                                               #verbose = 0,
-                                               vb = FALSE)
+                                               control = list())
 )
 {
 
@@ -701,6 +699,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
 
       datalong[,2] <- datalong[,2] * scaleTime
       ctStanModel <- ctStanFit$ctstanmodelbase
+      ctStanFitArgs <- .ctmaSanitizeCtFitArgs(ctStanFitArgs)
       ctStanFitArgs$optimcontrol$finishsamples <- finishsamples
 
       fit <- tryCatch(withCallingHandlers(
@@ -734,8 +733,7 @@ ctmaOptimizeFit <- function(activateRPB=FALSE,
                                 saveComplexPars = ctStanFitArgs$saveComplexPars,
                                 gendata = ctStanFitArgs$gendata,
                                 control = ctStanFitArgs$control,
-                                verbose = verbose,
-                                vb = ctStanFitArgs$vb
+                                verbose = verbose
         ),
         warning = function(w) {warns[[i]] <<- w}),
         error = function(e) {errs[[i]] <<- e}

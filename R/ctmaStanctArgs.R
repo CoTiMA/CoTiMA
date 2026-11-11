@@ -65,5 +65,4 @@ CoTiMAStanctArgs<-list(test=TRUE,
                                     max_treedepth=10,
                                     adapt_init_buffer=75, #adapt_init_buffer=2,
                                     stepsize = .001),
-                       verbose = 0,
-                       vb=FALSE)
+                       verbose = 0)

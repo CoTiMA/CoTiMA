@@ -333,6 +333,8 @@ ctmaInit <- function(
       invariantDrift <- FALSE
       moderatedDrift <- NULL
 
+      if (!is.null(CoTiMAStanctArgs))
+        CoTiMAStanctArgs <- .ctmaSanitizeCtFitArgs(CoTiMAStanctArgs)
       tmp1 <- names(CoTiMA::CoTiMAStanctArgs) %in% names(CoTiMAStanctArgs); tmp1
       tmp2 <- CoTiMA::CoTiMAStanctArgs
       if (!(is.null(CoTiMAStanctArgs))) tmp2[tmp1] <- CoTiMAStanctArgs
@@ -1178,7 +1180,6 @@ ctmaInit <- function(
               saveComplexPars = CoTiMAStanctArgs$saveComplexPars,
               gendata = CoTiMAStanctArgs$gendata,
               control = CoTiMAStanctArgs$control,
-              vb = CoTiMAStanctArgs$vb,
               #warmup=CoTiMAStanctArgs$warmup,
               verbose=verbose,
               cores=coresToUse)

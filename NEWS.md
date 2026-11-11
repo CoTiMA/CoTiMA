@@ -1,3 +1,9 @@
+# CoTiMA 1.0.5
+
+* Remove the obsolete variational Bayes setting from Stan defaults and fit calls.
+* Explicitly select Stan when the installed ctsem fitting API accepts a backend.
+* Omit historical optimizer defaults when ctsem has retired them.
+
 # CoTiMA 1.0.4
 
 * `ctmaTables()` now accepts `fontSize = 10` (points) for titles, headers,

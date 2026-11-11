@@ -153,7 +153,7 @@ ctmaEqual <- function(
 
   CoTiMAStanctArgs$optimcontrol$bootstrapUncertainty <- NULL
 
-  fitStanctModel <- ctsem::ctFit(
+  fitStanctModel <- .ctmaCtFitCompat(
     inits=prevEst,
     datalong = prevData,
     ctstanmodel = stanctModel,

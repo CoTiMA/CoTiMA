@@ -35,7 +35,7 @@ ctmaOptimizeFit(
     list(), nopriors = NA, priors = FALSE, chains = 2, inits = NULL, compileArgs =
     list(), forcerecompile = FALSE, saveCompile = TRUE, savescores = FALSE,
     savesubjectmatrices = FALSE, saveComplexPars = FALSE, gendata = FALSE, control =
-    list(), vb = FALSE)
+    list())
 )
 }
 \arguments{

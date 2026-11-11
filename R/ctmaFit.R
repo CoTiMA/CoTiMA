@@ -1373,7 +1373,7 @@ ctmaFit <- function(
   if (fit == TRUE) {
     #CoTiMAStanctArgs$optimcontrol$bootstrapUncertainty <- NULL
     #fitStanctModel <- run_ctStanFit_logged(ctsem::ctStanFit( # CHD 15.7.2026
-    fitStanctModel <- ctsem::ctFit(
+    fitStanctModel <- .ctmaCtFitCompat(
       fit=fit,
       datalong = datalong_all,
       #ctstanmodel = stanctModel, # CHD 15.7.2026
